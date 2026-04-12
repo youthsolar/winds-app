@@ -2974,65 +2974,73 @@
     }
 
     // ── 初始化 Google One Tap + Sign-In Button ──
-    (function initGoogleSSO() {
-      // 檢查是否已有 session（sessionStorage 暫存 Google token）
-      var savedToken = "";
-      try { savedToken = sessionStorage.getItem("winds_google_token") || ""; } catch(ex) {}
-      if (savedToken) {
-        // 嘗試用已存的 token 恢復登入（token 可能已過期）
-        handleGoogleCredentialResponse({ credential: savedToken });
+    function initGoogleGIS() {
+      if (!GOOGLE_CLIENT_ID) { console.warn("No Google Client ID"); return; }
+      if (typeof google === 'undefined' || !google.accounts) {
+        // GIS SDK 還沒載入完，等一下再試
+        setTimeout(initGoogleGIS, 200);
         return;
       }
-
-      // URL 帶 log_id 但沒登入：先嘗試直接顯示結果
-      var urlParams = new URLSearchParams(window.location.search);
-      var returnLogId = urlParams.get("log_id");
-      if (returnLogId) {
-        showLoading();
-        startPolling(returnLogId, "", true);
-        return;
-      }
-      var pendingLogId = "";
-      try { pendingLogId = sessionStorage.getItem("winds_pending_log_id") || ""; } catch(ex) {}
-      if (pendingLogId) {
-        try { sessionStorage.removeItem("winds_pending_log_id"); } catch(ex) {}
-        showLoading();
-        startPolling(pendingLogId, "");
-        return;
-      }
-
-      // 顯示表單 + Google 登入按鈕
-      showForm();
-
-      // 初始化 Google One Tap（如果有 Client ID）
-      if (GOOGLE_CLIENT_ID && typeof google !== 'undefined' && google.accounts) {
-        google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: function(response) {
-            try { sessionStorage.setItem("winds_google_token", response.credential); } catch(ex) {}
-            handleGoogleCredentialResponse(response);
-          },
-          auto_select: true,
-          context: "signin"
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: function(response) {
+          try { sessionStorage.setItem("winds_google_token", response.credential); } catch(ex) {}
+          handleGoogleCredentialResponse(response);
+        },
+        auto_select: true,
+        context: "signin"
+      });
+      google.accounts.id.prompt();
+      var btnContainer = $("googleSignInBtn");
+      if (btnContainer) {
+        google.accounts.id.renderButton(btnContainer, {
+          theme: "outline",
+          size: "large",
+          text: "signin_with",
+          shape: "rectangular",
+          width: 300,
+          locale: "zh-TW"
         });
-        // 顯示 One Tap 提示
-        google.accounts.id.prompt();
-        // 在表單頂部也渲染一個登入按鈕
-        var btnContainer = $("googleSignInBtn");
-        if (btnContainer) {
-          google.accounts.id.renderButton(btnContainer, {
-            theme: "outline",
-            size: "large",
-            text: "signin_with",
-            shape: "rectangular",
-            width: 300,
-            locale: "zh-TW"
-          });
-        }
-      } else {
-        // Client ID 未設定（開發模式：直接顯示表單，不登入）
-        console.warn("Google Client ID not set — running without auth");
       }
+    }
+
+    // ── 主初始化流程 ──
+    (function init() {
+      try {
+        // 檢查是否已有 session（sessionStorage 暫存 Google token）
+        var savedToken = "";
+        try { savedToken = sessionStorage.getItem("winds_google_token") || ""; } catch(ex) {}
+        if (savedToken) {
+          handleGoogleCredentialResponse({ credential: savedToken });
+          initGoogleGIS();
+          return;
+        }
+
+        // URL 帶 log_id：直接顯示結果
+        var urlParams = new URLSearchParams(window.location.search);
+        var returnLogId = urlParams.get("log_id");
+        if (returnLogId) {
+          showLoading();
+          startPolling(returnLogId, "", true);
+          return;
+        }
+
+        // 付款後回來
+        var pendingLogId = "";
+        try { pendingLogId = sessionStorage.getItem("winds_pending_log_id") || ""; } catch(ex) {}
+        if (pendingLogId) {
+          try { sessionStorage.removeItem("winds_pending_log_id"); } catch(ex) {}
+          showLoading();
+          startPolling(pendingLogId, "");
+          return;
+        }
+      } catch(e) {
+        console.error("Init error:", e);
+      }
+
+      // 預設：顯示表單 + Google 登入按鈕
+      showForm();
+      initGoogleGIS();
     })();
 
   })();
