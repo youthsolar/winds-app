@@ -1,0 +1,281 @@
+/* ===========================================
+   Winds Design System — 共用樣式
+   所有 LIFF 頁面共用的 CSS 變數、字體、基礎元素
+   =========================================== */
+
+:root {
+  --winds-bg: #faf8f6;
+  --winds-text: #474747;
+  --winds-text-dark: #3b262a;
+  --winds-text-sub: #5a656b;
+  --winds-text-warm: #5a3e3e;
+  --winds-text-section: #7a4f4f;
+  --winds-text-muted: #999;
+  --winds-gold: #c9a84c;
+  --winds-gold-dark: #8b6914;
+  --winds-accent: #f0e6e6;
+  --winds-accent-hover: #e8dadb;
+  --winds-card-bg: #ffffff;
+  --winds-border: #dcd2d2;
+  --winds-border-dark: #5a656b;
+  --winds-error: #d9534f;
+  --winds-success: #2d6a4f;
+  --winds-success-bg: #d4edda;
+  --winds-disabled-bg: #e8e8e8;
+  --winds-disabled-text: #aaa;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--winds-bg);
+  color: var(--winds-text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@keyframes windsFadeInUp {
+  0%   { opacity: 0; transform: translateY(15px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Page Container --- */
+.winds-page {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  animation: windsFadeInUp 0.5s ease-out;
+}
+
+.winds-hidden { display: none !important; }
+
+/* --- Header --- */
+.winds-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.winds-header h1 {
+  font-family: 'LXGW WenKai TC', cursive;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--winds-text-dark);
+  margin: 0 0 6px 0;
+}
+.winds-header p {
+  font-size: 14px;
+  color: var(--winds-text-sub);
+  margin: 0;
+}
+.winds-header-divider {
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--winds-gold), transparent);
+  margin: 12px 40px;
+}
+
+/* --- Status Message --- */
+.winds-status {
+  display: none;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  animation: windsFadeInUp 0.3s ease-out;
+}
+.winds-status.info  { background: #fdf5f5; border: 1px solid #e8d5d5; color: #6b3a3a; }
+.winds-status.warn  { background: #fff3cd; border: 1px solid #ffc107; color: #664d03; }
+.winds-status.err   { background: #f8d7da; border: 1px solid #f5c2c7; color: #842029; }
+
+/* --- Buttons --- */
+.winds-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.winds-btn:active { transform: scale(0.98); }
+.winds-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+.winds-btn-primary {
+  background: var(--winds-text-dark);
+  color: #fff;
+}
+.winds-btn-primary:hover { background: #4a333a; }
+.winds-btn-primary:disabled { background: var(--winds-disabled-bg); color: var(--winds-disabled-text); cursor: not-allowed; }
+
+.winds-btn-gold {
+  background: var(--winds-gold);
+  color: var(--winds-text-dark);
+  font-size: 14px;
+}
+.winds-btn-gold:hover { background: #b8963f; }
+.winds-btn-gold:disabled { background: var(--winds-disabled-bg); color: var(--winds-disabled-text); }
+
+/* --- Result Card --- */
+.winds-result-card {
+  background: var(--winds-card-bg);
+  border-radius: 10px;
+  padding: 18px;
+  border: 0.5px solid var(--winds-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin-bottom: 16px;
+}
+
+.winds-result-label {
+  font-family: 'LXGW WenKai TC', serif;
+  font-size: 15px;
+  color: var(--winds-gold);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.winds-result-divider {
+  height: 1px;
+  background: linear-gradient(to right, var(--winds-gold), transparent);
+  margin-bottom: 14px;
+}
+
+.winds-result-text {
+  white-space: pre-wrap;
+  line-height: 1.7;
+  font-size: 14px;
+  color: var(--winds-text-dark);
+  padding: 14px;
+  background: var(--winds-bg);
+  border-radius: 8px;
+  border: 1px solid var(--winds-accent);
+  margin-bottom: 16px;
+}
+
+.winds-section-title {
+  font-family: 'LXGW WenKai TC', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--winds-gold);
+  letter-spacing: 0.05em;
+  margin: 16px 0 6px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(201,168,76,0.3);
+}
+
+.winds-section-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--winds-text-section);
+  margin: 12px 0 4px 0;
+}
+
+/* --- Loading Animation --- */
+.winds-loading {
+  text-align: center;
+  padding: 60px 20px;
+  animation: windsFadeInUp 0.5s ease-out;
+}
+.winds-dots { margin-bottom: 20px; }
+.winds-dots span {
+  display: inline-block;
+  width: 10px; height: 10px;
+  margin: 0 4px;
+  background: var(--winds-gold);
+  border-radius: 50%;
+  animation: windsBounce 1.2s infinite ease-in-out;
+}
+.winds-dots span:nth-child(2) { animation-delay: 0.2s; }
+.winds-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes windsBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%            { transform: scale(1);   opacity: 1; }
+}
+.winds-loading-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--winds-text-dark);
+  margin: 0 0 6px;
+}
+.winds-loading-sub {
+  font-size: 14px;
+  color: var(--winds-text-sub);
+  margin: 0;
+}
+
+/* --- Cooldown Card --- */
+.winds-cooldown-card {
+  background: linear-gradient(135deg, #fff8f0, #fff3e6);
+  border-radius: 10px;
+  padding: 24px 18px;
+  border: 0.5px solid #e8c9a0;
+  box-shadow: 0 2px 8px rgba(200,150,80,0.1);
+  margin-top: 12px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* --- Astro Card --- */
+.winds-astro-card {
+  background: var(--winds-card-bg);
+  border: 0.5px solid var(--winds-border);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  color: var(--winds-text-dark);
+}
+.astro-card-title {
+  font-family: 'LXGW WenKai TC', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--winds-gold-dark);
+  margin-bottom: 10px;
+  text-align: center;
+}
+.astro-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.astro-table td {
+  padding: 8px;
+  border-bottom: 0.5px solid var(--winds-border);
+}
+.astro-table td:first-child {
+  width: 90px;
+  color: var(--winds-gold-dark);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* --- Wuxing Chart --- */
+.winds-wuxing-chart {
+  background: var(--winds-card-bg);
+  border-radius: 10px;
+  border: 0.5px solid var(--winds-border);
+  padding: 16px;
+  margin-top: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  text-align: center;
+}
+
+/* --- Footer --- */
+.winds-footer {
+  text-align: center;
+  color: var(--winds-text-muted);
+  font-size: 11px;
+  margin-top: 24px;
+}
+
+/* --- Meta --- */
+.winds-meta {
+  font-size: 12px;
+  color: var(--winds-text-muted);
+  text-align: center;
+  margin-top: 12px;
+}

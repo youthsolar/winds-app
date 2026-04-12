@@ -1,0 +1,3042 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>✦ 找風問幸福 — 易經 × 塔羅 × 量能靈符</title>
+  <meta property="og:title" content="找風問幸福 — 免費占卜體驗">
+  <meta property="og:description" content="易經 × 塔羅 × 量能靈符 — 3 分鐘探索你的命運密碼 ✨">
+  <meta property="og:image" content="https://app.winds.tw/assets/og-share.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://app.winds.tw/">
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/winds.css">
+  <style>
+    /* ===========================================
+       Winds Design System — LIFF V2
+       =========================================== */
+    :root {
+      --winds-bg: #faf8f6;
+      --winds-text: #474747;
+      --winds-text-dark: #3b262a;
+      --winds-text-sub: #5a656b;
+      --winds-text-warm: #5a3e3e;
+      --winds-text-section: #7a4f4f;
+      --winds-text-muted: #999;
+      --winds-gold: #c9a84c;
+      --winds-gold-dark: #8b6914;
+      --winds-accent: #f0e6e6;
+      --winds-accent-hover: #e8dadb;
+      --winds-card-bg: #ffffff;
+      --winds-border: #dcd2d2;
+      --winds-border-dark: #5a656b;
+      --winds-error: #d9534f;
+      --winds-success: #2d6a4f;
+      --winds-success-bg: #d4edda;
+      --winds-disabled-bg: #e8e8e8;
+      --winds-disabled-text: #aaa;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--winds-bg);
+      color: var(--winds-text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    @keyframes windsFadeInUp {
+      0%   { opacity: 0; transform: translateY(15px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .winds-page {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+      animation: windsFadeInUp 0.5s ease-out;
+    }
+
+    .winds-hidden { display: none !important; }
+
+    /* --- Header --- */
+    .winds-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .winds-header h1 {
+      font-family: 'LXGW WenKai TC', cursive;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--winds-text-dark);
+      margin: 0 0 6px 0;
+    }
+    .winds-header p {
+      font-size: 14px;
+      color: var(--winds-text-sub);
+      margin: 0;
+    }
+
+    /* --- Status message --- */
+    .winds-status {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      animation: windsFadeInUp 0.3s ease-out;
+    }
+    .winds-status.info  { background: #fdf5f5; border: 1px solid #e8d5d5; color: #6b3a3a; }
+    .winds-status.warn  { background: #fff3cd; border: 1px solid #ffc107; color: #664d03; }
+    .winds-status.err   { background: #f8d7da; border: 1px solid #f5c2c7; color: #842029; }
+
+    /* ===========================================
+       Three-layer Topic Cards
+       =========================================== */
+    .winds-topic-section {
+      margin: 0 0 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .winds-topic-row,
+    .winds-sub-row,
+    .winds-third-row,
+    #birthCardWrapper {
+      box-sizing: border-box;
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 0;
+    }
+
+    .winds-sub-row,
+    .winds-third-row { display: none !important; }
+    .winds-sub-row.active,
+    .winds-third-row.active {
+      display: flex !important;
+      animation: windsFadeInUp 0.6s ease-out forwards;
+    }
+
+    /* Stage 1: first layer selected */
+    .winds-topic-section.winds-has-sub-selected:not(.winds-has-third-selected) .winds-topic-row {
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+      justify-content: center;
+    }
+
+    /* Stage 2: first + second layers selected — two columns */
+    .winds-topic-section.winds-has-sub-selected.winds-has-third-selected:not(.winds-step-3) .winds-topic-row,
+    .winds-topic-section.winds-has-sub-selected.winds-has-third-selected:not(.winds-step-3) .winds-sub-row.active {
+      flex: 0 0 calc(50% - 6px) !important;
+      max-width: calc(50% - 6px) !important;
+    }
+
+    /* Stage 3: all three layers selected — three columns */
+    .winds-topic-section.winds-step-3 .winds-topic-row,
+    .winds-topic-section.winds-step-3 .winds-sub-row.active,
+    .winds-topic-section.winds-step-3 .winds-third-row.active {
+      flex: 0 0 calc(33.33% - 8px) !important;
+      max-width: calc(33.33% - 8px) !important;
+    }
+
+    /* --- Card base styles --- */
+    .winds-topic-card,
+    .winds-sub-card,
+    .winds-third-card {
+      box-sizing: border-box;
+      flex: 0 0 calc(50% - 6px) !important;
+      max-width: calc(50% - 6px) !important;
+      background: var(--winds-card-bg);
+      border: 0.5px solid var(--winds-text-sub);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 12px;
+      color: var(--winds-text);
+      cursor: pointer;
+      transition: background-color 0.3s, border-color 0.3s, color 0.3s, box-shadow 0.3s;
+    }
+
+    .winds-topic-card-title,
+    .winds-sub-card-title,
+    .winds-third-card-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .winds-topic-card:hover,
+    .winds-sub-card:hover,
+    .winds-third-card:hover {
+      border-color: var(--winds-text-sub);
+      background: var(--winds-accent);
+      color: var(--winds-text-dark);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+
+    /* Stage 1: selected first-layer card keeps original width */
+    .winds-topic-section.winds-has-sub-selected:not(.winds-has-third-selected) .winds-topic-card.active {
+      flex: 0 0 calc(50% - 6px) !important;
+      max-width: calc(50% - 6px) !important;
+      border-color: var(--winds-text-sub);
+      background: var(--winds-accent);
+      color: var(--winds-text-dark);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    }
+
+    /* Stage 2 & 3: selected cards fill their row */
+    .winds-topic-section.winds-has-sub-selected.winds-has-third-selected .winds-topic-card.active,
+    .winds-topic-section.winds-has-sub-selected.winds-has-third-selected .winds-sub-card.active,
+    .winds-topic-section.winds-step-3 .winds-topic-card.active,
+    .winds-topic-section.winds-step-3 .winds-sub-card.active,
+    .winds-topic-section.winds-step-3 .winds-third-card.active {
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+      border-color: var(--winds-text-sub);
+      background: var(--winds-accent);
+      color: var(--winds-text-dark);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    }
+
+    /* --- Form card (inside topic section) --- */
+    #birthCardWrapper { margin-top: 0; }
+    #birthCardWrapper:not(.winds-hidden) {
+      animation: windsFadeInUp 0.6s ease-out forwards;
+    }
+
+    .winds-bottom-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .winds-input-card {
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+      background: var(--winds-card-bg);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      border: 0.5px solid var(--winds-text-sub);
+      font-size: 12px;
+      color: var(--winds-text);
+    }
+
+    .winds-contact-row,
+    .winds-birth-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .winds-contact-field {
+      flex: 1 1 100px;
+      min-width: 100px;
+    }
+    .winds-contact-field label {
+      display: block;
+      font-size: 11px;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .winds-required { color: var(--winds-error); margin-left: 2px; }
+
+    .winds-field-tip {
+      font-size: 0.82em;
+      color: var(--winds-text-muted);
+      text-align: left;
+      margin: 4px 0 0 0;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: opacity 0.25s ease, max-height 0.25s ease;
+    }
+    .winds-field-tip.visible {
+      opacity: 1;
+      max-height: 2em;
+    }
+
+    .winds-input,
+    .birth-card-input {
+      width: 100%;
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--winds-border);
+      font-size: 12px !important;
+      outline: none;
+      color: var(--winds-text);
+      box-sizing: border-box;
+      height: 30px;
+      background: #fff;
+    }
+    .winds-input::placeholder,
+    .birth-card-input::placeholder { font-size: 12px !important; color: var(--winds-text-muted); }
+    .winds-input:focus,
+    .birth-card-input:focus {
+      border-color: var(--winds-text-sub);
+      box-shadow: 0 0 0 1px rgba(90,101,107,0.18);
+    }
+    .birth-card-input[type="date"],
+    .birth-card-input[type="time"] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    .winds-textarea {
+      width: 100%;
+      min-height: 110px;
+      border-radius: 6px;
+      border: 1px solid var(--winds-border);
+      padding: 6px 7px;
+      font-size: 12px !important;
+      resize: vertical;
+      outline: none;
+      line-height: 1.6;
+      color: var(--winds-text);
+      font-family: inherit;
+      background: #fff;
+    }
+    .winds-textarea::placeholder { font-size: 12px !important; color: var(--winds-text-muted); }
+    .winds-textarea:focus {
+      border-color: var(--winds-text-sub);
+      box-shadow: 0 0 0 1px rgba(90,101,107,0.18);
+    }
+
+    .winds-char-counter {
+      text-align: right;
+      font-size: 11px;
+      margin-top: 2px;
+      color: var(--winds-text-muted);
+    }
+
+    .winds-submit-row { text-align: center; margin-top: 10px; }
+
+    /* --- Buttons --- */
+    .winds-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .winds-btn:active { transform: scale(0.98); }
+    .winds-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+    .winds-btn-primary {
+      background: var(--winds-text-dark);
+      color: #fff;
+    }
+    .winds-btn-primary:hover { background: #4a333a; }
+    .winds-btn-primary:disabled { background: var(--winds-disabled-bg); color: var(--winds-disabled-text); cursor: not-allowed; }
+
+    .winds-btn-gold {
+      background: var(--winds-gold);
+      color: var(--winds-text-dark);
+      font-size: 14px;
+    }
+    .winds-btn-gold:hover { background: #b8963f; }
+    .winds-btn-gold:disabled { background: var(--winds-disabled-bg); color: var(--winds-disabled-text); }
+    .soul-btn-generating { background: var(--winds-disabled-bg) !important; color: var(--winds-disabled-text) !important; }
+    .soul-btn-ready      { background: #d4edda !important; color: #2d6a4f !important; }
+
+    /* 命理資料卡 */
+    .winds-astro-card {
+      background: var(--winds-card-bg);
+      border: 0.5px solid var(--winds-border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      color: var(--winds-text-dark);
+    }
+    .astro-card-title {
+      font-family: 'LXGW WenKai TC', cursive;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--winds-gold-dark);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .astro-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .astro-table td {
+      padding: 8px;
+      border-bottom: 0.5px solid var(--winds-border);
+    }
+    .astro-table td:first-child {
+      width: 90px;
+      color: var(--winds-gold-dark);
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .astro-tarot-section {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 0.5px solid var(--winds-border);
+    }
+    .astro-tarot-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--winds-gold-dark);
+      margin-bottom: 8px;
+    }
+    .astro-tarot-grid {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .astro-tarot-item {
+      text-align: center;
+      width: 70px;
+    }
+    .astro-tarot-item img {
+      width: 60px;
+      height: 90px;
+      object-fit: contain;
+      border-radius: 4px;
+      border: 1px solid #d4c4a8;
+    }
+    .astro-tarot-label {
+      font-size: 12px;
+      color: var(--winds-gold-dark);
+      margin-top: 4px;
+    }
+    .astro-tarot-name {
+      font-size: 13px;
+      color: var(--winds-text-dark);
+      font-weight: 600;
+    }
+    .astro-profile-section {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 0.5px solid var(--winds-border);
+    }
+    .astro-profile-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--winds-gold-dark);
+      margin-bottom: 6px;
+    }
+    .astro-profile-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--winds-text-warm);
+    }
+    .astro-profile-toggle {
+      background: none;
+      border: none;
+      color: var(--winds-gold-dark);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px 0;
+      margin-top: 4px;
+      text-decoration: underline;
+    }
+    .winds-wuxing-chart {
+      background: var(--winds-card-bg);
+      border-radius: 10px;
+      border: 0.5px solid var(--winds-border);
+      padding: 16px;
+      margin-top: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      text-align: center;
+    }
+    .winds-wuxing-subtitle {
+      font-size: 11px;
+      color: var(--winds-text-muted);
+      margin-top: 2px;
+      margin-bottom: 12px;
+    }
+
+    /* ===========================================
+       Loading Animation
+       =========================================== */
+    .winds-loading {
+      text-align: center;
+      padding: 60px 20px;
+      animation: windsFadeInUp 0.5s ease-out;
+    }
+    .winds-dots {
+      margin-bottom: 20px;
+    }
+    .winds-dots span {
+      display: inline-block;
+      width: 10px; height: 10px;
+      margin: 0 4px;
+      background: var(--winds-gold);
+      border-radius: 50%;
+      animation: windsBounce 1.2s infinite ease-in-out;
+    }
+    .winds-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .winds-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes windsBounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40%            { transform: scale(1);   opacity: 1; }
+    }
+    .winds-loading-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--winds-text-dark);
+      margin: 0 0 6px;
+    }
+    .winds-loading-sub {
+      font-size: 14px;
+      color: var(--winds-text-sub);
+      margin: 0;
+    }
+
+    /* ===========================================
+       Result Card
+       =========================================== */
+    .winds-result {
+      animation: windsFadeInUp 0.5s ease-out;
+    }
+    .winds-result-card {
+      background: var(--winds-card-bg);
+      border-radius: 10px;
+      padding: 18px;
+      border: 0.5px solid var(--winds-border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+    }
+    .winds-cooldown-card {
+      background: linear-gradient(135deg, #fff8f0, #fff3e6);
+      border-radius: 10px;
+      padding: 24px 18px;
+      border: 0.5px solid #e8c9a0;
+      box-shadow: 0 2px 8px rgba(200,150,80,0.1);
+      margin-top: 12px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .winds-cooldown-card .cooldown-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+    .winds-cooldown-card .cooldown-message {
+      font-size: 14px;
+      color: #6b5230;
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+    .winds-cooldown-card .winds-btn-back {
+      display: inline-block;
+      padding: 10px 28px;
+      border-radius: 8px;
+      background: var(--winds-accent);
+      color: var(--winds-text-dark);
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+    .winds-result-label {
+      font-family: 'LXGW WenKai TC', cursive;
+      font-size: 15px;
+      color: var(--winds-gold);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .winds-result-divider {
+      height: 1px;
+      background: linear-gradient(to right, var(--winds-gold), transparent);
+      margin-bottom: 14px;
+    }
+    .winds-result-text {
+      white-space: pre-wrap;
+      line-height: 1.7;
+      font-size: 14px;
+      color: var(--winds-text-dark);
+      padding: 14px;
+      background: var(--winds-bg);
+      border-radius: 8px;
+      border: 1px solid var(--winds-accent);
+      margin-bottom: 16px;
+    }
+
+    .winds-section-title {
+      font-family: 'LXGW WenKai TC', cursive;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--winds-gold);
+      letter-spacing: 0.05em;
+      margin: 16px 0 6px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(201,168,76,0.3);
+    }
+    .winds-section-subtitle {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--winds-text-section);
+      margin: 12px 0 4px 0;
+    }
+
+    /* --- Footer --- */
+    .winds-footer {
+      text-align: center;
+      color: var(--winds-text-muted);
+      font-size: 11px;
+      margin-top: 24px;
+    }
+
+    /* ===========================================
+       RWD — Mobile
+       =========================================== */
+    @media (max-width: 768px) {
+      .winds-topic-section { display: block; gap: 0; }
+
+      .winds-topic-row,
+      .winds-sub-row,
+      .winds-third-row,
+      #birthCardWrapper,
+      .winds-topic-section.winds-has-sub-selected:not(.winds-has-third-selected) .winds-topic-row,
+      .winds-topic-section.winds-has-sub-selected.winds-has-third-selected:not(.winds-step-3) .winds-topic-row,
+      .winds-topic-section.winds-has-sub-selected.winds-has-third-selected:not(.winds-step-3) .winds-sub-row.active,
+      .winds-topic-section.winds-step-3 .winds-topic-row,
+      .winds-topic-section.winds-step-3 .winds-sub-row.active,
+      .winds-topic-section.winds-step-3 .winds-third-row.active {
+        flex: none !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin-top: 12px !important;
+      }
+
+      .winds-topic-card,
+      .winds-sub-card,
+      .winds-third-card {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+      }
+
+      .winds-topic-section.winds-has-sub-selected:not(.winds-has-third-selected) .winds-topic-card.active,
+      .winds-topic-section.winds-has-sub-selected.winds-has-third-selected .winds-topic-card.active,
+      .winds-topic-section.winds-has-sub-selected.winds-has-third-selected .winds-sub-card.active,
+      .winds-topic-section.winds-step-3 .winds-topic-card.active,
+      .winds-topic-section.winds-step-3 .winds-sub-card.active,
+      .winds-topic-section.winds-step-3 .winds-third-card.active {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+      }
+
+      .winds-bottom-row { flex-direction: column; }
+
+      .winds-input-card {
+        flex: none !important;
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+
+      .winds-contact-field {
+        flex: 1 1 calc(50% - 5px) !important;
+        max-width: calc(50% - 5px) !important;
+        min-width: calc(50% - 5px) !important;
+      }
+
+      .winds-birth-row {
+        flex-wrap: nowrap !important;
+      }
+    }
+    .winds-oracle-wrap {
+      background: var(--winds-card-bg);
+      border: 0.5px solid var(--winds-border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      text-align: center;
+    }
+    .winds-oracle-header {
+      font-size: 13px;
+      color: var(--winds-gold);
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .winds-oracle-sub {
+      font-size: 11px;
+      color: var(--winds-text-muted);
+      margin-bottom: 12px;
+    }
+    .winds-oracle-poem {
+      font-size: 15px;
+      color: var(--winds-text-dark);
+      font-weight: bold;
+      line-height: 2;
+      margin: 8px 0;
+    }
+    .winds-oracle-fortune {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--winds-gold);
+      border: 1px solid #e8d5a3;
+      border-radius: 20px;
+      padding: 2px 10px;
+      margin-top: 8px;
+    }
+    .winds-oracle-lock {
+      font-size: 12px;
+      color: var(--winds-text-muted);
+      margin-top: 10px;
+    }
+    /* 孔明大易神數 — 最後一擊（對齊 Winds Design System） */
+    .kongming-wrap {
+      background: var(--winds-card-bg);
+      border: 0.5px solid var(--winds-border);
+      border-top: 3px solid var(--winds-gold); /* 金頂條：唯一的「特殊感」標記 */
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      animation: kongmingReveal 600ms ease-out;
+    }
+    @keyframes kongmingReveal {
+      0% { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .kongming-wrap { animation: none; }
+    }
+    .kongming-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 0.5px solid var(--winds-border);
+    }
+    .kongming-title {
+      font-family: 'LXGW WenKai TC', cursive;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: var(--winds-gold);
+      flex: 1;
+      line-height: 1.4;
+    }
+    .kongming-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .kongming-badge.tier-top {
+      background: var(--winds-gold);
+      color: #fff;
+    }
+    .kongming-badge.tier-mid {
+      background: transparent;
+      color: var(--winds-gold);
+      border: 1px solid #e8d5a3;
+    }
+    .kongming-badge.tier-low {
+      background: var(--winds-text-muted);
+      color: #fff;
+    }
+    .kongming-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin: 4px 0 12px 0;
+      flex-wrap: wrap;
+    }
+    .kongming-hex {
+      text-align: center;
+    }
+    .kongming-hex-name {
+      font-family: 'LXGW WenKai TC', cursive;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--winds-text-dark);
+      line-height: 1.3;
+    }
+    .kongming-hex-meta {
+      font-size: 11px;
+      color: var(--winds-text-muted);
+      margin-top: 2px;
+    }
+    .kongming-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--winds-gold);
+      font-size: 11px;
+      font-weight: 600;
+      gap: 1px;
+    }
+    .kongming-arrow-line {
+      font-size: 16px;
+      line-height: 1;
+    }
+    .kongming-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--winds-text-muted);
+      margin: 6px 0 12px 0;
+      padding: 8px 0;
+      border-top: 0.5px dashed var(--winds-border);
+      border-bottom: 0.5px dashed var(--winds-border);
+    }
+    .kongming-fortune {
+      font-weight: 600;
+      color: var(--winds-gold);
+    }
+    .kongming-symbols {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .kongming-sym-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .kongming-sym-dot::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .kongming-sym-dot[data-el="火"]::before { background: #d9534f; }
+    .kongming-sym-dot[data-el="水"]::before { background: #4a90e2; }
+    .kongming-sym-dot[data-el="土"]::before { background: #b08d57; }
+    .kongming-sym-dot[data-el="木"]::before { background: #5cb85c; }
+    .kongming-sym-dot[data-el="金"]::before { background: var(--winds-gold); }
+    .kongming-sym-dot[data-el="命"]::before { background: #8b6f9a; }
+    .kongming-shunming {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(139, 111, 154, 0.1);
+      color: #8b6f9a;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .kongming-shunming::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #8b6f9a;
+      display: inline-block;
+    }
+    .kongming-poem {
+      font-family: 'LXGW WenKai TC', cursive;
+      font-size: 15px;
+      font-weight: bold;
+      color: var(--winds-text-dark);
+      line-height: 2;
+      text-align: center;
+      margin: 8px 0 12px 0;
+      padding: 0 8px;
+    }
+    .kongming-poem::before, .kongming-poem::after {
+      color: var(--winds-gold);
+      font-size: 16px;
+      line-height: 1;
+    }
+    .kongming-poem::before { content: '「'; }
+    .kongming-poem::after { content: '」'; }
+    .kongming-interp-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--winds-gold);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .kongming-interp-text {
+      font-size: 13px;
+      color: var(--winds-text);
+      line-height: 1.75;
+    }
+    .kongming-interp-locked {
+      font-size: 11px;
+      color: var(--winds-text-muted);
+      font-style: italic;
+      margin-top: 6px;
+    }
+    /* 語意推薦卡片 */
+    .recommend-wrap {
+      margin-top: 16px;
+      margin-bottom: 16px;
+    }
+    .recommend-title {
+      font-family: 'LXGW WenKai TC', cursive;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: var(--winds-gold);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .recommend-card {
+      background: var(--winds-card-bg);
+      border: 0.5px solid var(--winds-border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .recommend-card-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .recommend-card-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .recommend-card-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--winds-text-dark);
+      line-height: 1.4;
+    }
+    .recommend-card-reason {
+      font-size: 12px;
+      color: var(--winds-text-sub);
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+    .recommend-card-price {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--winds-gold-dark);
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .talisman-preview-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .talisman-preview-step {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--winds-gold-dark);
+      margin-bottom: 2px;
+    }
+    .talisman-preview-img {
+      width: 100%;
+      aspect-ratio: 9/16;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #0d0d0d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .talisman-preview-lock {
+      font-size: 16px;
+      opacity: 0.5;
+    }
+    .talisman-preview-info {
+      text-align: center;
+      width: 100%;
+    }
+    .talisman-preview-days {
+      font-size: 9px;
+      color: var(--winds-text-muted);
+      margin-bottom: 3px;
+    }
+    .talisman-preview-label {
+      font-size: 10px;
+      color: #9b8aa0;
+    }
+    .talisman-blur-wrap {
+      display: inline-block;
+      position: relative;
+      width: 120px;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #f5f0eb;
+    }
+    .talisman-blur-wrap img {
+      width: 120px;
+      max-width: 120px;
+      display: block;
+      user-select: none;
+      -webkit-user-select: none;
+      filter: blur(8px);
+      transform: scale(1.1) translateZ(0);
+      transform-origin: center;
+      will-change: transform;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    .talisman-blur-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, rgba(71,71,71,0.5) 0.6px, transparent 0.6px);
+      background-size: 2.5px 2.5px;
+      pointer-events: none;
+    }
+  </style>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+<body>
+  <div class="winds-page">
+    <!-- Header -->
+    <div class="winds-header">
+      <img src="/assets/logo.png" alt="找風問幸福" style="width:60px;height:60px;margin-bottom:6px;">
+      <h1>找風問幸福</h1>
+      <p>易經 × 塔羅 × 量能靈符</p>
+    </div>
+
+    <!-- Google Sign-In Button (rendered by GIS SDK) -->
+    <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:16px;"></div>
+
+    <!-- Status message -->
+    <div id="status" class="winds-status"></div>
+
+    <!-- ============================
+         State A: Three-layer Topic Cards
+         ============================ -->
+    <!-- 初始載入畫面 -->
+    <div id="initLoading" style="text-align:center; padding:40px 20px;">
+      <div class="winds-loading">
+        <div class="winds-loading-icon">🔮</div>
+        <p class="winds-loading-title">載入中…</p>
+      </div>
+    </div>
+
+    <div class="winds-topic-section" id="topicSection" style="display:none;">
+      <!-- 第一層：3 類 -->
+      <div class="winds-topic-row">
+        <div class="winds-topic-card" data-topic="love">
+          <div class="winds-topic-card-title">感情與婚姻困擾</div>
+          <div>關於感情、婚姻、關係拉扯與擔心，想看清彼此的真實想法與走向。</div>
+        </div>
+        <div class="winds-topic-card" data-topic="career">
+          <div class="winds-topic-card-title">事業與財富規劃</div>
+          <div>包含工作方向、轉職創業、財務壓力與收入穩定度，想釐清下一步。</div>
+        </div>
+        <div class="winds-topic-card" data-topic="health">
+          <div class="winds-topic-card-title">身心與健康狀態</div>
+          <div>對身心狀態、睡眠、壓力或長期不適感到擔心，希望調整能量。</div>
+        </div>
+      </div>
+
+      <!-- 第二層：感情 -->
+      <div class="winds-sub-row" id="winds-sub-love">
+        <div class="winds-sub-card" data-sub="love-reunion">
+          <div class="winds-sub-card-title">復合與舊愛</div>
+          <div>分手後想知道是否還有機會，或徹底放下。</div>
+        </div>
+        <div class="winds-sub-card" data-sub="love-crush">
+          <div class="winds-sub-card-title">暗戀與曖昧</div>
+          <div>想知道對方心意、發展可能或行動時機。</div>
+        </div>
+        <div class="winds-sub-card" data-sub="love-partner">
+          <div class="winds-sub-card-title">伴侶與婚姻</div>
+          <div>解決爭執、冷淡、懷疑或改善關係。</div>
+        </div>
+        <div class="winds-sub-card" data-sub="love-single">
+          <div class="winds-sub-card-title">單身與桃花</div>
+          <div>求正緣、斬爛桃花、查詢桃花運勢。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：感情/復合 -->
+      <div class="winds-third-row" id="winds-third-love-reunion">
+        <div class="winds-third-card" data-third="1.1.1">
+          <div class="winds-third-card-title">我們分手了，我想知道復合機會有多大？</div>
+          <div>想知道對方是否已真分，還是有機會。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.1.2">
+          <div class="winds-third-card-title">我想知道他跟我分手的真正原因是什麼？</div>
+          <div>對方沒說清楚，想查清是否有隱情。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.1.3">
+          <div class="winds-third-card-title">這段感情讓我好痛苦，我該放下還是繼續等？</div>
+          <div>需要一個明確的指引，幫助我做決定讓我好好走下去。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.1.4">
+          <div class="winds-third-card-title">我放不下他，想知道他現在對我的感覺是怎樣？</div>
+          <div>想確認對方當下的心意與感覺。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：感情/暗戀 -->
+      <div class="winds-third-row" id="winds-third-love-crush">
+        <div class="winds-third-card" data-third="1.2.1">
+          <div class="winds-third-card-title">我喜歡他，想知道我們有沒有可能在一起？</div>
+          <div>看雙方的緣分能量與未來走向。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.2.2">
+          <div class="winds-third-card-title">他對我忽冷忽熱，想知道他到底喜不喜歡我？</div>
+          <div>想直接看清對方的心意與態度。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.2.3">
+          <div class="winds-third-card-title">我想向他告白，但不知道現在是不是好時機？</div>
+          <div>希望行動的時機點與成功率。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.2.4">
+          <div class="winds-third-card-title">這段曖昧關係一直沒結果，有沒有隱藏問題想我沒看見的？</div>
+          <div>查出曖昧無法推進的根本原因。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：感情/伴侶 -->
+      <div class="winds-third-row" id="winds-third-love-partner">
+        <div class="winds-third-card" data-third="1.3.1">
+          <div class="winds-third-card-title">最近常吵架，想知道我們是不是不合或有冤家債？</div>
+          <div>看關係中的因果業力與相處癥結。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.3.2">
+          <div class="winds-third-card-title">我想知道這段婚姻/感情，未來一年的走向如何？</div>
+          <div>看雙方感情運勢的起伏。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.3.3">
+          <div class="winds-third-card-title">我懷疑有第三者，或對我不忠，能幫我查嗎？</div>
+          <div>查對方是否有曖昧或隱情事件。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.3.4">
+          <div class="winds-third-card-title">我想挽救這段關係，有沒有建議或方向？</div>
+          <div>尋求改善關係的具體做法。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：感情/單身 -->
+      <div class="winds-third-row" id="winds-third-love-single">
+        <div class="winds-third-card" data-third="1.4.1">
+          <div class="winds-third-card-title">我單身很久了，想知道什麼時候會有正緣？</div>
+          <div>查桃花運勢與正緣出現的時間點。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.4.2">
+          <div class="winds-third-card-title">為什麼我總是遇到爛桃花？是不是我有什麼問題？</div>
+          <div>探索感情一直不順的深層原因。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.4.3">
+          <div class="winds-third-card-title">我想斬桃花，請告訴我怎樣能招到好對象？</div>
+          <div>希望斬桃花的具體方法與建議。</div>
+        </div>
+        <div class="winds-third-card" data-third="1.4.4">
+          <div class="winds-third-card-title">我想知道這幾個月的桃花運勢如何？</div>
+          <div>看近期的感情能量場。</div>
+        </div>
+      </div>
+
+      <!-- 第二層：事業 -->
+      <div class="winds-sub-row" id="winds-sub-career">
+        <div class="winds-sub-card" data-sub="career-job">
+          <div class="winds-sub-card-title">求職與換工作</div>
+          <div>轉職評估、去留抉擇、面試運勢。</div>
+        </div>
+        <div class="winds-sub-card" data-sub="career-business">
+          <div class="winds-sub-card-title">創業與副業</div>
+          <div>創業運勢、合夥人篩選、生意診斷。</div>
+        </div>
+        <div class="winds-sub-card" data-sub="career-office">
+          <div class="winds-sub-card-title">職場人際與升遷</div>
+          <div>防小人、升遷機會、辦公室風水。</div>
+        </div>
+        <div class="winds-sub-card" data-sub="career-wealth">
+          <div class="winds-sub-card-title">投資與財運</div>
+          <div>正偏財運、漏財原因、投資吉凶。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：事業/求職 -->
+      <div class="winds-third-row" id="winds-third-career-job">
+        <div class="winds-third-card" data-third="2.1.1">
+          <div class="winds-third-card-title">我現在這份工作做得好痛苦，該轉職還是繼續？</div>
+          <div>面臨留或去的抉擇，需要指引。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.1.2">
+          <div class="winds-third-card-title">我想換工作，想知道換到新環境會不會更好？</div>
+          <div>預估換工作的運勢與發展情況。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.1.3">
+          <div class="winds-third-card-title">我一直找不到合適的工作，是不是運勢被卡住？</div>
+          <div>查找無形的阻礙或業力。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.1.4">
+          <div class="winds-third-card-title">我有幾個工作機會在選，哪一個比較適合我？</div>
+          <div>針對選項進行評估與建議。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：事業/創業 -->
+      <div class="winds-third-row" id="winds-third-career-business">
+        <div class="winds-third-card" data-third="2.2.1">
+          <div class="winds-third-card-title">我想創業/做副業，想知道我有沒有創業的命？</div>
+          <div>看個人的事業能量與時機穩定度。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.2.2">
+          <div class="winds-third-card-title">最近生意變差，想知道是什麼原因造成的？</div>
+          <div>查出生意下滑的外因或內部能量損傷。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.2.3">
+          <div class="winds-third-card-title">我想跟人合夥，想預先看這個合作對象能不能信？</div>
+          <div>預篩合夥人的能量與誠信。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.2.4">
+          <div class="winds-third-card-title">我想擴大經營，不知道這個決策是否正確？</div>
+          <div>針對重大商業決策進行占卜指引。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：事業/職場 -->
+      <div class="winds-third-row" id="winds-third-career-office">
+        <div class="winds-third-card" data-third="2.3.1">
+          <div class="winds-third-card-title">我在公司是不是被小人針對？為什麼一直不順？</div>
+          <div>查職場上的小人與陰性干擾。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.3.2">
+          <div class="winds-third-card-title">我想知道今年有沒有升遷加薪的機會？</div>
+          <div>預測職場運勢的走向。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.3.3">
+          <div class="winds-third-card-title">跟主管/同事處不來，該怎樣改善關係？</div>
+          <div>尋求改善職場關係的方法。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.3.4">
+          <div class="winds-third-card-title">我覺得職公室風水或氣場怪怪的，是否有問題？</div>
+          <div>感受工作環境的能量場。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：事業/財運 -->
+      <div class="winds-third-row" id="winds-third-career-wealth">
+        <div class="winds-third-card" data-third="2.4.1">
+          <div class="winds-third-card-title">我想知道我這一生的財帛運穩不穩？</div>
+          <div>看本命財帛與財富大局。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.4.2">
+          <div class="winds-third-card-title">最近一直破財，錢怎麼也留不住，想查原因？</div>
+          <div>找出漏財的漏洞與原因。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.4.3">
+          <div class="winds-third-card-title">我想投資這個項目，能幫我占卜適不適合嗎？</div>
+          <div>預測特定投資項目的成敗。</div>
+        </div>
+        <div class="winds-third-card" data-third="2.4.4">
+          <div class="winds-third-card-title">未來半年的偏財運如何？適合增加收入嗎？</div>
+          <div>看短期的偏財能量。</div>
+        </div>
+      </div>
+
+      <!-- 第二層：健康 -->
+      <div class="winds-sub-row" id="winds-sub-health">
+        <div class="winds-sub-card" data-sub="health-body">
+          <div class="winds-sub-card-title">身體健康</div>
+          <div>不明病因、手術平安、健康運勢。</div>
+        </div>
+        <div class="winds-sub-card" data-sub="health-mind">
+          <div class="winds-sub-card-title">心理與情緒</div>
+          <div>憂鬱焦慮、失眠多夢、情緒不穩。</div>
+        </div>
+        <div class="winds-sub-card" data-sub="health-spirit">
+          <div class="winds-sub-card-title">靈異與運勢</div>
+          <div>卡陰中煞、居家風水、祖先問題。</div>
+        </div>
+        <div class="winds-sub-card" data-sub="health-family">
+          <div class="winds-sub-card-title">家庭與寵物</div>
+          <div>小孩收驚、寵物溝通、家人運勢。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：健康/身體 -->
+      <div class="winds-third-row" id="winds-third-health-body">
+        <div class="winds-third-card" data-third="3.1.1">
+          <div class="winds-third-card-title">身體檢查都正常，但就是覺得不舒服，想查原因？</div>
+          <div>探索現代醫學查不出的無形干擾。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.1.2">
+          <div class="winds-third-card-title">我想知道今年的健康運勢，要注意什麼？</div>
+          <div>預測健康狀態與潛在風險。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.1.3">
+          <div class="winds-third-card-title">小孩生病一直好不了，是不是有冤家債或外煞？</div>
+          <div>查看小孩的健康是否受業力糾纏。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.1.4">
+          <div class="winds-third-card-title">即將要做手術，想問手術順不順利？</div>
+          <div>針對醫療行為進行祈福與預測平安。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：健康/心理 -->
+      <div class="winds-third-row" id="winds-third-health-mind">
+        <div class="winds-third-card" data-third="3.2.1">
+          <div class="winds-third-card-title">我最近心情好低落、焦慮，找不出原因。</div>
+          <div>探尋心緒波動的能量來源與解方。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.2.2">
+          <div class="winds-third-card-title">常做惡夢、驚醒，為什麼會這樣？</div>
+          <div>分析是心理壓力還是外靈影響。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.2.3">
+          <div class="winds-third-card-title">總是容易累、睡不好、壓力大。</div>
+          <div>解析夢境與睡眠品質的能量阻礙。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.2.4">
+          <div class="winds-third-card-title">心裡有個結打不開，鬱悶很久一直建議我該怎麼調整。</div>
+          <div>尋求心理上的指引。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：健康/靈異 -->
+      <div class="winds-third-row" id="winds-third-health-spirit">
+        <div class="winds-third-card" data-third="3.3.1">
+          <div class="winds-third-card-title">我覺得運氣好差，為什麼一直不順利？是否卡到陰？</div>
+          <div>查自身氣場是否卡陰或中煞。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.3.2">
+          <div class="winds-third-card-title">小孩常有怪夢或怪事，是不是看到什麼了？</div>
+          <div>鑑別小孩的靈敏體質或陰性干擾。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.3.3">
+          <div class="winds-third-card-title">我想問祖先有沒有好？有沒有需要做的？</div>
+          <div>查否祖先姻緣或願力未圓滿。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.3.4">
+          <div class="winds-third-card-title">我想了解我的家居環境或指定空間是否適合？</div>
+          <div>探索個人的體質與能量類型。</div>
+        </div>
+      </div>
+
+      <!-- 第三層：健康/家庭 -->
+      <div class="winds-third-row" id="winds-third-health-family">
+        <div class="winds-third-card" data-third="3.4.1">
+          <div class="winds-third-card-title">小孩最近易驚嚇、常哭鬧，是不是驚到了？</div>
+          <div>查小孩是否受驚或受影響。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.4.2">
+          <div class="winds-third-card-title">家裡的寵物最近怪怪的，想知道牠怎麼了？</div>
+          <div>與寵物溝通，了解牠的身心狀況。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.4.3">
+          <div class="winds-third-card-title">擔心家人的運勢，想幫他們問前後運或該注意。</div>
+          <div>查否家人運勢有風險需防範。</div>
+        </div>
+        <div class="winds-third-card" data-third="3.4.4">
+          <div class="winds-third-card-title">過世的親人現在過得好不好？</div>
+          <div>探察已故親人在另一個世界的狀態。</div>
+        </div>
+      </div>
+
+      <!-- ============================
+           State B: Personal Info Form
+           ============================ -->
+      <div id="birthCardWrapper" class="winds-hidden">
+        <div class="winds-bottom-row">
+          <div class="winds-input-card">
+            <div class="winds-contact-row">
+              <div class="winds-contact-field">
+                <label for="windsLastName">姓<span class="winds-required">*</span></label>
+                <input id="windsLastName" type="text" class="winds-input" placeholder="請輸入姓氏">
+              </div>
+              <div class="winds-contact-field">
+                <label for="windsFirstName">名<span class="winds-required">*</span></label>
+                <input id="windsFirstName" type="text" class="winds-input" placeholder="請輸入名字">
+              </div>
+              <div class="winds-contact-field">
+                <label for="windsPhone">手機<span class="winds-required">*</span></label>
+                <input id="windsPhone" type="tel" class="winds-input" placeholder="09xxxxxxxx">
+                <p class="winds-field-tip" id="phoneTip">📱 號碼將作為 PDF 的開啟密碼</p>
+              </div>
+              <div class="winds-contact-field">
+                <label for="windsEmail">Email<span class="winds-required">*</span></label>
+                <input id="windsEmail" type="email" class="winds-input" placeholder="example@gmail.com">
+                <p class="winds-field-tip" id="emailTip">📧 占卜報告將寄送到 Gmail</p>
+              </div>
+            </div>
+
+            <div class="winds-birth-row">
+              <div class="winds-contact-field">
+                <label for="birthDate">出生日期<span class="winds-required">*</span></label>
+                <input id="birthDate" type="date" class="birth-card-input">
+              </div>
+              <div class="winds-contact-field">
+                <label for="birthTime">出生時間<span class="winds-required">*</span></label>
+                <input id="birthTime" type="time" step="300" class="birth-card-input">
+              </div>
+            </div>
+
+            <div class="winds-submit-row" style="margin-bottom:8px;">
+              <button id="soulConfirmBtn" class="winds-btn winds-btn-gold" type="button">🔮 呼叫我的分靈體</button>
+            </div>
+
+            <label style="display:block; font-size:11px; font-weight:600; margin-bottom:4px;">引導問題<span class="winds-required">*</span></label>
+            <textarea id="windsSummary" class="winds-textarea" maxlength="200" placeholder="選完上方情境後會自動填入，你也可以手動補充描述"></textarea>
+            <div id="winds-char-counter" class="winds-char-counter">0 / 200</div>
+            <div style="font-size:11px; color:#c0848a; margin-top:4px; line-height:1.5;">💡 描述越詳細，你的分靈體越能共感 ✨</div>
+
+            <div class="winds-submit-row">
+              <button id="submitBtn" class="winds-btn winds-btn-primary" disabled>🔮 請先呼叫分靈體</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- end .winds-topic-section -->
+
+    <!-- ============================
+         State C-Loading
+         ============================ -->
+    <div id="loadingSection" style="display:none;">
+      <div class="winds-loading">
+        <div class="winds-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <p class="winds-loading-title">正在為你解讀命盤中…</p>
+        <p class="winds-loading-sub">通常需要 30–60 秒</p>
+      </div>
+    </div>
+
+    <!-- ============================
+         State C-Result
+         ============================ -->
+    <div id="resultSection" style="display:none;">
+      <!-- 命理資料卡（動態渲染） -->
+      <div id="astroCard" class="winds-astro-card" style="display:none;"></div>
+
+      <div class="winds-result">
+        <div class="winds-result-card">
+          <div class="winds-result-label">✨ 免費摘要</div>
+          <div class="winds-result-divider"></div>
+          <!-- 符令區塊（易經才顯示，放在解讀文字上方）-->
+          <div id="talismanSection" style="display:none; margin-bottom:16px;"></div>
+          <!-- 塔羅牌陣（靈符下方）-->
+          <div id="tarotCardsSection" style="display:none; margin-bottom:16px;"></div>
+          <!-- 輔卦區塊（觀音/關帝勸說層） -->
+          <div id="oracleSection" class="winds-oracle-wrap" style="display:none;"></div>
+
+          <!-- 孔明大易神數 — 最後一擊（永遠出現） -->
+          <div id="kongmingSection" class="kongming-wrap" style="display:none;"></div>
+
+          <!-- 語意推薦（占卜後自動載入） -->
+          <div id="recommendSection" style="display:none;"></div>
+
+          <!-- 節氣運勢曲線（聖籤下方）-->
+          <div id="fortuneLineWrap" style="display:none;margin-top:24px;margin-bottom:24px;border-radius:10px;overflow:hidden;position:relative;isolation:isolate;">
+            <div class="winds-result-card" style="padding:14px;">
+              <div id="fortuneLineTitle" class="astro-profile-title" style="margin-bottom:8px;">📈 近期日主節氣運勢</div>
+              <canvas id="fortuneLineChart" height="120" style="width:100%;max-width:100%;"></canvas>
+            </div>
+            <!-- 免費版遮罩（純模糊，無文字）-->
+            <div id="fortuneLineOverlay" style="position:absolute;top:0;left:0;right:0;bottom:0;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(255,248,240,0.35);border-radius:10px;pointer-events:none;"></div>
+          </div>
+          <div id="summaryText" class="winds-result-text"></div>
+          <!-- 靈符預告區（免費版） -->
+          <div id="talismanPreview" style="display:none;margin-top:24px;margin-bottom:24px;">
+            <div class="winds-result-card">
+              <div style="font-size:14px;font-weight:600;color:var(--winds-gold-dark);margin-bottom:4px;">📱 量能靈符序列</div>
+              <div style="font-size:12px;color:#9b8aa0;margin-bottom:16px;">取得完整報告，陸續解鎖專屬改運量能靈符</div>
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
+                <div class="talisman-preview-slot"><div class="talisman-preview-step">1</div><div class="talisman-preview-img"><div class="talisman-preview-lock">🔒</div></div><div class="talisman-preview-info"><div class="talisman-preview-label">待解鎖</div></div></div>
+                <div class="talisman-preview-slot"><div class="talisman-preview-step">2</div><div class="talisman-preview-img"><div class="talisman-preview-lock">🔒</div></div><div class="talisman-preview-info"><div class="talisman-preview-label">待解鎖</div></div></div>
+                <div class="talisman-preview-slot"><div class="talisman-preview-step">3</div><div class="talisman-preview-img"><div class="talisman-preview-lock">🔒</div></div><div class="talisman-preview-info"><div class="talisman-preview-label">待解鎖</div></div></div>
+                <div class="talisman-preview-slot"><div class="talisman-preview-step">4</div><div class="talisman-preview-img"><div class="talisman-preview-lock">🔒</div></div><div class="talisman-preview-info"><div class="talisman-preview-label">待解鎖</div></div></div>
+                <div class="talisman-preview-slot"><div class="talisman-preview-step">5</div><div class="talisman-preview-img"><div class="talisman-preview-lock">🔒</div></div><div class="talisman-preview-info"><div class="talisman-preview-label">待解鎖</div></div></div>
+              </div>
+            </div>
+          </div>
+          <button id="unlockBtn" class="winds-btn winds-btn-gold" data-price="1" data-price-template="🏮 解鎖完整解讀與數位量能護符 {price}">🏮 解鎖完整解讀與數位量能護符 NT$360</button>
+          <button id="shareBtn" class="winds-btn winds-btn-primary" style="margin-top:10px;">推薦給 LINE 好友 🌀</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="winds-footer">&copy; 找風問幸福</div>
+  </div>
+
+  <!-- Chart.js (雷達圖) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <!-- Google GIS loaded in <head> -->
+  <script>
+  (function() {
+    "use strict";
+
+    // ===========================================
+    // Config
+    // ===========================================
+    // Google SSO 版（取代 LIFF）
+    var GOOGLE_CLIENT_ID = ""; // TODO: Jeffery 建完 Google Cloud Console 後貼這裡
+    var WORKER_API = "https://api.winds.tw";
+    var TALISMAN_PRICE = 360; // 預設值，會被 /config 覆蓋
+    // 動態載入價格
+    (function() {
+      fetch(WORKER_API + "/config").then(function(r) { return r.json(); }).then(function(d) {
+        if (d.talisman_price) {
+          TALISMAN_PRICE = d.talisman_price;
+          // 更新所有價格顯示
+          document.querySelectorAll('[data-price]').forEach(function(el) {
+            el.textContent = el.getAttribute('data-price-template').replace('{price}', 'NT$' + TALISMAN_PRICE);
+          });
+        }
+      }).catch(function() { /* fallback 用預設 360 */ });
+    })();
+    var DIVINATION_API  = WORKER_API + "/liff-submit";
+    var CREATE_ORDER_API = WORKER_API + "/liff-order";
+    var PREFILL_API      = WORKER_API + "/liff-prefill";
+
+    // ===========================================
+    // State
+    // ===========================================
+    var userId = "";         // Google sub (was userId)
+    var googleIdToken = "";  // Google ID token for auth headers
+    var divinationLogId = "";
+    var divinationElement = "";   // 由 liffDivinationMvp 回傳（next_action.element）
+    var divinationTalismanName = "量能靈符";  // 預設，可被回傳值覆蓋
+
+    var selectedTopicKey = null;
+    var selectedTopicTitle = "";
+    var selectedTopicDesc = "";
+    var selectedSubKey = null;
+    var selectedSubTitle = "";
+    var selectedSubDesc = "";
+    var selectedThirdKey = null;
+    var selectedThirdTitle = "";
+    var selectedThirdDesc = "";
+
+    var topicSection = document.getElementById("topicSection");
+
+    // ===========================================
+    // Helpers
+    // ===========================================
+    function getGoogleIdToken() { return googleIdToken || ''; }
+    function authHeaders(extra) {
+      var h = { 'X-Google-Id-Token': getGoogleIdToken() };
+      if (extra) { for (var k in extra) { h[k] = extra[k]; } }
+      return h;
+    }
+    function $(id) { return document.getElementById(id); }
+
+    function forEachNode(list, cb) {
+      Array.prototype.forEach.call(list, cb);
+    }
+
+    // 解析後端 secondary_oracle_sign_text（孔明結構化文字）
+    function parseKongmingText(text) {
+      if (!text) return null;
+      var k = {};
+      var lines = text.split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.indexOf('籤序：') === 0) k.signOrder = line.substring(3);
+        else if (line.indexOf('本卦：') === 0) {
+          var m = line.substring(3).match(/^(.+?)（(.+?)·(.+?)）$/);
+          if (m) { k.curHex = m[1]; k.palace = m[2]; k.curEl = m[3]; }
+          else k.curHex = line.substring(3);
+        }
+        else if (line.indexOf('變爻：') === 0) k.trigger = line.substring(3);
+        else if (line.indexOf('變卦：') === 0) {
+          var m2 = line.substring(3).match(/^(.+?)（(.+?)）$/);
+          if (m2) { k.chgHex = m2[1]; k.chgEl = m2[2]; }
+          else k.chgHex = line.substring(3);
+        }
+        else if (line.indexOf('籤等：') === 0) k.fortuneLevel = line.substring(3);
+        else if (line.indexOf('吉凶：') === 0) k.fortuneCategory = line.substring(3);
+        else if (line.indexOf('五象') === 0 && line.indexOf('：') > 0) k.symbols = line.substring(line.indexOf('：') + 1).split('、').filter(Boolean);
+        else if (line.indexOf('籤詩：') === 0) k.poem = line.substring(3);
+        else if (line.indexOf('解讀：') === 0) k.interp = line.substring(3);
+      }
+      return k;
+    }
+
+    function escapeHtml(s) {
+      if (s == null) return '';
+      return String(s).replace(/[&<>"']/g, function(c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    // 語意推薦：占卜完自動載入
+    function loadRecommendations(logId) {
+      var recEl = $("recommendSection");
+      if (!recEl || !logId) return;
+      fetch(WORKER_API + "/divination-recommend?log_id=" + logId)
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (!d.success || !d.recommendations || d.recommendations.length === 0) {
+            recEl.style.display = 'none';
+            return;
+          }
+          var html = '<div class="recommend-wrap">';
+          html += '<div class="recommend-title">✨ 為你推薦的服務與法器</div>';
+          html += '<div style="text-align:center;font-size:11px;color:var(--winds-text-muted);margin-bottom:10px;">先問事了解狀況 → 再選擇合適的法術或法器</div>';
+          d.recommendations.forEach(function(r) {
+            var icon = r.source === 'simplybook' ? '🔮' : '🏮';
+            var priceStr = r.price ? 'NT$' + Number(r.price).toLocaleString() : '';
+            html += '<div class="recommend-card">';
+            html += '<div class="recommend-card-icon">' + icon + '</div>';
+            html += '<div class="recommend-card-body">';
+            html += '<div class="recommend-card-name">' + escapeHtml(r.name) + '</div>';
+            if (r.reason) html += '<div class="recommend-card-reason">' + escapeHtml(r.reason) + '</div>';
+            html += '</div>';
+            if (priceStr) html += '<div class="recommend-card-price">' + priceStr + '</div>';
+            html += '</div>';
+          });
+          html += '</div>';
+          recEl.innerHTML = html;
+          recEl.style.display = 'block';
+        })
+        .catch(function() {
+          recEl.style.display = 'none';
+        });
+    }
+
+    function renderKongmingSection(el, signText, isPaid) {
+      var k = parseKongmingText(signText);
+      if (!k || !k.curHex) { el.style.display = 'none'; return; }
+      var tier = 'tier-mid';
+      if (k.fortuneLevel && (k.fortuneLevel.indexOf('上上') >= 0 || k.fortuneLevel === '上籤')) tier = 'tier-top';
+      else if (k.fortuneLevel && (k.fortuneLevel.indexOf('下') >= 0 || k.fortuneLevel.indexOf('凶') >= 0)) tier = 'tier-low';
+
+      var symbolsHtml = '';
+      // 平籤（順命）：五象都是「命」→ 顯示「順命而行」標籤而非五個 dot
+      var isShunMing = k.symbols && k.symbols.length > 0 && k.symbols.every(function(s) { return s === '命'; });
+      if (isShunMing) {
+        symbolsHtml = '<span class="kongming-shunming">順命而行</span>';
+      } else if (k.symbols && k.symbols.length > 0) {
+        symbolsHtml = '<span class="kongming-symbols">' + k.symbols.map(function(s) {
+          return '<span class="kongming-sym-dot" data-el="' + escapeHtml(s) + '">' + escapeHtml(s) + '</span>';
+        }).join('') + '</span>';
+      }
+
+      var interpHtml = '';
+      if (k.interp) {
+        if (isPaid) {
+          interpHtml =
+            '<div class="kongming-interp-label">📜 預言</div>'
+            + '<div class="kongming-interp-text">' + escapeHtml(k.interp) + '</div>';
+        } else {
+          var snippet = k.interp.length > 80 ? k.interp.substring(0, 80) + '…' : k.interp;
+          interpHtml =
+            '<div class="kongming-interp-label">📜 預言</div>'
+            + '<div class="kongming-interp-text">' + escapeHtml(snippet) + '</div>'
+            + '<div class="kongming-interp-locked">解鎖完整預言 →</div>';
+        }
+      }
+
+      el.innerHTML =
+        '<div class="kongming-header-row">'
+          + '<div class="kongming-title">⚡ 孔明大易神數 · 難以脫逃的人心</div>'
+          + (k.fortuneLevel ? '<span class="kongming-badge ' + tier + '">' + escapeHtml(k.fortuneLevel) + '</span>' : '')
+        + '</div>'
+        + '<div class="kongming-flow">'
+          + '<div class="kongming-hex">'
+            + '<div class="kongming-hex-name">' + escapeHtml(k.curHex || '') + '</div>'
+            + '<div class="kongming-hex-meta">' + escapeHtml((k.palace || '') + (k.curEl ? '·' + k.curEl : '')) + '</div>'
+          + '</div>'
+          + '<div class="kongming-arrow">'
+            + '<div class="kongming-arrow-line">→</div>'
+            + '<div>' + escapeHtml(k.trigger || '動爻') + '</div>'
+          + '</div>'
+          + '<div class="kongming-hex">'
+            + '<div class="kongming-hex-name">' + escapeHtml(k.chgHex || '') + '</div>'
+            + '<div class="kongming-hex-meta">' + escapeHtml(k.chgEl || '') + '</div>'
+          + '</div>'
+        + '</div>'
+        + (k.fortuneCategory || symbolsHtml ?
+          '<div class="kongming-meta-row">'
+            + (k.fortuneCategory ? '<span class="kongming-fortune">▎' + escapeHtml(k.fortuneCategory) + '</span>' : '')
+            + symbolsHtml
+          + '</div>' : '')
+        + (k.poem ? '<div class="kongming-poem">' + escapeHtml(k.poem) + '</div>' : '')
+        + interpHtml;
+      el.style.display = 'block';
+    }
+
+    function showStatus(msg, type) {
+      var el = $("status");
+      if (!el) return;
+      el.className = "winds-status " + (type || "info");
+      el.style.display = "block";
+      el.textContent = msg;
+    }
+
+    function hideStatus() {
+      var el = $("status");
+      if (el) el.style.display = "none";
+    }
+
+    function getInputs() {
+      return {
+        lastNameInput:  $("windsLastName"),
+        firstNameInput: $("windsFirstName"),
+        phoneInput:     $("windsPhone"),
+        emailInput:     $("windsEmail"),
+        birthDateInput: $("birthDate"),
+        birthTimeInput: $("birthTime"),
+        summaryInput:   $("windsSummary"),
+        charCounter:    $("winds-char-counter"),
+        birthWrap:      $("birthCardWrapper")
+      };
+    }
+
+    // ===========================================
+    // UI State Sync
+    // ===========================================
+    function syncUIState() {
+      if (!topicSection) return;
+      var hasTopicActive = document.querySelector(".winds-topic-card.active");
+      var hasSubActive   = document.querySelector(".winds-sub-card.active");
+      var hasThirdActive = document.querySelector(".winds-third-card.active");
+
+      if (!hasTopicActive && !hasSubActive && !hasThirdActive) {
+        topicSection.classList.remove("winds-has-sub-selected", "winds-has-third-selected", "winds-step-3");
+      } else if (!hasTopicActive) {
+        topicSection.classList.remove("winds-has-sub-selected", "winds-has-third-selected", "winds-step-3");
+      } else if (hasTopicActive && !hasSubActive) {
+        topicSection.classList.remove("winds-has-third-selected", "winds-step-3");
+      } else if (hasSubActive && !hasThirdActive) {
+        topicSection.classList.remove("winds-step-3");
+      }
+    }
+
+    function resetAll() {
+      var topicCards = document.querySelectorAll(".winds-topic-card");
+      var subRows    = document.querySelectorAll(".winds-sub-row");
+      var subCards   = document.querySelectorAll(".winds-sub-card");
+      var thirdRows  = document.querySelectorAll(".winds-third-row");
+      var thirdCards = document.querySelectorAll(".winds-third-card");
+      var ref = getInputs();
+
+      forEachNode(topicCards, function(c) { c.classList.remove("active", "winds-hidden"); });
+      forEachNode(subRows,   function(r) { r.classList.remove("active"); });
+      forEachNode(subCards,   function(c) { c.classList.remove("active", "winds-hidden"); });
+      forEachNode(thirdRows,  function(r) { r.classList.remove("active"); });
+      forEachNode(thirdCards, function(c) { c.classList.remove("active", "winds-hidden"); });
+
+      if (ref.birthWrap) ref.birthWrap.classList.add("winds-hidden");
+
+      selectedTopicKey = null; selectedTopicTitle = ""; selectedTopicDesc = "";
+      selectedSubKey   = null; selectedSubTitle   = ""; selectedSubDesc   = "";
+      selectedThirdKey = null; selectedThirdTitle = ""; selectedThirdDesc = "";
+
+      if (topicSection) {
+        topicSection.classList.remove("winds-has-sub-selected", "winds-has-third-selected", "winds-step-3");
+      }
+    }
+
+    // ===========================================
+    // Card Interaction Handlers
+    // ===========================================
+    function handleTopicClick(card) {
+      var topic = card.getAttribute("data-topic");
+      if (!topic) return;
+      var subRow = $("winds-sub-" + topic);
+      if (!subRow) return;
+
+      if (card.classList.contains("active")) {
+        resetAll();
+        return;
+      }
+
+      resetAll();
+      selectedTopicKey = topic;
+
+      var titleEl = card.querySelector(".winds-topic-card-title");
+      selectedTopicTitle = titleEl ? titleEl.textContent.trim() : "";
+      var divs = card.querySelectorAll("div");
+      selectedTopicDesc = divs.length >= 2 ? divs[1].textContent.trim() : "";
+
+      card.classList.add("active");
+      forEachNode(document.querySelectorAll(".winds-topic-card"), function(other) {
+        if (other !== card) other.classList.add("winds-hidden");
+      });
+      subRow.classList.add("active");
+
+      if (topicSection) topicSection.classList.add("winds-has-sub-selected");
+    }
+
+    function handleSubClick(card) {
+      var key = card.getAttribute("data-sub");
+      if (!key) return;
+      var thirdRow = $("winds-third-" + key);
+      var row = card.parentNode;
+      var rowCards = row ? row.querySelectorAll(".winds-sub-card") : [];
+      var ref = getInputs();
+
+      if (card.classList.contains("active")) {
+        forEachNode(rowCards, function(c) { c.classList.remove("active", "winds-hidden"); });
+        forEachNode(document.querySelectorAll(".winds-third-row"), function(r) { r.classList.remove("active"); });
+        forEachNode(document.querySelectorAll(".winds-third-card"), function(c) { c.classList.remove("active", "winds-hidden"); });
+        if (ref.birthWrap) ref.birthWrap.classList.add("winds-hidden");
+        selectedSubKey = null; selectedThirdKey = null;
+        if (topicSection) {
+          topicSection.classList.remove("winds-has-third-selected", "winds-step-3");
+        }
+        setTimeout(syncUIState, 10);
+        return;
+      }
+
+      selectedSubKey = key;
+      var subTitleEl = card.querySelector(".winds-sub-card-title");
+      selectedSubTitle = subTitleEl ? subTitleEl.textContent.trim() : "";
+      var divs2 = card.querySelectorAll("div");
+      selectedSubDesc = divs2.length >= 2 ? divs2[1].textContent.trim() : "";
+
+      forEachNode(rowCards, function(c) {
+        if (c === card) { c.classList.add("active"); c.classList.remove("winds-hidden"); }
+        else { c.classList.remove("active"); c.classList.add("winds-hidden"); }
+      });
+
+      // Clear any previous third selections
+      forEachNode(document.querySelectorAll(".winds-third-row"), function(r) { r.classList.remove("active"); });
+      forEachNode(document.querySelectorAll(".winds-third-card"), function(c) { c.classList.remove("active", "winds-hidden"); });
+      selectedThirdKey = null; selectedThirdTitle = ""; selectedThirdDesc = "";
+      if (ref.birthWrap) ref.birthWrap.classList.add("winds-hidden");
+
+      if (thirdRow) thirdRow.classList.add("active");
+      if (topicSection) {
+        topicSection.classList.add("winds-has-third-selected");
+        topicSection.classList.remove("winds-step-3");
+      }
+    }
+
+    function handleThirdClick(card) {
+      var key = card.getAttribute("data-third");
+      if (!key) return;
+      var row = card.parentNode;
+      var rowCards = row ? row.querySelectorAll(".winds-third-card") : [];
+      var ref = getInputs();
+
+      if (card.classList.contains("active")) {
+        card.classList.remove("active");
+        forEachNode(rowCards, function(c) { c.classList.remove("winds-hidden"); });
+        if (ref.birthWrap) ref.birthWrap.classList.add("winds-hidden");
+        selectedThirdKey = null; selectedThirdTitle = ""; selectedThirdDesc = "";
+        if (topicSection) topicSection.classList.remove("winds-step-3");
+        setTimeout(syncUIState, 10);
+        return;
+      }
+
+      selectedThirdKey = key;
+      var titleEl = card.querySelector(".winds-third-card-title");
+      selectedThirdTitle = titleEl ? titleEl.textContent.trim() : "";
+      var divs = card.querySelectorAll("div");
+      selectedThirdDesc = divs.length >= 2 ? divs[1].textContent.trim() : "";
+
+      forEachNode(rowCards, function(c) {
+        if (c === card) { c.classList.add("active"); c.classList.remove("winds-hidden"); }
+        else { c.classList.remove("active"); c.classList.add("winds-hidden"); }
+      });
+
+      if (topicSection) topicSection.classList.add("winds-step-3");
+
+      if (ref.birthWrap) {
+        ref.birthWrap.classList.remove("winds-hidden");
+        setTimeout(function() {
+          ref.birthWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 100);
+      }
+
+      updateSummaryTemplate();
+    }
+
+    // ===========================================
+    // Form: Summary Template
+    // ===========================================
+    function updateSummaryTemplate() {
+      var ref = getInputs();
+      if (!ref.summaryInput) return;
+      if (!selectedTopicTitle || !selectedSubTitle || !selectedThirdTitle) return;
+
+      var template = "我目前最想處理的問題是「" + selectedTopicTitle + " - " + selectedSubTitle +
+        "」，狀況比較接近「" + selectedThirdTitle + "」：" + selectedThirdDesc +
+        " 實際情況是：（請在後面補充）";
+
+      ref.summaryInput.value = template;
+      updateCharCounter();
+    }
+
+    function updateCharCounter() {
+      var ref = getInputs();
+      if (!ref.summaryInput || !ref.charCounter) return;
+      var len = ref.summaryInput.value ? ref.summaryInput.value.length : 0;
+      ref.charCounter.textContent = len + " / 200";
+    }
+
+    // ===========================================
+    // Form: Validation
+    // ===========================================
+    function validatePhoneLocal(phone) {
+      if (!phone) return false;
+      return /^09\d{8}$/.test(phone.trim());
+    }
+
+    function formatPhoneToE164TW(phone) {
+      if (!validatePhoneLocal(phone)) return null;
+      return "+886" + phone.trim().slice(1);
+    }
+
+    function validateGmail(email) {
+      if (!email) return false;
+      return email.trim().toLowerCase().endsWith("@gmail.com");
+    }
+
+    // ===========================================
+    // Form: Default on First Focus
+    // ===========================================
+    function applyDefaultOnFirstFocus(inputId, defaultValue) {
+      var input = $(inputId);
+      if (!input) return;
+      var initialized = false;
+      function handler() {
+        if (!initialized && !input.value) {
+          input.value = defaultValue;
+          initialized = true;
+        }
+      }
+      input.addEventListener("focus", handler);
+      input.addEventListener("click", handler);
+    }
+
+    // 頁面載入立刻設預設值（不等 focus），回訪用戶有資料時會被 prefill 覆蓋
+    (function() {
+      var bd = $("birthDate"); if (bd && !bd.value) bd.value = "1990-07-01";
+      var bt = $("birthTime"); if (bt && !bt.value) bt.value = "12:00";
+    })();
+
+    // ===========================================
+    // Page State Transitions
+    // ===========================================
+    function showLoading() {
+      if ($("initLoading")) $("initLoading").style.display = "none";
+      $("topicSection").style.display = "none";
+      $("loadingSection").style.display = "block";
+      $("resultSection").style.display = "none";
+      hideStatus();
+    }
+
+    // 顯示冷卻卡片（共用函數）
+    function showCooldownCard(msg, availableAt) {
+      $("topicSection").style.display = "none";
+      $("loadingSection").style.display = "none";
+      $("resultSection").style.display = "none";
+      var timeHint = "";
+      if (availableAt) {
+        try {
+          var d = new Date(availableAt);
+          var twStr = d.toLocaleString("zh-TW", {
+            timeZone: "Asia/Taipei",
+            month: "numeric", day: "numeric",
+            hour: "2-digit", minute: "2-digit"
+          });
+          timeHint = '<div style="margin-top:10px;font-size:13px;color:#9b8aa0;background:#f5f0ff;border-radius:8px;padding:8px 12px;">'
+            + '🗓 解除時間：' + twStr + '</div>';
+        } catch(e) {}
+      }
+      var cooldownHtml = '<div class="winds-cooldown-card">'
+        + '<div class="cooldown-icon">⏳</div>'
+        + '<div class="cooldown-message">' + (msg || "冷卻中，請稍後再來") + '</div>'
+        + timeHint
+        + '<button class="winds-btn-back" style="margin-top:14px;" onclick="window.location.href=\'/\';">回到首頁</button>'
+        + '</div>';
+      var container = $("resultSection").parentNode;
+      var existing = document.getElementById("cooldownSection");
+      if (existing) existing.remove();
+      var cooldownDiv = document.createElement("div");
+      cooldownDiv.id = "cooldownSection";
+      cooldownDiv.innerHTML = cooldownHtml;
+      container.appendChild(cooldownDiv);
+    }
+
+    // 設定「已購買」按鈕狀態
+    function setPurchasedState(deliveryUrl) {
+      var btn = $("unlockBtn");
+      if (!btn) return;
+      btn.textContent = "✅ 已購買 — 查看完整解讀";
+      btn.disabled = false;
+      btn.className = "winds-btn winds-btn-back";
+      btn.style.background = "#e8f5e9";
+      btn.style.color = "#2e7d32";
+      btn.style.border = "1.5px solid #81c784";
+      btn.removeAttribute("data-pay-url");
+      // 點擊直接開 delivery.html
+      btn.onclick = function(e) {
+        e.preventDefault();
+        if (deliveryUrl) {
+          window.open(deliveryUrl, '_blank');
+          else window.location.href = deliveryUrl;
+        }
+      };
+    }
+
+    // Bug 3 fix：showResult 接受 tarotCards 參數，顯示五張牌陣清單
+    function showResult(summaryHtml, tarotCards, hexagramData, purchased, deliveryUrl, extraData) {
+      $("topicSection").style.display = "none";
+      $("loadingSection").style.display = "none";
+      $("resultSection").style.display = "block";
+
+      // ── 命理資料卡 + 分靈體側寫 ──
+      var astroCardEl = $("astroCard");
+      if (astroCardEl) {
+        var astro = (extraData && extraData.astro) || {};
+        var benMingTarots = (extraData && extraData.ben_ming_tarots) || [];
+        var profile = (extraData && extraData.personality_profile) || null;
+        var profileGenerating = extraData && extraData.personality_generating;
+
+        var hasAstro = astro.full_bazi || astro.xingzuo || astro.shengxiao;
+        if (hasAstro) {
+          var rows = '';
+          if (astro.lunar_birthday) rows += '<tr><td>🌙 農曆</td><td>' + astro.lunar_birthday + '</td></tr>';
+          if (astro.xingzuo) rows += '<tr><td>⭐ 星座</td><td>' + astro.xingzuo + '</td></tr>';
+          if (astro.shengxiao) rows += '<tr><td>🐾 生肖</td><td>' + astro.shengxiao + '</td></tr>';
+          if (astro.twenty_eight_mansion) rows += '<tr><td>✨ 星宿</td><td>' + astro.twenty_eight_mansion + '</td></tr>';
+          if (astro.full_bazi) rows += '<tr><td>📜 八字</td><td>' + astro.full_bazi + '</td></tr>';
+          if (astro.naiyin_year || astro.naiyin_month || astro.naiyin_day || astro.naiyin_hour) {
+            var naiyinParts = [];
+            if (astro.naiyin_year) naiyinParts.push('年：' + astro.naiyin_year);
+            if (astro.naiyin_month) naiyinParts.push('月：' + astro.naiyin_month);
+            if (astro.naiyin_day) naiyinParts.push('日：' + astro.naiyin_day);
+            if (astro.naiyin_hour) naiyinParts.push('時：' + astro.naiyin_hour);
+            rows += '<tr><td>🔔 納音</td><td>' + naiyinParts.join('｜') + '</td></tr>';
+          }
+          if (astro.taisui_conflict_status) rows += '<tr><td>⚡ 太歲</td><td>' + astro.taisui_conflict_status + '</td></tr>';
+          if (astro.taisui_deity_birth) rows += '<tr><td>🛡️ 本命星君</td><td>' + astro.taisui_deity_birth + '</td></tr>';
+          if (astro.taisui_deity_year) rows += '<tr><td>🏯 流年星君</td><td>' + astro.taisui_deity_year + '</td></tr>';
+
+          var tarotHtml = '';
+          if (benMingTarots.length > 0) {
+            tarotHtml = '<div class="astro-tarot-section"><div class="astro-tarot-title">🃏 本命塔羅牌組</div><div class="astro-tarot-grid">';
+            for (var ti = 0; ti < benMingTarots.length; ti++) {
+              var bt = benMingTarots[ti];
+              tarotHtml += '<div class="astro-tarot-item">';
+              if (bt.image_url) tarotHtml += '<img src="' + bt.image_url + '" alt="' + bt.card_name + '">';
+              tarotHtml += '<div class="astro-tarot-label">' + bt.label + '</div>';
+              tarotHtml += '<div class="astro-tarot-name">' + bt.card_name + '</div>';
+              tarotHtml += '</div>';
+            }
+            tarotHtml += '</div></div>';
+          }
+
+          function renderProfileText(text) {
+            return text
+              .replace(/^## (.+)$/gm, '__SECTION_TITLE__$1__END__')
+              .replace(/^### (.+)$/gm, '__SECTION_SUBTITLE__$1__END__')
+              .replace(/#{1,6}\s*/g, '')
+              .replace(/\*\*(.*?)\*\*/g, '$1')
+              .replace(/\*(.*?)\*/g, '$1')
+              .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')
+              .replace(/---+/g, '─────')
+              .replace(/\n{3,}/g, '\n\n')
+              .trim()
+              .replace(/__SECTION_TITLE__(.+?)__END__/g, '<div class="winds-section-title">$1</div>')
+              .replace(/__SECTION_SUBTITLE__(.+?)__END__/g, '<div class="winds-section-subtitle">$1</div>')
+              .replace(/\n/g, '<br>');
+          }
+
+          var profileHtml = '';
+          if (profile) {
+            var shortProfile = profile.length > 150 ? profile.substring(0, 150) + '…' : profile;
+            profileHtml = '<div class="astro-profile-section">'
+              + '<div class="astro-profile-title">✨ 你的分靈體側寫</div>'
+              + '<div id="profileShort" class="astro-profile-text">' + renderProfileText(shortProfile) + '</div>'
+              + '<div id="profileFull" class="astro-profile-text" style="display:none">' + renderProfileText(profile) + '</div>'
+              + (profile.length > 150 ? '<button id="profileToggleBtn" class="astro-profile-toggle">更多</button>' : '')
+              + '</div>';
+          } else if (profileGenerating) {
+            profileHtml = '<div class="astro-profile-section"><div class="astro-profile-title">✨ 分靈體側寫</div><div class="astro-profile-text" style="color:var(--winds-text-muted);">分靈體已接通…下次占卜時將顯示完整側寫</div></div>';
+          }
+
+          // 五行量能雷達圖
+          var wuxingHtml = '';
+          var wuxingRadar = astro.wuxing_radar;
+          if (wuxingRadar) {
+            wuxingHtml = '<div class="winds-wuxing-chart">'
+              + '<div class="astro-profile-title">✨ 五行炁配比</div>'
+              + '<canvas id="wuxingRadarChart" width="260" height="260" style="display:block;margin:0 auto;max-width:100%"></canvas>'
+              + '</div>';
+          }
+
+          astroCardEl.innerHTML = '<div class="astro-card-title">✦ 你的命理檔案</div>'
+            + '<table class="astro-table">' + rows + '</table>'
+            + tarotHtml + wuxingHtml + profileHtml;
+          astroCardEl.style.display = 'block';
+
+          // 初始化五行雷達圖
+          if (wuxingRadar && typeof Chart !== 'undefined') {
+            setTimeout(function() {
+              var ctx = document.getElementById('wuxingRadarChart');
+              if (!ctx) return;
+              var labels = ['🌿 木 ' + wuxingRadar['木'], '🔥 火 ' + wuxingRadar['火'], '🌍 土 ' + wuxingRadar['土'], '⚙️ 金 ' + wuxingRadar['金'], '💧 水 ' + wuxingRadar['水']];
+              new Chart(ctx, {
+                type: 'radar',
+                data: {
+                  labels: labels,
+                  datasets: [{
+                    data: [wuxingRadar['木'], wuxingRadar['火'], wuxingRadar['土'], wuxingRadar['金'], wuxingRadar['水']],
+                    backgroundColor: 'rgba(201,168,76,0.25)',
+                    borderColor: '#c9a84c',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#c9a84c',
+                    pointRadius: 4
+                  }]
+                },
+                options: {
+                  responsive: false,
+                  scales: {
+                    r: {
+                      min: 0,
+                      suggestedMin: 0,
+                      ticks: { display: false },
+                      grid: { color: 'rgba(59,38,42,0.1)' },
+                      pointLabels: { font: { size: 13 }, color: '#3b262a' },
+                      angleLines: { color: 'rgba(59,38,42,0.1)' }
+                    }
+                  },
+                  plugins: { legend: { display: false } }
+                }
+              });
+            }, 100);
+          }
+
+          // 綁定折疊按鈕事件
+          var toggleBtn = document.getElementById("profileToggleBtn");
+          if (toggleBtn) {
+            toggleBtn.addEventListener("click", function() {
+              var s = document.getElementById("profileShort");
+              var f = document.getElementById("profileFull");
+              if (f && s) {
+                if (f.style.display === "none") {
+                  f.style.display = "block";
+                  s.style.display = "none";
+                  toggleBtn.textContent = "收起";
+                } else {
+                  f.style.display = "none";
+                  s.style.display = "block";
+                  toggleBtn.textContent = "更多";
+                }
+              }
+            });
+          }
+        } else {
+          astroCardEl.style.display = 'none';
+        }
+      }
+
+      // 八卦 Unicode 對照（含卦名和五行象兩種格式）
+      var guaUnicode = {
+        '乾': '☰', '天': '☰',
+        '兌': '☱', '澤': '☱',
+        '離': '☲', '火': '☲',
+        '震': '☳', '雷': '☳',
+        '巽': '☴', '風': '☴',
+        '坎': '☵', '水': '☵',
+        '艮': '☶', '山': '☶',
+        '坤': '☷', '地': '☷'
+      };
+
+      // 顯示符令區塊（易經才顯示）
+      var talismanSection = $("talismanSection");
+      if (talismanSection && hexagramData && hexagramData.talisman_image_url) {
+        var upperSymbol = guaUnicode[hexagramData.upper_gua] || '';
+        var lowerSymbol = guaUnicode[hexagramData.lower_gua] || '';
+        talismanSection.innerHTML =
+          '<div style="text-align:center;margin-bottom:12px;">'
+          + '<div style="font-size:22px;color:var(--winds-gold);margin-bottom:6px;">' + upperSymbol + lowerSymbol + '</div>'
+          + '<div class="talisman-blur-wrap">'
+          + '<img src="' + hexagramData.talisman_image_url + '" draggable="false" oncontextmenu="return false;">'
+          + '</div>'
+          + '<div style="font-size:13px;color:#9b8aa0;margin-top:6px;">' + ((hexagramData.upper_gua || '') + (hexagramData.lower_gua || '') ? (hexagramData.upper_gua || '') + (hexagramData.lower_gua || '') + '　' : '') + (hexagramData.hexagram_name || '') + '卦</div>'
+          + '</div>';
+        talismanSection.style.display = "block";
+      } else if (talismanSection) {
+        talismanSection.style.display = "none";
+      }
+
+      // 輔卦顯示（免費版：僅籤詩原文）
+      var oracleSection = $("oracleSection");
+      if (oracleSection && extraData && extraData.oracle_type && extraData.oracle_sign_text) {
+        var lines = extraData.oracle_sign_text.split('\n');
+        var signOrder = lines[0] || '';
+        var poemLine = (lines.find(function(l) { return l.startsWith('詩：'); }) || '').replace('詩：', '');
+        var fortuneLevel = '';
+        var match = signOrder.match(/（(.+?)）/);
+        if (match) fortuneLevel = match[1];
+
+        oracleSection.innerHTML =
+          '<div class="winds-oracle-header">🔮 ' + extraData.oracle_type + '</div>'
+          + '<div class="winds-oracle-sub">' + signOrder.replace(/（.+?）/, '').replace(extraData.oracle_type + ' ', '') + '</div>'
+          + '<div class="winds-oracle-poem">' + poemLine + '</div>'
+          + (fortuneLevel ? '<div class="winds-oracle-fortune">' + fortuneLevel + '</div>' : '')
+          + '';
+        oracleSection.style.display = 'block';
+      } else if (oracleSection) {
+        oracleSection.style.display = 'none';
+      }
+
+      // 孔明大易神數 — 最後一擊（免費版：解讀截斷）
+      var kmSection = $("kongmingSection");
+      if (kmSection && extraData && extraData.secondary_oracle_sign_text) {
+        renderKongmingSection(kmSection, extraData.secondary_oracle_sign_text, false);
+      } else if (kmSection) {
+        kmSection.style.display = 'none';
+      }
+
+      // 節氣運勢曲線標題（含卦象+生剋）
+      var fortuneTitle = $("fortuneLineTitle");
+      if (fortuneTitle && hexagramData && hexagramData.hexagram_name) {
+        var shengKeText = (extraData && extraData.sheng_ke) ? extraData.sheng_ke : '';
+        fortuneTitle.innerHTML = '📈 近期日主節氣運勢 遇 ' + hexagramData.hexagram_name + '卦象'
+          + (shengKeText ? ' <span style="color:#d9534f;font-weight:700;">' + shengKeText + '</span>' : '');
+      }
+      // 節氣運勢曲線（免費版：圖表顯示但加遮罩）
+      var fortuneLineWrap = $("fortuneLineWrap");
+      var fortuneLine = (extraData && extraData.fortune_line) || (extraData && extraData.astro && extraData.astro.fortune_line);
+      // 付費後隱藏遮罩
+      // 免費頁遮罩永遠保留（付費頁 delivery.html 才顯示完整圖表）
+      if (fortuneLineWrap && fortuneLine && fortuneLine.length > 0 && typeof Chart !== 'undefined') {
+        fortuneLineWrap.style.display = 'block';
+        var ctx2 = document.getElementById('fortuneLineChart');
+        if (ctx2) {
+          var labels = fortuneLine.map(function(p) { return p.month + '月\n' + p.name; });
+          var scores = fortuneLine.map(function(p) { return p.score; });
+          var pointColors = scores.map(function(s) { return s === Math.max.apply(null, scores) ? '#c0392b' : s === Math.min.apply(null, scores) ? '#333333' : 'var(--winds-gold)'; });
+          var pointRadii = scores.map(function(s) { return (s === Math.max.apply(null, scores) || s === Math.min.apply(null, scores)) ? 7 : 4; });
+          if (window._fortuneChart) { try { window._fortuneChart.destroy(); } catch(e){} }
+          window._fortuneChart = new Chart(ctx2, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                data: scores,
+                borderColor: '#c9a84c',
+                borderWidth: 2,
+                pointBackgroundColor: pointColors,
+                pointRadius: pointRadii,
+                tension: 0.4,
+                fill: false,
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { display: false }, tooltip: {
+                callbacks: { label: function(ctx) { return fortuneLine[ctx.dataIndex].label + '（' + (ctx.raw > 0 ? '+' : '') + ctx.raw + '）'; } }
+              }},
+              scales: {
+                y: { min: -100, max: 100, grid: { color: 'rgba(59,38,42,0.1)' },
+                  ticks: { callback: function(v) { return v === 85 ? '吉' : v === 50 ? '小吉' : v === 0 ? '平' : v === -50 ? '小慎' : v === -70 ? '慎' : ''; }, stepSize: 50, font: { size: 13 }, color: '#3b262a' }
+                },
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#8b6914' } }
+              }
+            }
+          });
+        }
+      } else if (fortuneLineWrap) {
+        fortuneLineWrap.style.display = 'none';
+      }
+
+      // Strip markdown 後顯示（保留 ## / ### 標題）
+      var cleanText = summaryHtml
+        .replace(/^## (.+)$/gm, '__SECTION_TITLE__$1__END__')
+        .replace(/^### (.+)$/gm, '__SECTION_SUBTITLE__$1__END__')
+        .replace(/#{1,6}\s*/g, '')
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/\*(.*?)\*/g, '$1')
+        .replace(/---+/g, '─────')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+        .replace(/__SECTION_TITLE__(.+?)__END__/g, '<div class="winds-section-title">$1</div>')
+        .replace(/__SECTION_SUBTITLE__(.+?)__END__/g, '<div class="winds-section-subtitle">$1</div>');
+      $("summaryText").innerHTML = cleanText;
+      // 顯示塔羅牌陣（若有）
+      var tarotSection = $("tarotCardsSection");
+      if (tarotSection && tarotCards && tarotCards.length > 0) {
+        var positionNames = ["過去", "現在", "未來", "建議", "結果"];
+        var html = '<div style="margin-bottom:16px;">'
+          + '<div style="font-size:14px;font-weight:600;color:var(--winds-gold-dark);margin-bottom:10px;">🃏 塔羅牌陣</div>'
+          + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">';
+        tarotCards.forEach(function(c, i) {
+          var posName = positionNames[i] || ("牌位" + (i + 1));
+          var polarity = c.is_reversed ? "逆位" : "正位";
+          var polarityColor = c.is_reversed ? "#c0392b" : "#27ae60";
+          var imgUrl = c.image_url || c.image || "";
+          html += '<div style="text-align:center;display:flex;flex-direction:column;">'
+            + '<div style="font-size:12px;color:var(--winds-gold-dark);font-weight:600;margin-bottom:4px;">' + posName + '</div>'
+            + '<div style="flex:1;display:flex;align-items:center;justify-content:center;min-height:0;">';
+          if (imgUrl) {
+            html += '<img src="' + imgUrl + '" style="width:100%;height:auto;max-height:140px;object-fit:contain;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);" '
+              + 'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\';">'
+              + '<div style="display:none;font-size:12px;color:var(--winds-text-muted);padding:8px;">' + c.card_name + '</div>';
+          } else {
+            html += '<div style="font-size:12px;color:var(--winds-text-muted);padding:8px;">' + c.card_name + '</div>';
+          }
+          html += '</div>'
+            + '<div style="margin-top:6px;font-size:12px;">'
+            + '<div style="font-weight:600;color:var(--winds-text-dark);">' + c.card_name + '</div>'
+            + '<div style="color:' + polarityColor + ';font-size:11px;">' + polarity + '</div>'
+            + '</div></div>';
+        });
+        html += '</div></div>';
+        tarotSection.innerHTML = html;
+        tarotSection.style.display = "block";
+      } else if (tarotSection) {
+        tarotSection.style.display = "none";
+      }
+
+      // 靈符預告（免費版才顯示）
+      var talismanPreview = $("talismanPreview");
+      if (talismanPreview) {
+        talismanPreview.style.display = (purchased && deliveryUrl) ? "none" : "block";
+        // 動態填入元素標籤
+        if (extraData && extraData.talisman_elements && extraData.talisman_elements.length === 5) {
+          var slots = talismanPreview.querySelectorAll(".talisman-preview-step");
+          for (var ti = 0; ti < slots.length && ti < 5; ti++) {
+            slots[ti].textContent = (ti + 1) + " " + extraData.talisman_elements[ti];
+          }
+        }
+      }
+
+      // 已購買：按鈕改為「查看完整解讀」
+      if (purchased && deliveryUrl) {
+        setPurchasedState(deliveryUrl);
+      }
+    }
+
+    // 非同步占卜：輪詢等待 LLM 結果（最多 90 秒，每 4 秒查一次）
+    // Bug 1 fix：改用 log_id 查詢（不是 google_sub），用 d.summary（不是 d.summary_text）
+    function startPolling(logId, tarotCards, isReturn) {
+      // 隱藏所有其他區塊，只留 loadingSection
+      if ($("initLoading")) $("initLoading").style.display = "none";
+      if ($("topicSection")) $("topicSection").style.display = "none";
+      if ($("resultSection")) $("resultSection").style.display = "none";
+      var loadingEl = $("loadingSection");
+      if (loadingEl) {
+        loadingEl.style.display = "block";
+        var msgEl = loadingEl.querySelector("p") || loadingEl;
+        if (msgEl) msgEl.textContent = isReturn ? "✨ 載入占卜結果中…" : "🔮 占卜進行中，請稍候…";
+      }
+
+      var attempts = 0;
+      var maxAttempts = 23; // 23 × 4s = 92s
+
+      var timer = setInterval(function() {
+        attempts++;
+        fetch(WORKER_API + "/liff-status?log_id=" + encodeURIComponent(logId)
+              + "&google_sub=" + encodeURIComponent(userId), { headers: authHeaders() })
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            // Bug 1 fix：使用 d.summary（新 Worker 回傳格式）
+            if (d.ready && d.summary) {
+              clearInterval(timer);
+              window._submitting = false;
+              divinationLogId = d.log_id || logId || "";
+              console.log("[winds] polling done, divinationLogId=", divinationLogId);
+              // 儲存符令元素（從 next_action 取得，供後續建立訂單用）
+              if (d.next_action) {
+                divinationElement = d.next_action.element || "";
+                divinationTalismanName = d.next_action.talisman_name || "量能靈符";
+              }
+              // 優先用 liff-status 回傳的 tarot_cards（含圖片 URL），fallback 到 submit 時的暫存
+              showResult(d.summary, (d.tarot_cards && d.tarot_cards.length > 0) ? d.tarot_cards : tarotCards, {
+                hexagram_name: d.hexagram_name,
+                upper_gua: d.upper_gua,
+                lower_gua: d.lower_gua,
+                talisman_image_url: d.talisman_image_url
+              }, d.purchased, d.delivery_url, {
+                astro: d.astro,
+                ben_ming_tarots: d.ben_ming_tarots,
+                personality_profile: d.personality_profile,
+                personality_generating: d.personality_generating,
+                oracle_type: d.oracle_type,
+                oracle_sign_text: d.oracle_sign_text,
+                secondary_oracle_type: d.secondary_oracle_type,
+                secondary_oracle_sign_text: d.secondary_oracle_sign_text,
+                fortune_line: (d.astro && d.astro.fortune_line) || d.fortune_line || [],
+                talisman_elements: d.talisman_elements || [],
+                sheng_ke: d.sheng_ke || '',
+              });
+              // 非同步載入語意推薦（不阻塞主結果顯示）
+              if (divinationLogId) loadRecommendations(divinationLogId);
+            } else if (attempts >= maxAttempts) {
+              clearInterval(timer);
+              window._submitting = false;
+              if (loadingEl) loadingEl.style.display = "none";
+              showStatus("占卜正在進行，結果將透過 LINE 推送，請留意通知 🔔", "warn");
+              showForm();
+            }
+          })
+          .catch(function() {
+            if (attempts >= maxAttempts) {
+              clearInterval(timer);
+              window._submitting = false;
+              if (loadingEl) loadingEl.style.display = "none";
+              showStatus("占卜正在進行，結果將透過 LINE 推送，請留意通知 🔔", "warn");
+              showForm();
+            }
+          });
+      }, 4000);
+    }
+
+    function showForm() {
+      if ($("initLoading")) $("initLoading").style.display = "none";
+      $("topicSection").style.display = "";
+      $("loadingSection").style.display = "none";
+      $("resultSection").style.display = "none";
+    }
+
+    // ===========================================
+    // Submit Handler
+    // ===========================================
+    function handleSubmit() {
+      if (window._submitting) return;
+      window._submitting = true;
+      divinationLogId = "";  // 每次送出前清空，避免 polling 帶到上一筆的 afterId
+      var ref = getInputs();
+
+      // Validation
+      if (!ref.lastNameInput || !ref.lastNameInput.value.trim()) {
+        showStatus("請先輸入姓氏。", "err"); window._submitting = false; return;
+      }
+      if (!ref.firstNameInput || !ref.firstNameInput.value.trim()) {
+        showStatus("請先輸入名字。", "err"); window._submitting = false; return;
+      }
+      var phoneLocal = ref.phoneInput ? ref.phoneInput.value.trim() : "";
+      if (!validatePhoneLocal(phoneLocal)) {
+        showStatus("請輸入正確的手機號碼（例如 0912345678）。", "err"); window._submitting = false; return;
+      }
+      var emailVal = ref.emailInput ? ref.emailInput.value.trim() : "";
+      if (!validateGmail(emailVal)) {
+        showStatus("Email 目前僅接受 @gmail.com 信箱。", "err"); window._submitting = false; return;
+      }
+      if (!ref.birthDateInput || !ref.birthDateInput.value) {
+        showStatus("請先選擇你的出生日期。", "err"); window._submitting = false; return;
+      }
+      if (!ref.birthTimeInput || !ref.birthTimeInput.value) {
+        showStatus("請選擇你的出生時間（若不確定可選大約時間）。", "err"); window._submitting = false; return;
+      }
+      if (!selectedThirdKey) {
+        showStatus("請先在上方選擇一張對應的情境卡片。", "err"); window._submitting = false; return;
+      }
+      var summaryText = ref.summaryInput ? ref.summaryInput.value.trim() : "";
+      if (!summaryText) {
+        showStatus("請簡單補充目前的實際狀況。", "err"); window._submitting = false; return;
+      }
+
+      hideStatus();
+      showLoading();
+
+      var phoneE164 = formatPhoneToE164TW(phoneLocal);
+      var birthday = ref.birthDateInput.value;
+      if (ref.birthTimeInput.value) {
+        birthday += " " + ref.birthTimeInput.value;
+      }
+
+      // 若有預填資料但用戶沒手動填寫，才使用預填資料
+      var pf = window._prefillData;
+      if (pf && pf.date_of_birth && !ref.birthDateInput.value) birthday = pf.date_of_birth;
+      if ((!phoneE164 || phoneLocal === "") && pf && pf.phone) phoneE164 = pf.phone;
+      if ((!emailVal || emailVal === "") && pf && pf.email) emailVal = pf.email;
+
+      // Store form data for unlock button
+      window._formData = {
+        lastName:  ref.lastNameInput.value.trim(),
+        firstName: ref.firstNameInput.value.trim(),
+        phone:     phoneE164,
+        email:     emailVal,
+        birthday:  birthday
+      };
+
+      function doSubmit() {
+        return fetch(DIVINATION_API, {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({
+            google_sub: userId,
+            question:     summaryText,
+            divination_method: '雙占卜',
+            date_of_birth: birthday,
+            last_name:    ref.lastNameInput.value.trim(),
+            first_name:   ref.firstNameInput.value.trim(),
+            gender:       (pf && pf.gender) ? pf.gender : "",
+            phone:        phoneE164,
+            email:        emailVal
+          })
+        });
+      }
+
+      // 方案 B：若已點確認分靈體，輪詢最多 3 次（每次間隔 3 秒）確認側寫就緒
+      var soulBtn = $("soulConfirmBtn");
+      var shouldPoll = _soulConfirmed && soulBtn && soulBtn.textContent.indexOf("對話中") >= 0;
+
+      function pollThenSubmit(attemptsLeft) {
+        if (attemptsLeft <= 0) {
+          showStatus("你的所在地有干擾，分靈體尚在凝聚中 ✨", "warn");
+          return doSubmit();
+        }
+        return fetch(PREFILL_API + "?google_sub=" + encodeURIComponent(userId), { headers: authHeaders() })
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d && d.personality_profile) {
+              // 側寫已就緒，更新按鈕狀態
+              if (soulBtn) { soulBtn.textContent = "✅ 你的分靈體已上線"; }
+              return doSubmit();
+            }
+            // 還沒好，等 3 秒再試
+            return new Promise(function(resolve) {
+              setTimeout(function() { resolve(pollThenSubmit(attemptsLeft - 1)); }, 3000);
+            });
+          })
+          .catch(function() {
+            showStatus("你的所在地有干擾，分靈體連線中斷 ✨", "warn");
+            return doSubmit();
+          });
+      }
+
+      var submitPromise = shouldPoll ? pollThenSubmit(3) : doSubmit();
+
+      submitPromise
+      .then(function(resp) {
+        if (!resp.ok) {
+          return resp.json().catch(function() { return {}; }).then(function(d) {
+            // 手機/Email 去重錯誤：聚焦對應欄位
+            if (d.error === 'phone_duplicate') {
+              showForm(); showStatus(d.message || "此手機號碼已被使用", "err");
+              $("windsPhone").focus(); window._submitting = false; return;
+            }
+            if (d.error === 'email_duplicate') {
+              showForm(); showStatus(d.message || "此 Email 已被使用", "err");
+              $("windsEmail").focus(); window._submitting = false; return;
+            }
+            // 冷卻機制（429）：直接顯示冷卻卡片，不顯示錯誤前綴
+            if (resp.status === 429 || d.blocked) {
+              showCooldownCard(d.message, d.available_at);
+              window._submitting = false; return;
+            }
+            throw new Error("HTTP " + resp.status + "：" + (d.message || "伺服器錯誤"));
+          });
+        }
+        return resp.json();
+      })
+      .then(function(data) {
+        if (!data) return; // 429 冷卻等情況已在前一個 .then 處理完畢
+        if (data.success === false) {
+          showForm();
+          showStatus(data.message || "發生錯誤", "err");
+          window._submitting = false;
+          return;
+        }
+        if (data.blocked) {
+          showCooldownCard(data.message, data.available_at);
+          window._submitting = false;
+          return;
+        }
+
+        // 非同步模式：後端立即回 pending: true，前端輪詢等結果
+        // Bug 1 fix：傳入 log_id 給 startPolling（不是 uid）
+        // Bug 3 fix：傳入 tarot_cards 讓結果頁顯示牌陣
+        if (data.pending) {
+          var pendingLogId = data.log_id || "";
+          var pendingTarotCards = data.tarot_cards || [];
+          startPolling(pendingLogId, pendingTarotCards);
+          return;
+        }
+
+        divinationLogId = data.reading_id || "";
+        if (data.next_action) {
+          divinationElement = data.next_action.element || "";
+          divinationTalismanName = data.next_action.talisman_name || "量能靈符";
+        }
+        var summary = data.summary || "";
+        showResult(summary, data.tarot_cards || [], {
+          hexagram_name: data.hexagram_name,
+          upper_gua: data.upper_gua,
+          lower_gua: data.lower_gua,
+          talisman_image_url: data.talisman_image_url
+        }, data.purchased, data.delivery_url, {
+          astro: data.astro,
+          ben_ming_tarots: data.ben_ming_tarots,
+          personality_profile: data.personality_profile,
+          personality_generating: data.personality_generating,
+          oracle_type: data.oracle_type,
+          oracle_sign_text: data.oracle_sign_text,
+          secondary_oracle_type: data.secondary_oracle_type,
+          secondary_oracle_sign_text: data.secondary_oracle_sign_text,
+          fortune_line: (data.astro && data.astro.fortune_line) || data.fortune_line || [],
+          talisman_elements: data.talisman_elements || [],
+          sheng_ke: data.sheng_ke || '',
+        });
+        // 非同步載入語意推薦
+        if (divinationLogId) loadRecommendations(divinationLogId);
+
+        if (data.line_pushed === false) {
+          showStatus("摘要已產生，但 LINE 推播未成功", "warn");
+        }
+      })
+      .catch(function(e) {
+        showForm();
+        showStatus("錯誤：" + e.toString(), "err");
+        window._submitting = false;
+      });
+    }
+
+    // ===========================================
+    // Unlock Handler (ECPay)
+    // ===========================================
+    function handleUnlock() {
+      if (window._orderCreating) return;
+      window._orderCreating = true;
+      var btn = $("unlockBtn");
+      if (!btn || btn.disabled) { window._orderCreating = false; return; }
+
+      if (!divinationLogId) {
+        showStatus("系統錯誤：找不到占卜記錄 ID", "err");
+        window._orderCreating = false;
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "🔮 占卜中，請稍候…";
+
+      var fd = window._formData || {};
+
+      fetch(CREATE_ORDER_API, {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+          google_sub:     userId,
+          divination_log_id: Number(divinationLogId) || 0,
+          talisman_name:    divinationTalismanName
+        })
+      })
+      .then(function(resp) { return resp.json(); })
+      .then(function(data) {
+        if (data.success && data.pay_url) {
+          btn.disabled = false;
+          btn.textContent = "💳 前往付款 NT$" + TALISMAN_PRICE + " →";
+          btn.setAttribute("data-pay-url", data.pay_url);
+          window._orderCreating = false;
+        } else {
+          showStatus(data.message || "建立訂單失敗", "err");
+          btn.disabled = false;
+          btn.textContent = "🏮 解鎖完整解讀與數位量能護符 NT$" + TALISMAN_PRICE;
+          window._orderCreating = false;
+        }
+      })
+      .catch(function(e) {
+        showStatus("付款錯誤：" + e.toString(), "err");
+        btn.disabled = false;
+        btn.textContent = "🏮 解鎖完整解讀與數位量能護符 NT$" + TALISMAN_PRICE;
+        window._orderCreating = false;
+      });
+    }
+
+    // ===========================================
+    // Event Listeners
+    // ===========================================
+    document.addEventListener("click", function(e) {
+      var target = e.target;
+      var topicCard = target.closest ? target.closest(".winds-topic-card") : null;
+      if (topicCard) { handleTopicClick(topicCard); return; }
+      var subCard = target.closest ? target.closest(".winds-sub-card") : null;
+      if (subCard) { handleSubClick(subCard); return; }
+      var thirdCard = target.closest ? target.closest(".winds-third-card") : null;
+      if (thirdCard) { handleThirdClick(thirdCard); return; }
+    });
+
+    // 欄位提示：focus 顯示、blur 隱藏
+    $("windsPhone").addEventListener("focus", function() { $("phoneTip").classList.add("visible"); });
+    $("windsPhone").addEventListener("blur",  function() { $("phoneTip").classList.remove("visible"); });
+    $("windsEmail").addEventListener("focus", function() { $("emailTip").classList.add("visible"); });
+    $("windsEmail").addEventListener("blur",  function() { $("emailTip").classList.remove("visible"); });
+
+    // ── 確認分靈體按鈕 ──
+    var PREFETCH_API = WORKER_API + "/liff-prefetch-profile";
+    var _soulConfirmed = false;   // 是否已成功觸發側寫
+    var _soulDob = "";            // 觸發時的生日，用來偵測是否改變
+
+    function resetSoulBtn() {
+      var btn = $("soulConfirmBtn");
+      if (!btn) return;
+      btn.textContent = "🔮 呼叫我的分靈體";
+      btn.disabled = false;
+      btn.classList.remove('soul-btn-generating', 'soul-btn-ready');
+      _soulConfirmed = false;
+      _soulDob = "";
+      // 生日改了 → submit 重新鎖住，等重新確認分靈體
+      var subBtn = $("submitBtn");
+      if (subBtn) {
+        subBtn.disabled = true;
+        subBtn.textContent = "🔮 請先呼叫分靈體";
+      }
+    }
+
+    // 監聽生日/時間欄位：若改變就重置按鈕
+    $("birthDate").addEventListener("change", resetSoulBtn);
+    $("birthTime").addEventListener("change", resetSoulBtn);
+
+    $("soulConfirmBtn").addEventListener("click", function() {
+      // Guard：已成功觸發過，或按鈕已 disabled（fetch 進行中）→ 不重複呼叫
+      if (_soulConfirmed) return;
+      var btn = $("soulConfirmBtn");
+      if (btn.disabled) return;
+
+      var ref = getInputs();
+      if (!ref.birthDateInput || !ref.birthDateInput.value) {
+        showStatus("請先填寫出生日期。", "err"); return;
+      }
+      if (!ref.birthTimeInput || !ref.birthTimeInput.value) {
+        showStatus("請先填寫出生時間。", "err"); return;
+      }
+      btn.textContent = "✅ 分靈體呼叫中，請稍候…";
+      btn.disabled = true;
+      btn.classList.add('soul-btn-generating');
+
+      // 鎖住 submit 按鈕，等分靈體完成或 15 秒 timeout
+      var submitBtn = $("submitBtn");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "分靈體呼叫中，請稍候…";
+      }
+      var _soulUnlockTimer = setTimeout(function() {
+        // 15 秒 timeout：解鎖 submit，顯示干擾提示
+        if (submitBtn && submitBtn.disabled) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "🔮 送出占卜";
+          showStatus("所在地有干擾，分靈體尚在呼叫中 ✨", "warn");
+        }
+      }, 15000);
+
+      var dob = ref.birthDateInput.value + " " + ref.birthTimeInput.value;
+      _soulDob = dob;
+
+      fetch(PREFETCH_API, {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+          google_sub: userId,
+          date_of_birth: dob,
+          last_name:  ref.lastNameInput  ? ref.lastNameInput.value.trim()  : "",
+          first_name: ref.firstNameInput ? ref.firstNameInput.value.trim() : "",
+        })
+      }).then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success) {
+            _soulConfirmed = true;
+            clearTimeout(_soulUnlockTimer);
+            // 解鎖 submit 按鈕
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = "🔮 送出占卜";
+            }
+            if (d.status === "ready") {
+              btn.textContent = "✅ 你的分靈體已上線";
+              btn.classList.remove('soul-btn-generating');
+              btn.classList.add('soul-btn-ready');
+            } else {
+              // generating：保持灰色，submit 已解鎖
+              btn.textContent = "✅ 分靈體呼叫中…";
+            }
+          } else {
+            clearTimeout(_soulUnlockTimer);
+            resetSoulBtn();
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "🔮 送出占卜"; }
+          }
+        }).catch(function() {
+          clearTimeout(_soulUnlockTimer);
+          resetSoulBtn();
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "🔮 送出占卜"; }
+        });
+    });
+
+    $("submitBtn").addEventListener("click", function(e) {
+      e.preventDefault();
+      handleSubmit();
+    });
+
+    var LINE_OA_URL = "https://lin.ee/tQHsgWB";
+    $("shareBtn").addEventListener("click", async function(e) {
+      e.preventDefault();
+
+      // 即時生成 OG 圖（有快取）
+      var btn = $("shareBtn");
+      var origText = btn.textContent;
+      btn.textContent = "生成分享圖中...";
+      btn.disabled = true;
+      try {
+        var ogResp = await fetch(WORKER_API + "/generate-og-image", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ google_sub: userId })
+        });
+      } catch(ex) {}
+      btn.textContent = origText;
+      btn.disabled = false;
+
+      var shareUrl = "https://app.winds.tw/share?uid=" + encodeURIComponent(userId) + "&t=" + Date.now();
+      var summaryEl = $("summaryText");
+      var summarySnippet = summaryEl ? (summaryEl.textContent || '').slice(0, 100) : '';
+      var shareText = "🌀 找風問幸福 — 我的占卜結果\n\n" + (summarySnippet ? summarySnippet + "…\n\n" : "") + "你也來試試 ✨\n👉 " + shareUrl;
+      try {
+        var canShare = false;
+        var canWebShare = navigator.share;
+        if (canWebShare) {
+          navigator.share({ title: "🌀 找風問幸福 — 我的占卜結果", text: shareText, url: shareUrl })
+            .catch(function() {
+              if (navigator.clipboard) navigator.clipboard.writeText(shareText).then(function() { alert("已複製分享內容 👍"); });
+            });
+        } else {
+          if (navigator.clipboard) navigator.clipboard.writeText(shareText).then(function() { alert("已複製分享連結 👍\n可以貼到 LINE、Facebook、Threads 分享"); });
+          else prompt("請複製以下連結分享：", shareUrl);
+        }
+      } catch(err) { alert("分享功能暫時無法使用，請稍後再試"); }
+    });
+
+    $("unlockBtn").addEventListener("click", function(e) {
+      e.preventDefault();
+      var btn = $("unlockBtn");
+      var payUrl = btn && btn.getAttribute("data-pay-url");
+      if (payUrl) {
+        // 已有 pay_url，直接跳付款
+        if (divinationLogId) {
+          try { sessionStorage.setItem("winds_pending_log_id", divinationLogId); } catch(ex) {}
+        }
+        window.open(payUrl, "_blank");
+        return;
+      }
+      handleUnlock();
+    });
+
+    var summaryEl = $("windsSummary");
+    if (summaryEl) {
+      summaryEl.addEventListener("input", updateCharCounter);
+      updateCharCounter();
+    }
+
+    // Handle browser back navigation
+    window.addEventListener("pageshow", function() {
+      setTimeout(syncUIState, 50);
+    });
+
+    // ===========================================
+    // Google SSO Init (取代 LIFF Init)
+    // ===========================================
+
+    // 預先檢查：若 URL 帶 log_id，提前切到 loading（避免閃屏）
+    (function() {
+      var earlyParams = new URLSearchParams(window.location.search);
+      if (earlyParams.get("log_id")) {
+        if ($("initLoading")) $("initLoading").style.display = "none";
+        var el = $("loadingSection");
+        if (el) {
+          el.style.display = "block";
+          var p = el.querySelector("p");
+          if (p) p.textContent = "✨ 載入占卜結果中…";
+        }
+      }
+    })();
+
+    // Google GIS credential callback
+    function handleGoogleCredentialResponse(response) {
+      googleIdToken = response.credential;
+      // Decode JWT payload to get user info (base64url → JSON)
+      var parts = googleIdToken.split('.');
+      var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      userId = payload.sub;
+
+      // 自動填入 email（Google 帳號的 email）
+      var emailInput = $("windsEmail");
+      if (emailInput && payload.email) {
+        emailInput.value = payload.email;
+      }
+
+      // 自動填入姓名（如果 Google profile 有）
+      if (payload.family_name && $("windsLastName")) $("windsLastName").value = payload.family_name;
+      if (payload.given_name && $("windsFirstName")) $("windsFirstName").value = payload.given_name;
+
+      showStatus("✨ 已使用 Google 帳號登入：" + payload.email, "info");
+      onUserReady();
+    }
+
+    // 用戶登入後的主流程（與 LIFF 版邏輯相同）
+    function onUserReady() {
+      // ── 從 URL 帶回結果 ──
+      var urlParams = new URLSearchParams(window.location.search);
+      var returnLogId = urlParams.get("log_id");
+      if (returnLogId) {
+        showLoading();
+        startPolling(returnLogId, userId, true);
+        return;
+      }
+
+      // ── 付款後回來：從 sessionStorage 恢復 log_id ──
+      var pendingLogId = "";
+      try { pendingLogId = sessionStorage.getItem("winds_pending_log_id") || ""; } catch(ex) {}
+      if (pendingLogId) {
+        try { sessionStorage.removeItem("winds_pending_log_id"); } catch(ex) {}
+        showLoading();
+        startPolling(pendingLogId, userId);
+        return;
+      }
+
+      // 正常填表流程
+      showForm();
+
+      // 回訪用戶預填
+      if (userId) {
+        fetch(PREFILL_API + "?google_sub=" + encodeURIComponent(userId), { headers: authHeaders() })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.error === 'maintenance') { window.location.href = '/maintenance.html'; return; }
+          if (!d.found) return;
+
+          var ref = getInputs();
+          if (d.last_name  && ref.lastNameInput)  ref.lastNameInput.value  = d.last_name;
+          if (d.first_name && ref.firstNameInput) ref.firstNameInput.value = d.first_name;
+          if (d.phone && ref.phoneInput) {
+            var ph = d.phone;
+            if (ph.startsWith("+886")) ph = "0" + ph.slice(4);
+            ref.phoneInput.value = ph;
+          }
+          if (d.email && ref.emailInput) ref.emailInput.value = d.email;
+          if (d.date_of_birth && ref.birthDateInput) {
+            var dobParts = d.date_of_birth.split(" ");
+            ref.birthDateInput.value = dobParts[0];
+            if (dobParts[1] && ref.birthTimeInput) ref.birthTimeInput.value = dobParts[1].slice(0, 5);
+          }
+
+          var fullName = (d.last_name || "") + (d.first_name || "");
+          if (fullName) showStatus("歡迎回來，" + fullName + "！", "info");
+
+          window._prefillData = {
+            last_name: d.last_name || "", first_name: d.first_name || "",
+            date_of_birth: d.date_of_birth || "", phone: d.phone || "",
+            email: d.email || "", gender: d.gender || ""
+          };
+          if (d.phone && $("windsPhone")) $("windsPhone").value = d.phone.replace(/^\+886/, "0");
+          if (d.email && $("windsEmail")) $("windsEmail").value = d.email;
+
+          if (d.personality_profile) {
+            var sBtn = $("soulConfirmBtn");
+            if (sBtn) {
+              sBtn.textContent = "✅ 你的分靈體已上線";
+              sBtn.disabled = true;
+              sBtn.classList.remove('soul-btn-generating');
+              sBtn.classList.add('soul-btn-ready');
+              _soulConfirmed = true;
+            }
+            var subBtn = $("submitBtn");
+            if (subBtn) { subBtn.disabled = false; subBtn.textContent = "🔮 送出占卜"; }
+          } else if (!d.personality_profile && d.astro_calculated_at && d.date_of_birth) {
+            fetch(PREFETCH_API, {
+              method: "POST",
+              headers: authHeaders({ "Content-Type": "application/json" }),
+              body: JSON.stringify({ google_sub: userId, date_of_birth: d.date_of_birth })
+            });
+          }
+        })
+        .catch(function() { /* 預填失敗不影響主流程 */ });
+      }
+    }
+
+    // ── 初始化 Google One Tap + Sign-In Button ──
+    (function initGoogleSSO() {
+      // 檢查是否已有 session（sessionStorage 暫存 Google token）
+      var savedToken = "";
+      try { savedToken = sessionStorage.getItem("winds_google_token") || ""; } catch(ex) {}
+      if (savedToken) {
+        // 嘗試用已存的 token 恢復登入（token 可能已過期）
+        handleGoogleCredentialResponse({ credential: savedToken });
+        return;
+      }
+
+      // URL 帶 log_id 但沒登入：先嘗試直接顯示結果
+      var urlParams = new URLSearchParams(window.location.search);
+      var returnLogId = urlParams.get("log_id");
+      if (returnLogId) {
+        showLoading();
+        startPolling(returnLogId, "", true);
+        return;
+      }
+      var pendingLogId = "";
+      try { pendingLogId = sessionStorage.getItem("winds_pending_log_id") || ""; } catch(ex) {}
+      if (pendingLogId) {
+        try { sessionStorage.removeItem("winds_pending_log_id"); } catch(ex) {}
+        showLoading();
+        startPolling(pendingLogId, "");
+        return;
+      }
+
+      // 顯示表單 + Google 登入按鈕
+      showForm();
+
+      // 初始化 Google One Tap（如果有 Client ID）
+      if (GOOGLE_CLIENT_ID && typeof google !== 'undefined' && google.accounts) {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: function(response) {
+            try { sessionStorage.setItem("winds_google_token", response.credential); } catch(ex) {}
+            handleGoogleCredentialResponse(response);
+          },
+          auto_select: true,
+          context: "signin"
+        });
+        // 顯示 One Tap 提示
+        google.accounts.id.prompt();
+        // 在表單頂部也渲染一個登入按鈕
+        var btnContainer = $("googleSignInBtn");
+        if (btnContainer) {
+          google.accounts.id.renderButton(btnContainer, {
+            theme: "outline",
+            size: "large",
+            text: "signin_with",
+            shape: "rectangular",
+            width: 300,
+            locale: "zh-TW"
+          });
+        }
+      } else {
+        // Client ID 未設定（開發模式：直接顯示表單，不登入）
+        console.warn("Google Client ID not set — running without auth");
+      }
+    })();
+
+  })();
+  </script>
+</body>
+</html>
+
