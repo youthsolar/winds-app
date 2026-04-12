@@ -3043,6 +3043,16 @@
       initGoogleGIS();
     })();
 
+    // ── 安全閥：3 秒後若仍卡在載入畫面，強制顯示表單 ──
+    setTimeout(function() {
+      var il = $("initLoading");
+      if (il && il.style.display !== "none") {
+        console.warn("Failsafe: forcing form after 3s");
+        showForm();
+        initGoogleGIS();
+      }
+    }, 3000);
+
   })();
   </script>
 </body>
