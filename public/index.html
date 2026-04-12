@@ -1031,10 +1031,9 @@
       <p>易經 × 塔羅 × 量能靈符</p>
     </div>
 
-    <!-- Google Sign-In Section -->
-    <div id="googleSignInSection" style="text-align:center;margin-bottom:20px;padding:16px;background:#fff;border-radius:12px;border:1px solid var(--winds-border);">
-      <p style="font-size:13px;color:var(--winds-text-sub);margin:0 0 12px 0;">使用 Google 帳號登入，開始你的占卜旅程</p>
-      <div id="googleSignInBtn" style="display:flex;justify-content:center;"></div>
+    <!-- Google Sign-In -->
+    <div id="googleSignInSection" style="display:flex;justify-content:center;margin-bottom:16px;">
+      <div id="googleSignInBtn"></div>
     </div>
 
     <!-- Status message -->
@@ -2894,7 +2893,8 @@
       var signInSection = $("googleSignInSection");
       if (signInSection) signInSection.style.display = "none";
 
-      showStatus("✨ 已使用 Google 帳號登入：" + payload.email, "info");
+      var displayName = (payload.family_name || "") + (payload.given_name || "") || payload.name || payload.email;
+      showStatus("歡迎回來，" + displayName + "！", "info");
       onUserReady();
     }
 
