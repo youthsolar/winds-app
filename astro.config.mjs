@@ -19,7 +19,13 @@ export default defineConfig({
 
   integrations: [
     sitemap({
-      filter: (page) => !page.includes('/auth/'),
+      filter: (page) => !page.includes('/auth/') && !page.includes('/history'),
+      customPages: [
+        'https://app.winds.tw/',
+        'https://app.winds.tw/delivery',
+        'https://app.winds.tw/share',
+        'https://app.winds.tw/spirit',
+      ],
     }),
   ],
 });
