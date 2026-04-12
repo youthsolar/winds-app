@@ -488,7 +488,7 @@
             return;
           }
           // Google SSO: get userId from sessionStorage
-          const savedToken = sessionStorage.getItem("winds_google_token") || "";
+          const savedToken = localStorage.getItem("winds_google_token") || "";
           let profile = { userId: "" };
           if (savedToken) { try { const p = JSON.parse(atob(savedToken.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))); profile = { userId: p.sub }; googleIdToken = savedToken; } catch(e) {} }
           userId = profile.userId;

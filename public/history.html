@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>我的占卜紀錄 — 找風問幸福</title>
+  <title>占卜紀錄 — 找風問幸福</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -117,7 +117,7 @@
 
     <div class="header">
       <img src="/assets/logo.png" alt="找風問幸福">
-      <h1>我的占卜紀錄</h1>
+      <h1>占卜紀錄</h1>
       <p id="userName"></p>
     </div>
 
@@ -237,7 +237,7 @@
 
     function handleCredential(response) {
       googleIdToken = response.credential;
-      try { sessionStorage.setItem("winds_google_token", response.credential); } catch(e) {}
+      try { localStorage.setItem("winds_google_token", response.credential); } catch(e) {}
       var parts = googleIdToken.split('.');
       var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
       userId = payload.sub;
@@ -250,7 +250,7 @@
     (function init() {
       // 嘗試從 session 恢復
       var savedToken = "";
-      try { savedToken = sessionStorage.getItem("winds_google_token") || ""; } catch(e) {}
+      try { savedToken = localStorage.getItem("winds_google_token") || ""; } catch(e) {}
       if (savedToken) {
         handleCredential({ credential: savedToken });
         return;
@@ -269,7 +269,7 @@
         google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: function(resp) {
-            try { sessionStorage.setItem("winds_google_token", resp.credential); } catch(e) {}
+            try { localStorage.setItem("winds_google_token", resp.credential); } catch(e) {}
             handleCredential(resp);
           },
           auto_select: true,

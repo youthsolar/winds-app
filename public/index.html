@@ -1158,7 +1158,7 @@
 
     <!-- 我的紀錄按鈕（登入後顯示）-->
     <div id="myReadingsLink" style="display:none;text-align:right;margin-bottom:8px;">
-      <a href="/history" style="font-size:13px;color:var(--winds-gold-dark);text-decoration:none;">📜 我的占卜紀錄 →</a>
+      <a href="/history" style="font-size:13px;color:var(--winds-gold-dark);text-decoration:none;">📜 占卜紀錄 →</a>
     </div>
 
     <!-- Google Sign-In -->
@@ -3122,7 +3122,7 @@
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: function(response) {
-          try { sessionStorage.setItem("winds_google_token", response.credential); } catch(ex) {}
+          try { localStorage.setItem("winds_google_token", response.credential); } catch(ex) {}
           handleGoogleCredentialResponse(response);
         },
         auto_select: true,
@@ -3147,7 +3147,7 @@
       try {
         // 檢查是否已有 session（sessionStorage 暫存 Google token）
         var savedToken = "";
-        try { savedToken = sessionStorage.getItem("winds_google_token") || ""; } catch(ex) {}
+        try { savedToken = localStorage.getItem("winds_google_token") || ""; } catch(ex) {}
         if (savedToken) {
           handleGoogleCredentialResponse({ credential: savedToken });
           initGoogleGIS();
