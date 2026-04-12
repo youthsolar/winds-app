@@ -14,6 +14,10 @@
   <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/winds.css">
   <style>
+    /* 鎖定手機：防止 iOS 雙擊放大 + input 聚焦放大 */
+    html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+    input, select, textarea { font-size: 16px !important; } /* iOS 不會對 >=16px 的 input 放大 */
+
     /* ===========================================
        Winds Design System — LIFF V2
        =========================================== */
@@ -942,11 +946,10 @@
 
     // Google SSO mode (no LIFF)
     var WORKER_API = "https://api.winds.tw";
-    var DELIVERY_API = "https://app.winds.tw/delivery-content";
+    var DELIVERY_API = "https://api.winds.tw/delivery-content";
 
     function getGoogleIdToken() {
       return googleIdToken || '';
-      catch(e) { return ''; }
     }
     function $(id) { return document.getElementById(id); }
 
@@ -1686,17 +1689,13 @@
       btn.textContent = origText;
       btn.disabled = false;
       try {
-        var canShare = false;
-        
-        if (canShare) {
-          Promise.resolve(); })
-            .catch(function() {
-              if (navigator.clipboard) navigator.clipboard.writeText(shareText).then(function() { alert("已複製分享內容 👍"); });
-            });
+        if (navigator.share) {
+          navigator.share({ title: "找風問幸福 — 占卜結果", text: shareText, url: shareDeliveryUrl }).catch(function() {
+            if (navigator.clipboard) navigator.clipboard.writeText(shareText).then(function() { alert("已複製分享內容 👍"); });
+          });
         } else {
-          // fallback：用 LINE 分享 URL scheme 直接開 LINE 分享
-          var lineShareUrl = "https://line.me/R/share?text=" + encodeURIComponent(shareDeliveryUrl);
-          window.location.href = lineShareUrl;
+          if (navigator.clipboard) navigator.clipboard.writeText(shareText).then(function() { alert("已複製分享連結 👍"); });
+          else prompt("請複製以下連結分享：", shareDeliveryUrl);
         }
       } catch(err) { alert("分享功能暫時無法使用，請稍後再試"); }
     });

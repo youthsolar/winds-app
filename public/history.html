@@ -11,6 +11,10 @@
   <link rel="stylesheet" href="/assets/winds.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
+    /* 鎖定手機：防止 iOS 雙擊放大 + input 聚焦放大 */
+    html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+    input, select, textarea { font-size: 16px !important; } /* iOS 不會對 >=16px 的 input 放大 */
+
     :root {
       --winds-bg: #faf8f6;
       --winds-text: #474747;
