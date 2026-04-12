@@ -1031,8 +1031,11 @@
       <p>易經 × 塔羅 × 量能靈符</p>
     </div>
 
-    <!-- Google Sign-In Button (rendered by GIS SDK) -->
-    <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:16px;"></div>
+    <!-- Google Sign-In Section -->
+    <div id="googleSignInSection" style="text-align:center;margin-bottom:20px;padding:16px;background:#fff;border-radius:12px;border:1px solid var(--winds-border);">
+      <p style="font-size:13px;color:var(--winds-text-sub);margin:0 0 12px 0;">使用 Google 帳號登入，開始你的占卜旅程</p>
+      <div id="googleSignInBtn" style="display:flex;justify-content:center;"></div>
+    </div>
 
     <!-- Status message -->
     <div id="status" class="winds-status"></div>
@@ -2886,6 +2889,10 @@
       // 自動填入姓名（如果 Google profile 有）
       if (payload.family_name && $("windsLastName")) $("windsLastName").value = payload.family_name;
       if (payload.given_name && $("windsFirstName")) $("windsFirstName").value = payload.given_name;
+
+      // 隱藏登入按鈕，顯示已登入狀態
+      var signInSection = $("googleSignInSection");
+      if (signInSection) signInSection.style.display = "none";
 
       showStatus("✨ 已使用 Google 帳號登入：" + payload.email, "info");
       onUserReady();
