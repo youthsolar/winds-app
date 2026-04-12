@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>分靈體對話</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/winds.css">
+  <!-- Google GIS loaded from index.html session -->
+  <style>
+    /* CSS 變數繼承自 winds.css */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--winds-bg);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 頂部標題區 */
+    .header {
+      background: var(--winds-text-dark);
+      color: white;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 2px 8px rgba(59,38,42,0.3);
+      flex-shrink: 0;
+    }
+    .header .spirit-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .header .info h2 { font-size: 16px; font-weight: 700; }
+    .header .info p  { font-size: 12px; opacity: 0.8; }
+
+    /* 模式切換 */
+    .mode-tabs {
+      display: flex;
+      background: white;
+      border-bottom: 1px solid var(--winds-border);
+      flex-shrink: 0;
+    }
+    .mode-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--winds-text-muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .mode-tab.active {
+      color: var(--winds-gold);
+      border-bottom-color: var(--winds-gold);
+    }
+
+    /* 對象生日輸入（target 模式） */
+    .target-input-area {
+      background: white;
+      padding: 10px 16px;
+      display: none;
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid var(--winds-border);
+      flex-shrink: 0;
+    }
+    .target-input-area.show { display: flex; }
+    .target-input-area label { font-size: 13px; color: var(--winds-text-sub); white-space: nowrap; }
+    .target-input-area input,
+    .target-input-area select {
+      border: 1px solid var(--winds-border);
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-size: 12px !important;
+      outline: none;
+      height: 30px;
+      background: #fff;
+      color: var(--winds-text);
+      box-sizing: border-box;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+    .target-input-area input { flex: 1 1 58%; min-width: 0; }
+    .target-input-area select { flex: 1 1 30%; min-width: 0; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 8px center; padding-right: 20px; }
+    .target-input-area input:focus,
+    .target-input-area select:focus { border-color: var(--winds-gold); }
+    .target-input-area input:disabled,
+    .target-input-area select:disabled {
+      background-color: #e8e8e8;
+      color: #999;
+      cursor: not-allowed;
+      border-color: #d0d0d0;
+    }
+
+    /* 訊息區 */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    /* 訊息泡泡 */
+    .msg-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .msg-row.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--winds-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .msg-row.user .msg-avatar {
+      background: var(--winds-accent);
+    }
+
+    .msg-bubble {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-line;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .msg-row.assistant .msg-bubble {
+      background: white;
+      color: var(--winds-text-dark);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .msg-row.user .msg-bubble {
+      background: var(--winds-text-dark);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-time {
+      font-size: 10px;
+      color: var(--winds-text-muted);
+      margin-top: 4px;
+      align-self: flex-end;
+    }
+    .msg-row.user .msg-time { text-align: right; }
+
+    /* typing indicator */
+    .typing-indicator .msg-bubble {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 12px 16px;
+    }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--winds-text-muted);
+      animation: bounce 1.2s infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* 免費次數提示 */
+    .free-count-bar {
+      background: white;
+      padding: 6px 16px;
+      font-size: 12px;
+      color: var(--winds-gold);
+      text-align: center;
+      border-top: 1px solid var(--winds-border);
+      flex-shrink: 0;
+    }
+    .free-count-bar span { font-weight: 700; }
+
+    /* 輸入區 */
+    .input-area {
+      background: white;
+      padding: 10px 12px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      border-top: 1px solid var(--winds-border);
+      flex-shrink: 0;
+    }
+    .input-area textarea {
+      flex: 1;
+      border: 1px solid var(--winds-border);
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 14px;
+      resize: none;
+      max-height: 100px;
+      outline: none;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+    .input-area textarea:focus { border-color: var(--winds-gold); }
+    .send-btn {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: var(--winds-text-dark);
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .send-btn:hover { background: var(--winds-gold-dark); }
+    .send-btn:disabled { background: var(--winds-border); cursor: not-allowed; }
+
+    /* 付費牆覆蓋 */
+    .paywall {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: flex-end;
+    }
+    .paywall.show { display: flex; }
+    .paywall-card {
+      background: white;
+      width: 100%;
+      border-radius: 20px 20px 0 0;
+      padding: 28px 24px 40px;
+      text-align: center;
+    }
+    .paywall-card h3 { font-size: 20px; margin-bottom: 8px; color: var(--winds-text-dark); }
+    .paywall-card p  { font-size: 14px; color: var(--winds-text-sub); margin-bottom: 24px; line-height: 1.5; }
+    .subscribe-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: var(--winds-text-dark);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+    .paywall-close {
+      font-size: 14px;
+      color: var(--winds-text-muted);
+      cursor: pointer;
+    }
+
+    /* 命理卡 */
+    .spirit-astro-card {
+      background: var(--winds-card-bg);
+      border: 0.5px solid var(--winds-border);
+      border-radius: 10px;
+      padding: 0;
+      margin: 8px 16px 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+    .spirit-astro-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .spirit-astro-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--winds-gold-dark);
+      margin: 0;
+    }
+    .spirit-astro-toggle {
+      font-size: 12px;
+      color: var(--winds-text-muted);
+      transition: transform 0.2s;
+    }
+    .spirit-astro-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .spirit-astro-body.open {
+      max-height: 500px;
+    }
+    .spirit-astro-body-inner {
+      padding: 0 14px 12px;
+    }
+    .spirit-astro-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .spirit-astro-table td {
+      padding: 5px 8px;
+      border-bottom: 0.5px solid var(--winds-border);
+    }
+    .spirit-astro-table td:first-child {
+      width: 80px;
+      color: var(--winds-gold-dark);
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    /* 提示訊息 */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--winds-error);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 200;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .toast.show { display: block; }
+    .toast.info { background: var(--winds-gold); color: var(--winds-text-dark); }
+    .toast.warn { background: #b8963f; color: #fff; }
+  </style>
+</head>
+<body>
+  <!-- 頂部標題 -->
+  <div class="header">
+    <div class="spirit-avatar">🌀</div>
+    <div class="info">
+      <h2 id="headerTitle">分靈體對話</h2>
+      <p id="headerSubtitle">靈魂深處的另一個自己</p>
+    </div>
+  </div>
+
+  <!-- 模式切換 -->
+  <div class="mode-tabs">
+    <div class="mode-tab active" id="tabSelf" onclick="switchMode('self')">✨ 自己的分靈體</div>
+    <div class="mode-tab" id="tabTarget" onclick="switchMode('target')">💑 對象的分靈體</div>
+  </div>
+
+  <!-- 對象生日輸入（target 模式） -->
+  <div class="target-input-area" id="targetInputArea">
+    <input type="date" id="targetBirthday" value="1990-07-01" />
+    <select id="targetHour">
+      <option value="">時辰</option>
+      <option value="00:00">23-01</option>
+      <option value="02:00">01-03</option>
+      <option value="04:00">03-05</option>
+      <option value="06:00">05-07</option>
+      <option value="08:00">07-09</option>
+      <option value="10:00">09-11</option>
+      <option value="12:00" selected>11-13</option>
+      <option value="14:00">13-15</option>
+      <option value="16:00">15-17</option>
+      <option value="18:00">17-19</option>
+      <option value="20:00">19-21</option>
+      <option value="22:00">21-23</option>
+    </select>
+  </div>
+
+  <!-- 命理卡 -->
+  <div id="spiritAstroCard" class="spirit-astro-card" style="display:none;"></div>
+
+  <!-- 訊息列表 -->
+  <div class="messages" id="messages"></div>
+
+  <!-- 狀態列（免費次數 / 剩餘時間） -->
+  <div class="free-count-bar" id="freeCountBar" style="display:none">
+    <span id="freeCountText">剩餘免費對話：<span id="freeCountNum">--</span> 次</span>
+    <span id="timerText" style="display:none"> | 今日剩餘：<span id="remainingMin">60</span> 分鐘</span>
+  </div>
+
+  <!-- 輸入區 -->
+  <div class="input-area">
+    <textarea id="inputMsg" rows="1" placeholder="輸入訊息..." onkeydown="handleKeyDown(event)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+  </div>
+
+  <!-- 付費牆 -->
+  <div class="paywall" id="paywall">
+    <div class="paywall-card">
+      <h3>🌀 解鎖分靈體</h3>
+      <p>免費體驗已結束<br>開通 7 天無限對話，每天 60 分鐘，你的分靈體隨時都在</p>
+      <button class="subscribe-btn" onclick="goSubscribe()" id="subscribeBtn">開通 7 天 NT$99</button>
+      <div class="paywall-close" onclick="closePaywall()">先不了，謝謝</div>
+    </div>
+  </div>
+
+  <!-- Toast 錯誤提示 -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ==============================
+    // 設定
+    // ==============================
+    const WORKER_API = 'https://api.winds.tw';
+    const LIFF_ID = '2009168674-G2KqF3Jv';
+    var SPIRIT_PRICE = 99;
+    fetch(WORKER_API + '/config').then(function(r){return r.json()}).then(function(c){
+      if(c.spirit_price) { SPIRIT_PRICE = c.spirit_price; var btn = document.getElementById('subscribeBtn'); if(btn) btn.textContent = '開通 7 天 NT$' + SPIRIT_PRICE; }
+    }).catch(function(){});
+
+    let userId = null;
+    let sessionId = null;
+    let currentMode = 'self';
+    let isSending = false;
+
+    // ==============================
+    // 初始化 LIFF
+    // ==============================
+    // 訂閱狀態快取（initLiff 呼叫後填入）
+    var spiritStatus = { subscribed: false, locked_birthday: null };
+
+    // 把完整生日時間（YYYY-MM-DD HH:mm）拆成 date + hour 並填入選擇器
+    function applyLockedBirthday(lockedFull) {
+      if (!lockedFull) return;
+      const parts = lockedFull.split(' ');
+      const dateStr = parts[0];
+      const hourStr = parts[1] || '';
+      const tb = document.getElementById('targetBirthday');
+      const th = document.getElementById('targetHour');
+      if (tb) {
+        tb.value = dateStr;
+        tb.disabled = true;
+      }
+      if (th) {
+        if (hourStr) th.value = hourStr;
+        th.disabled = true;
+      }
+    }
+
+    async function fetchSpiritStatus() {
+      try {
+        const resp = await fetch(`${WORKER_API}/spirit-status?userId=${encodeURIComponent(userId)}`);
+        if (resp.ok) {
+          spiritStatus = await resp.json();
+          if (spiritStatus.locked_birthday) {
+            applyLockedBirthday(spiritStatus.locked_birthday);
+          }
+        }
+      } catch (e) {
+        console.warn('spirit-status 失敗:', e);
+      }
+    }
+
+    async function initLiff() {
+      try {
+        if (LIFF_ID) {
+          // Google SSO mode — no LIFF init needed
+          if (false) { // Google SSO — always logged in
+            return;
+          }
+          // Google SSO: get userId from sessionStorage
+          const savedToken = sessionStorage.getItem("winds_google_token") || "";
+          let profile = { userId: "" };
+          if (savedToken) { try { const p = JSON.parse(atob(savedToken.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))); profile = { userId: p.sub }; googleIdToken = savedToken; } catch(e) {} }
+          userId = profile.userId;
+        } else {
+          // 開發模式：使用 URL 參數
+          const params = new URLSearchParams(location.search);
+          userId = params.get('userId') || 'test_user_' + Date.now();
+        }
+
+        // 查詢訂閱狀態（先於歡迎訊息）
+        await fetchSpiritStatus();
+
+        // 載入歡迎訊息（注入個性側寫）
+        await showWelcomeMessage();
+      } catch (err) {
+        console.error('LIFF 初始化失敗:', err);
+        showToast('初始化失敗，請重新開啟');
+      }
+    }
+
+    // ==============================
+    // 顯示歡迎訊息（注入個性側寫）
+    // ==============================
+    async function showWelcomeMessage() {
+      let welcomeText;
+      if (currentMode === 'self') {
+        welcomeText = '嗨 ✨～我們好久沒聊了，最近過得怎麼樣？想聊什麼都可以——愛情、事業或只是心裡悶悶的也可以。';
+      } else if (spiritStatus && spiritStatus.locked_birthday) {
+        welcomeText = '嗨💫～跟我聊吧！（訂閱期間已經鎖定你選擇的對象 ' + spiritStatus.locked_birthday + '）';
+      } else {
+        welcomeText = '嗨 💫\n輸入對象的生日，我就能感應到他/她了。';
+      }
+      appendMessage('assistant', welcomeText, new Date().toISOString());
+    }
+
+    // ==============================
+    // 切換模式
+    // ==============================
+    function switchMode(mode) {
+      currentMode = mode;
+      sessionId = null; // 重置 session
+
+      document.getElementById('tabSelf').classList.toggle('active', mode === 'self');
+      document.getElementById('tabTarget').classList.toggle('active', mode === 'target');
+      document.getElementById('targetInputArea').classList.toggle('show', mode === 'target');
+
+      // 清空訊息 + 隱藏命理卡
+      document.getElementById('messages').innerHTML = '';
+      var astroCard = document.getElementById('spiritAstroCard');
+      if (astroCard) { astroCard.style.display = 'none'; astroCard.innerHTML = ''; }
+      showWelcomeMessage();
+
+      // 更新標題 + header avatar
+      document.getElementById('headerTitle').textContent =
+        mode === 'self' ? '分靈體對話' : '對象分靈體對話';
+      document.getElementById('headerSubtitle').textContent =
+        mode === 'self' ? '靈魂深處的另一個自己' : '感應對象的靈性頻率';
+      document.querySelector('.spirit-avatar').textContent =
+        mode === 'self' ? '🌀' : '💫';
+    }
+
+    // ==============================
+    // 發送訊息
+    // ==============================
+    async function sendMessage() {
+      if (isSending) return;
+
+      const input = document.getElementById('inputMsg');
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      // target 模式需要生日
+      const targetDate = document.getElementById('targetBirthday')?.value || null;
+      if (currentMode === 'target' && !targetDate) {
+        showToast('請先輸入對象生日');
+        return;
+      }
+      // 組合生日+時辰（未選時辰則預設午時 12:00，避免子時換日錯誤）
+      const targetHour = document.getElementById('targetHour')?.value || '';
+      const targetBirthday = targetDate ? (targetDate + ' ' + (targetHour || '12:00')) : null;
+
+      // 清空輸入
+      input.value = '';
+      autoResizeTextarea(input);
+
+      // 顯示用戶訊息（記住 DOM 節點以便 AI 失敗時回滾）
+      const lastUserMsgEl = appendMessage('user', msg, new Date().toISOString());
+
+      // 顯示 typing
+      const typingId = showTyping();
+      isSending = true;
+      document.getElementById('sendBtn').disabled = true;
+
+      try {
+        const resp = await fetch(`${WORKER_API}/spirit-chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            message: msg,
+            sessionId,
+            sessionType: currentMode,
+            targetBirthday: currentMode === 'target' ? targetBirthday : null,
+          }),
+        });
+
+        const data = await resp.json();
+        removeTyping(typingId);
+
+        if (resp.status === 403 && data.needSubscribe) {
+          document.getElementById('paywall').classList.add('show');
+          return;
+        }
+
+        if (!data.success) {
+          // 沒有占卜過 → 導流到占卜頁
+          if (data.error === 'no_profile') {
+            appendMessage('assistant', '我還不認識你呢⋯\n\n先去完成一次占卜，讓我感應你的靈魂頻率，回來我們再好好聊 🌀', new Date().toISOString());
+            setTimeout(function() {
+              window.location.href = '/index.html';
+            }, 3000);
+            return;
+          }
+          // 每日限制到達
+          if (data.error === 'daily_limit') {
+            appendMessage('assistant', data.message, new Date().toISOString());
+            document.getElementById('inputMsg').disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('inputMsg').placeholder = '分靈體已休息，明天再來 💤';
+            return;
+          }
+          // 對象鎖定
+          if (data.error === 'target_locked') {
+            showToast('訂閱期間已鎖定對象（' + data.locked_birthday + '）', 'info');
+            applyLockedBirthday(data.locked_birthday);
+            spiritStatus.locked_birthday = data.locked_birthday;
+            return;
+          }
+          // AI 失敗：回滾剛才發出的用戶訊息 + 還原輸入框
+          if (data.error === 'ai_failed') {
+            if (lastUserMsgEl && lastUserMsgEl.parentNode) {
+              lastUserMsgEl.parentNode.removeChild(lastUserMsgEl);
+            }
+            input.value = msg;
+            autoResizeTextarea(input);
+            showToast(data.message || '分靈體暫時無法回應，請稍後再試', 'warn');
+            return;
+          }
+          showToast(data.message || data.error || '對話失敗，請稍後再試');
+          return;
+        }
+
+        // 記錄 sessionId
+        if (data.session_id) sessionId = data.session_id;
+
+        // 對象鎖定 UI
+        if (data.locked_birthday && currentMode === 'target') {
+          applyLockedBirthday(data.locked_birthday);
+          spiritStatus.locked_birthday = data.locked_birthday;
+        }
+
+        // 更新剩餘時間
+        if (data.remaining_minutes !== undefined) {
+          document.getElementById('timerText').style.display = 'inline';
+          document.getElementById('remainingMin').textContent = data.remaining_minutes;
+          document.getElementById('freeCountBar').style.display = 'block';
+        }
+        // 訂閱用戶隱藏免費次數，顯示到期日
+        if (data.has_subscription) {
+          document.getElementById('freeCountText').style.display = 'none';
+          if (data.expires_at) {
+            var exp = new Date(data.expires_at);
+            var expStr = (exp.getMonth()+1) + '/' + exp.getDate();
+            document.getElementById('timerText').innerHTML = '訂閱至 ' + expStr + ' | 今日剩餘：<span id="remainingMin">' + (data.remaining_minutes || 0) + '</span> 分鐘';
+          }
+        }
+
+        // 渲染命理卡（首次回應時）
+        if (data.astro) renderAstroCard(data.astro);
+
+        // 顯示 AI 回應
+        appendMessage('assistant', data.reply, new Date().toISOString());
+
+        // 更新免費次數
+        if (data.free_count_remaining !== null && data.free_count_remaining !== undefined) {
+          document.getElementById('freeCountBar').style.display = 'block';
+          document.getElementById('freeCountNum').textContent = data.free_count_remaining;
+        } else if (data.has_subscription) {
+          document.getElementById('freeCountBar').style.display = 'none';
+        }
+
+      } catch (err) {
+        removeTyping(typingId);
+        showToast('網路錯誤，請稍後再試');
+        console.error(err);
+      } finally {
+        isSending = false;
+        document.getElementById('sendBtn').disabled = false;
+      }
+    }
+
+    // ==============================
+    // UI 工具函式
+    // ==============================
+    function renderAstroCard(astro) {
+      const card = document.getElementById('spiritAstroCard');
+      if (!card || !astro) return;
+      const isSelf = astro.mode === 'self';
+      const title = isSelf ? '✦ 你的命理檔案' : '✦ 對象的命理檔案';
+      var rows = '';
+      if (astro.lunar_birthday) rows += '<tr><td>🌙 農曆</td><td>' + astro.lunar_birthday + '</td></tr>';
+      if (astro.xingzuo) rows += '<tr><td>⭐ 星座</td><td>' + astro.xingzuo + '</td></tr>';
+      if (astro.shengxiao) rows += '<tr><td>🐾 生肖</td><td>' + astro.shengxiao + '</td></tr>';
+      if (astro.twenty_eight_mansion) rows += '<tr><td>✨ 星宿</td><td>' + astro.twenty_eight_mansion + '</td></tr>';
+      if (astro.full_bazi) rows += '<tr><td>📜 八字</td><td>' + astro.full_bazi + '</td></tr>';
+      // 納音（target 從 API 回傳；self 從四柱計算）
+      var ny = astro.naiyin_year, nm = astro.naiyin_month, nd = astro.naiyin_day, nh = astro.naiyin_hour;
+      if (ny || nm || nd || nh) {
+        var parts = [];
+        if (ny) parts.push('年：' + ny);
+        if (nm) parts.push('月：' + nm);
+        if (nd) parts.push('日：' + nd);
+        if (nh) parts.push('時：' + nh);
+        rows += '<tr><td>🔔 納音</td><td>' + parts.join('｜') + '</td></tr>';
+      }
+      if (astro.taisui_conflict_status) rows += '<tr><td>⚡ 太歲</td><td>' + astro.taisui_conflict_status + '</td></tr>';
+      if (astro.taisui_deity_birth) rows += '<tr><td>🛡️ 本命星君</td><td>' + astro.taisui_deity_birth + '</td></tr>';
+      if (astro.taisui_deity_year) rows += '<tr><td>🏯 流年星君</td><td>' + astro.taisui_deity_year + '</td></tr>';
+      // 本命塔羅
+      if (astro.ben_ming_tarots && astro.ben_ming_tarots.length > 0) {
+        var tarotParts = astro.ben_ming_tarots.map(function(t) { return t.label + '：' + t.card_name; });
+        rows += '<tr><td>🃏 本命塔羅</td><td>' + tarotParts.join('<br>') + '</td></tr>';
+      }
+      if (rows) {
+        card.innerHTML = '<div class="spirit-astro-header" onclick="toggleAstroCard()">'
+          + '<div class="spirit-astro-title">' + title + '</div>'
+          + '<span class="spirit-astro-toggle" id="astroToggleIcon">▼ 展開</span>'
+          + '</div>'
+          + '<div class="spirit-astro-body" id="astroBody">'
+          + '<div class="spirit-astro-body-inner">'
+          + '<table class="spirit-astro-table">' + rows + '</table>'
+          + '</div></div>';
+        card.style.display = 'block';
+      }
+    }
+
+    function toggleAstroCard() {
+      var body = document.getElementById('astroBody');
+      var icon = document.getElementById('astroToggleIcon');
+      if (!body || !icon) return;
+      var isOpen = body.classList.contains('open');
+      body.classList.toggle('open');
+      icon.textContent = isOpen ? '▼ 展開' : '▲ 收合';
+    }
+
+    function appendMessage(role, content, timestamp) {
+      const messages = document.getElementById('messages');
+      const row = document.createElement('div');
+      row.className = `msg-row ${role}`;
+
+      const avatarEmoji = role === 'assistant' ? (currentMode === 'self' ? '🌀' : '💫') : '🫧';
+      const timeStr = new Date(timestamp).toLocaleTimeString('zh-TW', {
+        hour: '2-digit', minute: '2-digit'
+      });
+
+      row.innerHTML = `
+        <div class="msg-avatar">${avatarEmoji}</div>
+        <div>
+          <div class="msg-bubble">${escapeHtml(content)}</div>
+          <div class="msg-time">${timeStr}</div>
+        </div>
+      `;
+
+      messages.appendChild(row);
+      messages.scrollTop = messages.scrollHeight;
+      return row;
+    }
+
+    function showTyping() {
+      const messages = document.getElementById('messages');
+      const id = 'typing-' + Date.now();
+      const row = document.createElement('div');
+      row.className = 'msg-row assistant typing-indicator';
+      row.id = id;
+      const typingAvatar = currentMode === 'self' ? '🌀' : '💫';
+      row.innerHTML = `
+        <div class="msg-avatar">${typingAvatar}</div>
+        <div class="msg-bubble">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      `;
+      messages.appendChild(row);
+      messages.scrollTop = messages.scrollHeight;
+      return id;
+    }
+
+    function removeTyping(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    function showToast(msg, type) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('info', 'warn');
+      if (type === 'info' || type === 'warn') toast.classList.add(type);
+      toast.classList.add('show');
+      // info 類訊息較重要（例如鎖定生日），顯示 6 秒
+      const duration = type === 'info' ? 6000 : 3500;
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                 .replace(/"/g, '&quot;').replace(/'/g, '&#039;')
+                 .replace(/\n/g, '<br>');
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+      autoResizeTextarea(e.target);
+    }
+
+    function autoResizeTextarea(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    }
+
+    async function goSubscribe() {
+      try {
+        const resp = await fetch(`${WORKER_API}/spirit-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ google_sub: userId }),
+        });
+        const data = await resp.json();
+        if (data.success && data.pay_url) {
+          window.location.href = data.pay_url;
+        } else {
+          showToast(data.error || '建立訂單失敗');
+        }
+      } catch (e) {
+        showToast('網路錯誤，請稍後再試');
+      }
+    }
+
+    function closePaywall() {
+      document.getElementById('paywall').classList.remove('show');
+    }
+
+    // ==============================
+    // 啟動
+    // ==============================
+    initLiff();
+  </script>
+</body>
+</html>
