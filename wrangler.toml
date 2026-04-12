@@ -1,0 +1,10 @@
+name = "winds-app"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist"
+
+# D1 binding (shared with divination-worker)
+[[d1_databases]]
+binding = "DB"
+database_name = "divination-db"
+database_id = "af8d3386-6673-4d9d-b3b2-92049738301f"

@@ -1,0 +1,131 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  ogImage?: string;
+  ogType?: string;
+  jsonLd?: Record<string, any>;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  ogImage = '/og-default.jpg',
+  ogType = 'website',
+  jsonLd,
+  noindex = false,
+} = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const fullOgImage = new URL(ogImage, Astro.site).toString();
+
+// Google OAuth Client ID (placeholder until Jeffery provides it)
+const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
+---
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- SEO: Primary Meta Tags -->
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonicalUrl} />
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+  <!-- AGO: Open Graph -->
+  <meta property="og:type" content={ogType} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={fullOgImage} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:site_name" content="找風問幸福" />
+  <meta property="og:locale" content="zh_TW" />
+
+  <!-- AGO: Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={fullOgImage} />
+
+  <!-- GEO: JSON-LD Structured Data -->
+  {jsonLd && (
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  )}
+
+  <!-- Brand Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Google Identity Services (One Tap + Sign In) -->
+  {GOOGLE_CLIENT_ID && (
+    <script src="https://accounts.google.com/gsi/client" async defer />
+  )}
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Google One Tap prompt (if logged out) -->
+  {GOOGLE_CLIENT_ID && (
+    <div
+      id="g_id_onload"
+      data-client_id={GOOGLE_CLIENT_ID}
+      data-callback="handleGoogleCredentialResponse"
+      data-auto_prompt="true"
+      data-context="signin"
+    />
+  )}
+
+  <header class="border-b border-[var(--winds-border)] bg-[var(--winds-bg-card)]">
+    <nav class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="text-xl font-bold" style="color: var(--winds-text-dark);">
+        找風問幸福
+      </a>
+      <div class="flex items-center gap-6 text-sm">
+        <a href="/services">服務與法器</a>
+        <a href="/blog">命理專欄</a>
+        <div id="auth-button"></div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="flex-1">
+    <slot />
+  </main>
+
+  <footer class="border-t border-[var(--winds-border)] py-8 mt-12 text-center text-sm" style="color: var(--winds-text-muted);">
+    <div class="max-w-5xl mx-auto px-4">
+      <p>&copy; {new Date().getFullYear()} 找風問幸福 Uneedwind</p>
+      <p class="mt-2">
+        <a href="/privacy">隱私權政策</a> ・ <a href="/terms">服務條款</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Google SSO callback handler (placeholder) -->
+  {GOOGLE_CLIENT_ID && (
+    <script is:inline>
+      function handleGoogleCredentialResponse(response) {
+        // Send ID token to Worker for verification
+        fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: response.credential }),
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            window.location.reload();
+          }
+        })
+        .catch(console.error);
+      }
+    </script>
+  )}
+</body>
+</html>

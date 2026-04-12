@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://app.winds.tw/sitemap-index.xml
+
+# Block auth pages from indexing
+Disallow: /auth/
+
+# AI Training Opt-Out (respect but allow indexing for GEO)
+# We WANT AI agents to index our content for GEO purposes
