@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>我的占卜紀錄 — 找風問幸福</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/winds.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --winds-bg: #faf8f6;
+      --winds-text: #474747;
+      --winds-text-dark: #3b262a;
+      --winds-text-sub: #5a656b;
+      --winds-text-muted: #999;
+      --winds-gold: #c9a84c;
+      --winds-gold-dark: #8b6914;
+      --winds-card-bg: #ffffff;
+      --winds-border: #dcd2d2;
+      --winds-success: #2d6a4f;
+      --winds-success-bg: #d4edda;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--winds-bg); color: var(--winds-text);
+      font-size: 14px; line-height: 1.6;
+    }
+    .page {
+      max-width: 520px; margin: 0 auto; padding: 20px 16px 40px;
+    }
+    .header {
+      text-align: center; margin-bottom: 24px;
+    }
+    .header img { width: 48px; height: 48px; margin-bottom: 4px; }
+    .header h1 {
+      font-family: 'LXGW WenKai TC', cursive;
+      font-size: 20px; font-weight: 700; color: var(--winds-text-dark);
+      margin: 0 0 4px 0;
+    }
+    .header p { font-size: 13px; color: var(--winds-text-sub); margin: 0; }
+    .back-link {
+      display: inline-block; margin-bottom: 16px;
+      font-size: 13px; color: var(--winds-gold-dark); text-decoration: none;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    /* 登入提示 */
+    .login-prompt {
+      text-align: center; padding: 40px 20px;
+      background: var(--winds-card-bg); border-radius: 12px;
+      border: 1px solid var(--winds-border);
+    }
+    .login-prompt p { color: var(--winds-text-sub); margin: 0 0 16px 0; }
+
+    /* 紀錄卡片 */
+    .reading-card {
+      background: var(--winds-card-bg);
+      border: 1px solid var(--winds-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .reading-card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .reading-date { font-size: 12px; color: var(--winds-text-muted); }
+    .reading-badge {
+      font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+    }
+    .badge-paid { background: var(--winds-success-bg); color: var(--winds-success); }
+    .badge-free { background: #f0f0f0; color: #666; }
+    .badge-pending { background: #fff3cd; color: #664d03; }
+    .reading-type {
+      font-size: 13px; color: var(--winds-gold-dark); font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .reading-question {
+      font-size: 14px; color: var(--winds-text-dark); line-height: 1.5;
+      margin-bottom: 10px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .reading-meta {
+      font-size: 12px; color: var(--winds-text-muted);
+      display: flex; gap: 12px; margin-bottom: 10px;
+    }
+    .reading-actions { display: flex; gap: 8px; }
+    .btn-view {
+      display: inline-block; padding: 8px 16px;
+      background: var(--winds-gold-dark); color: #fff;
+      border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+      text-decoration: none; cursor: pointer; text-align: center;
+    }
+    .btn-view:hover { opacity: 0.9; }
+    .btn-view-outline {
+      display: inline-block; padding: 8px 16px;
+      background: transparent; color: var(--winds-gold-dark);
+      border: 1px solid var(--winds-gold-dark); border-radius: 8px;
+      font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer;
+    }
+    .empty-state {
+      text-align: center; padding: 40px 20px; color: var(--winds-text-muted);
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+    .loading { text-align: center; padding: 40px; color: var(--winds-text-muted); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a href="/" class="back-link">← 回到占卜</a>
+
+    <div class="header">
+      <img src="/assets/logo.png" alt="找風問幸福">
+      <h1>我的占卜紀錄</h1>
+      <p id="userName"></p>
+    </div>
+
+    <!-- 未登入 -->
+    <div id="loginSection" class="login-prompt" style="display:none;">
+      <p>請先登入 Google 帳號查看你的占卜紀錄</p>
+      <div id="googleSignInBtn"></div>
+    </div>
+
+    <!-- 載入中 -->
+    <div id="loadingSection" class="loading">
+      <div>🔮</div>
+      <p>載入中…</p>
+    </div>
+
+    <!-- 紀錄列表 -->
+    <div id="readingsList" style="display:none;"></div>
+
+    <!-- 空白 -->
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <div class="icon">📜</div>
+      <p>還沒有占卜紀錄</p>
+      <a href="/" class="btn-view" style="margin-top:12px;">開始第一次占卜</a>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    "use strict";
+    var WORKER_API = "https://api.winds.tw";
+    var GOOGLE_CLIENT_ID = "35219881811-2rnl87e0qmb9vsuhuqnfooo0a0af5ggd.apps.googleusercontent.com";
+    var googleIdToken = "";
+    var userId = "";
+
+    function $(id) { return document.getElementById(id); }
+
+    function authHeaders() {
+      return { 'X-Google-Id-Token': googleIdToken || '' };
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      var d = new Date(dateStr.replace(' ', 'T') + '+08:00');
+      var m = d.getMonth() + 1;
+      var day = d.getDate();
+      var h = d.getHours();
+      var min = String(d.getMinutes()).padStart(2, '0');
+      return m + '/' + day + ' ' + h + ':' + min;
+    }
+
+    function renderReadings(data) {
+      $("loadingSection").style.display = "none";
+
+      if (data.client_name) {
+        $("userName").textContent = data.client_name + " 的占卜歷程";
+      }
+
+      if (!data.readings || data.readings.length === 0) {
+        $("emptyState").style.display = "block";
+        return;
+      }
+
+      var list = $("readingsList");
+      list.style.display = "block";
+      var html = '';
+
+      data.readings.forEach(function(r) {
+        var badgeClass = r.purchased ? 'badge-paid' : (r.status === '已解讀' ? 'badge-free' : 'badge-pending');
+        var badgeText = r.purchased ? '已購買' : (r.status === '已解讀' ? '免費版' : '處理中');
+        var typeIcon = r.question_type === '愛情' ? '💕' :
+                       r.question_type === '婚姻' ? '💍' :
+                       r.question_type === '工作' ? '💼' :
+                       r.question_type === '財運' ? '💰' :
+                       r.question_type === '健康' ? '🏥' : '🔮';
+
+        html += '<div class="reading-card">'
+          + '<div class="reading-card-header">'
+          + '<span class="reading-date">' + formatDate(r.date) + '</span>'
+          + '<span class="reading-badge ' + badgeClass + '">' + badgeText + '</span>'
+          + '</div>'
+          + '<div class="reading-type">' + typeIcon + ' ' + (r.question_type || '占卜') + (r.kongming ? ' ＋ 孔明大易神數' : '') + '</div>'
+          + '<div class="reading-question">' + (r.question || '').replace(/</g, '&lt;') + '</div>'
+          + '<div class="reading-meta">'
+          + '<span>📿 ' + (r.method || '雙占卜') + '</span>'
+          + (r.oracle_type ? '<span>🏮 ' + r.oracle_type + '</span>' : '')
+          + '</div>'
+          + '<div class="reading-actions">';
+
+        if (r.purchased && r.delivery_url) {
+          html += '<a href="' + r.delivery_url + '" class="btn-view">📖 查看完整解讀</a>';
+        }
+        if (r.result_url && r.status === '已解讀') {
+          html += '<a href="' + r.result_url + '" class="btn-view-outline">🔮 查看占卜結果</a>';
+        }
+
+        html += '</div></div>';
+      });
+
+      list.innerHTML = html;
+    }
+
+    function loadReadings() {
+      fetch(WORKER_API + "/my-readings?google_sub=" + encodeURIComponent(userId), { headers: authHeaders() })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success) renderReadings(d);
+          else {
+            $("loadingSection").style.display = "none";
+            $("emptyState").style.display = "block";
+          }
+        })
+        .catch(function() {
+          $("loadingSection").style.display = "none";
+          $("emptyState").style.display = "block";
+        });
+    }
+
+    function handleCredential(response) {
+      googleIdToken = response.credential;
+      try { sessionStorage.setItem("winds_google_token", response.credential); } catch(e) {}
+      var parts = googleIdToken.split('.');
+      var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      userId = payload.sub;
+      $("loginSection").style.display = "none";
+      $("loadingSection").style.display = "block";
+      loadReadings();
+    }
+
+    // 初始化
+    (function init() {
+      // 嘗試從 session 恢復
+      var savedToken = "";
+      try { savedToken = sessionStorage.getItem("winds_google_token") || ""; } catch(e) {}
+      if (savedToken) {
+        handleCredential({ credential: savedToken });
+        return;
+      }
+
+      // 沒有 session → 顯示登入
+      $("loadingSection").style.display = "none";
+      $("loginSection").style.display = "block";
+
+      // 等 GIS SDK 載入
+      function initGIS() {
+        if (typeof google === 'undefined' || !google.accounts) {
+          setTimeout(initGIS, 200);
+          return;
+        }
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: function(resp) {
+            try { sessionStorage.setItem("winds_google_token", resp.credential); } catch(e) {}
+            handleCredential(resp);
+          },
+          auto_select: true,
+          context: "signin"
+        });
+        google.accounts.id.prompt();
+        var btn = $("googleSignInBtn");
+        if (btn) {
+          google.accounts.id.renderButton(btn, {
+            theme: "outline", size: "large", text: "signin_with",
+            shape: "rectangular", width: 280, locale: "zh-TW"
+          });
+        }
+      }
+      initGIS();
+    })();
+  })();
+  </script>
+</body>
+</html>

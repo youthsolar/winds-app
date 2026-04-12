@@ -1156,6 +1156,11 @@
       <p>易經 × 塔羅 × 量能靈符</p>
     </div>
 
+    <!-- 我的紀錄按鈕（登入後顯示）-->
+    <div id="myReadingsLink" style="display:none;text-align:right;margin-bottom:8px;">
+      <a href="/history" style="font-size:13px;color:var(--winds-gold-dark);text-decoration:none;">📜 我的占卜紀錄 →</a>
+    </div>
+
     <!-- Google Sign-In -->
     <div id="googleSignInSection" style="display:flex;justify-content:center;margin-bottom:16px;">
       <div id="googleSignInBtn"></div>
@@ -3014,9 +3019,11 @@
       if (payload.family_name && $("windsLastName")) $("windsLastName").value = payload.family_name;
       if (payload.given_name && $("windsFirstName")) $("windsFirstName").value = payload.given_name;
 
-      // 隱藏登入按鈕，顯示已登入狀態
+      // 隱藏登入按鈕，顯示已登入狀態 + 我的紀錄連結
       var signInSection = $("googleSignInSection");
       if (signInSection) signInSection.style.display = "none";
+      var myReadingsLink = $("myReadingsLink");
+      if (myReadingsLink) myReadingsLink.style.display = "block";
 
       var displayName = (payload.family_name || "") + (payload.given_name || "") || payload.name || payload.email;
       showStatus("歡迎回來，" + displayName + "！", "info");
