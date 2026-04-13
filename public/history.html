@@ -166,12 +166,11 @@
 
     function formatDate(dateStr) {
       if (!dateStr) return '';
-      var d = new Date(dateStr.replace(' ', 'T') + '+08:00');
-      var m = d.getMonth() + 1;
-      var day = d.getDate();
-      var h = d.getHours();
-      var min = String(d.getMinutes()).padStart(2, '0');
-      return m + '/' + day + ' ' + h + ':' + min;
+      // DB 時間統一為 UTC，轉台灣時間顯示
+      var s = dateStr.replace(' ', 'T');
+      if (!s.endsWith('Z') && !s.includes('+')) s += 'Z'; // 無時區標記的當 UTC
+      var d = new Date(s);
+      return d.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
     function renderReadings(data) {
@@ -254,12 +253,22 @@
 
     // 初始化
     (function init() {
-      // 嘗試從 session 恢復
+      // 嘗試從 session 恢復（檢查 token 是否過期）
       var savedToken = "";
       try { savedToken = localStorage.getItem("winds_google_token") || ""; } catch(e) {}
       if (savedToken) {
-        handleCredential({ credential: savedToken });
-        return;
+        try {
+          var parts = savedToken.split('.');
+          var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          if (payload.exp && payload.exp * 1000 > Date.now()) {
+            handleCredential({ credential: savedToken });
+            return;
+          }
+          // token 過期，清除並重新登入
+          try { localStorage.removeItem("winds_google_token"); } catch(e) {}
+        } catch(e) {
+          try { localStorage.removeItem("winds_google_token"); } catch(e2) {}
+        }
       }
 
       // 沒有 session → 顯示登入

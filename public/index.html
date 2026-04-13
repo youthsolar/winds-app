@@ -2023,7 +2023,7 @@
 
       var template = "我目前最想處理的問題是「" + selectedTopicTitle + " - " + selectedSubTitle +
         "」，狀況比較接近「" + selectedThirdTitle + "」：" + selectedThirdDesc +
-        " 實際情況是：（請在後面補充）";
+        " 實際情況是：（占卜前請靜心默想一位神尊或天使，並且在連接分靈體後在後面補充）";
 
       ref.summaryInput.value = template;
       updateCharCounter();
@@ -3152,6 +3152,15 @@
         // 檢查是否已有 session（sessionStorage 暫存 Google token）
         var savedToken = "";
         try { savedToken = localStorage.getItem("winds_google_token") || ""; } catch(ex) {}
+        if (savedToken) {
+          try {
+            var _p = JSON.parse(atob(savedToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (_p.exp && _p.exp * 1000 < Date.now()) {
+              try { localStorage.removeItem("winds_google_token"); } catch(e) {}
+              savedToken = "";
+            }
+          } catch(e) { try { localStorage.removeItem("winds_google_token"); } catch(e2) {} savedToken = ""; }
+        }
         if (savedToken) {
           handleGoogleCredentialResponse({ credential: savedToken });
           initGoogleGIS();

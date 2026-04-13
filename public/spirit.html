@@ -494,7 +494,8 @@
             return;
           }
           // Google SSO: get userId from sessionStorage
-          const savedToken = localStorage.getItem("winds_google_token") || "";
+          let savedToken = localStorage.getItem("winds_google_token") || "";
+          if (savedToken) { try { const _p = JSON.parse(atob(savedToken.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))); if (_p.exp && _p.exp * 1000 < Date.now()) { localStorage.removeItem("winds_google_token"); savedToken = ""; } } catch(e) { localStorage.removeItem("winds_google_token"); savedToken = ""; } }
           let profile = { userId: "" };
           if (savedToken) { try { const p = JSON.parse(atob(savedToken.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))); profile = { userId: p.sub }; googleIdToken = savedToken; } catch(e) {} }
           userId = profile.userId;

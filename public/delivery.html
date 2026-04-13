@@ -1710,6 +1710,7 @@
     // Google SSO: 直接載入（不需 LIFF init）
     var savedToken = "";
     try { savedToken = localStorage.getItem("winds_google_token") || ""; } catch(e) {}
+    if (savedToken) { try { var _p = JSON.parse(atob(savedToken.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); if (_p.exp && _p.exp * 1000 < Date.now()) { localStorage.removeItem("winds_google_token"); savedToken = ""; } } catch(e) { localStorage.removeItem("winds_google_token"); savedToken = ""; } }
     if (savedToken) { googleIdToken = savedToken; }
     fetchDelivery(token);
 
