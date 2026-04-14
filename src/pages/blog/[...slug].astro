@@ -4,20 +4,43 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
+  const TEACHERS = ['風易揚', '芊蘭', '風賜靈', '伊紫蓮', '玄奇', '竹韻'];
+  const teachers: Record<string, string | null> = {};
+  for (const p of posts) {
+    const body = p.body || '';
+    let best: string | null = null;
+    let bestCount = 0;
+    for (const t of TEACHERS) {
+      const count = (body.match(new RegExp(t, 'g')) || []).length;
+      if (count > bestCount) { bestCount = count; best = t; }
+    }
+    teachers[p.id] = best;
+  }
   return posts.map((post) => ({
     params: { slug: post.id },
-    props: { post, allPosts: posts },
+    props: { post, allPosts: posts, teachers },
   }));
 }
 
-const { post, allPosts } = Astro.props;
+const { post, allPosts, teachers } = Astro.props;
 const { Content } = await render(post);
 
-// Related posts: same category, exclude self, latest 3
+// Related posts: score by category + shared tags + same teacher
+const currentTeacher = teachers[post.id];
+const currentTags = new Set(post.data.tags || []);
 const related = allPosts
-  .filter((p: any) => p.id !== post.id && p.data.category === post.data.category)
-  .sort((a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3);
+  .filter((p: any) => p.id !== post.id)
+  .map((p: any) => {
+    let score = 0;
+    if (p.data.category === post.data.category) score += 3;
+    for (const t of (p.data.tags || [])) if (currentTags.has(t)) score += 2;
+    if (currentTeacher && teachers[p.id] === currentTeacher) score += 3;
+    return { p, score };
+  })
+  .filter((x: any) => x.score > 0)
+  .sort((a: any, b: any) => b.score - a.score || b.p.data.pubDate.valueOf() - a.p.data.pubDate.valueOf())
+  .slice(0, 3)
+  .map((x: any) => x.p);
 
 const jsonLd = {
   "@context": "https://schema.org",
