@@ -6,12 +6,18 @@ export async function getStaticPaths() {
   const posts = await getCollection('blog');
   return posts.map((post) => ({
     params: { slug: post.id },
-    props: { post },
+    props: { post, allPosts: posts },
   }));
 }
 
-const { post } = Astro.props;
+const { post, allPosts } = Astro.props;
 const { Content } = await render(post);
+
+// Related posts: same category, exclude self, latest 3
+const related = allPosts
+  .filter((p: any) => p.id !== post.id && p.data.category === post.data.category)
+  .sort((a: any, b: any) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -28,7 +34,11 @@ const jsonLd = {
   "publisher": {
     "@type": "Organization",
     "name": "找風問幸福",
-    "url": "https://app.winds.tw"
+    "url": "https://app.winds.tw",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://app.winds.tw/assets/logo.png"
+    }
   },
   "inLanguage": "zh-TW"
 };
@@ -37,29 +47,265 @@ const jsonLd = {
 <BaseLayout
   title={post.data.seoTitle || post.data.title}
   description={post.data.description}
-  ogImage={post.data.ogImage || post.data.heroImage}
+  ogImage={post.data.ogImage}
   ogType="article"
   jsonLd={jsonLd}
 >
-  <article class="max-w-3xl mx-auto px-4 py-12">
-    <header class="mb-8">
-      <h1 class="text-3xl font-bold mb-2">{post.data.title}</h1>
-      <p class="text-sm" style="color: var(--winds-text-muted);">
-        {post.data.pubDate.toLocaleDateString('zh-TW')} ・ {post.data.author}
-      </p>
+  <article class="winds-article">
+    <nav class="breadcrumb">
+      <a href="/">首頁</a>
+      <span class="sep">›</span>
+      <a href="/blog/">命理專欄</a>
+      {post.data.category && (
+        <>
+          <span class="sep">›</span>
+          <span class="current">{post.data.category}</span>
+        </>
+      )}
+    </nav>
+
+    <header class="article-header">
+      <h1>{post.data.title}</h1>
+      <div class="meta">
+        <span class="author">✨ {post.data.author}</span>
+        <span class="sep">・</span>
+        <time datetime={post.data.pubDate.toISOString()}>
+          {post.data.pubDate.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+      </div>
       {post.data.tags.length > 0 && (
-        <div class="flex gap-2 mt-3 flex-wrap">
+        <div class="tags">
           {post.data.tags.map((tag: string) => (
-            <span class="text-xs px-2 py-1 rounded" style="background: var(--winds-gold-light); color: var(--winds-gold-dark);">
-              #{tag}
-            </span>
+            <span class="tag">#{tag}</span>
           ))}
         </div>
       )}
+      <div class="divider"></div>
     </header>
 
-    <div class="prose prose-lg max-w-none">
+    <div class="article-body">
       <Content />
+    </div>
+
+    {related.length > 0 && (
+      <aside class="related">
+        <h3>📖 延伸閱讀</h3>
+        <ul>
+          {related.map((p: any) => (
+            <li>
+              <a href={`/blog/${p.id}/`}>
+                <span class="title">{p.data.title}</span>
+                <span class="desc">{p.data.description}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    )}
+
+    <div class="cta-final">
+      <p class="cta-text">🔮 想知道你現在的量能狀態？</p>
+      <a href="/" class="cta-btn">立即免費占卜 3 分鐘</a>
     </div>
   </article>
 </BaseLayout>
+
+<style>
+  .winds-article {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--winds-text-muted);
+    margin-bottom: 20px;
+  }
+  .breadcrumb a {
+    color: var(--winds-text-sub);
+  }
+  .breadcrumb .sep {
+    margin: 0 6px;
+    color: var(--winds-text-muted);
+  }
+  .breadcrumb .current {
+    color: var(--winds-gold-dark);
+  }
+
+  .article-header {
+    margin-bottom: 32px;
+  }
+  .article-header h1 {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--winds-text-dark);
+    line-height: 1.4;
+    margin: 0 0 16px;
+  }
+  .article-header .meta {
+    font-size: 13px;
+    color: var(--winds-text-sub);
+    margin-bottom: 12px;
+  }
+  .article-header .meta .sep {
+    margin: 0 8px;
+    color: var(--winds-text-muted);
+  }
+  .article-header .meta .author {
+    color: var(--winds-gold-dark);
+    font-weight: 600;
+  }
+  .article-header .tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .article-header .tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: var(--winds-gold-light);
+    color: var(--winds-gold-dark);
+  }
+  .article-header .divider {
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--winds-gold-light), transparent);
+    margin: 24px 0 0;
+  }
+
+  .article-body {
+    font-size: 16px;
+    line-height: 1.9;
+    color: var(--winds-text);
+  }
+  .article-body :global(h2) {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 20px;
+    color: var(--winds-text-dark);
+    margin: 36px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--winds-border);
+  }
+  .article-body :global(h3) {
+    font-size: 17px;
+    color: var(--winds-gold-dark);
+    margin: 28px 0 12px;
+  }
+  .article-body :global(p) {
+    margin: 0 0 20px;
+  }
+  .article-body :global(a) {
+    color: var(--winds-gold-dark);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .article-body :global(strong) {
+    color: var(--winds-text-dark);
+    font-weight: 600;
+  }
+  .article-body :global(hr) {
+    border: none;
+    border-top: 1px solid var(--winds-border);
+    margin: 32px 0;
+  }
+  .article-body :global(blockquote) {
+    border-left: 3px solid var(--winds-gold-light);
+    padding: 8px 16px;
+    margin: 20px 0;
+    color: var(--winds-text-sub);
+    background: var(--winds-bg-card);
+    border-radius: 0 6px 6px 0;
+  }
+
+  .related {
+    margin-top: 48px;
+    padding: 24px;
+    background: var(--winds-bg-card);
+    border: 1px solid var(--winds-border);
+    border-radius: 12px;
+  }
+  .related h3 {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 16px;
+    color: var(--winds-gold-dark);
+    margin: 0 0 16px;
+  }
+  .related ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .related li {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--winds-border);
+  }
+  .related li:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  .related a {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+  .related a:hover {
+    text-decoration: none;
+  }
+  .related .title {
+    display: block;
+    font-weight: 600;
+    color: var(--winds-text-dark);
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .related a:hover .title {
+    color: var(--winds-gold-dark);
+  }
+  .related .desc {
+    display: block;
+    font-size: 12px;
+    color: var(--winds-text-sub);
+    line-height: 1.6;
+  }
+
+  .cta-final {
+    margin-top: 40px;
+    padding: 28px 20px;
+    background: linear-gradient(135deg, var(--winds-gold-light), #fdf8f0);
+    border-radius: 12px;
+    text-align: center;
+  }
+  .cta-final .cta-text {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 16px;
+    color: var(--winds-text-dark);
+    margin: 0 0 16px;
+  }
+  .cta-final .cta-btn {
+    display: inline-block;
+    padding: 12px 28px;
+    background: var(--winds-text-dark);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.15s;
+  }
+  .cta-final .cta-btn:hover {
+    transform: scale(1.03);
+    text-decoration: none;
+  }
+
+  @media (max-width: 640px) {
+    .winds-article { padding: 16px 16px 40px; }
+    .article-header h1 { font-size: 22px; }
+    .article-body { font-size: 15px; }
+  }
+</style>
