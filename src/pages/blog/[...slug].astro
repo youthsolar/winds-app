@@ -82,7 +82,7 @@ const jsonLd = {
       {post.data.category && (
         <>
           <span class="sep">›</span>
-          <span class="current">{post.data.category}</span>
+          <a href={`/blog/category/${post.data.category}/`}>{post.data.category}</a>
         </>
       )}
     </nav>

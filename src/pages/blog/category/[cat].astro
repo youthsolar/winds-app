@@ -1,0 +1,187 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  const byCat: Record<string, typeof posts> = {};
+  for (const p of posts) {
+    const c = p.data.category || '其他';
+    if (!byCat[c]) byCat[c] = [];
+    byCat[c].push(p);
+  }
+  return Object.keys(byCat).map(cat => ({
+    params: { cat },
+    props: {
+      cat,
+      posts: byCat[cat].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+const { cat, posts } = Astro.props;
+const pageTitle = `${cat}｜找風問幸福靈炁命理專欄`;
+const pageDesc = `找風問幸福部落格「${cat}」分類共 ${posts.length} 篇文章，由六位老師分享真實個案與靈性智慧。`;
+---
+
+<BaseLayout title={pageTitle} description={pageDesc} ogType="website">
+  <main class="blog-list">
+    <nav class="breadcrumb">
+      <a href="/">首頁</a>
+      <span class="sep">›</span>
+      <a href="/blog/">命理專欄</a>
+      <span class="sep">›</span>
+      <span class="current">{cat}</span>
+    </nav>
+
+    <header class="list-header">
+      <h1>✨ {cat}</h1>
+      <p class="count">共 {posts.length} 篇文章</p>
+      <div class="divider"></div>
+    </header>
+
+    <ul class="post-list">
+      {posts.map(post => (
+        <li class="post-item">
+          <a href={`/blog/${post.id}/`}>
+            <h3 class="post-title">{post.data.title}</h3>
+            <p class="post-desc">{post.data.description}</p>
+            <div class="post-meta">
+              <time>{post.data.pubDate.toLocaleDateString('zh-TW', { year: 'numeric', month: 'short', day: 'numeric' })}</time>
+              {post.data.tags.slice(0, 3).map((tag: string) => (
+                <span class="tag">#{tag}</span>
+              ))}
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class="cta-bottom">
+      <p class="cta-text">🔮 想知道你現在的量能狀態？</p>
+      <a href="/" class="cta-btn">立即免費占卜 3 分鐘</a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .blog-list {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--winds-text-muted);
+    margin-bottom: 20px;
+  }
+  .breadcrumb a { color: var(--winds-text-sub); }
+  .breadcrumb .sep { margin: 0 6px; color: var(--winds-text-muted); }
+  .breadcrumb .current { color: var(--winds-gold-dark); }
+
+  .list-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .list-header h1 {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 28px;
+    color: var(--winds-text-dark);
+    margin: 0 0 10px;
+  }
+  .list-header .count {
+    font-size: 12px;
+    color: var(--winds-text-muted);
+    margin: 0;
+  }
+  .list-header .divider {
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--winds-gold-light), transparent);
+    margin: 20px auto 0;
+    max-width: 200px;
+  }
+
+  .post-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .post-item {
+    margin-bottom: 16px;
+  }
+  .post-item a {
+    display: block;
+    padding: 18px 20px;
+    background: var(--winds-bg-card);
+    border: 1px solid var(--winds-border);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .post-item a:hover {
+    transform: translateX(2px);
+    border-color: var(--winds-gold-dark);
+    text-decoration: none;
+  }
+  .post-title {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 16px;
+    color: var(--winds-text-dark);
+    margin: 0 0 6px;
+    font-weight: 700;
+  }
+  .post-desc {
+    font-size: 13px;
+    color: var(--winds-text-sub);
+    line-height: 1.6;
+    margin: 0 0 10px;
+  }
+  .post-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 11px;
+    color: var(--winds-text-muted);
+  }
+  .post-meta .tag {
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--winds-gold-light);
+    color: var(--winds-gold-dark);
+  }
+
+  .cta-bottom {
+    margin-top: 48px;
+    padding: 28px 20px;
+    background: linear-gradient(135deg, var(--winds-gold-light), #fdf8f0);
+    border-radius: 12px;
+    text-align: center;
+  }
+  .cta-bottom .cta-text {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 16px;
+    color: var(--winds-text-dark);
+    margin: 0 0 16px;
+  }
+  .cta-bottom .cta-btn {
+    display: inline-block;
+    padding: 12px 28px;
+    background: var(--winds-text-dark);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .cta-bottom .cta-btn:hover {
+    transform: scale(1.03);
+    text-decoration: none;
+  }
+
+  @media (max-width: 640px) {
+    .blog-list { padding: 24px 16px 40px; }
+    .list-header h1 { font-size: 22px; }
+  }
+</style>
