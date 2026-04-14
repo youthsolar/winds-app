@@ -15,6 +15,9 @@ const blogCollection = defineCollection({
     seoTitle: z.string().optional(),
     ogImage: z.string().optional(),
     llmDescription: z.string().optional(),
+    // Content Alchemy 擴充欄位
+    category: z.string().optional(),
+    relatedServices: z.array(z.number()).default([]),
   }),
 });
 
