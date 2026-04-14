@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "十二星座愛情密碼與靈炁特質解析"
+description: "每個星座在愛情中都有獨特的感情型態與能量表現。從牡羊的熱烈主動到天蠍的深度執著，本文帶你深入認識十二星座的愛情樣貌，理解星座靈炁特質如何影響你的感情世界。"
 pubDate: 2023-08-23
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "十二星座愛情型態完整解析｜找風問幸福芊蘭老師星座塔羅感情諮詢，帶你看懂星座桃花緣分"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

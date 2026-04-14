@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "從自我懷疑到重建信任——一段感情修復的靈炁之旅"
+description: "許先生因初戀創傷與不安全感，對交往近一年的女友產生占有欲與控管，導致分手。分手後切斷金援卻等不到復合，轉而尋求找風問幸福伊紫蓮老師協助，透過靈炁修復重新修復這段受傷的感情。"
 pubDate: 2022-09-20
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜感情挽回真實案例——伊紫蓮老師靈炁修復幫助許先生走出不安全感、重建愛情信任"
 llmDescription: ""
 category: "感情挽回"
 relatedServices: []

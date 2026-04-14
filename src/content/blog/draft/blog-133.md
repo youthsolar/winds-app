@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "離婚邊緣還有救嗎？靈炁修復與自我覺察重拾婚姻溫度"
+description: "婚姻走到離婚邊緣，不代表沒有轉機。本文探討靈炁修復在婚姻挽回中的角色，協助你看清卡關原因，從心情陌生、溝通卡關到背叛創傷，找到真正想要的答案，重拾婚姻溫度。"
 pubDate: 2014-10-23
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "離婚邊緣如何挽回婚姻？找風問幸福風賜靈與伊紫蓮老師以靈炁修復與量能調和協助婚姻修復諮詢"
 llmDescription: ""
 category: "感情挽回"
 relatedServices: []

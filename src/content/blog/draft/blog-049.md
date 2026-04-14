@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "節氣與靈炁：找風問幸福一年四季的能量諮詢"
+description: "從春分到冬至，找風問幸福的玄奇、伊紫蓮、竹韻、芊蘭等老師，依循凱爾特節氣與東方節氣的靈炁特質，提供事業、愛情、家庭、人際關係等全方位量能諮詢，協助案主在對的時節啟動生命轉機。"
 pubDate: 2018-09-08
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜春分事業諮詢、五月愛情量能、仲夏家庭修復、秋分收穫、薩溫桃花運，節氣靈炁助你開啟全年新局"
 llmDescription: ""
 category: "其他"
 relatedServices: []

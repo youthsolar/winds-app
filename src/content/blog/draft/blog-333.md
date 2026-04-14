@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "星座運勢解讀：靈炁調和指引人生方向"
+description: "面對人生困境，星座運勢諮詢能透過靈炁調和疏通能量滯礙。從事業機會流失到人際誤會，專業老師的命理分析與量能調和，幫助你重新找回生命的流動與方向。"
 pubDate: 2014-02-04
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福星座運勢諮詢｜靈炁調和改運、命理分析指引人生方向，六位專業老師為你解惑"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

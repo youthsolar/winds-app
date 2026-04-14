@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "歲末十二月星座運勢｜沉澱與迎新的靈炁時刻"
+description: "十二月年尾，塔羅老師芊蘭引領你透過六個方向選牌，洞察本月運勢。無論是尋求夥伴、療癒關係、珍視家人或顯化豐盛，在歲末沉澱中為新循環預留空間，找到屬於你的方向與力量。"
 pubDate: 2022-05-10
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜歲末十二月星座運勢，芊蘭塔羅老師帶你沉澱迎新，洞悉靈炁方向"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "跨國戀愛靈炁修復之旅——從誤會到相知相守"
+description: "台中林先生與越南黎小姐因文化差異與語言隔閡，感情瀕臨崩潰。透過找風問幸福平台伊紫蓮老師的靈炁修復與量能調和，重新建立理解與連結，成功跨越國界步入幸福婚姻。"
 pubDate: 2019-10-15
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "跨國感情挽回推薦｜找風問幸福伊紫蓮老師靈炁修復助台越戀人化解文化衝突重燃愛火"
 llmDescription: ""
 category: "感情挽回"
 relatedServices: []

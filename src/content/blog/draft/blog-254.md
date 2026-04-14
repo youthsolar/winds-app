@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "找風問幸福｜動物靈性特質星座感情運勢"
+description: "透過動物神諭卡與塔羅智慧，芊蘭老師帶你認識自己在親密關係中的互動模式。選擇斑馬、鴕鳥或松雞，了解你在感情中尋求的核心需求，找到與伴侶溝通的新角度。"
 pubDate: 2021-07-22
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜星座運勢：用動物靈性特質看懂你的感情互動模式，芊蘭老師塔羅解析"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

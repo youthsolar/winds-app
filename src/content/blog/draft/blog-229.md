@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "斬桃花成功！遠距戀情化危機為求婚奇蹟"
+description: "留學返台後面對遠距與桃花劫雙重考驗，透過芊蘭老師靈炁修復與量能調和，成功阻斷伴侶桃花、強化姻緣連結，兩個月後迎來浪漫求婚，幸福終成真。"
 pubDate: 2013-05-04
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福芊蘭老師斬桃花靈炁修復案例｜遠距戀情桃花劫化解、量能調和守護姻緣求婚成功真實分享"
 llmDescription: ""
 category: "斬桃花"
 relatedServices: []

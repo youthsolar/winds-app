@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "靈炁諮詢幫你看清感情真相，挽回還是放下？"
+description: "林小姐透過芊蘭老師的塔羅與靈炁諮詢，深入了解對方真實性格，靈炁修復後對方主動示好，她卻因看清對方缺點而選擇放下。真正的感情諮詢是幫你看清對方與自己。"
 pubDate: 2014-01-17
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "感情挽回找風問幸福｜靈炁諮詢幫你看清對方真實樣貌，理性決定感情去留"
 llmDescription: ""
 category: "感情挽回"
 relatedServices: []

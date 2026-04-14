@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "婆媳關係大逆轉！量能調和讓冷戰家庭重拾溫暖"
+description: "因不生小孩決定而遭婆婆冷對、幾乎走上離婚之路的人妻，透過竹韻老師的量能調和與靈炁修復，成功化解婆媳間長期積累的怨氣與誤會，讓冰凍的家庭關係重新融化，婆婆甚至主動致電關心。"
 pubDate: 2021-08-10
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜婆媳冷戰、婚姻瀕臨破裂怎麼辦？量能調和與靈炁修復真實案例，讓家庭關係大逆轉"
 llmDescription: ""
 category: "兩性關係"
 relatedServices: []

@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "從迷茫到篤定：兩年半塔羅諮詢的靈性成長紀錄"
+description: "一位留英女士從2019年到2021年，透過塔羅牌引導走出感情低谷、考取歐洲頂尖商學院，並成功進入全球頂尖投行。這是一段藉由靈性諮詢逐步實現人生目標的真實故事。"
 pubDate: 2022-02-01
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福塔羅諮詢真實案例：從感情危機到頂尖投行，兩年半靈性成長完整紀錄｜找風問幸福"
 llmDescription: ""
 category: "塔羅牌"
 relatedServices: []

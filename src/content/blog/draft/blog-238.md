@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "斬桃花：清除爛桃花能量，吸引真正好緣分"
+description: "總是遇到消耗你的爛桃花？找風問幸福風易揚老師透過靈炁修復與量能淨化，從根本斬斷孽緣糾纏，清空負面感情磁場，搭配五炁補運讓正緣快速到來，重獲感情自由與幸福。"
 pubDate: 2012-06-18
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "斬桃花靈炁修復｜找風問幸福風易揚老師協助你徹底斬斷爛桃花孽緣、淨化感情磁場，吸引穩定正緣"
 llmDescription: ""
 category: "斬桃花"
 relatedServices: []

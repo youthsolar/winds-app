@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "感情迷茫？靈炁指引幫你找回內在平靜"
+description: "感情或人生感到迷茫疲憊？透過靈炁調和與宇宙秩序的指引，學習如何回歸內在平靜、做出勇敢選擇，並在複雜的感情困局中找到清晰方向與靈魂成長的力量。"
 pubDate: 2011-11-20
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福靈炁指引｜伊紫蓮、風易揚老師協助感情困境量能修復與元辰宮調和"
 llmDescription: ""
 category: "兩性關係"
 relatedServices: []

@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "他分手後馬上交新對象？你還有機會嗎"
+description: "前任分手後閃速交新歡，是真放下還是逃避？資深感情老師風易揚揭示「轉移型戀情」真相，教你從靈炁修復到心念調整，重新爭取感情，讓對方主動回頭。"
 pubDate: 2016-01-15
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜前任快速交新對象還有機會嗎？風易揚老師靈炁修復感情挽回真實案例分享"
 llmDescription: ""
 category: "感情挽回"
 relatedServices: []

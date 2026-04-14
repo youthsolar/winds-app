@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "星座運勢諮詢：中年男性的職涯蛻變與身心療癒"
+description: "一位中年男性透過找風問幸福玄奇老師的星座運勢諮詢，獲得職涯升遷預測與人生方向指引，諮詢後身心能量明顯轉變，工作壓力釋放，全家也因此受益於量能調和的靈性陪伴。"
 pubDate: 2021-03-14
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福玄奇老師星座運勢諮詢｜中年男性職涯轉機與身心能量調和真實案例分享"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

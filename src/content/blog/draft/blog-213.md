@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "遠距分手後如何復合？5個感情挽回關鍵策略"
+description: "異地戀分手後還有機會復合嗎？芊蘭老師分享5大感情挽回策略，從冷靜期的自我提升、重啟聯絡的技巧，到靈炁層面的能量調和，幫助你在對的時間用對的方法，重新喚醒兩人之間的深層連結。"
 pubDate: 2016-01-19
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "遠距戀愛分手後怎麼復合？找風問幸福芊蘭老師教你5招感情挽回策略，從冷靜期到靈炁修復一步步重建愛情"
 llmDescription: ""
 category: "感情挽回"
 relatedServices: []

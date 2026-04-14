@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "深夜三公分的距離：婚姻冷戰的靈性根源"
+description: "當溫柔與討好全變成反效果，問題不在你做得不夠好，而是兩人的量能磁場已經對沖。了解靈炁修復如何清除婚姻中看不見的負能量，重啟感情共振。"
 pubDate: 2014-05-08
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "婚姻冷戰怎麼辦？找伊紫蓮老師透過靈炁修復與量能調和，清除夫妻間累積的負能量，幫助感情和合、重燃愛的磁場，找回幸福婚姻。"
 llmDescription: ""
 category: "感情和合"
 relatedServices: []

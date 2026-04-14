@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "人生卡住？找出消耗你量能的隱藏模式"
+description: "努力卻看不到回報？芊蘭老師透過塔羅與靈炁觀察，幫你診斷人生停滯的真正原因，從情緒邊界到心靈枯竭，找到屬於你的突破關鍵。"
 pubDate: 2015-12-02
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福芊蘭老師：塔羅靈炁解析人生卡關，情緒超載與量能枯竭的突破之道"
 llmDescription: ""
 category: "命理占卜"
 relatedServices: []

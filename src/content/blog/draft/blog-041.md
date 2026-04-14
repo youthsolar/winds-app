@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "他為何遲遲不聯繫你？靈炁解讀對方真實心理"
+description: "反覆等待他的訊息卻遲遲沒有回應？本文透過靈炁塔羅解讀，分析對方不主動聯繫的心理原因，並提供實用建議，幫助你打破僵局，促進感情互動。"
 pubDate: 2011-06-06
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福芊蘭老師靈炁塔羅解讀：他不主動聯繫你，是心理障礙還是真心不夠？感情迷茫必看指引"
 llmDescription: ""
 category: "兩性關係"
 relatedServices: []

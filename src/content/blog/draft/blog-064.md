@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "財務塔羅卜卦：用直覺選牌找到最適合你的理財之道"
+description: "找風問幸福芊蘭老師透過塔羅牌卜卦，從愚者、錢幣五到正義牌，解析不同牌面背後的理財性格，幫助你認識自身金錢態度，找到最適合自己的財務策略與人生節奏。"
 pubDate: 2023-06-04
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福財務塔羅卜卦｜芊蘭老師用塔羅牌解析你的理財性格與財務決策方向"
 llmDescription: ""
 category: "命理占卜"
 relatedServices: []

@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "愛情中的獨處藝術：陪伴與自我的平衡之道"
+description: "許多人在親密關係中為配合伴侶而忽略獨處時間，導致內心失衡。伊紫蓮老師指出，獨處與陪伴並非對立，而是相互滋養。學會愛自己、尊重內在需求，才能讓關係更健康成熟。"
 pubDate: 2011-02-24
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜愛情中如何平衡獨處與陪伴？伊紫蓮老師帶你找回自我、讓親密關係更健康幸福"
 llmDescription: ""
 category: "兩性關係"
 relatedServices: []

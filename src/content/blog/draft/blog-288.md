@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "十二星座靈炁天賦與生命藍圖完整指南"
+description: "找風問幸福芊蘭老師以塔羅與星座視角，揭開十二星座隱藏的靈炁密碼，從白羊的純真魔法到處女的真我之光，帶你發現屬於自己的天賦特質與生命藍圖，重新認識內在最強大的力量。"
 pubDate: 2021-05-15
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福星座運勢｜芊蘭老師解析十二星座靈炁天賦與生命藍圖，塔羅星座深度指引"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

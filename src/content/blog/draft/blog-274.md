@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "第一次走進塔羅諮詢館的真實體驗分享"
+description: "小美分享了她第一次在找風問幸福進行塔羅實體諮詢的完整經歷，從舒適的波希米亞風格空間，到芊蘭老師用三種牌卡深入解析人生、家庭與親子關係，讓她當場驚呆的準確體驗。"
 pubDate: 2022-06-14
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福塔羅諮詢初體驗｜芊蘭老師帶你用塔羅牌解讀星座運勢與人生方向"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

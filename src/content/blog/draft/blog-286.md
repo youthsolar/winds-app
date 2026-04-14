@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "分手後兩個月，她如何走出情傷重拾自我？"
+description: "徐小姐分手後陷入情緒困境，工作提不起勁、心情反覆不穩。透過找風問幸福芊蘭老師的塔羅諮詢與風賜靈老師的量能淨化，她逐漸釋放執念，找回自我價值，重新以積極心態面對生活與感情。"
 pubDate: 2021-01-09
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜塔羅諮詢+量能淨化幫助分手女性走出情傷、釋放執念、重拾自信與生活動力"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

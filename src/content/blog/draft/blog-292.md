@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "星座合盤解析：創業與愛情的能量碰撞"
+description: "李女士在繁忙生活中踏入找風問幸福，透過芊蘭老師的星座合盤與數字能量分析，深入理解自己與男友在創業理念上的本質差異，學會調整情緒頻率，重新找回感情與生活的平衡。"
 pubDate: 2021-10-07
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "星座合盤分析感情與創業困擾｜找風問幸福芊蘭老師數字能量諮詢實錄"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

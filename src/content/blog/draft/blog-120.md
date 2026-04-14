@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "靈炁修復感情重燃：真實案例分享"
+description: "找風問幸福伊紫蓮老師透過靈炁修復與量能調和，協助案主化解感情隔閡、重燃愛火。本文分享多個感情挽回的真實案例，見證靈性諮詢如何讓破碎感情重見光明。"
 pubDate: 2011-08-26
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜靈炁修復感情挽回真實案例－伊紫蓮老師量能調和助您重燃愛火"
 llmDescription: ""
 category: "感情挽回"
 relatedServices: []

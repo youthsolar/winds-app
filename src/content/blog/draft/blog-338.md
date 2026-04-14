@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "開運改名改變命運軌跡"
+description: "名字不只是符號，更是承載命運的靈炁載體。玄奇老師結合八字、五行、易經與靈炁儀式，為您量身打造開運名字，強化財運、貴人運與事業運，徹底改變人生格局。"
 pubDate: 2011-12-13
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜玄奇老師開運改名服務，結合八字五行易經靈炁儀式，改善財運事業運貴人運"
 llmDescription: ""
 category: "開運招財"
 relatedServices: []

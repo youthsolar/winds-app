@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "水晶開運指南｜選對水晶讓事業感情財運全面加分"
+description: "芊蘭老師解析各類水晶量能特性，從事業、財運、感情、小人防護到貴人相助，教你根據需求挑選最適合的開運水晶，提升生活各面向的正向能量。"
 pubDate: 2021-10-28
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福｜水晶開運指南－芊蘭老師教你選對水晶提升事業感情財運量能"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

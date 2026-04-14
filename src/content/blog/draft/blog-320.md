@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "塔羅占卜解迷茫：健康事業找方向，量能淨化煥新生"
+description: "面對健康與事業的抉擇困境，A小姐透過找風問幸福芊蘭老師的塔羅占卜，在靈性指引下撥雲見日，再經量能淨化深層清潔靈炁，身心得到全面舒緩，重拾清晰人生方向與自信。"
 pubDate: 2022-08-17
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福塔羅占卜推薦｜芊蘭老師靈性諮詢幫你解開健康事業迷茫，量能淨化重整身心靈方向"
 llmDescription: ""
 category: "星座運勢"
 relatedServices: []

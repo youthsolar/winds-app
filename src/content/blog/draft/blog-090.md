@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "AA制求婚戒指也要分攤？六年長跑差點毀在金錢觀"
+description: "小婷與男友立勛交往六年，卻因「筆筆精算」的AA制引發求婚危機，連15萬鑽戒都要她出一半。金錢價值觀的衝突，究竟該如何化解？靈炁修復如何為長跑六年的感情開路？"
 pubDate: 2021-12-18
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "找風問幸福伊紫蓮老師：AA制毀婚姻？靈炁量能調和化解金錢價值觀衝突，六年愛情重回正軌"
 llmDescription: ""
 category: "感情和合"
 relatedServices: []

@@ -1,10 +1,10 @@
 ---
-title: "待編輯"
-description: ""
+title: "斬桃花靈炁修復：解除第三者量能干擾，讓真愛回流"
+description: "另一半突然冷淡、頻繁與前任互動？這可能是爛桃花量能干擾的徵兆。斬桃花靈炁修復能針對性清除感情糾纏，恢復你與伴侶的正確情感連結，讓真正屬於你的緣分順利流動。"
 pubDate: 2012-04-20
 author: "找風問幸福"
 tags: []
-seoTitle: ""
+seoTitle: "斬桃花靈炁修復｜找風問幸福專業處理第三者量能干擾，挽回穩定感情關係"
 llmDescription: ""
 category: "斬桃花"
 relatedServices: []
