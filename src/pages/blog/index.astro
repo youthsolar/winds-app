@@ -1,0 +1,52 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+// Group by category
+const categories = [...new Set(posts.map(p => p.data.category).filter(Boolean))];
+
+const pageTitle = "找風問幸福｜靈炁命理部落格・感情挽回・桃花運・補財庫・元辰宮";
+const pageDesc = "找風問幸福部落格：感情挽回、桃花運、補財庫、元辰宮修補、塔羅占卜等 300+ 篇靈炁命理文章，由風易揚、風賜靈、芊蘭等老師分享真實個案。";
+---
+
+<BaseLayout title={pageTitle} description={pageDesc} ogType="website">
+  <main class="max-w-4xl mx-auto px-4 py-12">
+    <header class="text-center mb-12">
+      <h1 class="text-3xl font-bold mb-3" style="font-family: 'LXGW WenKai TC', cursive; color: var(--winds-text-dark);">靈炁命理文章</h1>
+      <p class="text-sm" style="color: var(--winds-text-sub);">由老師分享的真實個案與靈性智慧</p>
+      <p class="text-xs mt-2" style="color: var(--winds-text-muted);">共 {posts.length} 篇文章</p>
+    </header>
+
+    {categories.length > 0 && (
+      <nav class="mb-8 flex gap-2 flex-wrap justify-center">
+        {categories.map(cat => (
+          <a href={`#cat-${cat}`} class="text-xs px-3 py-1 rounded-full" style="background: var(--winds-gold-light); color: var(--winds-gold-dark);">
+            {cat}
+          </a>
+        ))}
+      </nav>
+    )}
+
+    <ul class="space-y-6">
+      {posts.map((post) => (
+        <li class="border-b pb-6" style="border-color: var(--winds-border);">
+          <a href={`/blog/${post.id}/`} class="block hover:opacity-80">
+            <h2 class="text-lg font-semibold mb-2" style="color: var(--winds-text-dark);">{post.data.title}</h2>
+            <p class="text-sm mb-2" style="color: var(--winds-text-sub);">{post.data.description}</p>
+            <div class="flex items-center gap-3 text-xs" style="color: var(--winds-text-muted);">
+              <span>{post.data.pubDate.toLocaleDateString('zh-TW')}</span>
+              {post.data.category && <span>・{post.data.category}</span>}
+              {post.data.tags.slice(0, 3).map(tag => (
+                <span style="color: var(--winds-gold-dark);">#{tag}</span>
+              ))}
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </main>
+</BaseLayout>
