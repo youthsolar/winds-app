@@ -16,9 +16,10 @@
   }
 
   body {
-    font-family: 'LXGW WenKai TC', serif;
+    font-family: 'LXGW WenKai TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: var(--winds-text);
     background: var(--winds-bg);
+    font-size: 14px;
     line-height: 1.7;
   }
 
