@@ -34,7 +34,7 @@ relatedServices: [60,18]
 
 ---
 
-## 💫 相關推薦服務
+## 💫 相關推薦
 
 🏮 **[武財神師尊親傳：五路財神金龍板/ 風易揚老師依個案親撰及開光](https://zijiawangzijia.easy.co/products/dragonball)** — NT$6,800
 

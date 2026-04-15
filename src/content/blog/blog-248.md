@@ -48,7 +48,7 @@ relatedServices: [65,21]
 
 ---
 
-## 💫 相關推薦服務
+## 💫 相關推薦
 
 🏮 **[風易揚老師依個案親畫&開光：月老復合鏡](https://zijiawangzijia.easy.co/products/yuelao-mirror)** — NT$14,400
 

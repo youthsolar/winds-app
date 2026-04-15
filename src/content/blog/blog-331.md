@@ -36,7 +36,7 @@ relatedServices: [69,65]
 
 ---
 
-## 💫 相關推薦服務
+## 💫 相關推薦
 
 🏮 **[風易揚老師依個案親畫&開光：七星桃花木八卦劍陣](https://zijiawangzijia.easy.co/products/seven-star-romance-sword-array)** — NT$14,400
 

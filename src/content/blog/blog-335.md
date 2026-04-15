@@ -40,7 +40,7 @@ relatedServices: [77,68]
 
 ---
 
-## 💫 相關推薦服務
+## 💫 相關推薦
 
 🏮 **[風賜靈老師依個案親畫&開光：六芒星陣命書（3~6個月氣場開運）](https://zijiawangzijia.easy.co/products/hexagram-destiny-book)** — NT$14,400
 

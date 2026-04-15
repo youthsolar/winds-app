@@ -38,7 +38,7 @@ relatedServices: [64,18]
 
 ---
 
-## 💫 相關推薦服務
+## 💫 相關推薦
 
 🏮 **[體質修](https://zijiawangzijia.easy.co/products/body-constitution-repair)** — NT$17,000
 
