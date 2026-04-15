@@ -213,6 +213,16 @@
     }
     .winds-topnav .links a:hover { color: var(--winds-gold-dark); }
 
+    /* Page-top link（跟 history / delivery 統一）*/
+    .back-link {
+      display: inline-block;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--winds-text-muted);
+      text-decoration: none;
+    }
+    .back-link:hover { color: var(--winds-gold-dark); text-decoration: none; }
+
     /* Site footer */
     .winds-sitefooter {
       border-top: 1px solid var(--winds-border);
@@ -1219,8 +1229,8 @@
     </div>
 
     <!-- 我的紀錄按鈕（登入後顯示）-->
-    <div id="myReadingsLink" style="display:none;text-align:right;margin-bottom:8px;">
-      <a href="/history" style="font-size:13px;color:var(--winds-gold-dark);text-decoration:none;">📜 占卜紀錄 →</a>
+    <div id="myReadingsLink" style="display:none;">
+      <a href="/history" class="back-link">📜 占卜紀錄 →</a>
     </div>
 
     <!-- Google Sign-In -->
