@@ -43,7 +43,7 @@ const priceTxt = s.price ? `NT$${s.price.toLocaleString()}` : null;
 const durationTxt = s.duration_minutes ? `${s.duration_minutes} 分鐘` : null;
 
 const bookingUrl = s.purchase_url
-  || (s.sb_service_id ? `https://winds.simplybook.asia/v2/#book/service/${s.sb_service_id}/count/1/` : null);
+  || (s.sb_service_id ? `https://winds.tw/v2/#book/service/${s.sb_service_id}/count/1/` : null);
 
 const jsonLd = {
   "@context": "https://schema.org",
