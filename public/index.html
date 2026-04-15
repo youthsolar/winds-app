@@ -1196,14 +1196,16 @@
   </style>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script src="/assets/nav-auth.js" defer></script>
 </head>
 <body>
   <header class="winds-topnav">
     <nav>
       <a href="/" class="brand">找風問幸福</a>
       <div class="links">
-        <a href="/services/">服務與法器</a>
-        <a href="/blog/">命理專欄</a>
+        <a href="/services/">預約與法器</a>
+        <a href="/blog/">案例專欄</a>
+        <div id="auth-button"></div>
       </div>
     </nav>
   </header>
@@ -1803,7 +1805,7 @@
             return;
           }
           var html = '<div class="recommend-wrap">';
-          html += '<div class="recommend-title">✨ 為你推薦的服務與法器</div>';
+          html += '<div class="recommend-title">✨ 為你推薦的預約與法器</div>';
           html += '<div style="text-align:center;font-size:11px;color:var(--winds-text-muted);margin-bottom:10px;">先問事了解狀況 → 再選擇合適的法術或法器</div>';
           d.recommendations.forEach(function(r) {
             var icon = r.source === 'simplybook' ? '🔮' : '🏮';
@@ -3094,6 +3096,7 @@
 
       var displayName = (payload.family_name || "") + (payload.given_name || "") || payload.name || payload.email;
       showStatus("歡迎回來，" + displayName + "！", "info");
+      if (window.__refreshNavAuth) window.__refreshNavAuth();
       onUserReady();
     }
 

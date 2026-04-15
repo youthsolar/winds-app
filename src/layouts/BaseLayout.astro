@@ -72,6 +72,9 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
   {GOOGLE_CLIENT_ID && (
     <script src="https://accounts.google.com/gsi/client" async defer />
   )}
+
+  <!-- Nav auth button (shared with public/index.html) -->
+  <script src="/assets/nav-auth.js" defer></script>
 </head>
 <body class="min-h-screen flex flex-col">
   <!-- Google One Tap prompt (if logged out) -->
@@ -90,10 +93,10 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
       <a href="/" class="font-bold" style="color: var(--winds-text-dark); font-family: 'LXGW WenKai TC', serif; font-size: 18px;">
         找風問幸福
       </a>
-      <div class="flex items-center gap-6 text-sm">
-        <a href="/services">服務與法器</a>
-        <a href="/blog">命理專欄</a>
-        <div id="auth-button"></div>
+      <div class="flex items-center" style="gap: 20px; font-size: 13px;">
+        <a href="/services" class="nav-link">預約與法器</a>
+        <a href="/blog" class="nav-link">案例專欄</a>
+        <div id="auth-button" class="nav-link"></div>
       </div>
     </nav>
   </header>

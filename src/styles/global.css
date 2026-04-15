@@ -35,4 +35,18 @@
   a:hover {
     text-decoration: underline;
   }
+
+  /* Nav links — 統一 nav 右側樣式（跟 public/index.html .winds-topnav .links 一致） */
+  .nav-link,
+  .nav-link a,
+  #auth-button a {
+    color: var(--winds-text);
+    text-decoration: none;
+  }
+  .nav-link:hover,
+  .nav-link a:hover,
+  #auth-button a:hover {
+    color: var(--winds-gold-dark);
+    text-decoration: none;
+  }
 }

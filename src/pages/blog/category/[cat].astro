@@ -20,7 +20,7 @@ export async function getStaticPaths() {
 }
 
 const { cat, posts } = Astro.props;
-const pageTitle = `${cat}｜找風問幸福靈炁命理專欄`;
+const pageTitle = `${cat}｜找風問幸福靈炁案例專欄`;
 const pageDesc = `找風問幸福部落格「${cat}」分類共 ${posts.length} 篇文章，由六位老師分享真實個案與靈性智慧。`;
 ---
 
@@ -29,7 +29,7 @@ const pageDesc = `找風問幸福部落格「${cat}」分類共 ${posts.length} 
     <nav class="breadcrumb">
       <a href="/">首頁</a>
       <span class="sep">›</span>
-      <a href="/blog/">命理專欄</a>
+      <a href="/blog/">案例專欄</a>
       <span class="sep">›</span>
       <span class="current">{cat}</span>
     </nav>
