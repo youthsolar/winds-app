@@ -54,20 +54,29 @@
     .winds-topnav .links a { color: var(--winds-text); text-decoration: none; }
     .winds-topnav .links a:hover { color: var(--winds-gold-dark); }
     .header {
-      text-align: center; margin-bottom: 24px;
+      text-align: center; margin-bottom: 36px;
     }
-    .header img { width: 48px; height: 48px; margin-bottom: 4px; }
     .header h1 {
-      font-family: 'LXGW WenKai TC', cursive;
-      font-size: 20px; font-weight: 700; color: var(--winds-text-dark);
-      margin: 0 0 4px 0;
+      font-family: 'LXGW WenKai TC', serif;
+      font-size: 28px; font-weight: 700; color: var(--winds-text-dark);
+      margin: 0 0 10px 0;
     }
-    .header p { font-size: 13px; color: var(--winds-text-sub); margin: 0; }
+    .header .subtitle { font-size: 14px; color: var(--winds-text-sub); margin: 0; }
+    .header .divider {
+      height: 2px;
+      background: linear-gradient(to right, transparent, var(--winds-gold), transparent);
+      margin: 20px auto 0;
+      max-width: 200px;
+    }
     .back-link {
       display: inline-block; margin-bottom: 16px;
-      font-size: 13px; color: var(--winds-gold-dark); text-decoration: none;
+      font-size: 13px; color: var(--winds-text-muted); text-decoration: none;
     }
-    .back-link:hover { text-decoration: underline; }
+    .back-link:hover { color: var(--winds-gold-dark); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .header h1 { font-size: 22px; }
+    }
 
     /* 登入提示 */
     .login-prompt {
@@ -81,10 +90,12 @@
     .reading-card {
       background: var(--winds-card-bg);
       border: 1px solid var(--winds-border);
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 16px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
+      transition: transform 0.15s, border-color 0.15s;
     }
+    .reading-card:hover { transform: translateY(-2px); border-color: var(--winds-gold-dark); }
     .reading-card-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 8px;
@@ -148,9 +159,9 @@
     <a href="/" class="back-link">← 回到占卜</a>
 
     <div class="header">
-      <img src="/assets/logo.png" alt="找風問幸福">
-      <h1>占卜紀錄</h1>
-      <p id="userName"></p>
+      <h1>📜 占卜紀錄</h1>
+      <p id="userName" class="subtitle"></p>
+      <div class="divider"></div>
     </div>
 
     <!-- 未登入 -->
