@@ -1,0 +1,295 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import services from '../../data/services.json';
+
+type Service = {
+  id: number;
+  sb_service_id: string | null;
+  es_product_id: string | null;
+  name: string;
+  description: string | null;
+  duration_minutes: number | null;
+  price: number | null;
+  category: string | null;
+  llm_description: string | null;
+  seo_title: string | null;
+  image_url: string | null;
+  purchase_url: string | null;
+  source: string;
+};
+
+export async function getStaticPaths() {
+  const svcs = services as Service[];
+  return svcs.map((s) => ({
+    params: { id: String(s.id) },
+    props: { service: s, allServices: svcs },
+  }));
+}
+
+const { service, allServices } = Astro.props;
+const s = service as Service;
+
+const title = s.seo_title || s.name;
+const desc = s.description?.replace(/<[^>]+>/g, '').slice(0, 160)
+  || s.llm_description?.slice(0, 160)
+  || s.name;
+
+// Related services: same source (SB or ES), exclude self, max 3
+const related = (allServices as Service[])
+  .filter((x) => x.id !== s.id && x.source === s.source)
+  .slice(0, 3);
+
+const priceTxt = s.price ? `NT$${s.price.toLocaleString()}` : null;
+const durationTxt = s.duration_minutes ? `${s.duration_minutes} 分鐘` : null;
+
+const bookingUrl = s.purchase_url
+  || (s.sb_service_id ? `https://winds.simplybook.asia/v2/#book/service/${s.sb_service_id}/count/1/` : null);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": s.name,
+  "description": s.llm_description || s.description || '',
+  "provider": {
+    "@type": "Organization",
+    "name": "找風問幸福",
+    "url": "https://app.winds.tw"
+  },
+  ...(s.price && {
+    "offers": {
+      "@type": "Offer",
+      "price": s.price,
+      "priceCurrency": "TWD",
+      ...(bookingUrl && { "url": bookingUrl })
+    }
+  })
+};
+---
+
+<BaseLayout
+  title={title}
+  description={desc}
+  ogType="website"
+  jsonLd={jsonLd}
+>
+  <main class="svc">
+    <nav class="breadcrumb">
+      <a href="/">首頁</a>
+      <span class="sep">›</span>
+      <a href="/services/">服務與法器</a>
+      <span class="sep">›</span>
+      <span class="current">{s.name}</span>
+    </nav>
+
+    <header class="svc-header">
+      <h1>{s.name}</h1>
+      {s.description && <p class="tagline">{s.description}</p>}
+      <div class="meta">
+        {priceTxt && <span class="price">{priceTxt}</span>}
+        {durationTxt && <>
+          <span class="sep">・</span>
+          <span>{durationTxt}</span>
+        </>}
+        <span class="sep">・</span>
+        <span class="source-badge">{s.source === 'simplybook' ? '預約服務' : '法器商店'}</span>
+      </div>
+    </header>
+
+    {s.llm_description && (
+      <section class="svc-desc">
+        <h2>服務說明</h2>
+        <p>{s.llm_description}</p>
+      </section>
+    )}
+
+    {bookingUrl && (
+      <div class="cta-box">
+        <p class="cta-text">
+          {s.source === 'simplybook' ? '🗓 立即預約' : '🛒 前往購買'}
+        </p>
+        <a href={bookingUrl} class="cta-btn" target="_blank" rel="noopener">
+          {s.source === 'simplybook' ? '預約諮詢' : '購買法器'} →
+        </a>
+      </div>
+    )}
+
+    {related.length > 0 && (
+      <aside class="related">
+        <h3>相關{s.source === 'simplybook' ? '服務' : '法器'}</h3>
+        <ul>
+          {related.map((r) => (
+            <li>
+              <a href={`/services/${r.id}/`}>
+                <span class="r-title">{r.name}</span>
+                {r.description && <span class="r-desc">{r.description.slice(0, 80)}</span>}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    )}
+
+    <div class="cta-bottom">
+      <p class="cta-text">🔮 不確定適合哪個服務？</p>
+      <a href="/" class="cta-btn-alt">先免費占卜 3 分鐘 →</a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .svc {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--winds-text-muted);
+    margin-bottom: 20px;
+  }
+  .breadcrumb a { color: var(--winds-text-sub); }
+  .breadcrumb .sep { margin: 0 6px; color: var(--winds-text-muted); }
+  .breadcrumb .current { color: var(--winds-gold-dark); }
+
+  .svc-header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--winds-border);
+  }
+  .svc-header h1 {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 26px;
+    color: var(--winds-text-dark);
+    margin: 0 0 14px;
+    line-height: 1.4;
+  }
+  .svc-header .tagline {
+    font-size: 15px;
+    color: var(--winds-text-sub);
+    line-height: 1.7;
+    margin: 0 0 16px;
+  }
+  .svc-header .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--winds-text-sub);
+  }
+  .svc-header .meta .sep {
+    color: var(--winds-text-muted);
+  }
+  .svc-header .price {
+    color: var(--winds-gold-dark);
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .source-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    background: var(--winds-gold-light);
+    color: var(--winds-gold-dark);
+    font-size: 11px;
+  }
+
+  .svc-desc {
+    margin-bottom: 32px;
+  }
+  .svc-desc h2 {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 18px;
+    color: var(--winds-text-dark);
+    margin: 0 0 12px;
+  }
+  .svc-desc p {
+    font-size: 15px;
+    line-height: 1.9;
+    color: var(--winds-text);
+  }
+
+  .cta-box {
+    padding: 24px 20px;
+    background: linear-gradient(135deg, var(--winds-gold-light), #fdf8f0);
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .cta-box .cta-text {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 16px;
+    color: var(--winds-text-dark);
+    margin: 0 0 14px;
+  }
+  .cta-box .cta-btn {
+    display: inline-block;
+    padding: 12px 28px;
+    background: var(--winds-text-dark);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .cta-box .cta-btn:hover { transform: scale(1.03); text-decoration: none; }
+
+  .related {
+    margin-top: 40px;
+    padding: 24px;
+    background: var(--winds-bg-card);
+    border: 1px solid var(--winds-border);
+    border-radius: 12px;
+  }
+  .related h3 {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 15px;
+    color: var(--winds-gold-dark);
+    margin: 0 0 14px;
+  }
+  .related ul { list-style: none; padding: 0; margin: 0; }
+  .related li { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--winds-border); }
+  .related li:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .related a { display: block; text-decoration: none; }
+  .related .r-title {
+    display: block;
+    font-weight: 600;
+    color: var(--winds-text-dark);
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .related a:hover .r-title { color: var(--winds-gold-dark); }
+  .related .r-desc {
+    display: block;
+    font-size: 12px;
+    color: var(--winds-text-sub);
+    line-height: 1.6;
+  }
+
+  .cta-bottom {
+    margin-top: 36px;
+    text-align: center;
+    padding: 20px;
+    border-top: 1px solid var(--winds-border);
+  }
+  .cta-bottom .cta-text {
+    font-size: 14px;
+    color: var(--winds-text-sub);
+    margin: 0 0 12px;
+  }
+  .cta-bottom .cta-btn-alt {
+    display: inline-block;
+    padding: 10px 22px;
+    border: 1px solid var(--winds-gold-dark);
+    color: var(--winds-gold-dark);
+    border-radius: 999px;
+    font-size: 13px;
+    text-decoration: none;
+  }
+
+  @media (max-width: 640px) {
+    .svc { padding: 16px 16px 40px; }
+    .svc-header h1 { font-size: 20px; }
+  }
+</style>

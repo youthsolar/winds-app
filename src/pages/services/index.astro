@@ -1,0 +1,176 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import services from '../../data/services.json';
+
+type Service = {
+  id: number;
+  name: string;
+  description: string | null;
+  price: number | null;
+  source: string;
+};
+
+const svcs = services as Service[];
+const sb = svcs.filter((s) => s.source === 'simplybook');
+const es = svcs.filter((s) => s.source === 'easystore');
+
+const pageTitle = '找風問幸福｜服務與法器目錄・通靈問事・元辰宮代觀・開光法器';
+const pageDesc = `找風問幸福完整服務目錄：${sb.length} 項靈性諮詢服務（通靈水鏡法、元辰宮代觀、塔羅占卜等）＋ ${es.length} 項開光法器（符令、手環、供奉套組）。`;
+---
+
+<BaseLayout title={pageTitle} description={pageDesc} ogType="website">
+  <main class="svc-list">
+    <header class="list-header">
+      <h1>✨ 服務與法器</h1>
+      <p class="subtitle">專業靈性諮詢與量能法器，一對一客製化</p>
+      <div class="divider"></div>
+    </header>
+
+    <section class="svc-section">
+      <h2>🔮 預約諮詢（{sb.length} 項）</h2>
+      <ul class="grid">
+        {sb.map((s) => (
+          <li>
+            <a href={`/services/${s.id}/`}>
+              <h3>{s.name}</h3>
+              {s.description && <p>{s.description.slice(0, 80)}</p>}
+              {s.price && <span class="price">NT${s.price.toLocaleString()}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="svc-section">
+      <h2>🛒 法器商店（{es.length} 項）</h2>
+      <ul class="grid">
+        {es.map((s) => (
+          <li>
+            <a href={`/services/${s.id}/`}>
+              <h3>{s.name}</h3>
+              {s.description && <p>{s.description.slice(0, 80)}</p>}
+              {s.price && <span class="price">NT${s.price.toLocaleString()}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <div class="cta-bottom">
+      <p class="cta-text">🔮 不確定適合哪個服務？</p>
+      <a href="/" class="cta-btn">先免費占卜 3 分鐘 →</a>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .svc-list {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+  .list-header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .list-header h1 {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 28px;
+    color: var(--winds-text-dark);
+    margin: 0 0 10px;
+  }
+  .list-header .subtitle {
+    font-size: 14px;
+    color: var(--winds-text-sub);
+    margin: 0;
+  }
+  .list-header .divider {
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--winds-gold-light), transparent);
+    margin: 20px auto 0;
+    max-width: 200px;
+  }
+
+  .svc-section {
+    margin-bottom: 40px;
+  }
+  .svc-section h2 {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 18px;
+    color: var(--winds-text-dark);
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--winds-border);
+  }
+  .grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .grid li a {
+    display: block;
+    padding: 16px;
+    background: var(--winds-bg-card);
+    border: 1px solid var(--winds-border);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: transform 0.15s, border-color 0.15s;
+    height: 100%;
+  }
+  .grid li a:hover {
+    transform: translateY(-2px);
+    border-color: var(--winds-gold-dark);
+    text-decoration: none;
+  }
+  .grid h3 {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 15px;
+    color: var(--winds-text-dark);
+    margin: 0 0 8px;
+    line-height: 1.4;
+  }
+  .grid p {
+    font-size: 12px;
+    color: var(--winds-text-sub);
+    line-height: 1.6;
+    margin: 0 0 10px;
+  }
+  .grid .price {
+    display: inline-block;
+    font-size: 13px;
+    color: var(--winds-gold-dark);
+    font-weight: 700;
+  }
+
+  .cta-bottom {
+    margin-top: 40px;
+    padding: 28px 20px;
+    background: linear-gradient(135deg, var(--winds-gold-light), #fdf8f0);
+    border-radius: 12px;
+    text-align: center;
+  }
+  .cta-bottom .cta-text {
+    font-family: 'LXGW WenKai TC', serif;
+    font-size: 16px;
+    color: var(--winds-text-dark);
+    margin: 0 0 16px;
+  }
+  .cta-bottom .cta-btn {
+    display: inline-block;
+    padding: 12px 28px;
+    background: var(--winds-text-dark);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  @media (max-width: 640px) {
+    .svc-list { padding: 24px 16px 40px; }
+    .list-header h1 { font-size: 22px; }
+  }
+</style>
