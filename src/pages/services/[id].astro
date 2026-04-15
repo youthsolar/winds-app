@@ -83,7 +83,7 @@ const jsonLd = {
 
     <header class="svc-header">
       <h1>{s.name}</h1>
-      {s.description && <p class="tagline">{s.description}</p>}
+      {s.llm_description && <p class="tagline">{s.llm_description.slice(0, 100)}…</p>}
       <div class="meta">
         {priceTxt && <span class="price">{priceTxt}</span>}
         {durationTxt && <>
@@ -121,7 +121,7 @@ const jsonLd = {
             <li>
               <a href={`/services/${r.id}/`}>
                 <span class="r-title">{r.name}</span>
-                {r.description && <span class="r-desc">{r.description.slice(0, 80)}</span>}
+                {r.llm_description && <span class="r-desc">{r.llm_description.slice(0, 80)}…</span>}
               </a>
             </li>
           ))}
