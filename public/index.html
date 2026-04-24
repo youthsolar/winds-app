@@ -1877,6 +1877,23 @@
         });
     }
 
+    function loadNamingWidget(statusData, isPaid) {
+      if (typeof renderNamingWidget !== 'function') return;
+      var surname = ($("windsLastName") || {}).value || (statusData && statusData.client_last_name) || '';
+      var givenName = ($("windsFirstName") || {}).value || (statusData && statusData.client_first_name) || '';
+      if (!surname || !givenName) return;
+      var bdVal = ($("birthDate") || {}).value || '';
+      var birthYear = bdVal ? bdVal.split('-')[0] : null;
+      renderNamingWidget({
+        containerId: 'namingSection',
+        surname: surname.trim(),
+        givenName: givenName.trim(),
+        birthYear: birthYear,
+        fullAccess: !!isPaid,
+        workerApi: WORKER_API
+      });
+    }
+
     function renderKongmingSection(el, signText, isPaid) {
       var k = parseKongmingText(signText);
       if (!k || !k.curHex) { el.style.display = 'none'; return; }
@@ -2643,15 +2660,7 @@
               // 非同步載入語意推薦（不阻塞主結果顯示）
               if (divinationLogId) loadRecommendations(divinationLogId);
               // 姓名學分析
-              if (typeof renderNamingWidget === 'function') {
-                var _nLn = ($("windsLastName") || {}).value || (d.astro && d.astro.last_name) || '';
-                var _nFn = ($("windsFirstName") || {}).value || (d.astro && d.astro.first_name) || '';
-                var _nBd = ($("birthDate") || {}).value || '';
-                var _nBy = _nBd ? _nBd.split('-')[0] : null;
-                if (_nLn && _nFn) {
-                  renderNamingWidget({ containerId: 'namingSection', surname: _nLn.trim(), givenName: _nFn.trim(), birthYear: _nBy, fullAccess: !!d.purchased });
-                }
-              }
+              loadNamingWidget(d, d.purchased);
             } else if (attempts >= maxAttempts) {
               clearInterval(timer);
               window._submitting = false;
@@ -2862,16 +2871,8 @@
         });
         // 非同步載入語意推薦
         if (divinationLogId) loadRecommendations(divinationLogId);
-        // 姓名學分析（第二路徑）
-        if (typeof renderNamingWidget === 'function') {
-          var _nLn2 = ($("windsLastName") || {}).value || (data.astro && data.astro.last_name) || '';
-          var _nFn2 = ($("windsFirstName") || {}).value || (data.astro && data.astro.first_name) || '';
-          var _nBd2 = ($("birthDate") || {}).value || '';
-          var _nBy2 = _nBd2 ? _nBd2.split('-')[0] : null;
-          if (_nLn2 && _nFn2) {
-            renderNamingWidget({ containerId: 'namingSection', surname: _nLn2.trim(), givenName: _nFn2.trim(), birthYear: _nBy2, fullAccess: !!data.purchased });
-          }
-        }
+        // 姓名學分析
+        loadNamingWidget(data, data.purchased);
 
         if (data.line_pushed === false) {
           showStatus("摘要已產生，但 LINE 推播未成功", "warn");
