@@ -223,6 +223,41 @@
     }
     .back-link:hover { color: var(--winds-gold-dark); text-decoration: none; }
 
+    /* Naming Widget */
+    .naming-widget { background: var(--winds-card-bg); border: 0.5px solid var(--winds-border); border-radius: 10px; padding: 18px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .naming-header { font-family: 'LXGW WenKai TC', serif; font-size: 15px; font-weight: 600; color: var(--winds-gold); margin-bottom: 10px; }
+    .naming-divider { height: 1px; background: var(--winds-border); margin-bottom: 14px; }
+    .naming-chars { display: flex; justify-content: center; gap: 20px; margin-bottom: 16px; }
+    .naming-char-item { text-align: center; }
+    .naming-char-big { display: block; font-size: 24px; font-weight: 700; color: var(--winds-text-dark); margin-bottom: 4px; }
+    .naming-char-info { font-size: 11px; color: var(--winds-text-sub); }
+    .naming-fallback { font-size: 10px; color: var(--winds-gold); }
+    .naming-grid-table { margin-bottom: 14px; }
+    .naming-grid-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; }
+    .naming-grid-label { width: 40px; font-weight: 600; color: var(--winds-text-dark); }
+    .naming-grid-stroke { width: 45px; color: var(--winds-text-sub); }
+    .naming-grid-element { width: 20px; font-weight: 600; }
+    .naming-fortune-good { color: #2d8a4e; font-weight: 600; }
+    .naming-fortune-bad { color: #c44230; font-weight: 600; }
+    .naming-score-wrap { text-align: center; margin: 14px 0; }
+    .naming-score-label { font-size: 12px; color: var(--winds-text-muted); display: block; margin-bottom: 4px; }
+    .naming-score { font-size: 32px; font-weight: 700; }
+    .naming-score-high { color: #2d8a4e; }
+    .naming-score-mid { color: var(--winds-gold-dark); }
+    .naming-score-low { color: #c44230; }
+    .naming-score-max { font-size: 14px; color: var(--winds-text-muted); }
+    .naming-sancai-key { text-align: center; font-size: 13px; color: var(--winds-text-sub); margin-bottom: 12px; }
+    .naming-paywall { background: var(--winds-accent); border-radius: 8px; padding: 12px; text-align: center; margin-top: 12px; }
+    .naming-paywall-text { font-size: 12px; color: var(--winds-text-warm); }
+    .naming-section-title { font-family: 'LXGW WenKai TC', serif; font-size: 14px; font-weight: 700; color: var(--winds-gold); letter-spacing: 0.05em; margin: 16px 0 8px; }
+    .naming-sancai-text { font-size: 13px; color: var(--winds-text); line-height: 1.7; margin-bottom: 8px; }
+    .naming-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .naming-tag { font-size: 11px; color: var(--winds-gold-dark); background: rgba(201,168,76,0.1); padding: 2px 8px; border-radius: 10px; }
+    .naming-talisman { font-size: 12px; color: var(--winds-text-warm); background: rgba(201,168,76,0.08); padding: 8px 12px; border-radius: 8px; margin-top: 8px; }
+    .naming-zodiac { margin-top: 12px; }
+    .naming-zodiac-hits { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; }
+    .naming-zodiac-hit { color: var(--winds-text); }
+
     /* Site footer */
     .winds-sitefooter {
       border-top: 1px solid var(--winds-border);
@@ -1207,6 +1242,7 @@
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script src="/assets/nav-auth.js" defer></script>
+<script src="/assets/naming-widget.js" defer></script>
 </head>
 <body>
   <header class="winds-topnav">
@@ -1660,6 +1696,9 @@
 
           <!-- 語意推薦（占卜後自動載入） -->
           <div id="recommendSection" style="display:none;"></div>
+
+          <!-- 姓名學分析 -->
+          <div id="namingSection"></div>
 
           <!-- 節氣運勢曲線（聖籤下方）-->
           <div id="fortuneLineWrap" style="display:none;margin-top:24px;margin-bottom:24px;border-radius:10px;overflow:hidden;position:relative;isolation:isolate;">
@@ -2603,6 +2642,16 @@
               });
               // 非同步載入語意推薦（不阻塞主結果顯示）
               if (divinationLogId) loadRecommendations(divinationLogId);
+              // 姓名學分析
+              if (typeof renderNamingWidget === 'function') {
+                var _nLn = ($("windsLastName") || {}).value || (d.astro && d.astro.last_name) || '';
+                var _nFn = ($("windsFirstName") || {}).value || (d.astro && d.astro.first_name) || '';
+                var _nBd = ($("birthDate") || {}).value || '';
+                var _nBy = _nBd ? _nBd.split('-')[0] : null;
+                if (_nLn && _nFn) {
+                  renderNamingWidget({ containerId: 'namingSection', surname: _nLn.trim(), givenName: _nFn.trim(), birthYear: _nBy, fullAccess: !!d.purchased });
+                }
+              }
             } else if (attempts >= maxAttempts) {
               clearInterval(timer);
               window._submitting = false;
@@ -2813,6 +2862,16 @@
         });
         // 非同步載入語意推薦
         if (divinationLogId) loadRecommendations(divinationLogId);
+        // 姓名學分析（第二路徑）
+        if (typeof renderNamingWidget === 'function') {
+          var _nLn2 = ($("windsLastName") || {}).value || (data.astro && data.astro.last_name) || '';
+          var _nFn2 = ($("windsFirstName") || {}).value || (data.astro && data.astro.first_name) || '';
+          var _nBd2 = ($("birthDate") || {}).value || '';
+          var _nBy2 = _nBd2 ? _nBd2.split('-')[0] : null;
+          if (_nLn2 && _nFn2) {
+            renderNamingWidget({ containerId: 'namingSection', surname: _nLn2.trim(), givenName: _nFn2.trim(), birthYear: _nBy2, fullAccess: !!data.purchased });
+          }
+        }
 
         if (data.line_pushed === false) {
           showStatus("摘要已產生，但 LINE 推播未成功", "warn");
