@@ -342,18 +342,20 @@ const MUTAGEN_COLOR: Record<string, string> = {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 6px;
     overflow: hidden;
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.65;
   }
 
   .star {
     display: flex;
     align-items: baseline;
-    gap: 3px;
+    gap: 4px;
     flex-wrap: wrap;
+    padding: 1px 0;
   }
+  .star.major { margin-bottom: 1px; }
 
   .star.major .star-name {
     color: var(--winds-text-dark, #3b262a);
@@ -469,15 +471,16 @@ const MUTAGEN_COLOR: Record<string, string> = {
   /* ===== 響應式 ===== */
   @media (max-width: 768px) {
     .ziwei-chart { padding: 4px; }
-    .palace-cell { padding: 4px 5px; gap: 2px; }
+    .palace-cell { padding: 5px 6px; gap: 4px; }
     .palace-name { font-size: 11px; }
     .cell-stem-branch { font-size: 10px; }
+    .cell-stars { gap: 5px; line-height: 1.55; }
     .star.major .star-name { font-size: 11px; }
     .star.minor .star-name { font-size: 10px; }
     .star-brightness, .star-mutagen { font-size: 8px; }
     .adj-star { font-size: 8.5px; }
     .cell-footer, .decadal { font-size: 8px; }
-    .center-meta { padding: 6px 8px; font-size: 11px; gap: 3px; }
+    .center-meta { padding: 8px 10px; font-size: 11px; gap: 5px; }
     .meta-label { font-size: 9.5px; min-width: 30px; }
   }
 
