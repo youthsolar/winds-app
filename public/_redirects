@@ -1,1 +1,2 @@
 /share/:uid    https://api.winds.tw/share-page?uid=:uid    200
+/ziwei/share/:token    https://api.winds.tw/ziwei-share?token=:token    200
