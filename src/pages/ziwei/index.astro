@@ -1,0 +1,626 @@
+---
+// 紫微斗數 — 人生藍圖
+// 入口：/ziwei
+// 流程：使用者填表 → 呼叫 api.winds.tw/ziwei-chart → 渲染 ZiweiChart 元件
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const pageTitle = '紫微斗數命盤 — 人生藍圖｜找風問幸福';
+const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（海外華人準確）。 12 宮主星副星完整、AI 命理師深度解讀，作為你的人生藍圖參考。';
+---
+
+<BaseLayout title={pageTitle} description={pageDesc} ogType="website">
+  <main class="ziwei-main">
+    <header class="page-header">
+      <h1>紫微斗數命盤</h1>
+      <p class="subtitle">傳統紫微 12 宮排盤 ＋ AI 命理師解讀 ＋ 真太陽時校正（海外華人準確）</p>
+    </header>
+
+    <section class="form-section" id="form-section">
+      <form id="ziwei-form" class="ziwei-form">
+        <div class="row">
+          <label for="solarDate">西元生日（陽曆）</label>
+          <input type="date" id="solarDate" name="solarDate" required min="1900-01-01" max="2100-12-31" />
+        </div>
+
+        <div class="row two-col">
+          <div>
+            <label for="hour">出生時辰</label>
+            <select id="hour" name="hour">
+              <option value="">— 不確定（用午時 12:00）—</option>
+              <option value="0">早子時（23-00 / 00-01）</option>
+              <option value="1">丑時（01-03）</option>
+              <option value="3">寅時（03-05）</option>
+              <option value="5">卯時（05-07）</option>
+              <option value="7">辰時（07-09）</option>
+              <option value="9">巳時（09-11）</option>
+              <option value="11">午時（11-13）</option>
+              <option value="13">未時（13-15）</option>
+              <option value="15">申時（15-17）</option>
+              <option value="17">酉時（17-19）</option>
+              <option value="19">戌時（19-21）</option>
+              <option value="21">亥時（21-23）</option>
+            </select>
+          </div>
+          <div>
+            <label for="gender">性別</label>
+            <select id="gender" name="gender" required>
+              <option value="女">女</option>
+              <option value="男">男</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <label for="longitude">出生地經度（選填，海外華人建議填）</label>
+          <select id="longitude" name="longitude">
+            <option value="">— 不校正（適合台灣出生）—</option>
+            <option value="121.5">台北 121.5°E</option>
+            <option value="116.4">北京 116.4°E（-14 min）</option>
+            <option value="114.1">香港 114.1°E（-24 min）</option>
+            <option value="139.7">東京 139.7°E（+19 min）</option>
+            <option value="103.8">新加坡 103.8°E（+15 min, MYT/SGT 為 120°E zone）</option>
+            <option value="-122.4">舊金山 -122.4°E（-10 min）</option>
+            <option value="-123.1">溫哥華 -123.1°E（-12 min）</option>
+            <option value="-118.2">洛杉磯 -118.2°E（+7 min）</option>
+            <option value="-73.9">紐約 -73.9°E（+4 min）</option>
+            <option value="-0.1">倫敦 -0.1°E（-0.4 min）</option>
+          </select>
+        </div>
+
+        <button type="submit" class="submit-btn">
+          <span class="btn-default">生成命盤</span>
+          <span class="btn-loading" hidden>計算中…</span>
+        </button>
+
+        <p class="form-note">
+          僅生成命盤約 0.2 秒；附 AI 解讀約 30-50 秒。本服務免費，無需註冊。
+        </p>
+      </form>
+    </section>
+
+    <section id="result-section" hidden>
+      <div class="result-meta">
+        <button id="back-btn" class="back-btn">← 重新填表</button>
+        <span id="tst-badge" class="tst-badge" hidden></span>
+      </div>
+      <div id="chart-mount"></div>
+      <div id="interpretation-mount"></div>
+    </section>
+
+    <section id="error-section" class="error-section" hidden>
+      <p id="error-msg"></p>
+      <button id="error-retry" class="back-btn">重新填表</button>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  const WORKER_API = 'https://api.winds.tw';
+  const FOCUS_PALACES = ['summary', '命宫', '父母', '夫妻', '财帛', '官禄', '福德'];
+  const PALACE_LABEL: Record<string, string> = {
+    summary: '整體格局',
+    '命宫': '命宮（自我）',
+    '父母': '父母宮（原生家庭）',
+    '夫妻': '夫妻宮（伴侶）',
+    '财帛': '財帛宮（金錢）',
+    '官禄': '官祿宮（事業）',
+    '福德': '福德宮（精神）',
+  };
+
+  type Star = { name: string; type?: string; brightness: string; mutagen: string };
+  type AdjStar = { name: string };
+  type Palace = {
+    index: number; name: string;
+    heavenlyStem: string; earthlyBranch: string;
+    isBodyPalace: boolean; isOriginalPalace?: boolean;
+    majorStars: Star[]; minorStars: Star[]; adjectiveStars: AdjStar[];
+    decadal: { range: [number, number]; heavenlyStem: string; earthlyBranch: string };
+  };
+  type Chart = { meta: any; palaces: Palace[] };
+
+  const form = document.getElementById('ziwei-form') as HTMLFormElement;
+  const formSection = document.getElementById('form-section') as HTMLElement;
+  const resultSection = document.getElementById('result-section') as HTMLElement;
+  const errorSection = document.getElementById('error-section') as HTMLElement;
+  const errorMsg = document.getElementById('error-msg') as HTMLElement;
+  const errorRetry = document.getElementById('error-retry') as HTMLButtonElement;
+  const backBtn = document.getElementById('back-btn') as HTMLButtonElement;
+  const submitBtn = form?.querySelector('.submit-btn') as HTMLButtonElement;
+  const btnDefault = submitBtn?.querySelector('.btn-default') as HTMLElement;
+  const btnLoading = submitBtn?.querySelector('.btn-loading') as HTMLElement;
+
+  function setLoading(on: boolean) {
+    submitBtn.disabled = on;
+    btnDefault.hidden = on;
+    btnLoading.hidden = !on;
+  }
+
+  function showError(msg: string) {
+    errorMsg.textContent = msg;
+    formSection.hidden = true;
+    resultSection.hidden = true;
+    errorSection.hidden = false;
+  }
+
+  function resetUI() {
+    formSection.hidden = false;
+    resultSection.hidden = true;
+    errorSection.hidden = true;
+    setLoading(false);
+  }
+
+  backBtn.addEventListener('click', resetUI);
+  errorRetry.addEventListener('click', resetUI);
+
+  // 化星顏色
+  const MUTAGEN_COLOR: Record<string, string> = {
+    '禄': 'mutagen-lu', '权': 'mutagen-quan', '科': 'mutagen-ke', '忌': 'mutagen-ji',
+  };
+
+  // 12 地支 → 4×4 grid
+  const BRANCH_POS: Record<string, [number, number]> = {
+    '巳': [0, 0], '午': [0, 1], '未': [0, 2], '申': [0, 3],
+    '辰': [1, 0],                              '酉': [1, 3],
+    '卯': [2, 0],                              '戌': [2, 3],
+    '寅': [3, 0], '丑': [3, 1], '子': [3, 2], '亥': [3, 3],
+  };
+
+  function renderChart(chart: Chart, mount: HTMLElement) {
+    const grid: Array<Palace | null> = Array(16).fill(null);
+    for (const p of chart.palaces) {
+      const pos = BRANCH_POS[p.earthlyBranch];
+      if (pos) grid[pos[0] * 4 + pos[1]] = p;
+    }
+
+    const cells = grid.map((cell, i) => {
+      const row = Math.floor(i / 4);
+      const col = i % 4;
+
+      // 中宮 2x2
+      if (row === 1 && col === 1) {
+        const m = chart.meta;
+        return `<div class="center-meta" style="grid-row: 2 / 4; grid-column: 2 / 4;">
+          <div class="meta-row"><span class="meta-label">當事人</span><span class="meta-value">${m.gender}</span></div>
+          <div class="meta-row"><span class="meta-label">西元</span><span class="meta-value">${m.solarDate}</span></div>
+          <div class="meta-row"><span class="meta-label">農曆</span><span class="meta-value">${m.lunarDate}</span></div>
+          <div class="meta-row"><span class="meta-label">干支</span><span class="meta-value">${m.chineseDate}</span></div>
+          <div class="meta-row"><span class="meta-label">時辰</span><span class="meta-value">${m.time}${m.timeRange ? ` (${m.timeRange})` : ''}</span></div>
+          <div class="meta-divider"></div>
+          <div class="meta-row"><span class="meta-label">命主</span><span class="meta-value meta-emphasize">${m.soul}</span><span class="meta-label">身主</span><span class="meta-value meta-emphasize">${m.body}</span></div>
+          <div class="meta-row"><span class="meta-label">五行局</span><span class="meta-value meta-emphasize">${m.fiveElementsClass}</span></div>
+          <div class="meta-row"><span class="meta-label">星座</span><span class="meta-value">${m.sign}</span><span class="meta-label">生肖</span><span class="meta-value">${m.zodiac}</span></div>
+        </div>`;
+      }
+      if ((row === 1 && col === 2) || (row === 2 && col === 1) || (row === 2 && col === 2)) return '';
+      if (!cell) return '<div class="palace-cell empty"></div>';
+
+      const majors = cell.majorStars.map(s => `
+        <div class="star major">
+          <span class="star-name">${s.name}</span>
+          ${s.brightness ? `<span class="star-brightness">${s.brightness}</span>` : ''}
+          ${s.mutagen ? `<span class="star-mutagen ${MUTAGEN_COLOR[s.mutagen] || ''}">化${s.mutagen}</span>` : ''}
+        </div>`).join('');
+      const minors = cell.minorStars.map(s => `
+        <div class="star minor">
+          <span class="star-name">${s.name}</span>
+          ${s.brightness ? `<span class="star-brightness">${s.brightness}</span>` : ''}
+          ${s.mutagen ? `<span class="star-mutagen ${MUTAGEN_COLOR[s.mutagen] || ''}">化${s.mutagen}</span>` : ''}
+        </div>`).join('');
+      const adj = cell.adjectiveStars.length
+        ? `<div class="adjective-row">${cell.adjectiveStars.map(s => `<span class="adj-star">${s.name}</span>`).join('')}</div>`
+        : '';
+      const empty = cell.majorStars.length === 0 && cell.minorStars.length === 0 ? '<span class="empty-palace">空宮</span>' : '';
+
+      return `<div class="palace-cell ${cell.isBodyPalace ? 'is-body' : ''} ${cell.isOriginalPalace ? 'is-origin' : ''}" data-palace-index="${cell.index}">
+        <div class="cell-header">
+          <span class="palace-name">${cell.name}${cell.isBodyPalace ? '<em class="body-tag">身</em>' : ''}</span>
+          <span class="cell-stem-branch">${cell.heavenlyStem}${cell.earthlyBranch}</span>
+        </div>
+        <div class="cell-stars">
+          ${empty}${majors}${minors}${adj}
+        </div>
+        <div class="cell-footer">
+          ${cell.decadal ? `<span class="decadal">大限 ${cell.decadal.range[0]}-${cell.decadal.range[1]}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    mount.innerHTML = `<div class="ziwei-chart"><div class="ziwei-grid">${cells}</div></div>`;
+
+    // 三方四正 hover
+    const cellsEl = mount.querySelectorAll<HTMLElement>('.palace-cell[data-palace-index]');
+    cellsEl.forEach(cell => {
+      cell.addEventListener('mouseenter', () => {
+        const idx = Number(cell.dataset.palaceIndex);
+        const trines = new Set([idx, (idx + 6) % 12, (idx + 4) % 12, (idx + 8) % 12]);
+        cellsEl.forEach(c => {
+          const i = Number(c.dataset.palaceIndex);
+          c.classList.toggle('trine-highlight', trines.has(i) && i !== idx);
+          c.classList.toggle('trine-focus', i === idx);
+        });
+      });
+      cell.addEventListener('mouseleave', () => {
+        cellsEl.forEach(c => c.classList.remove('trine-highlight', 'trine-focus'));
+      });
+    });
+  }
+
+  function renderInterpretationSkeleton(mount: HTMLElement) {
+    const blocks = FOCUS_PALACES.map(p => `
+      <article class="interp-block" data-palace="${p}">
+        <h3>${PALACE_LABEL[p]}</h3>
+        <div class="interp-text loading">解讀生成中…</div>
+      </article>`).join('');
+    mount.innerHTML = `<section class="interpretation-section">
+      <h2>AI 命理師解讀</h2>
+      <p class="ai-note">由 Sonnet 4.6 模型即時生成，每段獨立呼叫，平均總耗時 20-30 秒</p>
+      ${blocks}
+    </section>`;
+  }
+
+  async function fetchPalace(chart: Chart, palace: string) {
+    const r = await fetch(`${WORKER_API}/ziwei-interpret-palace`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chart, palace }),
+    });
+    const data = await r.json() as { ok?: boolean; text?: string; error?: string };
+    return data.ok ? (data.text || '') : null;
+  }
+
+  function renderPalaceText(palace: string, text: string | null, mount: HTMLElement) {
+    const block = mount.querySelector(`[data-palace="${palace}"] .interp-text`);
+    if (!block) return;
+    block.classList.remove('loading');
+    if (text) {
+      block.textContent = text;
+    } else {
+      block.classList.add('error');
+      const failed = '此段生成失敗，';
+      block.innerHTML = `${failed}<button class="retry-palace" data-palace="${palace}">重試</button>`;
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    errorSection.hidden = true;
+
+    const fd = new FormData(form);
+    const payload: Record<string, unknown> = {
+      solarDate: fd.get('solarDate'),
+      gender: fd.get('gender'),
+    };
+    const hour = fd.get('hour');
+    if (hour) payload.hour = Number(hour);
+    const lon = fd.get('longitude');
+    if (lon) payload.longitude = Number(lon);
+
+    let chartData;
+    try {
+      const r = await fetch(`${WORKER_API}/ziwei-chart`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      chartData = await r.json();
+      if (!chartData.ok) throw new Error(chartData.error || chartData.message || '命盤生成失敗');
+    } catch (err: any) {
+      showError(err.message || '無法連線到伺服器');
+      setLoading(false);
+      return;
+    }
+
+    formSection.hidden = true;
+    resultSection.hidden = false;
+    setLoading(false);
+
+    const tstBadge = document.getElementById('tst-badge') as HTMLElement;
+    if (chartData.tst?.applied) {
+      tstBadge.hidden = false;
+      const sign = chartData.tst.correctionMinutes >= 0 ? '+' : '';
+      tstBadge.textContent = `已套用真太陽時校正（${sign}${chartData.tst.correctionMinutes} 分鐘）`;
+    } else {
+      tstBadge.hidden = true;
+    }
+
+    const chartMount = document.getElementById('chart-mount') as HTMLElement;
+    renderChart(chartData.chart as Chart, chartMount);
+
+    const interpMount = document.getElementById('interpretation-mount') as HTMLElement;
+    renderInterpretationSkeleton(interpMount);
+
+    // 7 個並行解讀請求
+    FOCUS_PALACES.forEach(async (palace) => {
+      const text = await fetchPalace(chartData.chart as Chart, palace);
+      renderPalaceText(palace, text, interpMount);
+    });
+
+    // Retry handler (delegated)
+    interpMount.addEventListener('click', async (ev) => {
+      const target = ev.target as HTMLElement;
+      if (target.classList.contains('retry-palace')) {
+        const palace = target.dataset.palace;
+        if (!palace) return;
+        const block = interpMount.querySelector(`[data-palace="${palace}"] .interp-text`);
+        if (!block) return;
+        block.className = 'interp-text loading';
+        block.textContent = '重試中…';
+        const text = await fetchPalace(chartData.chart as Chart, palace);
+        renderPalaceText(palace, text, interpMount);
+      }
+    });
+  });
+</script>
+
+<style>
+  .ziwei-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 16px 80px;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .page-header h1 {
+    font-size: 32px;
+    color: var(--winds-text-dark);
+    margin: 0 0 8px;
+    letter-spacing: 0.05em;
+  }
+  .page-header .subtitle {
+    color: var(--winds-text-sub);
+    font-size: 14px;
+  }
+
+  .ziwei-form {
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--winds-bg-card, #fff);
+    border: 1px solid var(--winds-border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-shadow: 0 1px 8px rgba(139, 105, 20, 0.05);
+  }
+
+  .ziwei-form .row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .ziwei-form .row.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .ziwei-form label {
+    font-size: 13px;
+    color: var(--winds-text-dark);
+    font-weight: 500;
+  }
+  .ziwei-form input,
+  .ziwei-form select {
+    padding: 10px 12px;
+    border: 1px solid var(--winds-border);
+    border-radius: 4px;
+    background: var(--winds-bg);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--winds-text-dark);
+  }
+  .ziwei-form input:focus,
+  .ziwei-form select:focus {
+    outline: none;
+    border-color: var(--winds-gold-dark);
+    background: white;
+  }
+
+  .submit-btn {
+    background: var(--winds-gold-dark);
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  .submit-btn:hover { background: #6f5310; }
+  .submit-btn:disabled { background: #999; cursor: not-allowed; }
+
+  .form-note {
+    font-size: 12px;
+    color: var(--winds-text-muted);
+    text-align: center;
+    margin: 0;
+  }
+
+  .result-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .back-btn {
+    background: transparent;
+    border: 1px solid var(--winds-border);
+    color: var(--winds-text-sub);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .back-btn:hover {
+    background: var(--winds-bg);
+    color: var(--winds-text-dark);
+  }
+
+  .tst-badge {
+    background: rgba(139, 105, 20, 0.1);
+    color: var(--winds-gold-dark);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+
+  /* === ZiweiChart 樣式（複製自 component，因 client renders）=== */
+  :global(.ziwei-chart) {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+    background: var(--winds-bg-card, #fff);
+    border: 2px solid var(--winds-gold-dark);
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 2px 12px rgba(139, 105, 20, 0.08);
+  }
+  :global(.ziwei-grid) {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 4px;
+    width: 100%;
+    height: 100%;
+  }
+  :global(.palace-cell) {
+    background: var(--winds-bg);
+    border: 1px solid var(--winds-border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+    min-height: 0;
+    overflow: hidden;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  :global(.palace-cell.is-body) { border-color: var(--winds-gold-dark); border-width: 1.5px; }
+  :global(.palace-cell.is-origin) { background: linear-gradient(135deg, var(--winds-bg) 0%, #faf0d8 100%); }
+  :global(.palace-cell.empty) { background: transparent; border: 1px dashed var(--winds-border); opacity: 0.3; }
+  :global(.palace-cell.trine-highlight) { background: #fff8e8; border-color: var(--winds-gold-dark); }
+  :global(.palace-cell.trine-focus) { background: #fff2d4; border-color: var(--winds-gold-dark); border-width: 2px; box-shadow: 0 0 0 1px var(--winds-gold-dark) inset; }
+
+  :global(.cell-header) { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; color: var(--winds-text-sub); border-bottom: 1px dotted var(--winds-border); padding-bottom: 3px; }
+  :global(.palace-name) { font-weight: 700; color: var(--winds-text-dark); font-size: 12px; }
+  :global(.body-tag) { background: var(--winds-gold-dark); color: white; font-style: normal; font-size: 9px; padding: 1px 4px; border-radius: 2px; margin-left: 4px; }
+  :global(.cell-stem-branch) { color: var(--winds-gold-dark); font-size: 11px; }
+
+  :global(.cell-stars) { flex: 1; display: flex; flex-direction: column; gap: 2px; overflow: hidden; font-size: 12px; line-height: 1.4; }
+  :global(.star) { display: flex; align-items: baseline; gap: 3px; flex-wrap: wrap; }
+  :global(.star.major .star-name) { color: var(--winds-text-dark); font-weight: 700; font-size: 13px; }
+  :global(.star.minor .star-name) { color: var(--winds-text); font-weight: 500; font-size: 11px; }
+  :global(.star-brightness) { color: var(--winds-gold-dark); font-size: 9px; background: rgba(139, 105, 20, 0.08); padding: 0 3px; border-radius: 2px; }
+  :global(.star-mutagen) { font-size: 9px; padding: 0 3px; border-radius: 2px; color: white; font-weight: 600; }
+  :global(.mutagen-lu) { background: #2d8659; }
+  :global(.mutagen-quan) { background: #2c5e9e; }
+  :global(.mutagen-ke) { background: #7e4ca0; }
+  :global(.mutagen-ji) { background: #b03a3a; }
+
+  :global(.empty-palace) { color: var(--winds-text-muted); font-size: 11px; font-style: italic; }
+  :global(.adjective-row) { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-top: 2px; padding-top: 2px; border-top: 1px dotted rgba(139, 105, 20, 0.15); }
+  :global(.adj-star) { color: var(--winds-text-muted); font-size: 9.5px; }
+  :global(.cell-footer) { font-size: 9px; color: var(--winds-text-muted); border-top: 1px dotted var(--winds-border); padding-top: 2px; }
+
+  :global(.center-meta) { background: linear-gradient(135deg, #faf3df 0%, #f5e8c4 100%); border: 1.5px solid var(--winds-gold-dark); border-radius: 4px; padding: 12px 16px; display: flex; flex-direction: column; justify-content: center; gap: 6px; font-size: 12px; }
+  :global(.meta-row) { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  :global(.meta-label) { color: var(--winds-text-sub); font-size: 10.5px; min-width: 36px; }
+  :global(.meta-value) { color: var(--winds-text-dark); font-weight: 500; }
+  :global(.meta-emphasize) { color: var(--winds-gold-dark); font-weight: 700; }
+  :global(.meta-divider) { height: 1px; background: var(--winds-gold-dark); opacity: 0.3; margin: 4px 0; }
+
+  /* 解讀區 */
+  :global(.interpretation-section) {
+    max-width: 720px;
+    margin: 40px auto 0;
+    padding: 24px 16px;
+  }
+  :global(.interpretation-section h2) {
+    font-size: 22px;
+    color: var(--winds-text-dark);
+    margin: 0 0 4px;
+  }
+  :global(.ai-note) {
+    color: var(--winds-text-muted);
+    font-size: 12px;
+    margin: 0 0 24px;
+  }
+  :global(.interp-block) {
+    background: var(--winds-bg-card, #fff);
+    border: 1px solid var(--winds-border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  :global(.interp-block h3) {
+    font-size: 16px;
+    color: var(--winds-gold-dark);
+    margin: 0 0 10px;
+    border-bottom: 1px solid var(--winds-border);
+    padding-bottom: 8px;
+  }
+  :global(.interp-text) {
+    font-size: 14px;
+    line-height: 1.85;
+    color: var(--winds-text);
+    white-space: pre-wrap;
+  }
+  :global(.interp-text.loading) {
+    color: var(--winds-text-muted);
+    font-style: italic;
+  }
+  :global(.interp-text.error) {
+    color: var(--winds-danger);
+    font-size: 13px;
+  }
+  :global(.retry-palace) {
+    background: transparent;
+    border: 1px solid var(--winds-danger);
+    color: var(--winds-danger);
+    padding: 2px 10px;
+    margin-left: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+  }
+
+  .error-section {
+    max-width: 480px;
+    margin: 60px auto;
+    text-align: center;
+    color: var(--winds-danger);
+  }
+
+  /* 響應式 */
+  @media (max-width: 768px) {
+    :global(.ziwei-chart) { padding: 4px; }
+    :global(.palace-cell) { padding: 4px 5px; gap: 2px; }
+    :global(.palace-name) { font-size: 11px; }
+    :global(.cell-stem-branch) { font-size: 10px; }
+    :global(.star.major .star-name) { font-size: 11px; }
+    :global(.star.minor .star-name) { font-size: 10px; }
+    :global(.star-brightness), :global(.star-mutagen) { font-size: 8px; }
+    :global(.adj-star) { font-size: 8.5px; }
+    :global(.cell-footer), :global(.decadal) { font-size: 8px; }
+    :global(.center-meta) { padding: 6px 8px; font-size: 11px; gap: 3px; }
+    :global(.meta-label) { font-size: 9.5px; min-width: 30px; }
+  }
+  @media (max-width: 480px) {
+    :global(.star.major .star-name) { font-size: 10px; }
+    :global(.star.minor .star-name) { font-size: 9px; }
+    :global(.adjective-row) { display: none; }
+  }
+</style>

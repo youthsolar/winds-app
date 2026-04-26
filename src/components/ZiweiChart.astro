@@ -1,0 +1,492 @@
+---
+// ZiweiChart.astro — 紫微斗數 12 宮命盤（4×4 grid + 中宮 meta）
+//
+// 視覺：對齊 winds-app 紫金道家風格（金邊 + 奶油底 + LXGW 字體 + 化祿權科忌色標）
+// 資料：吃 api.winds.tw/ziwei-chart 的 chart 欄位
+// 互動：hover 宮位 highlight 三方四正（對宮 + 財官位）
+
+interface Star {
+  name: string;
+  type?: string;
+  brightness: string;
+  mutagen: string;
+}
+interface AdjStar {
+  name: string;
+}
+interface Palace {
+  index: number;
+  name: string;
+  heavenlyStem: string;
+  earthlyBranch: string;
+  isBodyPalace: boolean;
+  isOriginalPalace?: boolean;
+  majorStars: Star[];
+  minorStars: Star[];
+  adjectiveStars: AdjStar[];
+  decadal: { range: [number, number]; heavenlyStem: string; earthlyBranch: string };
+}
+interface Chart {
+  meta: {
+    gender: string;
+    solarDate: string;
+    lunarDate: string;
+    chineseDate: string;
+    time: string;
+    timeRange?: string;
+    sign: string;
+    zodiac: string;
+    soul: string;
+    body: string;
+    fiveElementsClass: string;
+    earthlyBranchOfSoulPalace: string;
+    earthlyBranchOfBodyPalace: string;
+  };
+  palaces: Palace[];
+}
+
+interface Props {
+  chart: Chart;
+  /** 顯示真太陽時校正資訊（如有） */
+  tstNote?: string;
+}
+
+const { chart, tstNote } = Astro.props;
+
+// 12 地支 → 4×4 grid 座標（row, col，0-indexed）
+// 標準紫微排盤：午宮在頂中、子宮在底中（南面北）
+const BRANCH_POS: Record<string, [number, number]> = {
+  '巳': [0, 0], '午': [0, 1], '未': [0, 2], '申': [0, 3],
+  '辰': [1, 0],                              '酉': [1, 3],
+  '卯': [2, 0],                              '戌': [2, 3],
+  '寅': [3, 0], '丑': [3, 1], '子': [3, 2], '亥': [3, 3],
+};
+
+// 把 palaces 依 earthlyBranch 對到 grid 位置，產出 4×4 渲染順序
+function layoutPalaces(palaces: Palace[]): Array<Palace | null> {
+  const grid: Array<Palace | null> = Array(16).fill(null);
+  for (const p of palaces) {
+    const pos = BRANCH_POS[p.earthlyBranch];
+    if (!pos) continue;
+    grid[pos[0] * 4 + pos[1]] = p;
+  }
+  return grid;
+}
+
+// 三方四正：給定 palaceIndex，回傳 4 個 highlight palace index（命/遷/財/官）
+function getTrines(focusIndex: number): number[] {
+  return [
+    focusIndex,
+    (focusIndex + 6) % 12, // 對宮
+    (focusIndex + 4) % 12, // 財帛位
+    (focusIndex + 8) % 12, // 官祿位
+  ];
+}
+
+const grid = layoutPalaces(chart.palaces);
+
+// 把每個 palace 的「三方四正 index 集合」預先算好，序列化進 data attr
+const trinesByIndex: Record<number, number[]> = {};
+for (const p of chart.palaces) {
+  trinesByIndex[p.index] = getTrines(p.index);
+}
+
+// 化星顏色 token
+const MUTAGEN_COLOR: Record<string, string> = {
+  '禄': 'mutagen-lu',
+  '权': 'mutagen-quan',
+  '科': 'mutagen-ke',
+  '忌': 'mutagen-ji',
+};
+---
+
+<div class="ziwei-chart" data-trines={JSON.stringify(trinesByIndex)}>
+  <div class="ziwei-grid">
+    {grid.map((cell, i) => {
+      const row = Math.floor(i / 4);
+      const col = i % 4;
+      // 中宮 2×2 從 (1,1) 到 (2,2)
+      if (row === 1 && col === 1) {
+        return (
+          <div class="center-meta" style="grid-row: 2 / 4; grid-column: 2 / 4;">
+            <div class="meta-row">
+              <span class="meta-label">當事人</span>
+              <span class="meta-value">{chart.meta.gender}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">西元</span>
+              <span class="meta-value">{chart.meta.solarDate}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">農曆</span>
+              <span class="meta-value">{chart.meta.lunarDate}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">干支</span>
+              <span class="meta-value">{chart.meta.chineseDate}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">時辰</span>
+              <span class="meta-value">{chart.meta.time}{chart.meta.timeRange ? ` (${chart.meta.timeRange})` : ''}</span>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-row">
+              <span class="meta-label">命主</span>
+              <span class="meta-value meta-emphasize">{chart.meta.soul}</span>
+              <span class="meta-label">身主</span>
+              <span class="meta-value meta-emphasize">{chart.meta.body}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">五行局</span>
+              <span class="meta-value meta-emphasize">{chart.meta.fiveElementsClass}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">星座</span>
+              <span class="meta-value">{chart.meta.sign}</span>
+              <span class="meta-label">生肖</span>
+              <span class="meta-value">{chart.meta.zodiac}</span>
+            </div>
+            {tstNote && (
+              <>
+                <div class="meta-divider"></div>
+                <div class="meta-tst">{tstNote}</div>
+              </>
+            )}
+          </div>
+        );
+      }
+      // 中宮其他 3 個 cell 跳過（被上面 grid-row/column 佔了）
+      if (row === 1 && col === 2) return null;
+      if (row === 2 && col === 1) return null;
+      if (row === 2 && col === 2) return null;
+
+      if (!cell) return <div class="palace-cell empty"></div>;
+
+      return (
+        <div
+          class={`palace-cell ${cell.isBodyPalace ? 'is-body' : ''} ${cell.isOriginalPalace ? 'is-origin' : ''}`}
+          data-palace-index={cell.index}
+        >
+          <div class="cell-header">
+            <span class="palace-name">{cell.name}{cell.isBodyPalace && <em class="body-tag">身</em>}</span>
+            <span class="cell-stem-branch">{cell.heavenlyStem}{cell.earthlyBranch}</span>
+          </div>
+
+          <div class="cell-stars">
+            {cell.majorStars.length === 0 && cell.minorStars.length === 0 && (
+              <span class="empty-palace">空宮</span>
+            )}
+            {cell.majorStars.map((s) => (
+              <div class="star major">
+                <span class="star-name">{s.name}</span>
+                {s.brightness && <span class="star-brightness">{s.brightness}</span>}
+                {s.mutagen && (
+                  <span class={`star-mutagen ${MUTAGEN_COLOR[s.mutagen] || ''}`}>化{s.mutagen}</span>
+                )}
+              </div>
+            ))}
+            {cell.minorStars.map((s) => (
+              <div class="star minor">
+                <span class="star-name">{s.name}</span>
+                {s.brightness && <span class="star-brightness">{s.brightness}</span>}
+                {s.mutagen && (
+                  <span class={`star-mutagen ${MUTAGEN_COLOR[s.mutagen] || ''}`}>化{s.mutagen}</span>
+                )}
+              </div>
+            ))}
+            {cell.adjectiveStars.length > 0 && (
+              <div class="adjective-row">
+                {cell.adjectiveStars.map((s) => (
+                  <span class="adj-star">{s.name}</span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div class="cell-footer">
+            {cell.decadal && (
+              <span class="decadal">大限 {cell.decadal.range[0]}-{cell.decadal.range[1]}</span>
+            )}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
+<script>
+  // 三方四正 hover highlight
+  document.querySelectorAll<HTMLElement>('.ziwei-chart').forEach((root) => {
+    const trinesAttr = root.dataset.trines;
+    if (!trinesAttr) return;
+    const trines: Record<string, number[]> = JSON.parse(trinesAttr);
+    const cells = root.querySelectorAll<HTMLElement>('.palace-cell[data-palace-index]');
+    cells.forEach((cell) => {
+      cell.addEventListener('mouseenter', () => {
+        const idx = cell.dataset.palaceIndex;
+        if (!idx) return;
+        const highlight = new Set(trines[idx] || []);
+        cells.forEach((c) => {
+          const i = Number(c.dataset.palaceIndex);
+          c.classList.toggle('trine-highlight', highlight.has(i) && i !== Number(idx));
+          c.classList.toggle('trine-focus', i === Number(idx));
+        });
+      });
+      cell.addEventListener('mouseleave', () => {
+        cells.forEach((c) => {
+          c.classList.remove('trine-highlight', 'trine-focus');
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  .ziwei-chart {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+    background: var(--winds-bg-card, #fff);
+    border: 2px solid var(--winds-gold-dark, #8b6914);
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 2px 12px rgba(139, 105, 20, 0.08);
+  }
+
+  .ziwei-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 4px;
+    width: 100%;
+    height: 100%;
+  }
+
+  .palace-cell {
+    background: var(--winds-bg, #fdf8f0);
+    border: 1px solid var(--winds-border, #e8d5a3);
+    border-radius: 4px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+    min-height: 0;
+    overflow: hidden;
+    transition: background 0.2s, border-color 0.2s;
+    position: relative;
+  }
+
+  .palace-cell.is-body {
+    border-color: var(--winds-gold-dark, #8b6914);
+    border-width: 1.5px;
+  }
+
+  .palace-cell.is-origin {
+    background: linear-gradient(135deg, var(--winds-bg, #fdf8f0) 0%, #faf0d8 100%);
+  }
+
+  .palace-cell.empty {
+    background: transparent;
+    border: 1px dashed var(--winds-border, #e8d5a3);
+    opacity: 0.3;
+  }
+
+  .palace-cell.trine-highlight {
+    background: #fff8e8;
+    border-color: var(--winds-gold-dark, #8b6914);
+  }
+
+  .palace-cell.trine-focus {
+    background: #fff2d4;
+    border-color: var(--winds-gold-dark, #8b6914);
+    border-width: 2px;
+    box-shadow: 0 0 0 1px var(--winds-gold-dark, #8b6914) inset;
+  }
+
+  .cell-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 11px;
+    color: var(--winds-text-sub, #5a656b);
+    border-bottom: 1px dotted var(--winds-border, #e8d5a3);
+    padding-bottom: 3px;
+  }
+
+  .palace-name {
+    font-weight: 700;
+    color: var(--winds-text-dark, #3b262a);
+    font-size: 12px;
+  }
+
+  .body-tag {
+    background: var(--winds-gold-dark, #8b6914);
+    color: white;
+    font-style: normal;
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 2px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .cell-stem-branch {
+    font-family: 'LXGW WenKai TC', serif;
+    color: var(--winds-gold-dark, #8b6914);
+    font-size: 11px;
+  }
+
+  .cell-stars {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .star {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+
+  .star.major .star-name {
+    color: var(--winds-text-dark, #3b262a);
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .star.minor .star-name {
+    color: var(--winds-text, #474747);
+    font-weight: 500;
+    font-size: 11px;
+  }
+
+  .star-brightness {
+    color: var(--winds-gold-dark, #8b6914);
+    font-size: 9px;
+    background: rgba(139, 105, 20, 0.08);
+    padding: 0 3px;
+    border-radius: 2px;
+  }
+
+  .star-mutagen {
+    font-size: 9px;
+    padding: 0 3px;
+    border-radius: 2px;
+    color: white;
+    font-weight: 600;
+  }
+
+  .mutagen-lu { background: #2d8659; }   /* 祿 綠 */
+  .mutagen-quan { background: #2c5e9e; }  /* 權 藍 */
+  .mutagen-ke { background: #7e4ca0; }    /* 科 紫 */
+  .mutagen-ji { background: #b03a3a; }    /* 忌 紅 */
+
+  .empty-palace {
+    color: var(--winds-text-muted, #999);
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  .adjective-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    margin-top: 2px;
+    padding-top: 2px;
+    border-top: 1px dotted rgba(139, 105, 20, 0.15);
+  }
+
+  .adj-star {
+    color: var(--winds-text-muted, #999);
+    font-size: 9.5px;
+    line-height: 1.3;
+  }
+
+  .cell-footer {
+    font-size: 9px;
+    color: var(--winds-text-muted, #999);
+    border-top: 1px dotted var(--winds-border, #e8d5a3);
+    padding-top: 2px;
+  }
+
+  /* ===== 中宮 meta ===== */
+  .center-meta {
+    background: linear-gradient(135deg, #faf3df 0%, #f5e8c4 100%);
+    border: 1.5px solid var(--winds-gold-dark, #8b6914);
+    border-radius: 4px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .meta-label {
+    color: var(--winds-text-sub, #5a656b);
+    font-size: 10.5px;
+    min-width: 36px;
+  }
+
+  .meta-value {
+    color: var(--winds-text-dark, #3b262a);
+    font-weight: 500;
+  }
+
+  .meta-emphasize {
+    color: var(--winds-gold-dark, #8b6914);
+    font-weight: 700;
+  }
+
+  .meta-divider {
+    height: 1px;
+    background: var(--winds-gold-dark, #8b6914);
+    opacity: 0.3;
+    margin: 4px 0;
+  }
+
+  .meta-tst {
+    font-size: 10px;
+    color: var(--winds-text-muted, #999);
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  /* ===== 響應式 ===== */
+  @media (max-width: 768px) {
+    .ziwei-chart { padding: 4px; }
+    .palace-cell { padding: 4px 5px; gap: 2px; }
+    .palace-name { font-size: 11px; }
+    .cell-stem-branch { font-size: 10px; }
+    .star.major .star-name { font-size: 11px; }
+    .star.minor .star-name { font-size: 10px; }
+    .star-brightness, .star-mutagen { font-size: 8px; }
+    .adj-star { font-size: 8.5px; }
+    .cell-footer, .decadal { font-size: 8px; }
+    .center-meta { padding: 6px 8px; font-size: 11px; gap: 3px; }
+    .meta-label { font-size: 9.5px; min-width: 30px; }
+  }
+
+  @media (max-width: 480px) {
+    .ziwei-chart { aspect-ratio: 1 / 1; }
+    .star.major .star-name { font-size: 10px; }
+    .star.minor .star-name { font-size: 9px; }
+    .star-brightness, .star-mutagen { display: none; }
+    .adjective-row { display: none; }
+    .meta-tst { display: none; }
+  }
+</style>
