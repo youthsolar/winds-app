@@ -107,44 +107,33 @@ const MUTAGEN_COLOR: Record<string, string> = {
       const col = i % 4;
       // 中宮 2×2 從 (1,1) 到 (2,2)
       if (row === 1 && col === 1) {
+        const timeStr = chart.meta.timeRange ? `${chart.meta.time} (${chart.meta.timeRange})` : chart.meta.time;
         return (
           <div class="center-meta" style="grid-row: 2 / 4; grid-column: 2 / 4;">
-            <div class="meta-row">
-              <span class="meta-label">當事人</span>
-              <span class="meta-value">{chart.meta.gender}</span>
-            </div>
-            <div class="meta-row">
-              <span class="meta-label">西元</span>
+            <div class="meta-row meta-row-inline">
+              <span class="meta-pill">{chart.meta.gender}</span>
               <span class="meta-value">{chart.meta.solarDate}</span>
+              <span class="meta-sep">·</span>
+              <span class="meta-value">{timeStr}</span>
             </div>
-            <div class="meta-row">
-              <span class="meta-label">農曆</span>
-              <span class="meta-value">{chart.meta.lunarDate}</span>
-            </div>
-            <div class="meta-row">
-              <span class="meta-label">干支</span>
-              <span class="meta-value">{chart.meta.chineseDate}</span>
-            </div>
-            <div class="meta-row">
-              <span class="meta-label">時辰</span>
-              <span class="meta-value">{chart.meta.time}{chart.meta.timeRange ? ` (${chart.meta.timeRange})` : ''}</span>
-            </div>
+            <div class="meta-row meta-line-center">{chart.meta.lunarDate}</div>
+            <div class="meta-row meta-line-center">{chart.meta.chineseDate}</div>
             <div class="meta-divider"></div>
-            <div class="meta-row">
+            <div class="meta-row meta-row-inline">
               <span class="meta-label">命主</span>
               <span class="meta-value meta-emphasize">{chart.meta.soul}</span>
+              <span class="meta-sep">·</span>
               <span class="meta-label">身主</span>
               <span class="meta-value meta-emphasize">{chart.meta.body}</span>
             </div>
-            <div class="meta-row">
+            <div class="meta-row meta-row-inline">
               <span class="meta-label">五行局</span>
               <span class="meta-value meta-emphasize">{chart.meta.fiveElementsClass}</span>
             </div>
-            <div class="meta-row">
-              <span class="meta-label">星座</span>
+            <div class="meta-row meta-line-center">
               <span class="meta-value">{chart.meta.sign}</span>
-              <span class="meta-label">生肖</span>
-              <span class="meta-value">{chart.meta.zodiac}</span>
+              <span class="meta-sep">·</span>
+              <span class="meta-value">屬{chart.meta.zodiac}</span>
             </div>
             {tstNote && (
               <>
@@ -416,30 +405,38 @@ const MUTAGEN_COLOR: Record<string, string> = {
     padding-top: 2px;
   }
 
-  /* ===== 中宮 meta ===== */
+  /* ===== 中宮 meta（Plan B 合併版）===== */
   .center-meta {
     background: linear-gradient(135deg, #faf3df 0%, #f5e8c4 100%);
     border: 1.5px solid var(--winds-gold-dark, #8b6914);
     border-radius: 4px;
-    padding: 12px 16px;
+    padding: 18px 20px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     gap: 6px;
-    font-size: 12px;
+    font-size: 12.5px;
+    box-sizing: border-box;
   }
 
   .meta-row {
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
+    line-height: 1.5;
+  }
+  .meta-row-inline { justify-content: center; }
+  .meta-line-center {
+    justify-content: center;
+    color: var(--winds-text-dark, #3b262a);
+    font-weight: 500;
+    letter-spacing: 0.04em;
   }
 
   .meta-label {
     color: var(--winds-text-sub, #5a656b);
     font-size: 10.5px;
-    min-width: 36px;
   }
 
   .meta-value {
@@ -452,11 +449,26 @@ const MUTAGEN_COLOR: Record<string, string> = {
     font-weight: 700;
   }
 
+  .meta-sep {
+    color: var(--winds-gold-dark, #8b6914);
+    opacity: 0.4;
+    padding: 0 2px;
+  }
+
+  .meta-pill {
+    background: var(--winds-gold-dark, #8b6914);
+    color: white;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
   .meta-divider {
     height: 1px;
     background: var(--winds-gold-dark, #8b6914);
     opacity: 0.3;
-    margin: 4px 0;
+    margin: 2px 0;
   }
 
   .meta-tst {
@@ -477,8 +489,10 @@ const MUTAGEN_COLOR: Record<string, string> = {
     .star-brightness, .star-mutagen { font-size: 8px; }
     .adj-star { font-size: 8.5px; }
     .cell-footer, .decadal { font-size: 8px; }
-    .center-meta { padding: 6px 8px; font-size: 11px; gap: 3px; }
-    .meta-label { font-size: 9.5px; min-width: 30px; }
+    .center-meta { padding: 12px 10px; font-size: 11px; gap: 4px; }
+    .meta-label { font-size: 9.5px; }
+    .meta-pill { padding: 0 6px; font-size: 9.5px; }
+    .meta-row-inline { gap: 4px; }
   }
 
   @media (max-width: 480px) {
