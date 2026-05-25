@@ -1,7 +1,7 @@
 ---
 // ZiweiChart.astro — 紫微斗數 12 宮命盤（4×4 grid + 中宮 meta）
 //
-// 視覺：對齊 winds-app 紫金道家風格（金邊 + 奶油底 + LXGW 字體 + 化祿權科忌色標）
+// 視覺：對齊 winds-app 紫金道家風格（金邊 + 奶油底 + Noto Serif TC 字體 + 化祿權科忌色標）
 // 資料：吃 api.winds.tw/ziwei-chart 的 chart 欄位
 // 互動：hover 宮位 highlight 三方四正（對宮 + 財官位）
 
@@ -322,7 +322,7 @@ const MUTAGEN_COLOR: Record<string, string> = {
   }
 
   .cell-stem-branch {
-    font-family: 'LXGW WenKai TC', serif;
+    font-family: 'Noto Serif TC', serif;
     color: var(--winds-gold-dark, #8b6914);
     font-size: 11px;
   }
