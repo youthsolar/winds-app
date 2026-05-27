@@ -58,7 +58,7 @@ body {
   margin-bottom: 28px;
 }
 .winds-header h1 {
-  font-family: 'LXGW WenKai TC', cursive;
+  font-family: 'Noto Serif TC', serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--winds-text-dark);
@@ -130,7 +130,7 @@ body {
 }
 
 .winds-result-label {
-  font-family: 'LXGW WenKai TC', serif;
+  font-family: 'Noto Serif TC', serif;
   font-size: 15px;
   color: var(--winds-gold);
   margin-bottom: 10px;
@@ -156,7 +156,7 @@ body {
 }
 
 .winds-section-title {
-  font-family: 'LXGW WenKai TC', serif;
+  font-family: 'Noto Serif TC', serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--winds-gold);
@@ -229,7 +229,7 @@ body {
   color: var(--winds-text-dark);
 }
 .astro-card-title {
-  font-family: 'LXGW WenKai TC', serif;
+  font-family: 'Noto Serif TC', serif;
   font-size: 15px;
   font-weight: 700;
   color: var(--winds-gold-dark);
