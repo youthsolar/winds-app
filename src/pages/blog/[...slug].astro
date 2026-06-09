@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { pickRecs } from '../../data/recommend';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -24,6 +25,7 @@ export async function getStaticPaths() {
 
 const { post, allPosts, teachers } = Astro.props;
 const { Content } = await render(post);
+const recs = pickRecs(post.data.category);
 
 // Related posts: score by category + shared tags + same teacher
 const currentTeacher = teachers[post.id];
@@ -123,6 +125,25 @@ const jsonLd = {
             </li>
           ))}
         </ul>
+      </aside>
+    )}
+
+    {recs.length > 0 && (
+      <aside class="rec-services">
+        <h3>🏮 為你推薦</h3>
+        <p class="rec-sub">與這篇相關的法器與服務</p>
+        <div class="rec-grid">
+          {recs.map((r) => (
+            <a class="rec-card" href={r.url} target="_blank" rel="noopener">
+              <span class="rec-icon">{r.source === 'simplybook' ? '🔮' : '🏮'}</span>
+              <span class="rec-info">
+                <span class="rec-name">{r.name}</span>
+                <span class="rec-price">NT$ {r.price.toLocaleString()}{r.source === 'simplybook' ? ' 起' : ''}</span>
+              </span>
+              <span class="rec-arrow">→</span>
+            </a>
+          ))}
+        </div>
       </aside>
     )}
 
@@ -331,4 +352,51 @@ const jsonLd = {
     .article-header h1 { font-size: 22px; }
     .article-body { font-size: 15px; }
   }
+
+  /* 內容→商品 推薦 */
+  .rec-services {
+    margin: 32px 0;
+    padding: 24px;
+    background: var(--surface, #FFFDF8);
+    border: 1px solid var(--rose-100, #F0DAD3);
+    border-radius: var(--radius-xl, 28px);
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(70,52,40,.06));
+  }
+  .rec-services h3 {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px; font-weight: 500;
+    color: var(--accent-deep, #8F574E);
+    margin: 0 0 2px;
+  }
+  .rec-services .rec-sub {
+    font-size: 12.5px; color: var(--winds-text-muted); margin: 0 0 16px;
+  }
+  .rec-grid { display: grid; gap: 10px; }
+  .rec-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    background: var(--winds-bg, #FBF8F3);
+    border: 1px solid var(--rose-100, #F0DAD3);
+    border-radius: var(--radius-md, 14px);
+    text-decoration: none; color: inherit;
+    transition: transform .15s, box-shadow .15s, border-color .15s;
+  }
+  .rec-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--rose-300, #D2A099);
+    box-shadow: var(--shadow-md, 0 4px 14px rgba(70,52,40,.08));
+    text-decoration: none;
+  }
+  .rec-icon {
+    flex: none; width: 40px; height: 40px; border-radius: 999px;
+    background: var(--rose-100, #F0DAD3);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .rec-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .rec-name {
+    font-family: 'Noto Serif TC', serif; font-size: 15px; font-weight: 500;
+    color: var(--winds-text-dark); line-height: 1.4;
+  }
+  .rec-price { font-size: 12.5px; color: var(--accent-deep, #8F574E); }
+  .rec-arrow { flex: none; color: var(--accent, #C18C84); font-size: 16px; }
 </style>
