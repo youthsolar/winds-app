@@ -1,22 +1,34 @@
 @import "tailwindcss";
 
-/* Winds Portfolio Unified Design Tokens (v1.0) */
+/* Winds Portfolio Unified Design Tokens (v2.0 — 2026-06-10 占卜站 handoff) */
 @layer base {
   :root {
+    /* rose / rice / ink 完整色階（對齊 winds-design-tokens v2 + LIFF）*/
+    --rice-50:#FBF8F3; --rice-100:#F6EFE6; --rice-200:#EEE4D6; --rice-300:#E2D4C1; --rice-400:#CBB9A2;
+    --rose-50:#F8EAE5; --rose-100:#F0DAD3; --rose-200:#E3BDB5; --rose-300:#D2A099; --rose-400:#C18C84; --rose-500:#AC7167; --rose-600:#8F574E;
+    --clay-300:#DDB48E; --clay-400:#C99A78; --clay-500:#AC7E5C;
+    --sage-300:#B7BFA3; --sage-400:#98A484; --sage-500:#7A8866;
+    --ink-900:#2E2823; --ink-700:#4A4038; --ink-500:#6E6359; --ink-400:#948A7E;
+
     --paper: #FBF8F3;
-    --paper-2: #F5F1E8;
-    --surface: #FFFFFF;
-    --ink: #2C2421;
-    --ink-2: #5A5048;
-    --ink-3: #8A7E6E;
-    --ink-4: #B0A898;
-    --line: #E8E0D2;
-    --line-strong: #D4C8B8;
-    --accent: #C97D7D;
-    --accent-deep: #A85F5F;
-    --accent-soft: #F5E8E8;
-    --error: #C0392B;
+    --paper-2: #F6EFE6;
+    --surface: #FFFDF8;
+    --ink: #2E2823;
+    --ink-2: #4A4038;
+    --ink-3: #6E6359;
+    --ink-4: #948A7E;
+    --line: #EEE4D6;
+    --line-strong: #E2D4C1;
+    --accent: #C18C84;
+    --accent-deep: #8F574E;
+    --accent-soft: #F0DAD3;
+    --error: #B5675C;
     --success: #2D6A4F;
+    --font-sans: "Noto Sans TC", system-ui, -apple-system, sans-serif;
+    --radius-sm:10px; --radius-md:14px; --radius-lg:20px; --radius-xl:28px; --radius-pill:999px;
+    --shadow-sm:0 1px 2px rgba(70,52,40,.04),0 2px 6px rgba(70,52,40,.05);
+    --shadow-md:0 2px 6px rgba(70,52,40,.05),0 8px 24px rgba(70,52,40,.07);
+    --shadow-lg:0 6px 16px rgba(70,52,40,.06),0 18px 48px rgba(70,52,40,.10);
 
     /* backward-compat aliases (will be removed after full migration) */
     --winds-text-dark: var(--ink);
