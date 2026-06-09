@@ -552,6 +552,16 @@
     .winds-select-wrap{position:relative;flex:1 1 0;min-width:0}
     .winds-select{appearance:none;-webkit-appearance:none;-moz-appearance:none;padding-right:34px !important;width:100%}
     .winds-select-wrap::after{content:"";position:absolute;right:14px;top:46%;width:8px;height:8px;border-right:2px solid var(--rose-400);border-bottom:2px solid var(--rose-400);transform:translateY(-50%) rotate(45deg);pointer-events:none}
+    /* 情緒選擇器 hero */
+    .v7-emo{text-align:center;max-width:600px;margin:0 auto 28px;padding:0 8px}
+    .v7-emo-eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:'Noto Sans TC',sans-serif;font-size:12px;font-weight:500;letter-spacing:.12em;color:var(--accent-press);margin-bottom:12px}
+    .v7-emo-dot{width:6px;height:6px;border-radius:999px;background:var(--accent)}
+    .v7-emo-q{font-family:'Noto Serif TC',serif;font-size:24px;font-weight:500;line-height:1.45;color:var(--ink-900);margin:0 0 8px}
+    .v7-emo-sub{font-family:'Noto Serif TC',serif;font-weight:300;font-size:14.5px;line-height:1.8;color:var(--text-secondary);margin:0 0 18px}
+    .v7-emo-chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+    .v7-chip{all:unset;cursor:pointer;font-family:'Noto Serif TC',serif;font-size:15px;font-weight:500;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:999px;padding:9px 18px;transition:all .14s var(--ease-soft)}
+    .v7-chip.on{background:var(--accent);color:#fff;border-color:transparent}
+    @media(max-width:520px){.v7-emo-q{font-size:20px}}
 
     .birth-card-input[type="date"],
     .birth-card-input[type="time"] {
@@ -1343,6 +1353,18 @@
     </div>
 
     <div class="winds-topic-section" id="topicSection" style="display:none;">
+      <!-- 情緒選擇器 hero -->
+      <div class="v7-emo">
+        <span class="v7-emo-eyebrow"><span class="v7-emo-dot"></span>現在的你，比較像——</span>
+        <h2 id="emoQ" class="v7-emo-q">今天，想為哪件事坐下來？</h2>
+        <p id="emoSub" class="v7-emo-sub">先選一個最靠近你心裡的，我再陪你慢慢往下看。</p>
+        <div class="v7-emo-chips">
+          <button type="button" class="v7-chip" data-emo="0">已讀不回</button>
+          <button type="button" class="v7-chip" data-emo="1">曖昧不明</button>
+          <button type="button" class="v7-chip" data-emo="2">有沒有未來</button>
+          <button type="button" class="v7-chip" data-emo="3">最近不太安</button>
+        </div>
+      </div>
       <!-- 第一層：3 類 -->
       <div class="winds-topic-row">
         <div class="winds-topic-card v7-topcard" data-topic="love">
@@ -3429,6 +3451,21 @@
         initGoogleGIS();
       }
     }, 3000);
+
+    /* 情緒選擇器：切換 hero 文案 */
+    (function initEmo(){
+      var SC=[
+       {q:"他已讀不回的這幾天，你是不是也一直在看手機？",s:"先別急著想他怎麼了。先看看你現在是什麼狀態。"},
+       {q:"這段曖昧，是有機會，還是你在等一個不會回頭的人？",s:"說不清楚的，先不用說清楚。從一張牌開始看。"},
+       {q:"你們之間，到底還走不走得下去？",s:"現在不用決定。先把方向看清楚，再說。"},
+       {q:"最近心裡總是不太安穩，又說不上來為什麼。",s:"說不出口的，不代表不重要。從一張牌開始。"}
+      ];
+      var chips=document.querySelectorAll(".v7-chip"),q=$("emoQ"),s=$("emoSub");
+      Array.prototype.forEach.call(chips,function(c){c.addEventListener("click",function(){
+        Array.prototype.forEach.call(chips,function(x){x.classList.remove("on")});c.classList.add("on");
+        var d=SC[+c.getAttribute("data-emo")]; if(d&&q&&s){q.textContent=d.q;s.textContent=d.s;}
+      });});
+    })();
 
     /* v2 生日/時辰下拉 → 隱藏 #birthDate/#birthTime（午→12:00；iOS 不破格）*/
     (function initBirthSelects(){
