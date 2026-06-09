@@ -81,7 +81,7 @@ const pageDesc = "找風問幸福部落格：感情挽回、桃花運、補財�
 
 <style>
   .blog-list {
-    max-width: 780px;
+    max-width: 1040px;
     margin: 0 auto;
     padding: 32px 20px 60px;
   }
@@ -166,10 +166,14 @@ const pageDesc = "找風問幸福部落格：感情挽回、桃花運、補財�
     list-style: none;
     padding: 0;
     margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
   }
   .post-item {
-    margin-bottom: 16px;
+    margin-bottom: 0;
   }
+  .post-item a { height: 100%; box-shadow: var(--shadow-sm); border-radius: var(--radius-lg); }
   .post-item a {
     display: block;
     padding: 18px 20px;
@@ -228,7 +232,7 @@ const pageDesc = "找風問幸福部落格：感情挽回、桃花運、補財�
   .cta-bottom {
     margin-top: 48px;
     padding: 32px 20px;
-    background: linear-gradient(135deg, var(--winds-gold-light), #fdf8f0);
+    background: linear-gradient(135deg, var(--winds-gold-light), #FBF8F3);
     border-radius: 12px;
     text-align: center;
   }
@@ -256,6 +260,7 @@ const pageDesc = "找風問幸福部落格：感情挽回、桃花運、補財�
 
   @media (max-width: 640px) {
     .blog-list { padding: 20px 16px 40px; }
+    .post-list { grid-template-columns: 1fr; }
     .list-header h1 { font-size: 22px; }
     .cat-title { font-size: 17px; }
     .post-title { font-size: 15px; }
