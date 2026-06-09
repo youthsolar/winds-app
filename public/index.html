@@ -149,21 +149,21 @@
        Winds Design System — LIFF V2
        =========================================== */
     :root {
-      --winds-bg: #fdf8f0;
-      --winds-text: #474747;
-      --winds-text-dark: #3b262a;
-      --winds-text-sub: #5a656b;
-      --winds-text-warm: #5a3e3e;
-      --winds-text-section: #7a4f4f;
-      --winds-text-muted: #999;
-      --winds-gold: #c9a84c;
-      --winds-gold-dark: #8b6914;
-      --winds-accent: #f0e6e6;
-      --winds-accent-hover: #e8dadb;
-      --winds-card-bg: #ffffff;
-      --winds-border: #e8d5a3;
-      --winds-border-dark: #5a656b;
-      --winds-error: #d9534f;
+      --winds-bg: #FBF8F3;
+      --winds-text: #4A4038;
+      --winds-text-dark: #2E2823;
+      --winds-text-sub: #6E6359;
+      --winds-text-warm: #8F574E;
+      --winds-text-section: #8F574E;
+      --winds-text-muted: #948A7E;
+      --winds-gold: #C18C84;
+      --winds-gold-dark: #8F574E;
+      --winds-accent: #F0DAD3;
+      --winds-accent-hover: #E3BDB5;
+      --winds-card-bg: #FFFDF8;
+      --winds-border: #E2D4C1;
+      --winds-border-dark: #D2A099;
+      --winds-error: #B5675C;
       --winds-success: #2d6a4f;
       --winds-success-bg: #d4edda;
       --winds-disabled-bg: #e8e8e8;
@@ -2377,9 +2377,9 @@
                   datasets: [{
                     data: [wuxingRadar['木'], wuxingRadar['火'], wuxingRadar['土'], wuxingRadar['金'], wuxingRadar['水']],
                     backgroundColor: 'rgba(201,168,76,0.25)',
-                    borderColor: '#c9a84c',
+                    borderColor: '#C18C84',
                     borderWidth: 2,
-                    pointBackgroundColor: '#c9a84c',
+                    pointBackgroundColor: '#C18C84',
                     pointRadius: 4
                   }]
                 },
@@ -2511,7 +2511,7 @@
               labels: labels,
               datasets: [{
                 data: scores,
-                borderColor: '#c9a84c',
+                borderColor: '#C18C84',
                 borderWidth: 2,
                 pointBackgroundColor: pointColors,
                 pointRadius: pointRadii,
@@ -2528,7 +2528,7 @@
                 y: { min: -100, max: 100, grid: { color: 'rgba(59,38,42,0.1)' },
                   ticks: { callback: function(v) { return v === 85 ? '吉' : v === 50 ? '小吉' : v === 0 ? '平' : v === -50 ? '小慎' : v === -70 ? '慎' : ''; }, stepSize: 50, font: { size: 13 }, color: '#3b262a' }
                 },
-                x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#8b6914' } }
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#8F574E' } }
               }
             }
           });
