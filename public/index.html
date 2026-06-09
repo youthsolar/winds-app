@@ -549,6 +549,9 @@
     .v7-mark.rose{background:var(--rose-100);color:var(--rose-600);box-shadow:0 0 0 4px var(--surface-page),0 0 0 5px var(--rose-300)}
     .v7-mark.clay{background:var(--clay-200);color:var(--clay-500);box-shadow:0 0 0 4px var(--surface-page),0 0 0 5px var(--clay-300)}
     .v7-mark.sage{background:var(--sage-200);color:var(--sage-500);box-shadow:0 0 0 4px var(--surface-page),0 0 0 5px var(--sage-300)}
+    .winds-select-wrap{position:relative;flex:1 1 0;min-width:0}
+    .winds-select{appearance:none;-webkit-appearance:none;-moz-appearance:none;padding-right:34px !important;width:100%}
+    .winds-select-wrap::after{content:"";position:absolute;right:14px;top:46%;width:8px;height:8px;border-right:2px solid var(--rose-400);border-bottom:2px solid var(--rose-400);transform:translateY(-50%) rotate(45deg);pointer-events:none}
 
     .birth-card-input[type="date"],
     .birth-card-input[type="time"] {
@@ -1687,14 +1690,29 @@
             </div>
 
             <div class="winds-birth-row">
-              <div class="winds-contact-field">
-                <label for="birthDate">出生日期<span class="winds-required">*</span></label>
-                <input id="birthDate" type="date" class="birth-card-input">
+              <div class="winds-contact-field" style="flex:1 1 100%;max-width:100%">
+                <label>出生日期（國曆）<span class="winds-required">*</span></label>
+                <div style="display:flex;gap:8px">
+                  <div class="winds-select-wrap"><select id="birthYear" class="winds-select birth-card-input"><option value="" disabled selected>年</option></select></div>
+                  <div class="winds-select-wrap"><select id="birthMonth" class="winds-select birth-card-input"><option value="" disabled selected>月</option></select></div>
+                  <div class="winds-select-wrap"><select id="birthDay" class="winds-select birth-card-input"><option value="" disabled selected>日</option></select></div>
+                </div>
               </div>
-              <div class="winds-contact-field">
-                <label for="birthTime">出生時間<span class="winds-required">*</span></label>
-                <input id="birthTime" type="time" step="300" class="birth-card-input">
+              <div class="winds-contact-field" style="flex:1 1 100%;max-width:100%">
+                <label>出生時間<span class="winds-required">*</span></label>
+                <div class="winds-select-wrap"><select id="birthShichen" class="winds-select birth-card-input">
+                  <option value="" disabled selected>選一個時辰</option>
+                  <option value="子">子時 23–01</option><option value="丑">丑時 01–03</option><option value="寅">寅時 03–05</option>
+                  <option value="卯">卯時 05–07</option><option value="辰">辰時 07–09</option><option value="巳">巳時 09–11</option>
+                  <option value="午">午時 11–13</option><option value="未">未時 13–15</option><option value="申">申時 15–17</option>
+                  <option value="酉">酉時 17–19</option><option value="戌">戌時 19–21</option><option value="亥">亥時 21–23</option>
+                </select></div>
+                <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-family:'Noto Serif TC',serif;font-size:14px;font-weight:400;color:var(--ink-700);cursor:pointer">
+                  <input type="checkbox" id="noonCheck" style="width:16px;height:16px;accent-color:var(--accent);flex:none">不知道？用午時（11:00–13:00）
+                </label>
               </div>
+              <input type="hidden" id="birthDate">
+              <input type="hidden" id="birthTime">
             </div>
 
             <div class="winds-submit-row" style="margin-bottom:8px;">
@@ -2273,8 +2291,7 @@
 
     // 頁面載入立刻設預設值（不等 focus），回訪用戶有資料時會被 prefill 覆蓋
     (function() {
-      var bd = $("birthDate"); if (bd && !bd.value) bd.value = "1990-07-01";
-      var bt = $("birthTime"); if (bt && !bt.value) bt.value = "12:00";
+      /* v2: 生日/時間改由下拉驅動隱藏 input，不再自動填開發預設值 */
     })();
 
     // ===========================================
@@ -3288,6 +3305,7 @@
             var dobParts = d.date_of_birth.split(" ");
             ref.birthDateInput.value = dobParts[0];
             if (dobParts[1] && ref.birthTimeInput) ref.birthTimeInput.value = dobParts[1].slice(0, 5);
+            if (typeof reflectBirthFromHidden === "function") reflectBirthFromHidden();
           }
 
           var fullName = (d.last_name || "") + (d.first_name || "");
@@ -3411,6 +3429,25 @@
         initGoogleGIS();
       }
     }, 3000);
+
+    /* v2 生日/時辰下拉 → 隱藏 #birthDate/#birthTime（午→12:00；iOS 不破格）*/
+    (function initBirthSelects(){
+      var ySel=$("birthYear"), mSel=$("birthMonth"), dSel=$("birthDay"), sSel=$("birthShichen"), noon=$("noonCheck");
+      if(!ySel||!mSel||!dSel||!sSel) return;
+      var SH={子:"00:00",丑:"02:00",寅:"04:00",卯:"06:00",辰:"08:00",巳:"10:00",午:"12:00",未:"14:00",申:"16:00",酉:"18:00",戌:"20:00",亥:"22:00"};
+      var INV={"00":"子","02":"丑","04":"寅","06":"卯","08":"辰","10":"巳","12":"午","14":"未","16":"申","18":"酉","20":"戌","22":"亥"};
+      for(var y=2026;y>=1940;y--){var o=document.createElement("option");o.value=y;o.textContent=y+" 年";ySel.appendChild(o);}
+      for(var m=1;m<=12;m++){var o2=document.createElement("option");o2.value=m;o2.textContent=m+" 月";mSel.appendChild(o2);}
+      function fillDays(){var yy=parseInt(ySel.value,10),mm=parseInt(mSel.value,10),max=(yy&&mm)?new Date(yy,mm,0).getDate():31,cur=dSel.value;dSel.innerHTML='<option value="" disabled'+(cur?'':' selected')+'>日</option>';for(var d=1;d<=max;d++){var od=document.createElement("option");od.value=d;od.textContent=d+" 日";if(String(d)===cur)od.selected=true;dSel.appendChild(od);}}
+      fillDays();
+      function sync(){var yy=ySel.value,mm=mSel.value,dd=dSel.value,bd=$("birthDate"),bt=$("birthTime");if(!bd||!bt)return;bd.value=(yy&&mm&&dd)?(yy+"-"+("0"+mm).slice(-2)+"-"+("0"+dd).slice(-2)):"";var sc=(noon&&noon.checked)?"午":sSel.value;bt.value=(sc&&SH[sc])?SH[sc]:"";try{bd.dispatchEvent(new Event("change"));bt.dispatchEvent(new Event("change"));}catch(e){}}
+      ySel.addEventListener("change",function(){fillDays();sync();});
+      mSel.addEventListener("change",function(){fillDays();sync();});
+      dSel.addEventListener("change",sync);
+      sSel.addEventListener("change",function(){if(noon)noon.checked=false;sSel.disabled=false;sync();});
+      if(noon)noon.addEventListener("change",function(){if(noon.checked){sSel.value="午";sSel.disabled=true;}else{sSel.disabled=false;}sync();});
+      window.reflectBirthFromHidden=function(){var bd=($("birthDate")||{}).value||"",bt=($("birthTime")||{}).value||"";if(bd){var p=bd.split("-");if(p.length===3){ySel.value=String(parseInt(p[0],10));mSel.value=String(parseInt(p[1],10));fillDays();dSel.value=String(parseInt(p[2],10));}}if(bt){var sc=INV[bt.slice(0,2)];if(sc)sSel.value=sc;}};
+    })();
 
   })();
   </script>
