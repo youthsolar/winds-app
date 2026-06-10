@@ -266,7 +266,7 @@ button{font-family:inherit}
 /* interpreting */
 .interp{min-height:calc(100vh - 72px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 22px;position:relative;overflow:hidden}
 .interp .glow{position:absolute;inset:0;background:radial-gradient(620px 460px at 50% 32%,var(--rose-100),transparent 62%)}
-.interp .feng{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:40px;color:var(--accent-press);animation:breath 2.4s var(--ease-soft) infinite}
+.interp .feng{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;line-height:1;font-family:var(--font-serif);font-size:40px;color:var(--accent-press);animation:breath 2.4s var(--ease-soft) infinite}
 .interp .line{font-family:var(--font-serif);font-size:23px;color:var(--ink-900);margin:0;position:relative}
 @media(max-width:760px){.interp .line{font-size:19px}}
 @keyframes breath{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.08);opacity:1}}
@@ -647,7 +647,7 @@ function toggleNoon(btn){var box=btn.querySelector(".noonbox");var sel=document.
 var interpTimer=null;
 function viewInterp(){
   return '<header style="height:4px;background:var(--rice-200)"></header><div class="interp"><div class="glow"></div>'+
-    '<div style="position:relative"><svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="70" r="54" fill="none" stroke="var(--rice-200)" stroke-width="3"/>'+
+    '<div style="position:relative"><svg width="140" height="140" viewBox="0 0 140 140" style="display:block"><circle cx="70" cy="70" r="54" fill="none" stroke="var(--rice-200)" stroke-width="3"/>'+
     '<circle id="progRing" cx="70" cy="70" r="54" fill="none" stroke="var(--rose-400)" stroke-width="3" stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="339.3" transform="rotate(-90 70 70)"/></svg>'+
     '<span class="feng">風</span></div>'+
     '<div style="position:relative;min-height:40px;margin-top:30px"><p class="line fade" id="interpLine">'+READING_LINES[0]+'</p></div>'+
