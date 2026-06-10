@@ -710,7 +710,9 @@ function viewResult(){
   /* recs */
   h+=recsSection();
   h+=blogSection();
-  h+='<div style="text-align:center;margin-top:54px"><button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
+  h+='<div style="display:flex;flex-direction:column;align-items:center;gap:22px;margin-top:54px">'+
+    '<button class="btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network")+'把這次占卜分享給好友</button>'+
+    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
   return '<main class="shell">'+h+'</main>';
 }
 function block(title,note,inner){return '<section class="res-block"><div class="res-head"><h3>'+title+'</h3>'+(note?'<span class="placeholder-tag">'+ic("sparkle")+note+'</span>':'')+'</div>'+inner+'</section>'}
@@ -944,6 +946,30 @@ function createOrder(){
        if(btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}
      }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE;}alert(d.message||"建立訂單失敗，請再試一次。");}
    }).catch(function(e){STATE.ordering=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE;}alert("付款錯誤："+e.message);});
+}
+
+/* ===== 分享（Web Share API / 剪貼簿）===== */
+function shareResult(btn){
+  var orig=btn?btn.innerHTML:"";
+  if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'生成分享圖中…';}
+  var done=function(){if(btn){btn.disabled=false;btn.innerHTML=orig;}};
+  /* 先請後端生成 OG 圖（有快取，失敗也照分享） */
+  fetch(WORKER_API+"/generate-og-image",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({google_sub:STATE.userId})}).catch(function(){}).then(function(){
+    done();
+    var shareUrl="https://app.winds.tw/share?uid="+encodeURIComponent(STATE.userId)+"&t="+Date.now();
+    var R=STATE.result||{};
+    var snippet=(R.summary||"").replace(/[#*`>]/g,"").replace(/\s+/g," ").trim().slice(0,100);
+    var shareText="🌀 找風問幸福 — 我的占卜結果\n\n"+(snippet?snippet+"…\n\n":"")+"你也來試試 ✨\n👉 "+shareUrl;
+    if(navigator.share){
+      navigator.share({title:"🌀 找風問幸福 — 我的占卜結果",text:shareText,url:shareUrl})
+       .catch(function(){if(navigator.clipboard)navigator.clipboard.writeText(shareText).then(function(){alert("已複製分享內容 👍");});});
+    }else if(navigator.clipboard){
+      navigator.clipboard.writeText(shareText).then(function(){alert("已複製分享連結 👍\n可以貼到 LINE、Facebook、Threads 分享");});
+    }else{
+      prompt("請複製以下連結分享：",shareUrl);
+    }
+  });
 }
 
 /* ===== 預填（回訪）===== */
