@@ -715,7 +715,7 @@ function viewResult(){
   var R=STATE.result||{};var paid=STATE.paid||R.purchased;var q=STATE.text||"";
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span>';
   if(q)h+='<p style="font-family:var(--font-serif);font-size:15px;color:var(--text-muted);margin:14px 0 6px">你問的是——</p><h1 class="q">「'+esc(q)+'」</h1>';
-  if(R.summary)h+='<div style="font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.95;color:var(--ink-700);margin:18px 0 0;max-width:40em">'+md(R.summary)+'</div>';
+  if(R.summary)h+='<div style="font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.95;color:var(--ink-700);margin:18px 0 0">'+md(R.summary)+'</div>';
   h+='</div>';
   /* banner */
   h+='<div class="banner"><div style="height:188px;background:linear-gradient(135deg,var(--rose-100),var(--clay-200))"></div><div class="cap"><span>深呼吸，慢慢看——這些都是為你讀的。</span></div></div>';
@@ -816,7 +816,7 @@ function paywall(paid){
     var els=R.talismanElements||[];
     return '<div class="paid-card"><div class="topbar"></div><div class="body">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">'+ic("check-circle","fill")+'<span style="font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)">完整解讀已為你打開</span></div>'+
-      (body?'<div style="max-width:40em">'+body+'</div>':'<p style="font-family:var(--font-serif);font-weight:300;color:var(--text-secondary)">完整節氣運勢圖與量能靈符已於上方為你解鎖。</p>')+
+      (body?'<div>'+body+'</div>':'<p style="font-family:var(--font-serif);font-weight:300;color:var(--text-secondary)">完整節氣運勢圖與量能靈符已於上方為你解鎖。</p>')+
       (els.length?'<div style="border-top:1px solid var(--rose-100);margin-top:22px;padding-top:18px"><div style="font-family:var(--font-sans);font-size:12px;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px">已解鎖 · 為你量身的 '+els.length+' 張數位量能靈符</div><div style="display:flex;gap:10px;flex-wrap:wrap">'+els.map(function(e){return '<span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:13.5px;color:var(--rose-600);background:var(--rose-50);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:6px 14px">'+ic("seal","thin")+esc(e)+'</span>'}).join("")+'</div></div>':'')+
       (R.deliveryUrl?'<div style="margin-top:20px"><a class="btn primary md" href="'+esc(R.deliveryUrl)+'" target="_blank" rel="noopener">'+ic("arrow-right")+'查看完整解讀</a></div>':'')+
       '</div></div>';
