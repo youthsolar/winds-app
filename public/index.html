@@ -583,7 +583,7 @@ function viewTopic(){
       }).join("")+'</div>';
     if(STATE.q){
       h+='<div class="fade"><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">'+
-        '<span style="font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--ink-700)">這是你想問的嗎？可以改成你自己的話。</span>'+
+        '<span style="font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--ink-700)">把括號裡的文字換成你的實際狀況，寫得越具體，解讀越準。</span>'+
         '<span style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted)">'+STATE.text.length+' / 200</span></div>'+
         '<textarea class="f-textarea" maxlength="200" rows="2" oninput="STATE.text=this.value" style="font-size:18px">'+esc(STATE.text)+'</textarea>'+
         '<p class="hint" style="margin-top:8px">'+ic("heart")+'一次問一件事，解讀會更清楚、也更貼著你。</p>'+
