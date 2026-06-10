@@ -525,7 +525,8 @@ function buildResult(d){
     purchased:!!d.purchased,deliveryUrl:d.delivery_url||"",
     hexName:d.hexagram_name||"",upperGua:d.upper_gua||"",lowerGua:d.lower_gua||"",
     talismanImg:d.talisman_image_url||"",talismanElements:d.talisman_elements||[],shengKe:d.sheng_ke||"",
-    wuxing:wr?[{k:"木",v:+wr['木']||0},{k:"火",v:+wr['火']||0},{k:"土",v:+wr['土']||0},{k:"金",v:+wr['金']||0},{k:"水",v:+wr['水']||0}]:[],
+    /* 後端值是 0~1 小數（counts/16），相對最大值縮放成 0~100 畫圖（最旺頂到外圈，同舊版 Chart.js 自動縮放） */
+    wuxing:wr?(function(){var ks=["木","火","土","金","水"],vs=ks.map(function(k){return +wr[k]||0}),mx=Math.max.apply(null,vs);return ks.map(function(k,i){return{k:k,v:mx>0?Math.round(vs[i]/mx*100):0}})})():[],
     fortuneLine:a.fortune_line||d.fortune_line||[],
     tarot:d.tarot_cards||[],
     bazi:a.full_bazi||"",zodiac:a.shengxiao||"",star:a.xingzuo||"",taisui:a.taisui_conflict_status||"",mansion:a.twenty_eight_mansion||"",
