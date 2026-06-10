@@ -595,7 +595,15 @@ function viewTopic(){
 }
 function pickDir(k){STATE.dir=k;STATE.sub=null;STATE.q=null;STATE.text="";render()}
 function pickSub(k){STATE.sub=k;STATE.q=null;STATE.text="";render()}
-function pickQ(el,q){STATE.q=q;STATE.text=q;render()}
+function pickQ(el,qt){
+  STATE.q=qt;
+  /* 還原舊版完整模板：類別路徑+問題+說明+祈求提示語 一併進 prompt（分類器與 LLM 都吃這段） */
+  var d=TOPICS.find(function(t){return t.key===STATE.dir})||{};
+  var s=(d.subs||[]).find(function(x){return x.key===STATE.sub})||{};
+  var qo=(s.qs||[]).find(function(x){return x.t===qt})||{};
+  STATE.text="我目前最想處理的問題是「"+(d.title||"")+" - "+(s.name||"")+"」，狀況比較接近「"+qt+"」："+(qo.d||"")+" 實際情況是：（占卜前請靜心默想一位神尊或天使做主，並且在連接分靈體後繼續補充你想占卜的問題）";
+  render();
+}
 
 /* ===== Step 2 info ===== */
 function opts(arr){return arr.map(function(o){return '<option value="'+o.v+'">'+o.t+'</option>'}).join("")}
