@@ -24,10 +24,13 @@ export async function getStaticPaths() {
 }
 
 const { post, allPosts, teachers } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 const recs = pickRecs(post.data.category);
 
-// Related posts: score by category + shared tags + same teacher
+// 目錄：取 h2（≥2 才顯示）
+const toc = headings.filter((h: any) => h.depth === 2 && h.text?.trim());
+
+// 相關文章：分類 + 共同標籤 + 同老師加權
 const currentTeacher = teachers[post.id];
 const currentTags = new Set(post.data.tags || []);
 const related = allPosts
@@ -44,6 +47,8 @@ const related = allPosts
   .slice(0, 3)
   .map((x: any) => x.p);
 
+const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Article",
@@ -51,19 +56,10 @@ const jsonLd = {
   "description": post.data.llmDescription || post.data.description,
   "datePublished": post.data.pubDate.toISOString(),
   "dateModified": (post.data.updatedDate || post.data.pubDate).toISOString(),
-  "author": {
-    "@type": "Organization",
-    "name": "找風問幸福",
-    "url": "https://app.winds.tw"
-  },
+  "author": { "@type": "Organization", "name": "找風問幸福", "url": "https://winds.tw" },
   "publisher": {
-    "@type": "Organization",
-    "name": "找風問幸福",
-    "url": "https://app.winds.tw",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://app.winds.tw/assets/logo.png"
-    }
+    "@type": "Organization", "name": "找風問幸福", "url": "https://winds.tw",
+    "logo": { "@type": "ImageObject", "url": "https://winds.tw/assets/logo.png" }
   },
   "inLanguage": "zh-TW"
 };
@@ -76,327 +72,194 @@ const jsonLd = {
   ogType="article"
   jsonLd={jsonLd}
 >
-  <article class="winds-article">
-    <nav class="breadcrumb">
+  <main class="article">
+    <nav class="breadcrumb" aria-label="麵包屑">
       <a href="/">首頁</a>
-      <span class="sep">›</span>
+      <i class="ph ph-caret-right"></i>
       <a href="/blog/">案例專欄</a>
-      {post.data.category && (
-        <>
-          <span class="sep">›</span>
-          <a href={`/blog/category/${post.data.category}/`}>{post.data.category}</a>
-        </>
-      )}
+      {post.data.category && (<>
+        <i class="ph ph-caret-right"></i>
+        <a href={`/blog/category/${post.data.category}/`}>{post.data.category}</a>
+      </>)}
     </nav>
 
-    <header class="article-header">
-      <h1>{post.data.title}</h1>
-      <div class="meta">
-        <span class="author">✨ {post.data.author}</span>
-        <span class="sep">・</span>
-        <time datetime={post.data.pubDate.toISOString()}>
-          {post.data.pubDate.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })}
-        </time>
+    <header class="art-head">
+      <h1 class="cjk-title">{post.data.title}</h1>
+      <div class="byline">
+        <span class="author"><i class="ph-fill ph-sparkle"></i>{post.data.author}</span>
+        <span class="dot">·</span>
+        <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time>
       </div>
       {post.data.tags.length > 0 && (
         <div class="tags">
           {post.data.tags.map((tag: string) => (
-            <span class="tag">#{tag}</span>
+            <a class="tag" href={`/blog/category/${post.data.category || '其他'}/`}>#{tag}</a>
           ))}
         </div>
       )}
-      <div class="divider"></div>
     </header>
 
-    <div class="article-body">
-      <Content />
+    {toc.length >= 2 && (
+      <nav class="toc" aria-label="本文目錄">
+        <div class="toc-label">本文重點</div>
+        <ol>
+          {toc.map((h: any, i: number) => (
+            <li><a href={`#${h.slug}`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{h.text}</a></li>
+          ))}
+        </ol>
+      </nav>
+    )}
+
+    <div class="article-body"><Content /></div>
+
+    <div class="end-cta">
+      <section class="reading-cta">
+        <p class="rc-line cjk-title">想更深入了解你的狀況？先抽一張牌</p>
+        <p class="rc-sub">不用先決定什麼。抽一張牌，看看現在的自己；或由老師一對一，親自為你解惑。</p>
+        <div class="rc-btns">
+          <a class="rc-btn primary" href="/">立即占卜</a>
+          <a class="rc-btn secondary" href="/services/"><i class="ph ph-phone"></i>預約諮詢</a>
+        </div>
+      </section>
     </div>
 
     {related.length > 0 && (
-      <aside class="related">
-        <h3>📖 延伸閱讀</h3>
-        <ul>
+      <section class="panel paper">
+        <h2>延伸閱讀</h2>
+        <div class="related-list">
           {related.map((p: any) => (
-            <li>
-              <a href={`/blog/${p.id}/`}>
-                <span class="title">{p.data.title}</span>
-                <span class="desc">{p.data.description}</span>
-              </a>
-            </li>
+            <a class="related-item" href={`/blog/${p.id}/`}>
+              <div class="ri-title cjk-title">{p.data.title}</div>
+              <p class="ri-desc">{p.data.description}</p>
+            </a>
           ))}
-        </ul>
-      </aside>
+        </div>
+      </section>
     )}
 
     {recs.length > 0 && (
-      <aside class="rec-services">
-        <h3>🏮 為你推薦</h3>
-        <p class="rec-sub">與這篇相關的法器與服務</p>
-        <div class="rec-grid">
-          {recs.map((r) => (
-            <a class="rec-card" href={r.url} target="_blank" rel="noopener">
-              <span class="rec-icon">{r.source === 'simplybook' ? '🔮' : '🏮'}</span>
+      <section class="panel tint">
+        <h2>為你推薦</h2>
+        <p class="panel-sub">與這篇相關的法器與項目</p>
+        <div class="rec-list">
+          {recs.map((r: any) => (
+            <a class="rec-card" href={r.url}>
+              <span class="glyph">{r.glyph}</span>
               <span class="rec-info">
                 <span class="rec-name">{r.name}</span>
                 <span class="rec-price">NT$ {r.price.toLocaleString()}{r.source === 'simplybook' ? ' 起' : ''}</span>
               </span>
-              <span class="rec-arrow">→</span>
+              <i class="ph ph-arrow-right"></i>
             </a>
           ))}
         </div>
-      </aside>
+      </section>
     )}
 
-    <div class="cta-final">
-      <p class="cta-text">🔮 想知道你現在的量能狀態？</p>
-      <a href="/" class="cta-btn">立即免費占卜 3 分鐘</a>
+    <div class="bottom-cta">
+      <section class="reading-cta">
+        <p class="rc-line cjk-title">想知道你現在的量能狀態？</p>
+        <div class="rc-btns"><a class="rc-btn primary" href="/">立即占卜</a></div>
+      </section>
     </div>
-  </article>
+  </main>
 </BaseLayout>
 
 <style>
-  .winds-article {
-    max-width: 680px;
-    margin: 0 auto;
-    padding: 24px 20px 60px;
-  }
+  .article { max-width: var(--container-narrow); margin: 0 auto; padding: 44px 32px 72px; background: var(--surface-page); }
+  @media (max-width: 760px) { .article { padding: 28px 20px 48px; } }
+  .cjk-title { word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
 
-  .breadcrumb {
-    font-size: 12px;
-    color: var(--winds-text-muted);
-    margin-bottom: 20px;
-  }
-  .breadcrumb a {
-    color: var(--winds-text-sub);
-  }
-  .breadcrumb .sep {
-    margin: 0 6px;
-    color: var(--winds-text-muted);
-  }
-  .breadcrumb .current {
-    color: var(--winds-gold-dark);
-  }
+  /* breadcrumb */
+  .breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+  @media (max-width: 760px) { .breadcrumb { margin-bottom: 18px; } }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-press); }
+  .breadcrumb .ph { font-size: 11px; color: var(--rose-200); }
 
-  .article-header {
-    margin-bottom: 32px;
-  }
-  .article-header h1 {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--winds-text-dark);
-    line-height: 1.4;
-    margin: 0 0 16px;
-  }
-  .article-header .meta {
-    font-size: 13px;
-    color: var(--winds-text-sub);
-    margin-bottom: 12px;
-  }
-  .article-header .meta .sep {
-    margin: 0 8px;
-    color: var(--winds-text-muted);
-  }
-  .article-header .meta .author {
-    color: var(--winds-gold-dark);
-    font-weight: 600;
-  }
-  .article-header .tags {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-  .article-header .tag {
-    font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 12px;
-    background: var(--winds-gold-light);
-    color: var(--winds-gold-dark);
-  }
-  .article-header .divider {
-    height: 2px;
-    background: linear-gradient(to right, transparent, var(--winds-gold-light), transparent);
-    margin: 24px 0 0;
-  }
+  /* header */
+  .art-head { padding-bottom: 26px; border-bottom: 1px solid var(--border-soft); }
+  @media (max-width: 760px) { .art-head { padding-bottom: 20px; } }
+  .art-head h1 { font-family: var(--font-serif); font-size: 37px; font-weight: 500; line-height: 1.32; letter-spacing: 0.01em; color: var(--ink-900); margin: 0; }
+  @media (max-width: 760px) { .art-head h1 { font-size: 27px; } }
+  .byline { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+  .byline .author { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-serif); font-size: 14.5px; font-weight: 500; color: var(--accent-press); white-space: nowrap; }
+  .byline .author .ph-fill { font-size: 14px; }
+  .byline .dot { color: var(--rose-200); }
+  .byline time { font-family: var(--font-sans); font-size: 13.5px; color: var(--text-muted); white-space: nowrap; }
+  .tags { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .tag { font-family: var(--font-sans); font-size: 12.5px; color: var(--rose-600); background: var(--rose-50); border-radius: var(--radius-pill); padding: 4px 12px; text-decoration: none; white-space: nowrap; }
+  .tag:hover { background: var(--rose-100); }
 
-  .article-body {
-    font-size: 16px;
-    line-height: 1.9;
-    color: var(--winds-text);
-  }
-  .article-body :global(h2) {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 20px;
-    color: var(--winds-text-dark);
-    margin: 36px 0 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--winds-border);
-  }
-  .article-body :global(h3) {
-    font-size: 17px;
-    color: var(--winds-gold-dark);
-    margin: 28px 0 12px;
-  }
-  .article-body :global(p) {
-    margin: 0 0 20px;
-  }
-  .article-body :global(a) {
-    color: var(--winds-gold-dark);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
-  }
-  .article-body :global(strong) {
-    color: var(--winds-text-dark);
-    font-weight: 600;
-  }
-  .article-body :global(hr) {
-    border: none;
-    border-top: 1px solid var(--winds-border);
-    margin: 32px 0;
-  }
-  .article-body :global(blockquote) {
-    border-left: 3px solid var(--winds-gold-light);
-    padding: 8px 16px;
-    margin: 20px 0;
-    color: var(--winds-text-sub);
-    background: var(--winds-bg-card);
-    border-radius: 0 6px 6px 0;
-  }
+  /* TOC */
+  .toc { margin-top: 28px; background: var(--surface-sunken); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 18px 22px; }
+  @media (max-width: 760px) { .toc { margin-top: 20px; padding: 16px 18px; } }
+  .toc-label { font-family: var(--font-sans); font-size: 11.5px; letter-spacing: 0.02em; color: var(--text-muted); margin-bottom: 12px; }
+  .toc ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .toc a { display: flex; gap: 10px; font-family: var(--font-serif); font-size: 15px; color: var(--ink-700); line-height: 1.5; text-decoration: none; }
+  .toc a:hover { color: var(--accent-press); }
+  .toc .n { font-family: var(--font-sans); font-size: 12px; font-weight: 600; color: var(--rose-400); flex: none; margin-top: 1px; }
 
-  .related {
-    margin-top: 48px;
-    padding: 24px;
-    background: var(--winds-bg-card);
-    border: 1px solid var(--winds-border);
-    border-radius: 12px;
-  }
-  .related h3 {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 16px;
-    color: var(--winds-gold-dark);
-    margin: 0 0 16px;
-  }
-  .related ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .related li {
-    margin-bottom: 14px;
-    padding-bottom: 14px;
-    border-bottom: 1px dashed var(--winds-border);
-  }
-  .related li:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-  }
-  .related a {
-    display: block;
-    color: inherit;
-    text-decoration: none;
-  }
-  .related a:hover {
-    text-decoration: none;
-  }
-  .related .title {
-    display: block;
-    font-weight: 600;
-    color: var(--winds-text-dark);
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-  .related a:hover .title {
-    color: var(--winds-gold-dark);
-  }
-  .related .desc {
-    display: block;
-    font-size: 12px;
-    color: var(--winds-text-sub);
-    line-height: 1.6;
-  }
+  /* article body（語意 prose；欄寬 measure-prose 置中） */
+  .article-body { max-width: var(--measure-prose); margin: 40px auto 0; }
+  @media (max-width: 760px) { .article-body { max-width: none; margin-top: 28px; } }
+  .article-body :global(h2) { font-family: var(--font-serif); font-size: 24px; font-weight: 500; line-height: 1.5; letter-spacing: 0.01em; color: var(--ink-900); margin: 1.8em 0 0.7em; scroll-margin-top: 80px; }
+  .article-body :global(h2:first-child) { margin-top: 0; }
+  .article-body :global(h3) { font-family: var(--font-serif); font-size: 19px; font-weight: 500; color: var(--ink-900); margin: 1.4em 0 0.5em; }
+  .article-body :global(p) { font-family: var(--font-serif); font-weight: 300; font-size: 18px; line-height: 1.95; color: var(--ink-700); margin: 0 0 1.5em; word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+  @media (max-width: 760px) { .article-body :global(h2) { font-size: 21px; } .article-body :global(p) { font-size: 16.5px; } }
+  .article-body :global(a) { color: var(--rose-600); text-decoration: underline; text-decoration-color: var(--rose-300); text-underline-offset: 3px; }
+  .article-body :global(a:hover) { color: var(--rose-500); }
+  .article-body :global(strong) { color: var(--ink-900); font-weight: 600; }
+  .article-body :global(blockquote) { margin: 1.5em 0; padding: 18px 24px; border-left: 3px solid var(--rose-300); background: var(--surface-tint); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+  .article-body :global(blockquote p) { margin: 0; font-weight: 400; font-size: 18px; line-height: 1.85; color: var(--ink-700); }
+  .article-body :global(ul), .article-body :global(ol) { margin: 0 0 1.5em; padding-left: 1.4em; display: flex; flex-direction: column; gap: 8px; }
+  .article-body :global(li) { font-family: var(--font-serif); font-weight: 300; font-size: 18px; line-height: 1.9; color: var(--ink-700); }
+  .article-body :global(li::marker) { color: var(--rose-400); }
+  .article-body :global(img) { max-width: 100%; height: auto; border-radius: var(--radius-lg); margin: 1.2em 0; }
+  .article-body :global(hr) { border: none; border-top: 1px solid var(--border-soft); margin: 2em 0; }
 
-  .cta-final {
-    margin-top: 40px;
-    padding: 28px 20px;
-    background: linear-gradient(135deg, var(--winds-gold-light), #FBF8F3);
-    border-radius: 12px;
-    text-align: center;
-  }
-  .cta-final .cta-text {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 16px;
-    color: var(--winds-text-dark);
-    margin: 0 0 16px;
-  }
-  .cta-final .cta-btn {
-    display: inline-block;
-    padding: 12px 28px;
-    background: var(--winds-text-dark);
-    color: #fff;
-    border-radius: 999px;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: transform 0.15s;
-  }
-  .cta-final .cta-btn:hover {
-    transform: scale(1.03);
-    text-decoration: none;
-  }
+  /* reading CTA（end + bottom 共用視覺） */
+  .end-cta { margin-top: 48px; padding-top: 38px; border-top: 1px solid var(--border-soft); }
+  .bottom-cta { margin-top: 56px; }
+  @media (max-width: 760px) { .end-cta { margin-top: 36px; padding-top: 30px; } .bottom-cta { margin-top: 40px; } }
+  .reading-cta { padding: 38px 32px; text-align: center; background: linear-gradient(180deg, var(--surface-tint), var(--rose-50)); border: 1px solid var(--rose-100); border-radius: var(--radius-xl); }
+  @media (max-width: 760px) { .reading-cta { padding: 30px 22px; } }
+  .rc-line { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--ink-900); margin: 0; }
+  @media (max-width: 760px) { .rc-line { font-size: 19px; } }
+  .rc-sub { font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin: 10px auto 0; max-width: 32em; text-wrap: pretty; }
+  .rc-btns { margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .rc-btn { display: inline-flex; align-items: center; gap: 8px; padding: 15px 30px; font-family: var(--font-serif); font-size: 17px; font-weight: 500; letter-spacing: 0.04em; border-radius: var(--radius-pill); text-decoration: none; transition: background var(--dur-fast) var(--ease-soft); }
+  .rc-btn.primary { color: var(--text-on-accent); background: var(--accent); box-shadow: var(--shadow-sm); }
+  .rc-btn.primary:hover { background: var(--accent-hover); text-decoration: none; }
+  .rc-btn.secondary { color: var(--ink-900); background: var(--surface-card); border: 1px solid var(--border-strong); }
+  .rc-btn.secondary:hover { background: var(--rice-100); text-decoration: none; }
 
-  @media (max-width: 640px) {
-    .winds-article { padding: 16px 16px 40px; }
-    .article-header h1 { font-size: 22px; }
-    .article-body { font-size: 15px; }
-  }
+  /* panels（延伸閱讀 / 為你推薦）*/
+  .panel { border-radius: var(--radius-lg); padding: 28px 30px; }
+  @media (max-width: 760px) { .panel { padding: 22px 20px; } }
+  .panel.paper { margin-top: 48px; background: var(--surface-card); border: 1px solid var(--border-soft); box-shadow: var(--shadow-sm); }
+  @media (max-width: 760px) { .panel.paper { margin-top: 36px; } }
+  .panel.tint { margin-top: 24px; background: var(--surface-tint); border: 1px solid var(--rose-100); }
+  @media (max-width: 760px) { .panel.tint { margin-top: 20px; } }
+  .panel h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--accent-press); margin: 0 0 8px; }
+  @media (max-width: 760px) { .panel h2 { font-size: 20px; } }
+  .panel-sub { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin: 0 0 14px; }
 
-  /* 內容→商品 推薦 */
-  .rec-services {
-    margin: 32px 0;
-    padding: 24px;
-    background: var(--surface, #FFFDF8);
-    border: 1px solid var(--rose-100, #F0DAD3);
-    border-radius: var(--radius-xl, 28px);
-    box-shadow: var(--shadow-sm, 0 2px 8px rgba(70,52,40,.06));
-  }
-  .rec-services h3 {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 18px; font-weight: 500;
-    color: var(--accent-deep, #8F574E);
-    margin: 0 0 2px;
-  }
-  .rec-services .rec-sub {
-    font-size: 12.5px; color: var(--winds-text-muted); margin: 0 0 16px;
-  }
-  .rec-grid { display: grid; gap: 10px; }
-  .rec-card {
-    display: flex; align-items: center; gap: 12px;
-    padding: 14px 16px;
-    background: var(--winds-bg, #FBF8F3);
-    border: 1px solid var(--rose-100, #F0DAD3);
-    border-radius: var(--radius-md, 14px);
-    text-decoration: none; color: inherit;
-    transition: transform .15s, box-shadow .15s, border-color .15s;
-  }
-  .rec-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--rose-300, #D2A099);
-    box-shadow: var(--shadow-md, 0 4px 14px rgba(70,52,40,.08));
-    text-decoration: none;
-  }
-  .rec-icon {
-    flex: none; width: 40px; height: 40px; border-radius: 999px;
-    background: var(--rose-100, #F0DAD3);
-    display: flex; align-items: center; justify-content: center; font-size: 18px;
-  }
-  .rec-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-  .rec-name {
-    font-family: 'Noto Serif TC', serif; font-size: 15px; font-weight: 500;
-    color: var(--winds-text-dark); line-height: 1.4;
-  }
-  .rec-price { font-size: 12.5px; color: var(--accent-deep, #8F574E); }
-  .rec-arrow { flex: none; color: var(--accent, #C18C84); font-size: 16px; }
+  .related-list { display: flex; flex-direction: column; }
+  .related-item { display: block; padding: 16px 0; text-decoration: none; }
+  .related-item + .related-item { border-top: 1px solid var(--border-soft); }
+  .ri-title { font-family: var(--font-serif); font-size: 16.5px; font-weight: 500; color: var(--ink-900); }
+  .related-item:hover .ri-title { color: var(--accent-press); }
+  .ri-desc { font-family: var(--font-serif); font-weight: 300; font-size: 14px; line-height: 1.8; color: var(--text-secondary); margin: 6px 0 0; max-width: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .rec-list { display: flex; flex-direction: column; gap: 10px; }
+  .rec-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--surface-card); border: 1px solid var(--rose-100); border-radius: var(--radius-md); text-decoration: none; color: inherit; transition: border-color var(--dur-fast) var(--ease-soft); }
+  .rec-card:hover { border-color: var(--rose-300); text-decoration: none; }
+  /* GlyphDisc：圓角方形（radius-md）· 底 paper #FFFDF8 · rose-100 框（對齊 DS GlyphDisc，非圓形非 rose 底） */
+  .rec-card .glyph { flex: none; width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--surface-card); border: 1px solid var(--rose-100); display: flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-size: 21px; line-height: 1; color: var(--accent-press); }
+  .rec-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .rec-name { font-family: var(--font-serif); font-size: 16px; font-weight: 500; color: var(--ink-900); }
+  .rec-price { font-family: var(--font-sans); font-size: 13px; color: var(--rose-600); }
+  .rec-card .ph { flex: none; font-size: 16px; color: var(--rose-400); }
 </style>

@@ -30,6 +30,44 @@
     --shadow-md:0 2px 6px rgba(70,52,40,.05),0 8px 24px rgba(70,52,40,.07);
     --shadow-lg:0 6px 16px rgba(70,52,40,.06),0 18px 48px rgba(70,52,40,.10);
 
+    /* ── DS 第二代語意 token 層（2026-06-19 占卜站全站重建 handoff）──
+       全部對映既有色階，值與 ES 主題 / LIFF / apex 完全一致，新頁（blog/項目…）用語意名。*/
+    /* surfaces */
+    --surface-page:   var(--rice-50);
+    --surface-card:   var(--surface);   /* #FFFDF8 = handoff --paper */
+    --surface-sunken: var(--rice-100);
+    --surface-tint:   var(--rose-50);
+    /* text */
+    --text-secondary: var(--ink-500);
+    --text-muted:     var(--ink-400);
+    --text-on-accent: #FFFDF8;
+    /* accent states */
+    --accent-hover:  var(--rose-500);
+    --accent-press:  var(--rose-600);
+    --accent-tint:   var(--rose-100);
+    --accent-quiet:  var(--rose-50);
+    --focus-ring:    rgba(193, 140, 132, 0.45);
+    /* borders */
+    --border-soft:   var(--rice-200);
+    --border-strong: var(--rice-300);
+    --border-accent: var(--rose-300);
+    --border-hair:   1px;
+    /* antique gold (sparing) + functional */
+    --gold-300:#D8C49A; --gold-400:#C2A878; --gold-500:#A88C5C;
+    --caution:#A88C5C; --positive:#7A8866; --critical:#B5675C;
+    --tint-gold-hi:#F4ECD9; --tint-critical-soft:#F3E2DE;
+    /* fonts */
+    --font-serif: "Noto Serif TC", "Songti TC", serif;
+    /* layout */
+    --container: 1120px;
+    --container-narrow: 720px;
+    --measure-prose: 38rem;
+    /* motion + extra elevation */
+    --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --dur-fast:140ms; --dur-base:240ms; --dur-slow:420ms;
+    --shadow-xs: 0 1px 2px rgba(70,52,40,.05);
+    --shadow-xl: 0 10px 28px rgba(70,52,40,.08), 0 28px 72px rgba(70,52,40,.14);
+
     /* backward-compat aliases (will be removed after full migration) */
     --winds-text-dark: var(--ink);
     --winds-text: var(--ink-2);
