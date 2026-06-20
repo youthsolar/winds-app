@@ -16,14 +16,14 @@
     }
     els.forEach(function(el){
       if (valid) {
-        el.innerHTML = '<a href="#" class="nav-logout">登出</a>';
+        el.innerHTML = '<a href="/account">會員中心</a><a href="#" class="nav-logout">登出</a>';
         el.querySelector('.nav-logout').addEventListener('click', function (e) {
           e.preventDefault(); e.stopPropagation();
           try { localStorage.removeItem('winds_google_token'); } catch (er) {}
           location.href = '/';
         });
       } else {
-        el.innerHTML = '<a href="/">登入</a>';
+        el.innerHTML = '<a href="/login">登入</a>';
       }
     });
   }

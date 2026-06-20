@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// 入口卡 → winds-app 真路由（部分仍為暫指，待對應頁上線）
+const entries = [
+  { icon: 'cards',          title: '我的占卜紀錄', line: '回看你問過的事與當時的牌。', href: '/history.html' },
+  { icon: 'calendar-heart', title: '我的預約',     line: '和老師約好的時間都在這。',   href: '/services' },
+  { icon: 'shopping-bag',   title: '我的訂單',     line: '法器選物的出貨與取貨狀態。', href: '/services' },
+  { icon: 'sparkle',        title: '我的紫微命盤', line: '排好的本命盤，隨時回來看。', href: '/ziwei' },
+];
+---
+<BaseLayout
+  title="會員中心 · 找風問幸福"
+  description="你的占卜紀錄、預約、訂單與紫微命盤，都在這裡。"
+  noindex={true}
+>
+  <main class="ac-main" id="acMain" hidden>
+    <!-- 個人卡 -->
+    <div class="ac-card ac-person">
+      <div class="ac-person-row">
+        <div class="ac-avatar" id="acAvatar"></div>
+        <div class="ac-person-id">
+          <div class="ac-eyebrow">會員中心</div>
+          <h1 class="ac-h1"><span id="acName"></span>，你好</h1>
+          <div class="ac-email">
+            <svg width="14" height="14" viewBox="0 0 48 48" aria-hidden="true" style="flex:none;display:block">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            <span id="acEmail"></span>
+          </div>
+        </div>
+        <button id="acLogout" class="ac-logout" type="button"><i class="ph-thin ph-sign-out"></i>登出</button>
+      </div>
+    </div>
+
+    <!-- 我的內容入口 -->
+    <div class="ac-entries">
+      {entries.map((e) => (
+        <a href={e.href} class="ac-entry-link">
+          <div class="ac-card ac-entry">
+            <span class="ac-entry-icon"><i class={`ph-thin ph-${e.icon}`}></i></span>
+            <div class="ac-entry-body">
+              <div class="ac-entry-title">{e.title}</div>
+              <div class="ac-entry-line">{e.line}</div>
+            </div>
+            <i class="ph ph-arrow-right ac-entry-arrow"></i>
+          </div>
+        </a>
+      ))}
+    </div>
+  </main>
+
+  <style>
+    .ac-main{max-width:var(--container-narrow);width:100%;margin:0 auto;box-sizing:border-box;padding:52px 32px 72px;}
+    /* DS Card */
+    .ac-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);}
+    .ac-person{padding:32px 36px;box-shadow:var(--shadow-sm);}
+    .ac-person-row{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+    /* DS Avatar rose ring（淡底深字雙環）*/
+    .ac-avatar{width:72px;height:72px;border-radius:999px;background:var(--rose-100);color:var(--rose-600);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;font-family:var(--font-serif);font-size:30px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300);}
+    .ac-avatar img{width:100%;height:100%;object-fit:cover;}
+    .ac-person-id{flex:1;min-width:0;}
+    .ac-eyebrow{font-family:var(--font-sans);font-size:12px;letter-spacing:0.02em;color:var(--accent-press);margin-bottom:4px;}
+    .ac-h1{margin:0;font-family:var(--font-serif);font-size:31px;font-weight:500;color:var(--ink-900);}
+    .ac-email{display:flex;align-items:center;gap:7px;margin-top:6px;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted);}
+    /* DS Btn secondary sm */
+    .ac-logout{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:var(--t-body-sm);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;white-space:nowrap;cursor:pointer;background:var(--surface-card);color:var(--ink-900);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
+    .ac-logout:hover{background:var(--rice-100);}
+    .ac-logout i{font-size:15px;line-height:1;}
+
+    .ac-entries{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+    .ac-entry-link{text-decoration:none;}
+    .ac-entry{display:flex;align-items:center;gap:16px;height:100%;box-sizing:border-box;padding:24px 26px;box-shadow:var(--shadow-sm);transition:box-shadow var(--dur-base) var(--ease-soft),transform var(--dur-base) var(--ease-soft);}
+    .ac-entry-link:hover .ac-entry{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+    .ac-entry-icon{flex:none;width:48px;height:48px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);display:flex;align-items:center;justify-content:center;}
+    .ac-entry-icon i{font-size:24px;line-height:1;color:var(--rose-500);}
+    .ac-entry-body{flex:1;min-width:0;}
+    .ac-entry-title{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);}
+    .ac-entry-line{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);}
+    .ac-entry-arrow{font-size:18px;color:var(--rose-300);flex:none;}
+
+    @media (max-width:760px){
+      .ac-main{padding:32px 20px 48px;}
+      .ac-person{padding:24px 22px;}
+      .ac-person-row{gap:16px;}
+      .ac-avatar{width:60px;height:60px;font-size:25px;}
+      .ac-h1{font-size:25px;}
+      .ac-entries{grid-template-columns:1fr;gap:14px;margin-top:22px;}
+      .ac-entry{padding:20px 20px;}
+    }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var token = '';
+      try { token = localStorage.getItem('winds_google_token') || ''; } catch (e) {}
+      var user = null;
+      if (token) {
+        try {
+          var p = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          if (p.exp && p.exp * 1000 > Date.now()) {
+            user = { name: p.name || p.given_name || '朋友', email: p.email || '', picture: p.picture || '' };
+          }
+        } catch (e) {}
+      }
+      if (!user) { location.href = '/login?return=' + encodeURIComponent('/account'); return; }
+
+      document.getElementById('acName').textContent = user.name;
+      document.getElementById('acEmail').textContent = user.email;
+      var av = document.getElementById('acAvatar');
+      if (user.picture) {
+        var img = document.createElement('img');
+        img.src = user.picture; img.alt = user.name; av.appendChild(img);
+      } else {
+        av.textContent = (user.name || '').trim().slice(0, 1);
+      }
+      document.getElementById('acMain').hidden = false;
+
+      document.getElementById('acLogout').addEventListener('click', function () {
+        try { localStorage.removeItem('winds_google_token'); } catch (e) {}
+        location.href = '/';
+      });
+    })();
+  </script>
+</BaseLayout>

@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="登入 · 找風問幸福"
+  description="用 Google 帳戶登入找風問幸福，回看你的占卜紀錄、預約與紫微命盤。"
+  noindex={true}
+>
+  <div class="lg-wrap">
+    <div class="lg-inner">
+      <div class="lg-card">
+        <h1 class="lg-h1">登入</h1>
+        <button id="lgBtn" class="lg-gbtn" type="button">
+          <span class="lg-gbtn-default">
+            <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true" style="flex:none;display:block">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Google 帳戶
+          </span>
+          <span class="lg-gbtn-loading" hidden>
+            <span class="lg-spinner"></span>正在前往 Google…
+          </span>
+        </button>
+      </div>
+      <p class="lg-terms">登入即表示你同意我們的<a href="/terms">使用條款</a>與<a href="/privacy">隱私權政策</a>。</p>
+    </div>
+  </div>
+
+  <style>
+    .lg-wrap{min-height:calc(100vh - 76px);display:flex;align-items:center;justify-content:center;padding:64px 32px;background:var(--surface-page);}
+    .lg-inner{width:100%;max-width:420px;}
+    /* DS Card：surface-card / border-soft / radius-lg；登入卡用 shadow-md + 置中 */
+    .lg-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:40px 40px 34px;text-align:center;}
+    .lg-h1{margin:0;font-family:var(--font-serif);font-size:29px;font-weight:500;color:var(--ink-900);letter-spacing:0.02em;}
+    .lg-gbtn{width:100%;margin-top:32px;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap;padding:14px 20px;min-height:54px;cursor:pointer;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
+    .lg-gbtn:hover{background:var(--rice-100);}
+    .lg-gbtn[disabled]{opacity:0.7;cursor:default;}
+    .lg-gbtn-default,.lg-gbtn-loading{display:inline-flex;align-items:center;gap:12px;}
+    .lg-spinner{display:inline-block;flex:none;width:18px;height:18px;border-radius:999px;border:2px solid var(--rose-200);border-top-color:var(--rose-500);animation:lgSpin 1.1s linear infinite;box-sizing:border-box;}
+    @keyframes lgSpin{to{transform:rotate(360deg)}}
+    .lg-terms{text-align:center;margin:20px auto 0;font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);}
+    .lg-terms a{color:var(--rose-500);text-decoration:none;}
+    .lg-terms a:hover{text-decoration:underline;}
+    @media (max-width:760px){
+      .lg-wrap{min-height:calc(100vh - 64px);padding:40px 20px;}
+      .lg-card{padding:30px 24px 28px;}
+      .lg-h1{font-size:25px;}
+      .lg-gbtn{margin-top:26px;}
+    }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var btn = document.getElementById('lgBtn');
+      if (!btn) return;
+      function ret() {
+        try { return new URLSearchParams(location.search).get('return') || '/'; } catch (e) { return '/'; }
+      }
+      // 已登入直接回轉址目標
+      try {
+        var t = localStorage.getItem('winds_google_token');
+        if (t) {
+          var p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          if (p.exp && p.exp * 1000 > Date.now()) { location.href = ret(); return; }
+        }
+      } catch (e) {}
+      btn.addEventListener('click', function () {
+        // 真 SSO：Google Identity Services 已設定 client id 時走 One Tap / 憑證流程
+        if (window.google && google.accounts && google.accounts.id) {
+          btn.setAttribute('disabled', '');
+          btn.querySelector('.lg-gbtn-default').hidden = true;
+          btn.querySelector('.lg-gbtn-loading').hidden = false;
+          google.accounts.id.prompt();
+        }
+        // 🔭 client id 未填時為佔位（按鈕在、流程待 Jeffery 提供 PUBLIC_GOOGLE_CLIENT_ID）
+      });
+    })();
+  </script>
+</BaseLayout>
