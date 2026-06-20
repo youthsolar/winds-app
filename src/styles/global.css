@@ -56,6 +56,18 @@
     --gold-300:#D8C49A; --gold-400:#C2A878; --gold-500:#A88C5C;
     --caution:#A88C5C; --positive:#7A8866; --critical:#B5675C;
     --tint-gold-hi:#F4ECD9; --tint-critical-soft:#F3E2DE;
+    /* 補齊 DS colors.css 回灌層（tints / clay / sage / scrim / frost / 五行；mockup 元件會用，缺了 gradient 會破）*/
+    --clay-100:#F4E7D8; --clay-200:#EAD3BC; --sage-200:#D3D8C5; --ink-300:#B8AEA2; --ink-800:#3A322B;
+    --text-primary:var(--ink-900); --surface-inverse:var(--ink-900); --text-on-inverse:#F6EFE6;
+    --tint-clay-hi:#F4E7D8; --tint-clay-disc:#F7EDE0; --tint-sage-hi:#EAEEE1; --tint-sage-disc:#EEF1E7; --tint-rose-soft:#EBCFC9; --tint-glow:#EDE5D4;
+    --photo-1:#EAD9CF; --photo-2:#D9BBA6; --photo-3:#EDE0CC; --photo-4:#F3E4D6;
+    --scrim:rgba(46,40,35,0.34); --bar-translucent:rgba(251,248,243,0.82); --bar-translucent-2:rgba(251,248,243,0.90);
+    --veil-top:rgba(251,248,243,0.50); --veil-bottom:rgba(251,248,243,0.92);
+    --disc-frost:rgba(255,253,248,0.62); --disc-frost-hair:rgba(255,253,248,0.50); --disc-frost-soft:rgba(255,253,248,0.72);
+    --photo-scrim:rgba(46,40,35,0.42); --photo-scrim-shadow:rgba(46,40,35,0.30); --text-on-accent-soft:rgba(255,253,248,0.80);
+    --ink-on-photo:#F6EFE6; --frost-on-accent:rgba(255,253,248,0.22); --frost-btn:rgba(255,253,248,0.86); --shadow-sheet-up:0 -8px 32px rgba(70,52,40,0.18);
+    --el-wood-bg:var(--tint-sage-disc); --el-wood-tx:var(--sage-500); --el-fire-bg:var(--rose-100); --el-fire-tx:var(--rose-500);
+    --el-earth-bg:var(--tint-clay-hi); --el-earth-tx:#8B6844; --el-metal-bg:#F4EDD8; --el-metal-tx:#7A6130; --el-water-bg:#E2EBF0; --el-water-tx:#3A5F7A;
     /* fonts */
     --font-serif: "Noto Serif TC", "Songti TC", serif;
     /* typography scale（DS tokens/typography.css）*/

@@ -57,7 +57,7 @@ const br = (s) => s.split('\n');
           <!-- CTA / draw zone -->
           <div class="cta-zone" id="ctaZone">
             <button class="btn primary lg draw-btn" id="drawBtn"><i class="ph-thin ph-cards"></i>占卜</button>
-            <div class="social" id="social1"></div>
+            <div class="social"><div class="av-stack"><span class="av rose">林</span><span class="av clay">陳</span><span class="av sage">王</span></div><span class="social-line">已陪 <b>2,700+</b> 人，把心裡的事慢慢說完</span></div>
             <a class="quiet-link" id="scrollDeepen" href="#deepen">或預約老師慢慢聊 →</a>
           </div>
           <div class="draw-zone hidden" id="drawZone">
@@ -78,7 +78,7 @@ const br = (s) => s.split('\n');
               <button class="btn quiet sm" id="redraw"><i class="ph ph-arrow-counter-clockwise"></i>再抽一張</button>
               <a class="btn primary sm" href={FLOW}>深入占卜<i class="ph ph-arrow-right"></i></a>
             </div>
-            <div class="social" id="social2"></div>
+            <div class="social"><div class="av-stack"><span class="av rose">林</span><span class="av clay">陳</span><span class="av sage">王</span></div><span class="social-line">已陪 <b>2,700+</b> 人，把心裡的事慢慢說完</span></div>
           </div>
         </div>
 
@@ -174,10 +174,6 @@ const br = (s) => s.split('\n');
   let sel = parseInt(root.dataset.default, 10);
 
   const brHtml = (s) => s.split('\n').map((l, i) => (i ? '<br>' : '') + l).join('');
-  const socialHtml = '<div class="av-stack"><span class="av rose">林</span><span class="av clay">陳</span><span class="av sage">王</span></div>' +
-    '<span class="social-line">已陪 <b>2,700+</b> 人，把心裡的事慢慢說完</span>';
-  document.getElementById('social1').innerHTML = socialHtml;
-  document.getElementById('social2').innerHTML = socialHtml;
 
   // 情緒選擇器
   const qzone = document.getElementById('qzone');
@@ -285,9 +281,12 @@ const br = (s) => s.split('\n');
   /* social proof */
   .social { display: flex; align-items: center; justify-content: center; gap: 12px; }
   .av-stack { display: flex; }
-  .av { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 999px; font-family: var(--font-serif); font-size: 15px; color: var(--text-on-accent); box-shadow: 0 0 0 2px var(--surface-card); }
+  /* DS Avatar：淡色底 + 深色字 + 雙層 ring（3px surface-page + 4.5px tone-ring）*/
+  .av { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-pill); font-family: var(--font-serif); font-size: 15px; font-weight: var(--w-medium); overflow: hidden; flex: none; }
   .av-stack .av + .av { margin-left: -10px; }
-  .av.rose { background: var(--rose-400); } .av.clay { background: var(--clay-400); } .av.sage { background: var(--sage-400); }
+  .av.rose { background: var(--rose-100); color: var(--rose-600); box-shadow: 0 0 0 3px var(--surface-page), 0 0 0 4.5px var(--rose-300); }
+  .av.clay { background: var(--clay-200); color: var(--clay-500); box-shadow: 0 0 0 3px var(--surface-page), 0 0 0 4.5px var(--clay-300); }
+  .av.sage { background: var(--sage-200); color: var(--sage-500); box-shadow: 0 0 0 3px var(--surface-page), 0 0 0 4.5px var(--sage-300); }
   .social-line { font-family: var(--font-sans); font-size: 13.5px; color: var(--text-secondary); white-space: nowrap; }
   .social-line b { font-weight: 600; color: var(--ink-900); }
 
@@ -334,7 +333,7 @@ const br = (s) => s.split('\n');
   .daily { margin-top: 28px; background: linear-gradient(120deg, var(--rose-100), var(--clay-200) 120%); border-radius: var(--radius-xl); padding: 26px 34px; display: flex; align-items: flex-start; gap: 14px; justify-content: center; box-shadow: var(--shadow-xs); }
   @media (max-width: 760px) { .daily { margin-top: 22px; padding: 22px; } }
   .daily > i { font-size: 26px; color: var(--rose-400); flex: none; margin-top: 4px; }
-  .daily-text { font-family: var(--font-serif); font-size: 19px; font-weight: 400; line-height: 1.7; color: var(--ink-700); text-align: center; }
+  .daily-text { font-family: var(--font-serif); font-size: 19px; font-weight: 400; line-height: 1.7; color: var(--ink-800); text-align: center; }
   @media (max-width: 760px) { .daily-text { font-size: 16px; } .daily > i { margin-top: 2px; } }
 
   /* selling point */
@@ -409,7 +408,7 @@ const br = (s) => s.split('\n');
   @media (max-width: 760px) { .talk-body h3 { font-size: 21px; } }
   .talk-body > p { font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin: 12px 0 18px; }
   .readers { display: flex; align-items: center; margin-bottom: 18px; }
-  .readers .av { width: 40px; height: 40px; }
+  .readers .av { width: 40px; height: 40px; font-size: 17px; }
   .readers .av + .av { margin-left: -10px; }
   .rd-note { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); margin-left: 12px; }
   .talk-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-soft); padding-top: 18px; flex-wrap: wrap; gap: 12px; }
