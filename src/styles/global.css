@@ -105,6 +105,10 @@
     background: var(--winds-bg);
     font-size: 14px;
     line-height: 1.7;
+    /* 對齊 DS tokens/base.css：抗鋸齒讓字偏灰偏細（macOS 預設 subpixel 會渲染得偏濃黑）*/
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   h1, h2, h3, h4 {
