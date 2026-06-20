@@ -58,6 +58,12 @@
     --tint-gold-hi:#F4ECD9; --tint-critical-soft:#F3E2DE;
     /* fonts */
     --font-serif: "Noto Serif TC", "Songti TC", serif;
+    /* typography scale（DS tokens/typography.css）*/
+    --w-light:300; --w-regular:400; --w-medium:500; --w-semibold:600; --w-bold:700; --w-black:900;
+    --t-display:56px; --t-h1:40px; --t-h2:30px; --t-h3:24px; --t-h4:20px;
+    --t-body-lg:18px; --t-body:16px; --t-body-sm:14px; --t-caption:13px; --t-micro:12px;
+    --lh-tight:1.18; --lh-snug:1.35; --lh-body:1.85; --lh-ui:1.5;
+    --ls-display:0.01em; --ls-heading:0.02em; --ls-body:0.015em; --ls-label:0.14em;
     /* layout */
     --container: 1120px;
     --container-narrow: 720px;

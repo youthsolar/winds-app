@@ -1,0 +1,180 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+// 品牌故事頁 — 值對齊 handoff brand-story-page.jsx + DS SectionHeading/IconDisc/GlyphDisc/Card
+const BELIEFS = [
+  { icon: 'feather', title: '命理是一種溫柔', body: '我們不替你決定什麼，只是把你心裡已經知道、卻還說不出口的，慢慢陪你看清楚。' },
+  { icon: 'ear', title: '先被聽見，再被解答', body: '很多時候你要的不是答案，是有人願意好好聽你說。對談從聽你開始，不是從牌開始。' },
+  { icon: 'sun-horizon', title: '選擇比努力更重要', body: '走得累，常常不是不夠努力，是方向走偏了。我們陪你把方向看清，再決定怎麼走。' },
+];
+const MARKS = [
+  { g: '易', name: '易經', note: '問一件具體的事' },
+  { g: '塔', name: '塔羅', note: '看現在的心境' },
+  { g: '紫', name: '紫微', note: '讀一生的命盤' },
+  { g: '名', name: '姓名', note: '名字裡的能量' },
+  { g: '靈', name: '分靈體', note: '和自己對話' },
+];
+const ORIGIN = [
+  '我們見過太多人，帶著一個說不出口的問題，深夜睡不著，反覆看著同一個對話框。不是要被算命，是想被好好聽見一次。',
+  '所以我們把命理做得慢一點、軟一點。易經、塔羅、紫微、姓名學，都只是工具——真正重要的，是有人願意陪你，把那件事一起看清楚。',
+  '你不必先把自己整理好才能來。慢慢說，我在這裡聽。',
+];
+const pageDesc = '找風問幸福的起念：不是被算命，是被好好聽見。易經、塔羅、紫微、姓名學都只是工具，真正重要的是有人陪你把心裡的事看清楚。';
+---
+<BaseLayout title="品牌故事｜找風問幸福" description={pageDesc} ogType="website">
+  <main class="story">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-glow"></div>
+      <div class="wrap">
+        <div class="sh">
+          <span class="eyebrow"><span class="dot"></span>品牌故事</span>
+          <h1 class="cjk">找風，是為了把心安頓下來。</h1>
+          <p class="lede">風看不見，卻能感覺到方向。我們做的，是陪你在說不清楚的時候，找到那陣風——然後問問自己，怎麼樣才會幸福。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Origin -->
+    <section class="wrap origin">
+      <div class="origin-grid">
+        <div class="origin-text">
+          <h2 class="sh-title cjk">起念，是因為太多人沒被好好聽過。</h2>
+          <div class="prose">{ORIGIN.map(p => <p>{p}</p>)}</div>
+        </div>
+        <div class="origin-img"><img src="/assets/talk-space.png" alt="預約對談的空間" /></div>
+      </div>
+    </section>
+
+    <!-- Beliefs -->
+    <section class="wrap block">
+      <div class="sh"><span class="eyebrow"><span class="dot"></span>我們相信</span><h2 class="sh-title cjk">陪你的方式，是這三件事。</h2></div>
+      <div class="beliefs">
+        {BELIEFS.map(b => (
+          <article class="belief-card">
+            <span class="icon-disc"><i class={`ph-thin ph-${b.icon}`}></i></span>
+            <h3>{b.title}</h3>
+            <p class="prose-sm">{b.body}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- Practices -->
+    <section class="wrap block">
+      <div class="sh"><span class="eyebrow"><span class="dot"></span>我們的命理</span><h2 class="sh-title cjk">不同的工具，問的都是同一件事——你現在好嗎？</h2></div>
+      <div class="marks">
+        {MARKS.map(m => (
+          <div class="mark">
+            <span class="glyph-disc">{m.g}</span>
+            <div class="mark-name">{m.name}</div>
+            <div class="mark-note">{m.note}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Ink quote -->
+    <section class="wrap block">
+      <div class="ink-quote">
+        <div class="iq-glow"></div>
+        <i class="ph-thin ph-quotes"></i>
+        <p class="iq-line cjk">不是被算命，是被好好聽見。</p>
+        <p class="iq-attr">找風問幸福</p>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="wrap block">
+      <div class="cta-card">
+        <h2 class="cjk">有件事放在心上很久了嗎？</h2>
+        <p class="cta-sub">不用先想清楚。從一張牌開始，我們陪你慢慢看。</p>
+        <div class="cta-btns">
+          <a class="btn primary" href="/">抽一張牌</a>
+          <a class="btn secondary" href="/services/"><i class="ph-thin ph-calendar-heart"></i>預約老師對談</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .story { background: var(--surface-page); }
+  .wrap { max-width: var(--container); margin: 0 auto; padding-left: 32px; padding-right: 32px; }
+  @media (max-width: 820px) { .wrap { padding-left: 20px; padding-right: 20px; } }
+  .cjk { word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+
+  /* SectionHeading（DS 值）*/
+  .sh { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: var(--t-micro); font-weight: var(--w-medium); letter-spacing: 0.02em; color: var(--accent-press); }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); flex: none; }
+  .sh-title, .sh h1 { margin: 0; font-family: var(--font-serif); font-weight: var(--w-medium); font-size: var(--t-h2); line-height: var(--lh-tight); letter-spacing: var(--ls-heading); color: var(--ink-900); }
+  .lede { margin: 0; font-family: var(--font-serif); font-weight: var(--w-light); font-size: var(--t-body-lg); line-height: 1.7; color: var(--text-secondary); max-width: none; }
+
+  /* prose（DS Prose：serif 300 / 17 / 1.92 / 左對齊不設 cap）*/
+  .prose p { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 17px; line-height: 1.92; color: var(--text-secondary); margin: 0; word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+  .prose p + p { margin-top: 1em; }
+  .prose-sm { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 14.5px; line-height: 1.92; color: var(--text-secondary); margin: 0; }
+
+  /* Hero */
+  .hero { position: relative; overflow: hidden; }
+  .hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(720px 460px at 78% -8%, var(--rose-100), transparent 62%), radial-gradient(560px 420px at 6% 12%, var(--clay-200, transparent), transparent 60%); }
+  .hero .wrap { position: relative; padding-top: 92px; padding-bottom: 8px; }
+  .hero h1 { font-size: var(--t-h1); }
+  @media (max-width: 820px) { .hero .wrap { padding-top: 56px; } .hero h1 { font-size: 30px; } }
+
+  /* Origin */
+  .origin { padding-top: 72px; }
+  @media (max-width: 820px) { .origin { padding-top: 44px; } }
+  .origin-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center; }
+  @media (max-width: 820px) { .origin-grid { grid-template-columns: 1fr; gap: 28px; } }
+  .origin-text { max-width: var(--measure-prose); }
+  .origin-text .sh-title { margin-bottom: 18px; }
+  .origin-img { width: 100%; height: 360px; border-radius: var(--radius-xl); overflow: hidden; border: 1px solid var(--border-soft); }
+  @media (max-width: 820px) { .origin-img { height: 240px; } }
+  .origin-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .block { padding-top: 84px; }
+  @media (max-width: 820px) { .block { padding-top: 48px; } }
+
+  /* Beliefs */
+  .beliefs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 40px; }
+  @media (max-width: 820px) { .beliefs { grid-template-columns: 1fr; gap: 14px; margin-top: 28px; } }
+  .belief-card { background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 28px 26px; }
+  @media (max-width: 820px) { .belief-card { padding: 22px; } }
+  .icon-disc { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 999px; background: var(--rose-100); margin-bottom: 16px; }
+  .icon-disc i { font-size: 23px; color: var(--rose-500); line-height: 1; }
+  .belief-card h3 { font-family: var(--font-serif); font-size: 18.5px; font-weight: var(--w-medium); color: var(--ink-900); margin: 0 0 8px; }
+
+  /* Practices marks */
+  .marks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 40px; }
+  @media (max-width: 820px) { .marks { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 28px; } }
+  .mark { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 26px 10px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); }
+  @media (max-width: 820px) { .mark { padding: 20px 8px; } }
+  .glyph-disc { display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 999px; background: var(--surface-card); border: 1px solid var(--rose-100); font-family: var(--font-serif); font-size: 28px; line-height: 1; color: var(--accent-press); }
+  @media (max-width: 820px) { .glyph-disc { width: 50px; height: 50px; font-size: 25px; } }
+  .mark-name { font-family: var(--font-serif); font-size: 16px; font-weight: var(--w-medium); color: var(--ink-900); margin-top: 14px; }
+  .mark-note { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Ink quote */
+  .ink-quote { position: relative; overflow: hidden; background: var(--ink-900); border-radius: var(--radius-xl); padding: 72px 56px; text-align: center; }
+  @media (max-width: 820px) { .ink-quote { padding: 44px 24px; } }
+  .iq-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(620px 420px at 50% -20%, rgba(193,140,132,0.34), transparent 64%); }
+  .ink-quote > i { position: relative; font-size: 38px; color: var(--rose-300); }
+  @media (max-width: 820px) { .ink-quote > i { font-size: 30px; } }
+  .iq-line { position: relative; font-family: var(--font-serif); font-weight: var(--w-light); font-size: 28px; line-height: 1.7; color: var(--rice-50); margin: 16px auto 0; max-width: 26em; text-wrap: pretty; }
+  @media (max-width: 820px) { .iq-line { font-size: 21px; } }
+  .iq-attr { position: relative; font-family: var(--font-sans); font-size: 12.5px; letter-spacing: 0.04em; color: rgba(251,248,243,0.62); margin: 20px 0 0; }
+
+  /* CTA */
+  .cta-card { background: linear-gradient(180deg, var(--surface-tint), var(--rose-50)); border: 1px solid var(--rose-100); border-radius: var(--radius-xl); padding: 44px 32px; text-align: center; }
+  @media (max-width: 820px) { .cta-card { padding: 32px 22px; } }
+  .cta-card h2 { font-family: var(--font-serif); font-size: 26px; font-weight: var(--w-medium); color: var(--ink-900); margin: 0 0 10px; }
+  @media (max-width: 820px) { .cta-card h2 { font-size: 22px; } }
+  .cta-sub { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 15.5px; line-height: 1.8; color: var(--text-secondary); margin: 0 auto; max-width: 30em; text-wrap: pretty; }
+  .cta-btns { margin-top: 22px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 15px 30px; font-family: var(--font-serif); font-size: 17px; font-weight: var(--w-medium); letter-spacing: 0.04em; border-radius: var(--radius-pill); text-decoration: none; transition: background var(--dur-fast) var(--ease-soft); }
+  .btn.primary { color: var(--text-on-accent); background: var(--accent); box-shadow: var(--shadow-sm); }
+  .btn.primary:hover { background: var(--accent-hover); text-decoration: none; }
+  .btn.secondary { color: var(--ink-900); background: var(--surface-card); border: 1px solid var(--border-strong); }
+  .btn.secondary:hover { background: var(--rice-100); text-decoration: none; }
+</style>
