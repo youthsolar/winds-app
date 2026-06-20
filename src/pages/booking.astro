@@ -1,0 +1,173 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TeacherCard from '../components/TeacherCard.astro';
+import { TEACHERS, PERSONAS, RECOMMENDED } from '../data/booking-teachers';
+
+// 🔭 預約流程（地點→項目→法術→老師→時間→資料→確認）走 SimplyBook，待 SB 串接。
+// 目前老師卡 CTA 暫指既有預約目錄 /services。
+const BOOK_HREF = '/services';
+const recT = TEACHERS.find((t) => t.id === RECOMMENDED.id)!;
+---
+<BaseLayout
+  title="預約老師 · 找風問幸福｜塔羅・紫微・八字・通靈一對一對談"
+  description="找一位老師，好好說說話。林秋語、王明萱等資深命理老師，依「你想要什麼樣的人陪你」挑選——溫柔傾聽、理性決策、能量調理、直白判斷，線上或實體一對一對談。"
+  ogType="website"
+>
+  <div class="booking-root">
+    <main class="bk-main">
+      <div class="bk-intro">
+        <span class="bk-eyebrow"><span class="bk-eyebrow-dot"></span>預約老師</span>
+        <h1 class="bk-title">找一位，好好說說話。</h1>
+      </div>
+
+      <!-- 風格篩選 -->
+      <div class="bk-filter">
+        <div class="bk-chips" id="bkChips">
+          <button class="bk-chip on" data-persona="all" type="button">全部</button>
+          {PERSONAS.map((p) => (
+            <button class="bk-chip" data-persona={p.key} type="button">{p.name}</button>
+          ))}
+        </div>
+        <p class="bk-persona-desc" id="bkPersonaDesc" hidden></p>
+      </div>
+
+      <!-- 為你推薦（只在「全部」時顯示）-->
+      <div class="bk-rec" id="bkRec">
+        <div class="bk-rec-label"><i class="ph-fill ph-sparkle"></i><span>為你推薦</span></div>
+        <div class="bk-rec-frame">
+          <div class="bk-rec-inner">
+            <div class="bk-rec-reason"><i class="ph-thin ph-hand-heart"></i><span>{RECOMMENDED.reason}</span></div>
+            <TeacherCard t={recT} bookHref={BOOK_HREF} />
+          </div>
+        </div>
+      </div>
+
+      <div class="bk-grid" id="bkGrid">
+        {TEACHERS.map((t) => <TeacherCard t={t} bookHref={BOOK_HREF} />)}
+      </div>
+      <p class="bk-empty" id="bkEmpty" hidden>這個風格目前還沒有老師，換個風格看看？</p>
+    </main>
+  </div>
+
+  <script type="application/json" id="bkPersonas" set:html={JSON.stringify(PERSONAS)} />
+
+  <style is:global>
+    /* ====== 預約老師（namespaced under .booking-root）====== */
+    .booking-root .zfbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-serif);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;border-radius:var(--radius-pill);white-space:nowrap;cursor:pointer;transition:background var(--dur-fast) var(--ease-soft);border:1px solid transparent;text-decoration:none;}
+    .booking-root .zfbtn.md{padding:11px 22px;font-size:var(--t-body);min-height:44px;}
+    .booking-root .zfbtn.secondary{background:var(--surface-card);color:var(--ink-900);border-color:var(--border-strong);box-shadow:var(--shadow-xs);}
+    .booking-root .zfbtn.secondary:hover{background:var(--rice-100);text-decoration:none;}
+    .booking-root .zfbtn i{font-size:16px;line-height:1;}
+
+    .bk-main{max-width:var(--container);margin:0 auto;width:100%;box-sizing:border-box;padding:44px 28px 64px;}
+    /* StepIntro */
+    .bk-intro{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:28px;}
+    .bk-eyebrow{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;color:var(--accent-press);}
+    .bk-eyebrow-dot{width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none;}
+    .bk-title{font-family:var(--font-serif);font-size:38px;font-weight:500;line-height:1.3;letter-spacing:0.01em;margin:0;color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+
+    /* persona filter */
+    .bk-filter{margin-bottom:28px;}
+    .bk-chips{display:flex;flex-wrap:wrap;gap:10px;}
+    .bk-chip{all:unset;cursor:pointer;white-space:nowrap;flex:none;font-family:var(--font-serif);font-size:14.5px;font-weight:500;letter-spacing:0.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:8px 16px;transition:all var(--dur-fast) var(--ease-soft);}
+    .bk-chip.on{color:var(--text-on-accent);background:var(--accent);border-color:transparent;box-shadow:var(--shadow-sm);}
+    .bk-persona-desc{font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.7;color:var(--text-secondary);margin:12px 0 0;}
+
+    /* recommended */
+    .bk-rec{margin-bottom:34px;}
+    .bk-rec-label{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+    .bk-rec-label i{font-size:16px;color:var(--rose-400);}
+    .bk-rec-label span{font-family:var(--font-sans);font-size:13px;font-weight:600;letter-spacing:0.04em;color:var(--accent-press);}
+    .bk-rec-frame{position:relative;border-radius:var(--radius-xl);padding:4px;background:linear-gradient(135deg, var(--rose-200), var(--clay-300));}
+    .bk-rec-inner{background:var(--surface-page);border-radius:calc(var(--radius-xl) - 4px);padding:22px;}
+    .bk-rec-reason{display:flex;align-items:flex-start;gap:10px;margin-bottom:16px;padding:12px 16px;background:var(--surface-tint);border-radius:var(--radius-md);}
+    .bk-rec-reason i{font-size:18px;color:var(--rose-500);flex:none;margin-top:2px;}
+    .bk-rec-reason span{font-family:var(--font-serif);font-size:16px;line-height:1.75;color:var(--ink-700);}
+
+    .bk-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+    .bk-empty{font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-muted);text-align:center;padding:32px 0;}
+
+    /* ===== TeacherCard ===== */
+    .booking-root .tc{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:24px 24px;height:100%;display:flex;flex-direction:column;transition:box-shadow var(--dur-base) var(--ease-soft),transform var(--dur-base) var(--ease-soft);}
+    .booking-root .tc:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+    .booking-root .tc-top{display:flex;gap:14px;align-items:flex-start;}
+    .booking-root .tc-av{flex:none;width:60px;height:60px;border-radius:999px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:var(--font-serif);font-size:25px;font-weight:500;}
+    .booking-root .tc-av-rose{background:var(--rose-100);color:var(--rose-600);box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300);}
+    .booking-root .tc-av-clay{background:var(--clay-200);color:var(--clay-500);box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--clay-300);}
+    .booking-root .tc-av-sage{background:var(--sage-200);color:var(--sage-500);box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--sage-300);}
+    .booking-root .tc-id{flex:1;min-width:0;}
+    .booking-root .tc-namerow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .booking-root .tc-name{font-family:var(--font-serif);font-size:21px;font-weight:500;color:var(--ink-900);}
+    .booking-root .tc-years{font-family:var(--font-sans);font-size:12px;color:var(--text-muted);white-space:nowrap;}
+    .booking-root .tc-stars{display:inline-flex;align-items:center;gap:6px;margin-top:6px;}
+    .booking-root .tc-stars > i{font-size:14px;color:var(--gold-500);}
+    .booking-root .tc-rating{font-family:var(--font-sans);font-size:13px;color:var(--ink-700);font-weight:500;}
+    .booking-root .tc-reviews{font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted);}
+    .booking-root .tc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+    .booking-root .tc-tag{display:inline-flex;align-items:center;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;line-height:1.4;border-radius:var(--radius-pill);padding:4px 11px;white-space:nowrap;border:1px solid transparent;}
+    .booking-root .tc-tag.soft.rose{background:var(--rose-50);color:var(--rose-600);}
+    .booking-root .tc-tag.soft.clay{background:var(--tint-clay-hi);color:var(--clay-500);}
+    .booking-root .tc-tag.soft.sage{background:var(--tint-sage-hi);color:var(--sage-500);}
+    .booking-root .tc-tag.outline{background:transparent;color:var(--ink-500);border-color:var(--rice-300);}
+    .booking-root .tc-blurb{font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.8;color:var(--text-secondary);margin:16px 0 0;}
+    .booking-root .tc-quote{display:flex;align-items:flex-start;gap:8px;margin:14px 0 0;padding:12px 14px;background:var(--surface-sunken);border-radius:var(--radius-md);}
+    .booking-root .tc-quote i{font-size:14px;color:var(--rose-300);flex:none;margin-top:3px;}
+    .booking-root .tc-quote span{font-family:var(--font-serif);font-size:14.5px;line-height:1.7;color:var(--ink-700);}
+    .booking-root .tc-foot{margin-top:auto;padding-top:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .booking-root .tc-price-unit{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);}
+    .booking-root .tc-price-val{display:block;font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900);}
+
+    @media (max-width:760px){
+      .bk-main{padding:28px 18px 40px;}
+      .bk-intro{margin-bottom:24px;}
+      .bk-title{font-size:26px;}
+      .bk-filter{margin-bottom:22px;}
+      .bk-chips{gap:8px;}
+      .bk-persona-desc{font-size:14px;}
+      .bk-rec{margin-bottom:26px;}
+      .bk-rec-frame{padding:3px;}
+      .bk-rec-inner{padding:18px 16px;}
+      .bk-rec-reason span{font-size:14.5px;}
+      .bk-grid{grid-template-columns:1fr;gap:16px;}
+      .booking-root .tc{padding:20px 18px;}
+      .booking-root .tc-av{width:54px;height:54px;font-size:23px;}
+      .booking-root .tc-name{font-size:19px;}
+      .booking-root .tc-blurb{font-size:14.5px;}
+    }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var PERSONAS = JSON.parse(document.getElementById('bkPersonas').textContent);
+      var descMap = {}; PERSONAS.forEach(function (p) { descMap[p.key] = p.desc; });
+      var RECOMMENDED_ID = 'lin';
+      var active = 'all';
+      var rec = document.getElementById('bkRec');
+      var descEl = document.getElementById('bkPersonaDesc');
+      var empty = document.getElementById('bkEmpty');
+      var cards = Array.prototype.slice.call(document.querySelectorAll('.bk-grid .tc'));
+
+      function apply() {
+        var showRec = active === 'all';
+        rec.style.display = showRec ? '' : 'none';
+        if (showRec) { descEl.hidden = true; descEl.textContent = ''; }
+        else { descEl.hidden = false; descEl.textContent = descMap[active] || ''; }
+        var shown = 0;
+        cards.forEach(function (c) {
+          var vis = active === 'all' ? c.dataset.id !== RECOMMENDED_ID : c.dataset.persona === active;
+          c.style.display = vis ? '' : 'none';
+          if (vis) shown++;
+        });
+        empty.hidden = shown !== 0;
+      }
+      document.getElementById('bkChips').addEventListener('click', function (e) {
+        var b = e.target.closest('.bk-chip'); if (!b) return;
+        // 再點同一個＝回全部（與 DS toggle 行為一致）
+        active = (b.dataset.persona === active && active !== 'all') ? 'all' : b.dataset.persona;
+        document.querySelectorAll('.bk-chip').forEach(function (c) { c.classList.toggle('on', c.dataset.persona === active); });
+        apply();
+      });
+      apply();
+    })();
+  </script>
+</BaseLayout>
