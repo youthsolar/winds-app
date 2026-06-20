@@ -1,0 +1,144 @@
+---
+import type { LegalContent, Block } from '../data/legal';
+import { UPDATED, CONTACT } from '../data/legal';
+interface Props { content: LegalContent; }
+const { content } = Astro.props;
+const { eyebrow, title, lede, intro, sections } = content;
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const isList = (b: Block): b is { list: any[] } => 'list' in b;
+const isParties = (b: Block): b is { parties: any[] } => 'parties' in b;
+const isP = (b: Block): b is { p: string } => 'p' in b;
+---
+<main class="lg2">
+  <!-- PageHeader -->
+  <header class="lg2-head">
+    <span class="lg2-eyebrow"><span class="lg2-eyebrow-dot"></span>{eyebrow}</span>
+    <h1 class="lg2-h1">{title}</h1>
+    <p class="lg2-lede">{lede}</p>
+    <p class="lg2-meta">最後更新 · {UPDATED}</p>
+  </header>
+
+  {intro && <div class="lg2-intro"><p class="lg2-para">{intro}</p></div>}
+
+  <!-- 目錄 -->
+  <div class="lg2-toc">
+    <div class="lg2-toc-label">本頁內容</div>
+    <ol class="lg2-toc-list">
+      {sections.map((s, i) => (
+        <li class="lg2-toc-li"><span class="lg2-toc-num">{pad2(i + 1)}</span><a href={`#${s.id}`}>{s.title}</a></li>
+      ))}
+    </ol>
+  </div>
+
+  <!-- 分節 -->
+  {sections.map((s, i) => (
+    <section class="lg2-sec" id={s.id}>
+      <div class="lg2-sec-head">
+        <span class="lg2-sec-num">{pad2(i + 1)}</span>
+        <h2 class="lg2-h2">{s.title}</h2>
+      </div>
+      <div class="lg2-sec-body">
+        {s.blocks.map((b) => (
+          <>
+            {isP(b) && <p class="lg2-para">{b.p}</p>}
+            {isList(b) && (
+              <ul class="lg2-list">
+                {b.list.map((it) => (
+                  <li class="lg2-list-li">
+                    <span class="lg2-list-dot"></span>
+                    <span class="lg2-list-tx">
+                      {typeof it === 'string' ? it : <><strong>{it.t}</strong>{it.d ? '：' + it.d : ''}</>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {isParties(b) && (
+              <div class="lg2-parties">
+                {b.parties.map((r) => (
+                  <div class="lg2-party"><span class="lg2-party-name">{r.name}</span><span class="lg2-party-use">{r.use}</span></div>
+                ))}
+              </div>
+            )}
+          </>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <!-- 聯絡 -->
+  <section class="lg2-contact">
+    <h2 class="lg2-h2">有任何疑問，歡迎與我們聯絡。</h2>
+    <p class="lg2-contact-lede">關於這份說明，或你的資料與權利，都可以寫信給我們，我們會盡快回覆。</p>
+    <a class="lg2-contact-link" href={`mailto:${CONTACT}`}><i class="ph-thin ph-envelope-simple"></i>{CONTACT}</a>
+  </section>
+</main>
+
+<style>
+  /* DS legal-pages.jsx 逐值對齊；breakpoint 820 */
+  .lg2{max-width:760px;margin:0 auto;padding:84px 32px 0;}
+  /* PageHeader */
+  .lg2-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;color:var(--accent-press);}
+  .lg2-eyebrow-dot{width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none;}
+  .lg2-h1{margin:14px 0 0;font-family:var(--font-serif);font-size:42px;font-weight:500;line-height:1.2;color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+  .lg2-lede{margin:16px 0 0;font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.8;color:var(--text-secondary);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+  .lg2-meta{margin:10px 0 0;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted);}
+  .lg2-intro{margin-top:36px;}
+  /* Para (Prose tone ink) */
+  .lg2-para{font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.9;color:var(--ink-700);margin:0;max-width:none;word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+  /* TOC Card (tone tint) */
+  .lg2-toc{margin-top:36px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-lg);padding:24px 26px;}
+  .lg2-toc-label{font-family:var(--font-sans);font-size:12.5px;letter-spacing:0.02em;color:var(--text-muted);margin-bottom:14px;}
+  .lg2-toc-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;}
+  .lg2-toc-li{display:flex;gap:10px;align-items:baseline;}
+  .lg2-toc-num{flex:none;font-family:var(--font-sans);font-size:13px;color:var(--rose-400);font-weight:500;min-width:18px;}
+  .lg2-toc-li a{font-family:var(--font-serif);font-size:16px;color:var(--ink-700);line-height:1.5;text-decoration:none;}
+  .lg2-toc-li a:hover{color:var(--accent-press);}
+  /* section */
+  .lg2-sec{margin-top:56px;scroll-margin-top:96px;}
+  .lg2-sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+  .lg2-sec-num{flex:none;font-family:var(--font-sans);font-size:15px;color:var(--rose-400);font-weight:500;}
+  .lg2-h2{margin:0;font-family:var(--font-serif);font-weight:500;font-size:var(--t-h2);line-height:var(--lh-tight);letter-spacing:var(--ls-heading);color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+  .lg2-sec-body{display:flex;flex-direction:column;gap:18px;}
+  /* List */
+  .lg2-list{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:13px;}
+  .lg2-list-li{display:flex;gap:12px;align-items:flex-start;}
+  .lg2-list-dot{flex:none;width:7px;height:7px;border-radius:999px;background:var(--rose-300);margin-top:10px;}
+  .lg2-list-tx{flex:1;min-width:0;font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.85;color:var(--ink-700);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+  .lg2-list-tx strong{font-weight:500;color:var(--ink-900);}
+  /* PartyList */
+  .lg2-parties{margin-top:6px;display:flex;flex-direction:column;}
+  .lg2-party{display:flex;flex-wrap:wrap;gap:0 16px;align-items:baseline;padding:14px 2px;border-bottom:1px solid var(--border-soft);}
+  .lg2-party:last-child{border-bottom:none;}
+  .lg2-party-name{flex:0 0 168px;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);}
+  .lg2-party-use{flex:1;min-width:0;font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.8;color:var(--text-secondary);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+  /* contact */
+  .lg2-contact{margin-top:64px;background:linear-gradient(180deg, var(--surface-tint), var(--rose-50));border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:40px 32px;}
+  .lg2-contact-lede{margin:12px 0 0;font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.7;color:var(--text-secondary);max-width:none;word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+  .lg2-contact-link{display:inline-flex;align-items:center;gap:9px;margin-top:18px;font-family:var(--font-serif);font-size:18px;color:var(--accent-press);font-weight:500;text-decoration:none;}
+  .lg2-contact-link i{font-size:18px;line-height:1;}
+
+  @media (max-width:820px){
+    .lg2{padding:48px 20px 0;}
+    .lg2-h1{font-size:30px;}
+    .lg2-lede{font-size:16px;}
+    .lg2-intro{margin-top:28px;}
+    .lg2-para{font-size:15.5px;}
+    .lg2-toc{margin-top:28px;padding:20px 20px;}
+    .lg2-toc-list{grid-template-columns:1fr;gap:10px;}
+    .lg2-toc-li a{font-size:15.5px;}
+    .lg2-sec{margin-top:40px;scroll-margin-top:80px;}
+    .lg2-sec-head{margin-bottom:12px;}
+    .lg2-sec-num{font-size:14px;}
+    .lg2-sec-body{gap:16px;}
+    .lg2-list{gap:12px;}
+    .lg2-list-dot{margin-top:9px;}
+    .lg2-list-tx{font-size:15.5px;}
+    .lg2-party{padding:13px 0;gap:2px 0;}
+    .lg2-party-name{flex:1 0 100%;font-size:16px;}
+    .lg2-party-use{font-size:15px;}
+    .lg2-contact{margin-top:44px;padding:30px 22px;}
+    .lg2-contact-lede{font-size:16px;}
+    .lg2-contact-link{font-size:17px;}
+  }
+</style>

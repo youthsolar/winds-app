@@ -1,0 +1,11 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LegalPage from '../components/LegalPage.astro';
+import { TERMS } from '../data/legal';
+---
+<BaseLayout
+  title="使用條款 · 找風問幸福"
+  description="找風問幸福使用條款：占卜與命理內容的性質與定位、使用資格、帳號、預約與付款、智慧財產權、免責與準據法。"
+>
+  <LegalPage content={TERMS} />
+</BaseLayout>

@@ -1,0 +1,11 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LegalPage from '../components/LegalPage.astro';
+import { PRIVACY } from '../data/legal';
+---
+<BaseLayout
+  title="隱私權政策 · 找風問幸福"
+  description="找風問幸福隱私權政策：我們蒐集哪些資料、使用目的、合作的第三方、Cookie、保存期限與你的個資權利。"
+>
+  <LegalPage content={PRIVACY} />
+</BaseLayout>
