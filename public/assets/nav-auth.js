@@ -1,7 +1,8 @@
 (function () {
   function render() {
-    var el = document.getElementById('auth-button');
-    if (!el) return;
+    var ids=['auth-button','auth-button-m'];
+    var els=ids.map(function(id){return document.getElementById(id);}).filter(Boolean);
+    if (!els.length) return;
     var token = '';
     try { token = localStorage.getItem('winds_google_token') || ''; } catch (e) {}
     var valid = false;
@@ -13,18 +14,18 @@
         }
       } catch (e) {}
     }
-    if (valid) {
-      el.innerHTML = '<a href="#" id="nav-logout">登出</a>';
-      var btn = document.getElementById('nav-logout');
-      if (btn) btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        try { localStorage.removeItem('winds_google_token'); } catch (er) {}
-        location.href = '/';
-      });
-    } else {
-      el.innerHTML = '<a href="/">登入</a>';
-    }
+    els.forEach(function(el){
+      if (valid) {
+        el.innerHTML = '<a href="#" class="nav-logout">登出</a>';
+        el.querySelector('.nav-logout').addEventListener('click', function (e) {
+          e.preventDefault(); e.stopPropagation();
+          try { localStorage.removeItem('winds_google_token'); } catch (er) {}
+          location.href = '/';
+        });
+      } else {
+        el.innerHTML = '<a href="/">登入</a>';
+      }
+    });
   }
   window.__refreshNavAuth = render;
   if (document.readyState === 'loading') {
