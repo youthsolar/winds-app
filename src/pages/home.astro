@@ -287,8 +287,14 @@ const br = (s) => s.split('\n');
   .av.rose { background: var(--rose-100); color: var(--rose-600); box-shadow: 0 0 0 3px var(--surface-page), 0 0 0 4.5px var(--rose-300); }
   .av.clay { background: var(--clay-200); color: var(--clay-500); box-shadow: 0 0 0 3px var(--surface-page), 0 0 0 4.5px var(--clay-300); }
   .av.sage { background: var(--sage-200); color: var(--sage-500); box-shadow: 0 0 0 3px var(--surface-page), 0 0 0 4.5px var(--sage-300); }
-  .social-line { font-family: var(--font-sans); font-size: 13.5px; color: var(--text-secondary); white-space: nowrap; }
+  .social-line { font-family: var(--font-sans); font-size: 13.5px; color: var(--text-secondary); letter-spacing: 0.01em; white-space: nowrap; }
   .social-line b { font-weight: 600; color: var(--ink-900); }
+  /* 手機：社群證明頭像 32 / 文字 12（對齊 mockup SocialProof mobile）*/
+  @media (max-width: 760px) {
+    .social { gap: 10px; }
+    .social .av { width: 32px; height: 32px; font-size: 13.4px; }
+    .social-line { font-size: 12px; }
+  }
 
   /* card draw */
   .draw-zone { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
