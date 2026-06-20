@@ -1,0 +1,581 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { PRODUCTS, CATS, RECOMMENDED_PRODUCT } from '../data/shop-products';
+
+const TONE: Record<string, { tile: string; glyph: string; ring: string }> = {
+  rose: { tile: 'linear-gradient(155deg, var(--rose-100), var(--rose-200) 70%, var(--clay-300))', glyph: 'var(--rose-600)', ring: 'var(--rose-200)' },
+  clay: { tile: 'linear-gradient(155deg, var(--tint-clay-hi), var(--clay-200) 72%, var(--clay-400))', glyph: 'var(--clay-500)', ring: 'var(--clay-300)' },
+  sage: { tile: 'linear-gradient(155deg, var(--tint-sage-hi), var(--sage-200) 72%, var(--sage-300))', glyph: 'var(--sage-500)', ring: 'var(--sage-300)' },
+};
+const recP = PRODUCTS.find((p) => p.id === RECOMMENDED_PRODUCT.id)!;
+const catName = (key: string) => (CATS.find((c) => c.key === key) || { name: '' }).name;
+---
+<BaseLayout
+  title="法器選物 · 找風問幸福｜安神符・結緣手環・淨化香氛"
+  description="挑一件靈性小物，陪你過日子。安神隨身符、結緣紅線手環、鼠尾草淨化棒、安定粉晶——全館超商店到店、7 天內出貨、限台灣。"
+  ogType="website"
+>
+  <div class="shop-root">
+    <!-- sticky shop bar -->
+    <div class="shop-bar">
+      <div class="shop-bar-in">
+        <div class="shop-cats" id="shopCats">
+          {CATS.map((c) => (
+            <button class:list={['shop-chip', { on: c.key === 'all' }]} data-cat={c.key} type="button">{c.name}</button>
+          ))}
+        </div>
+        <button class="shop-cart-btn" id="shopCartBtn" type="button" aria-label="購物袋">
+          <i class="ph-thin ph-shopping-bag"></i>
+          <span class="shop-cart-btn-label">購物袋</span>
+          <span class="shop-cart-badge" id="shopCartBadge" hidden>0</span>
+        </button>
+      </div>
+    </div>
+
+    <main class="shop-main">
+      <div class="shop-intro">
+        <span class="shop-eyebrow"><span class="shop-eyebrow-dot"></span>法器選物</span>
+        <h1 class="shop-title">挑一件，陪你過日子。</h1>
+        <p class="shop-lede">有些靈性小物，放在身邊會讓人安心一點，慢慢逛。</p>
+      </div>
+
+      <!-- recommended（占卜結果推薦，僅在「全部」分類顯示）-->
+      <div class="shop-rec" id="shopRec">
+        <div class="shop-rec-label"><i class="ph-fill ph-sparkle"></i><span>為你挑的</span></div>
+        <div class="shop-rec-frame">
+          <div class="shop-rec-inner">
+            <div class="shop-rec-img" data-open={recP.id}>
+              <div class="pimg" style={`background:${TONE[recP.tone].tile}`}>
+                <span class="pimg-border"></span>
+                <span class="pimg-disc" style={`box-shadow:0 0 0 1px ${TONE[recP.tone].ring};color:${TONE[recP.tone].glyph}`}>{recP.glyph}</span>
+              </div>
+            </div>
+            <div class="shop-rec-body">
+              <div class="shop-rec-reason"><i class="ph-thin ph-hand-heart"></i><span>{RECOMMENDED_PRODUCT.reason}</span></div>
+              <h3 class="shop-rec-name">{recP.name}</h3>
+              <p class="shop-rec-blurb">{recP.blurb}</p>
+              <div class="shop-rec-foot">
+                <span class="shop-rec-price">NT$ {recP.price.toLocaleString()}</span>
+                <div class="shop-rec-btns">
+                  <button class="zfbtn secondary md" data-open={recP.id} type="button">看細節</button>
+                  <button class="zfbtn primary md" data-add={recP.id} type="button"><i class="ph ph-plus"></i>加入購物車</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="shop-allhead" id="shopAllHead"><span>所有選物</span></div>
+
+      <div class="shop-grid" id="shopGrid">
+        {PRODUCTS.map((p) => (
+          <div class="shop-card" data-cat={p.cat} data-open={p.id}>
+            <div class="shop-card-imgwrap">
+              <div class="pimg" style={`background:${TONE[p.tone].tile}`}>
+                <span class="pimg-border"></span>
+                <span class="pimg-disc" style={`box-shadow:0 0 0 1px ${TONE[p.tone].ring};color:${TONE[p.tone].glyph}`}>{p.glyph}</span>
+              </div>
+            </div>
+            <div class="shop-card-body">
+              <h3 class="shop-card-name">{p.name}</h3>
+              <p class="shop-card-blurb">{p.blurb}</p>
+              <div class="shop-card-foot">
+                <span class="shop-card-price">NT$ {p.price.toLocaleString()}</span>
+                <button class="shop-card-add" data-add={p.id} type="button" aria-label="加入購物車"><i class="ph ph-plus"></i><span class="shop-card-add-tx">加入</span></button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="shop-ship">
+        <i class="ph ph-truck"></i>
+        <span>全館超商店到店 · 7 天內出貨 · 限台灣</span>
+      </div>
+    </main>
+
+    <!-- cart drawer -->
+    <div class="shop-scrim" id="shopCartScrim"></div>
+    <aside class="shop-drawer" id="shopDrawer" aria-hidden="true">
+      <div class="shop-drawer-head">
+        <div class="shop-drawer-title"><i class="ph-thin ph-shopping-bag"></i><span>購物袋</span><span class="shop-drawer-count" id="shopDrawerCount" hidden></span></div>
+        <button class="shop-drawer-x" id="shopDrawerX" type="button" aria-label="關閉"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="shop-drawer-body" id="shopDrawerBody"></div>
+      <div class="shop-drawer-foot">
+        <div class="shop-drawer-sub"><span>小計</span><span class="shop-drawer-subval" id="shopDrawerSub">NT$ 0</span></div>
+        <button class="zfbtn primary lg full" id="shopCheckout" type="button" disabled>前往結帳<i class="ph ph-arrow-up-right"></i></button>
+      </div>
+    </aside>
+
+    <!-- product detail modal mount -->
+    <div class="shop-modal-mount" id="shopModalMount"></div>
+  </div>
+
+  <script type="application/json" id="shopData" set:html={JSON.stringify({ PRODUCTS, CATS, TONE })} />
+
+  <style is:global>
+    /* ====== 法器選物（namespaced under .shop-root；含 JS 注入元素故走 is:global）====== */
+    .shop-root .pimg{position:relative;width:100%;aspect-ratio:1;border-radius:var(--radius-lg);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+    .shop-root .pimg-border{position:absolute;inset:14px;border-radius:calc(var(--radius-lg) - 6px);border:1px solid var(--disc-frost-hair);pointer-events:none;}
+    .shop-root .pimg-disc{width:86px;height:86px;border-radius:999px;background:var(--disc-frost);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:42px;line-height:1;font-weight:500;}
+
+    /* shared DS Btn（shop scope）*/
+    .shop-root .zfbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-serif);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;border-radius:var(--radius-pill);white-space:nowrap;cursor:pointer;transition:background var(--dur-fast) var(--ease-soft);border:1px solid transparent;}
+    .shop-root .zfbtn.md{padding:11px 22px;font-size:var(--t-body);min-height:44px;}
+    .shop-root .zfbtn.lg{padding:15px 30px;font-size:var(--t-body-lg);min-height:54px;}
+    .shop-root .zfbtn.full{display:flex;width:100%;}
+    .shop-root .zfbtn.primary{background:var(--accent);color:var(--text-on-accent);box-shadow:var(--shadow-sm);}
+    .shop-root .zfbtn.primary:hover{background:var(--accent-hover);}
+    .shop-root .zfbtn.primary[disabled]{opacity:0.45;cursor:not-allowed;}
+    .shop-root .zfbtn.secondary{background:var(--surface-card);color:var(--ink-900);border-color:var(--border-strong);box-shadow:var(--shadow-xs);}
+    .shop-root .zfbtn.secondary:hover{background:var(--rice-100);}
+    .shop-root .zfbtn i{font-size:16px;line-height:1;}
+    .shop-root .zfbtn.lg i{font-size:18px;}
+
+    /* shop bar */
+    .shop-bar{position:sticky;top:76px;z-index:30;background:var(--bar-translucent-2);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft);}
+    .shop-bar-in{max-width:var(--container);margin:0 auto;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .shop-cats{display:flex;gap:8px;overflow-x:auto;flex:1;}
+    .shop-chip{all:unset;cursor:pointer;white-space:nowrap;flex:none;font-family:var(--font-serif);font-size:16px;font-weight:500;letter-spacing:0.01em;line-height:1;color:var(--accent-press);background:transparent;border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:11px 20px;transition:all var(--dur-fast) var(--ease-soft);}
+    .shop-chip.on{color:var(--text-on-accent);background:var(--accent);border-color:transparent;box-shadow:var(--shadow-sm);}
+    .shop-cart-btn{position:relative;flex:none;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border-strong);background:var(--surface-card);border-radius:var(--radius-pill);padding:9px 16px;cursor:pointer;font-family:var(--font-sans);font-size:14px;color:var(--ink-900);}
+    .shop-cart-btn i{font-size:18px;line-height:1;}
+    .shop-cart-badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--accent);color:var(--text-on-accent);font-family:var(--font-sans);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+
+    .shop-main{max-width:var(--container);margin:0 auto;width:100%;box-sizing:border-box;padding:44px 28px 72px;}
+    /* StepIntro */
+    .shop-intro{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:34px;}
+    .shop-eyebrow{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;color:var(--accent-press);}
+    .shop-eyebrow-dot{width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none;}
+    .shop-title{font-family:var(--font-serif);font-size:38px;font-weight:500;line-height:1.3;letter-spacing:0.01em;margin:0;color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .shop-lede{font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.8;color:var(--text-secondary);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+
+    /* recommended */
+    .shop-rec{margin-bottom:44px;}
+    .shop-rec-label{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+    .shop-rec-label i{font-size:16px;color:var(--rose-400);}
+    .shop-rec-label span{font-family:var(--font-sans);font-size:13px;font-weight:600;letter-spacing:0.04em;color:var(--accent-press);}
+    .shop-rec-frame{position:relative;border-radius:var(--radius-xl);padding:4px;background:linear-gradient(135deg, var(--rose-200), var(--clay-300));}
+    .shop-rec-inner{background:var(--surface-page);border-radius:calc(var(--radius-xl) - 4px);padding:22px;display:grid;grid-template-columns:260px 1fr;gap:28px;align-items:center;}
+    .shop-rec-img{cursor:pointer;}
+    .shop-rec-reason{display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;padding:12px 16px;background:var(--surface-tint);border-radius:var(--radius-md);}
+    .shop-rec-reason i{font-size:18px;color:var(--rose-500);flex:none;margin-top:2px;}
+    .shop-rec-reason span{font-family:var(--font-serif);font-size:16px;line-height:1.75;color:var(--ink-700);}
+    .shop-rec-name{font-family:var(--font-serif);font-size:26px;font-weight:500;color:var(--ink-900);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .shop-rec-blurb{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.8;color:var(--text-secondary);margin:10px 0 0;}
+    .shop-rec-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap;}
+    .shop-rec-price{font-family:var(--font-serif);font-size:22px;font-weight:500;color:var(--ink-900);}
+    .shop-rec-btns{display:flex;gap:10px;}
+
+    .shop-allhead{margin:0 0 22px;}
+    .shop-allhead span{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900);}
+
+    /* grid + card */
+    .shop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+    .shop-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column;height:100%;cursor:pointer;transition:box-shadow var(--dur-base) var(--ease-soft),transform var(--dur-base) var(--ease-soft);}
+    .shop-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+    .shop-card-imgwrap{padding:14px;padding-bottom:0;}
+    .shop-card-body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1;}
+    .shop-card-name{font-family:var(--font-serif);font-size:18.5px;font-weight:500;color:var(--ink-900);margin:0 0 7px;word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .shop-card-blurb{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px;}
+    .shop-card-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+    .shop-card-price{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);}
+    .shop-card-add{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:13px;font-weight:500;color:var(--accent-press);background:var(--rose-50);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:8px 14px;transition:all var(--dur-fast) var(--ease-soft);}
+    .shop-card-add i{font-size:14px;}
+    .shop-card-add.added{color:var(--sage-500);background:#EEF1E7;border-color:var(--sage-300);}
+
+    .shop-ship{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:48px;padding:18px 24px;background:var(--surface-sunken);border:1px solid var(--border-soft);border-radius:var(--radius-lg);text-align:center;flex-wrap:wrap;}
+    .shop-ship i{font-size:18px;color:var(--rose-500);}
+    .shop-ship span{font-family:var(--font-serif);font-size:16px;color:var(--ink-700);}
+
+    /* cart drawer */
+    .shop-scrim{position:fixed;inset:0;z-index:90;background:var(--scrim);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity var(--dur-base) var(--ease-soft);}
+    .shop-scrim.open{opacity:1;pointer-events:auto;}
+    .shop-drawer{position:fixed;top:0;right:0;bottom:0;z-index:91;width:420px;max-width:100%;background:var(--surface-page);box-shadow:var(--shadow-xl);transform:translateX(100%);transition:transform var(--dur-slow) var(--ease-soft);display:flex;flex-direction:column;}
+    .shop-drawer.open{transform:translateX(0);}
+    .shop-drawer-head{display:flex;align-items:center;justify-content:space-between;padding:22px 24px;border-bottom:1px solid var(--border-soft);}
+    .shop-drawer-title{display:flex;align-items:center;gap:10px;}
+    .shop-drawer-title > i{font-size:20px;color:var(--rose-500);}
+    .shop-drawer-title > span:first-of-type{font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900);}
+    .shop-drawer-count{font-family:var(--font-sans);font-size:13px;color:var(--text-muted);white-space:nowrap;}
+    .shop-drawer-x{border:none;background:transparent;cursor:pointer;color:var(--ink-500);padding:4px;display:flex;}
+    .shop-drawer-x i{font-size:20px;}
+    .shop-drawer-body{flex:1;overflow:auto;padding:14px 20px;}
+    .shop-cart-empty{height:100%;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;color:var(--text-muted);}
+    .shop-cart-empty i{font-size:40px;color:var(--rose-200);}
+    .shop-cart-empty p{font-family:var(--font-serif);font-size:16px;color:var(--text-secondary);margin:0;}
+    .shop-cart-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-soft);}
+    .shop-cart-item-img{width:72px;flex:none;}
+    .shop-cart-item-img .pimg{border-radius:var(--radius-md);}
+    .shop-cart-item-img .pimg-disc{width:46px;height:46px;font-size:22px;}
+    .shop-cart-item-main{flex:1;min-width:0;}
+    .shop-cart-item-top{display:flex;justify-content:space-between;gap:8px;}
+    .shop-cart-item-name{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);}
+    .shop-cart-item-rm{border:none;background:transparent;cursor:pointer;color:var(--ink-400);padding:0;flex:none;display:flex;}
+    .shop-cart-item-rm i{font-size:16px;}
+    .shop-cart-item-mat{font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-muted);margin:2px 0 10px;}
+    .shop-cart-item-row{display:flex;align-items:center;justify-content:space-between;}
+    .shop-cart-item-price{font-family:var(--font-serif);font-size:15.5px;font-weight:500;color:var(--ink-900);}
+    .shop-drawer-foot{border-top:1px solid var(--border-strong);padding:20px 24px 24px;background:var(--surface-card);}
+    .shop-drawer-sub{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+    .shop-drawer-sub > span:first-child{font-family:var(--font-sans);font-size:14px;color:var(--ink-700);}
+    .shop-drawer-subval{font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--accent-press);}
+    #shopCheckout{font-size:17px;}
+
+    /* qty stepper */
+    .shop-qty{display:inline-flex;align-items:center;border:1px solid var(--border-strong);border-radius:var(--radius-pill);background:var(--surface-card);}
+    .shop-qty button{all:unset;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink-700);}
+    .shop-qty button i{font-size:15px;}
+    .shop-qty span{min-width:22px;text-align:center;font-family:var(--font-sans);font-size:15px;color:var(--ink-900);}
+    .shop-qty.small button{width:36px;height:36px;}
+    .shop-qty.small button i{font-size:13px;}
+    .shop-qty.small span{font-size:13.5px;}
+
+    /* detail modal */
+    .shop-modal{position:fixed;inset:0;z-index:80;background:var(--scrim);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:28px;animation:shFade 220ms var(--ease-soft);}
+    .shop-modal-card{position:relative;background:var(--surface-card);border-radius:var(--radius-xl);width:100%;max-width:880px;max-height:88vh;overflow:auto;box-shadow:var(--shadow-xl);animation:shPop 280ms var(--ease-soft);}
+    .shop-modal-grid{display:grid;grid-template-columns:1fr 1fr;}
+    .shop-modal-imgcol{padding:26px;position:sticky;top:0;align-self:start;}
+    .shop-modal-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+    .shop-modal-metachip{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--font-sans);font-size:12.5px;color:var(--ink-700);background:var(--surface-sunken);border:1px solid var(--border-soft);border-radius:var(--radius-pill);padding:5px 12px;white-space:nowrap;}
+    .shop-modal-metachip .k{color:var(--text-muted);}
+    .shop-modal-metachip .v{font-weight:500;}
+    .shop-modal-info{padding:32px 36px 32px;display:flex;flex-direction:column;}
+    .shop-modal-tagrow{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+    .shop-modal-tag{display:inline-flex;align-items:center;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;line-height:1.5;border-radius:var(--radius-pill);padding:3px 10px;}
+    .shop-modal-tag.rose{background:var(--rose-50);color:var(--rose-600);}
+    .shop-modal-tag.clay{background:var(--tint-clay-hi);color:var(--clay-500);}
+    .shop-modal-tag.sage{background:var(--tint-sage-hi);color:var(--sage-500);}
+    .shop-modal-material{font-family:var(--font-sans);font-size:12px;color:var(--text-muted);}
+    .shop-modal-name{font-family:var(--font-serif);font-size:30px;font-weight:500;color:var(--ink-900);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .shop-modal-detail{font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.9;color:var(--text-secondary);margin:14px 0 0;word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .shop-modal-variants{display:flex;flex-direction:column;gap:14px;margin-top:22px;}
+    .shop-vsel-label{font-family:var(--font-sans);font-size:13px;font-weight:500;color:var(--ink-700);margin-bottom:8px;}
+    .shop-vsel{position:relative;}
+    .shop-vsel-btn{all:unset;cursor:pointer;box-sizing:border-box;width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;padding:0 16px;border-radius:var(--radius-md);background:var(--surface-card);border:1px solid var(--border-strong);transition:border-color var(--dur-fast),box-shadow var(--dur-fast);}
+    .shop-vsel.open .shop-vsel-btn{border-color:var(--accent);box-shadow:0 0 0 3px var(--rose-100);}
+    .shop-vsel-cur{display:flex;align-items:baseline;gap:8px;min-width:0;}
+    .shop-vsel-cur .nm{font-family:var(--font-serif);font-size:16px;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .shop-vsel-cur .pl{font-family:var(--font-sans);font-size:13px;color:var(--accent-press);white-space:nowrap;}
+    .shop-vsel-btn > i{font-size:15px;color:var(--ink-500);flex:none;transition:transform var(--dur-fast) var(--ease-soft);}
+    .shop-vsel.open .shop-vsel-btn > i{transform:rotate(180deg);}
+    .shop-vsel-list{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:5;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);overflow:hidden;padding:4px;}
+    .shop-vsel-opt{all:unset;cursor:pointer;box-sizing:border-box;width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border-radius:var(--radius-sm);}
+    .shop-vsel-opt.on{background:var(--surface-tint);}
+    .shop-vsel-opt .nm{font-family:var(--font-serif);font-size:15.5px;color:var(--ink-900);}
+    .shop-vsel-opt .pl{font-family:var(--font-sans);font-size:12.5px;color:var(--accent-press);}
+    .shop-vsel-opt i{font-size:15px;color:var(--accent);}
+    .shop-modal-pricerow{display:flex;align-items:baseline;gap:10px;margin:22px 0 0;}
+    .shop-modal-price{font-family:var(--font-serif);font-size:26px;font-weight:500;color:var(--ink-900);}
+    .shop-modal-delta{font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
+    .shop-modal-actions{display:flex;align-items:center;gap:12px;margin-top:16px;}
+    .shop-modal-actions .zfbtn{flex:1;}
+    .shop-modal-checkout{margin-top:10px;}
+    .shop-modal-shipnote{font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin:14px 0 0;display:flex;align-items:center;gap:6px;}
+    .shop-modal-sections{padding:8px 36px 36px;border-top:1px solid var(--border-soft);margin-top:4px;}
+    .shop-modal-sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
+    .shop-modal-sec{margin-top:22px;}
+    .shop-modal-sec-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+    .shop-modal-sec-head i{font-size:17px;color:var(--rose-500);}
+    .shop-modal-sec-head span{font-family:var(--font-serif);font-size:16.5px;font-weight:500;color:var(--ink-900);}
+    .shop-modal-sec ul,.shop-modal-sec ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px;}
+    .shop-modal-sec li{display:flex;gap:9px;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.7;color:var(--ink-700);}
+    .shop-modal-sec li i{font-size:17px;color:var(--sage-400);flex:none;margin-top:2px;}
+    .shop-modal-sec li .num{flex:none;font-family:var(--font-sans);font-size:12px;font-weight:600;color:var(--rose-400);margin-top:2px;}
+    .shop-modal-notes{display:flex;align-items:flex-start;gap:9px;margin-top:22px;padding:16px 18px;background:var(--surface-sunken);border-radius:var(--radius-md);}
+    .shop-modal-notes i{font-size:16px;color:var(--text-muted);flex:none;margin-top:2px;}
+    .shop-modal-notes span{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);}
+    .shop-modal-x{position:absolute;top:18px;right:18px;width:44px;height:44px;border-radius:999px;border:none;background:var(--frost-btn);box-shadow:var(--shadow-sm);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-700);z-index:6;}
+    .shop-modal-x i{font-size:18px;}
+
+    @keyframes shFade{from{opacity:0;}to{opacity:1;}}
+    @keyframes shPop{from{opacity:0;transform:translateY(10px) scale(0.98);}to{opacity:1;transform:none;}}
+    @keyframes shUp{from{transform:translateY(100%);}to{transform:none;}}
+
+    @media (max-width:760px){
+      .shop-bar{top:64px;}
+      .shop-bar-in{padding:10px 16px;}
+      .shop-cart-btn{padding:8px 12px;}
+      .shop-cart-btn-label{display:none;}
+      .shop-main{padding:28px 18px 56px;}
+      .shop-intro{margin-bottom:24px;}
+      .shop-title{font-size:26px;}
+      .shop-lede{font-size:15.5px;}
+      .shop-rec{margin-bottom:32px;}
+      .shop-rec-frame{padding:3px;}
+      .shop-rec-inner{grid-template-columns:1fr;gap:18px;padding:16px;}
+      .shop-rec-reason span{font-size:14.5px;}
+      .shop-rec-name{font-size:22px;}
+      .shop-rec-blurb{font-size:15px;}
+      .shop-allhead span{font-size:18px;}
+      .shop-grid{grid-template-columns:1fr 1fr;gap:12px;}
+      .shop-card-imgwrap{padding:10px;padding-bottom:0;}
+      .shop-card-body{padding:12px 14px 16px;}
+      .shop-card-name{font-size:16.5px;}
+      .shop-card-blurb{display:none;}
+      .shop-card-price{font-size:16px;}
+      .shop-card-add{padding:7px 12px;}
+      .shop-card-add-tx{display:none;}
+      .shop-ship{margin-top:36px;padding:16px 18px;}
+      .shop-ship span{font-size:14.5px;}
+      .shop-drawer{width:100%;}
+      .shop-modal{padding:0;align-items:flex-end;}
+      .shop-modal-card{border-radius:var(--radius-xl) var(--radius-xl) 0 0;max-width:none;max-height:92vh;animation:shUp 300ms var(--ease-soft);}
+      .shop-modal-grid{grid-template-columns:1fr;}
+      .shop-modal-imgcol{padding:16px;position:static;}
+      .shop-modal-info{padding:8px 22px 24px;}
+      .shop-modal-name{font-size:24px;}
+      .shop-modal-detail{font-size:15.5px;}
+      .shop-modal-sections{padding:4px 22px 28px;}
+      .shop-modal-sec-grid{grid-template-columns:1fr;gap:4px;}
+      .shop-modal-x{top:14px;right:14px;}
+    }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var data = JSON.parse(document.getElementById('shopData').textContent);
+      var PRODUCTS = data.PRODUCTS, CATS = data.CATS, TONE = data.TONE;
+      var byId = {}; PRODUCTS.forEach(function (p) { byId[p.id] = p; });
+      var cart = {};       // {id: qty}
+      var activeCat = 'all';
+      var nf = function (n) { return n.toLocaleString('en-US'); };
+
+      function tile(p, variant) {
+        var t = TONE[p.tone] || TONE.rose;
+        var cls = variant === 'cart' ? 'pimg' : 'pimg';
+        return '<div class="' + cls + '" style="background:' + t.tile + '">' +
+          '<span class="pimg-border"></span>' +
+          '<span class="pimg-disc" style="box-shadow:0 0 0 1px ' + t.ring + ';color:' + t.glyph + '">' + p.glyph + '</span></div>';
+      }
+
+      /* ---- filter ---- */
+      var rec = document.getElementById('shopRec');
+      var allHead = document.getElementById('shopAllHead');
+      function applyFilter() {
+        document.querySelectorAll('.shop-card').forEach(function (el) {
+          el.style.display = (activeCat === 'all' || el.dataset.cat === activeCat) ? '' : 'none';
+        });
+        var showRec = activeCat === 'all';
+        if (rec) rec.style.display = showRec ? '' : 'none';
+        if (allHead) allHead.style.display = showRec ? '' : 'none';
+      }
+      document.getElementById('shopCats').addEventListener('click', function (e) {
+        var b = e.target.closest('.shop-chip'); if (!b) return;
+        activeCat = b.dataset.cat;
+        document.querySelectorAll('.shop-chip').forEach(function (c) { c.classList.toggle('on', c === b); });
+        applyFilter();
+      });
+
+      /* ---- cart ---- */
+      var badge = document.getElementById('shopCartBadge');
+      function count() { return Object.keys(cart).reduce(function (s, k) { return s + cart[k]; }, 0); }
+      function syncBadge() {
+        var c = count();
+        badge.textContent = c; badge.hidden = c === 0;
+        document.querySelectorAll('.shop-card-add, .shop-rec-btns .primary').forEach(function () {});
+      }
+      function add(id, qty) {
+        cart[id] = (cart[id] || 0) + (qty || 1);
+        syncBadge(); renderCart(); openCart();
+        // 加入回饋（卡片上的鈕）
+        var addBtn = document.querySelector('.shop-card-add[data-add="' + id + '"]');
+        if (addBtn) {
+          addBtn.classList.add('added');
+          var tx = addBtn.querySelector('.shop-card-add-tx');
+          addBtn.querySelector('i').className = 'ph-bold ph-check';
+          if (tx) tx.textContent = '已加入';
+          setTimeout(function () {
+            addBtn.classList.remove('added');
+            addBtn.querySelector('i').className = 'ph ph-plus';
+            if (tx) tx.textContent = '加入';
+          }, 1400);
+        }
+      }
+      function setQty(id, q) { cart[id] = q; syncBadge(); renderCart(); }
+      function remove(id) { delete cart[id]; syncBadge(); renderCart(); }
+
+      var drawer = document.getElementById('shopDrawer');
+      var cartScrim = document.getElementById('shopCartScrim');
+      var dbody = document.getElementById('shopDrawerBody');
+      var dsub = document.getElementById('shopDrawerSub');
+      var dcount = document.getElementById('shopDrawerCount');
+      var checkout = document.getElementById('shopCheckout');
+      function openCart() { drawer.classList.add('open'); cartScrim.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); }
+      function closeCart() { drawer.classList.remove('open'); cartScrim.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); }
+      document.getElementById('shopCartBtn').addEventListener('click', openCart);
+      document.getElementById('shopDrawerX').addEventListener('click', closeCart);
+      cartScrim.addEventListener('click', closeCart);
+
+      function renderCart() {
+        var ids = Object.keys(cart);
+        var sub = 0, c = 0;
+        if (!ids.length) {
+          dbody.innerHTML = '<div class="shop-cart-empty"><i class="ph-thin ph-shopping-bag"></i><p>袋子還是空的。<br>慢慢逛，挑一件喜歡的。</p></div>';
+        } else {
+          var html = '';
+          ids.forEach(function (id) {
+            var p = byId[id], qty = cart[id]; sub += p.price * qty; c += qty;
+            html += '<div class="shop-cart-item"><div class="shop-cart-item-img">' + tile(p, 'cart') + '</div>' +
+              '<div class="shop-cart-item-main"><div class="shop-cart-item-top">' +
+              '<span class="shop-cart-item-name">' + p.name + '</span>' +
+              '<button class="shop-cart-item-rm" data-rm="' + id + '" aria-label="移除"><i class="ph ph-trash-simple"></i></button></div>' +
+              '<div class="shop-cart-item-mat">' + p.material + '</div>' +
+              '<div class="shop-cart-item-row"><div class="shop-qty small" data-qid="' + id + '">' +
+              '<button data-d="-1" aria-label="減少"><i class="ph ph-minus"></i></button><span>' + qty + '</span>' +
+              '<button data-d="1" aria-label="增加"><i class="ph ph-plus"></i></button></div>' +
+              '<span class="shop-cart-item-price">NT$ ' + nf(p.price * qty) + '</span></div></div></div>';
+          });
+          dbody.innerHTML = html;
+        }
+        dsub.textContent = 'NT$ ' + nf(sub);
+        dcount.textContent = c + ' 件'; dcount.hidden = c === 0;
+        checkout.disabled = !ids.length;
+      }
+      dbody.addEventListener('click', function (e) {
+        var rm = e.target.closest('.shop-cart-item-rm'); if (rm) { remove(rm.dataset.rm); return; }
+        var step = e.target.closest('.shop-qty button'); if (step) {
+          var box = step.closest('.shop-qty'); var id = box.dataset.qid;
+          var nv = Math.max(1, cart[id] + parseInt(step.dataset.d, 10)); setQty(id, nv); return;
+        }
+      });
+      checkout.addEventListener('click', function () {
+        // 🔭 結帳交給 EasyStore（待接 shop.winds.tw / ES cart）。目前佔位。
+        alert('（示意）前往商店結帳——由商店處理付款與超商店到店取貨。');
+      });
+
+      /* ---- detail modal ---- */
+      var mount = document.getElementById('shopModalMount');
+      function catName(key) { var c = CATS.find(function (x) { return x.key === key; }); return c ? c.name : ''; }
+      function openDetail(id) {
+        var p = byId[id];
+        var groups = p.options || [];
+        var variants = groups.map(function () { return 0; });
+        var qty = 1;
+
+        function unit() { return p.price + groups.reduce(function (s, g, i) { return s + ((g.choices[variants[i]] || {}).price || 0); }, 0); }
+        function delta() { return unit() - p.price; }
+
+        function metaHtml() {
+          if (!p.meta) return '';
+          return '<div class="shop-modal-meta">' + p.meta.map(function (m) {
+            return '<span class="shop-modal-metachip"><span class="k">' + m.k + '</span><span class="v">' + m.v + '</span></span>';
+          }).join('') + '</div>';
+        }
+        function variantsHtml() {
+          if (!groups.length) return '';
+          return '<div class="shop-modal-variants">' + groups.map(function (g, gi) {
+            return '<div class="shop-vsel" data-g="' + gi + '"><div class="shop-vsel-label">' + g.label + '</div>' +
+              '<button class="shop-vsel-btn" type="button"><span class="shop-vsel-cur">' +
+              '<span class="nm">' + g.choices[variants[gi]].name + '</span>' +
+              (g.choices[variants[gi]].price ? '<span class="pl">+NT$ ' + g.choices[variants[gi]].price + '</span>' : '') +
+              '</span><i class="ph-bold ph-caret-down"></i></button>' +
+              '<div class="shop-vsel-list" hidden>' + g.choices.map(function (c, ci) {
+                return '<button class="shop-vsel-opt' + (ci === variants[gi] ? ' on' : '') + '" data-c="' + ci + '" type="button">' +
+                  '<span class="nm">' + c.name + '</span>' + (c.price ? '<span class="pl">+NT$ ' + c.price + '</span>' : '') +
+                  (ci === variants[gi] ? '<i class="ph-bold ph-check"></i>' : '') + '</button>';
+              }).join('') + '</div></div>';
+          }).join('') + '</div>';
+        }
+        function sectionsHtml() {
+          if (!(p.forWho || p.howto || p.notes)) return '';
+          var inner = '<div class="shop-modal-sec-grid">';
+          if (p.forWho) inner += '<div class="shop-modal-sec"><div class="shop-modal-sec-head"><i class="ph ph-hand-heart"></i><span>適合這樣的你</span></div><ul>' +
+            p.forWho.map(function (x) { return '<li><i class="ph-fill ph-check-circle"></i>' + x + '</li>'; }).join('') + '</ul></div>';
+          if (p.howto) inner += '<div class="shop-modal-sec"><div class="shop-modal-sec-head"><i class="ph ph-sparkle"></i><span>怎麼使用</span></div><ol>' +
+            p.howto.map(function (x, i) { return '<li><span class="num">' + String(i + 1).padStart(2, '0') + '</span>' + x + '</li>'; }).join('') + '</ol></div>';
+          inner += '</div>';
+          if (p.notes) inner += '<div class="shop-modal-notes"><i class="ph ph-info"></i><span>' + p.notes + '</span></div>';
+          return '<div class="shop-modal-sections">' + inner + '</div>';
+        }
+        function priceRow() {
+          return 'NT$ ' + nf(unit()) + (delta() > 0 ? '<span class="shop-modal-delta">含款式 +NT$ ' + nf(delta()) + '</span>' : '');
+        }
+
+        mount.innerHTML = '<div class="shop-modal"><div class="shop-modal-card">' +
+          '<div class="shop-modal-grid"><div class="shop-modal-imgcol">' + tile(p) + metaHtml() + '</div>' +
+          '<div class="shop-modal-info"><div class="shop-modal-tagrow"><span class="shop-modal-tag ' + p.tone + '">' + catName(p.cat) + '</span><span class="shop-modal-material">' + p.material + '</span></div>' +
+          '<h2 class="shop-modal-name">' + p.name + '</h2>' +
+          '<p class="shop-modal-detail">' + p.detail + '</p>' + variantsHtml() +
+          '<div class="shop-modal-pricerow"><span class="shop-modal-price">NT$ ' + nf(unit()) + '</span>' + (delta() > 0 ? '<span class="shop-modal-delta">含款式 +NT$ ' + nf(delta()) + '</span>' : '') + '</div>' +
+          '<div class="shop-modal-actions"><div class="shop-qty" data-mq="1"><button data-d="-1" aria-label="減少"><i class="ph ph-minus"></i></button><span>1</span><button data-d="1" aria-label="增加"><i class="ph ph-plus"></i></button></div>' +
+          '<button class="zfbtn secondary lg" data-addcart type="button"><i class="ph-thin ph-shopping-bag-open"></i>加入購物袋</button></div>' +
+          '<div class="shop-modal-checkout"><button class="zfbtn primary lg full" data-buynow type="button">直接結帳<i class="ph ph-arrow-up-right"></i></button></div>' +
+          '<p class="shop-modal-shipnote"><i class="ph ph-truck"></i>超商店到店 · 7 天內出貨 · 限台灣</p></div></div>' +
+          sectionsHtml() +
+          '<button class="shop-modal-x" data-close type="button" aria-label="關閉"><i class="ph ph-x"></i></button>' +
+          '</div></div>';
+        document.body.style.overflow = 'hidden';
+
+        var modal = mount.querySelector('.shop-modal');
+        function close() { mount.innerHTML = ''; document.body.style.overflow = ''; document.removeEventListener('keydown', onKey); }
+        function onKey(e) { if (e.key === 'Escape') close(); }
+        document.addEventListener('keydown', onKey);
+        modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+        modal.querySelector('[data-close]').addEventListener('click', close);
+
+        function refreshPrice() {
+          modal.querySelector('.shop-modal-price').textContent = 'NT$ ' + nf(unit());
+          var d = modal.querySelector('.shop-modal-delta');
+          if (delta() > 0) {
+            if (!d) { var pr = modal.querySelector('.shop-modal-pricerow'); pr.insertAdjacentHTML('beforeend', '<span class="shop-modal-delta">含款式 +NT$ ' + nf(delta()) + '</span>'); }
+            else d.textContent = '含款式 +NT$ ' + nf(delta());
+          } else if (d) d.remove();
+        }
+
+        // qty stepper in modal
+        var mq = modal.querySelector('.shop-qty[data-mq]');
+        mq.addEventListener('click', function (e) {
+          var b = e.target.closest('button'); if (!b) return;
+          qty = Math.max(1, qty + parseInt(b.dataset.d, 10));
+          mq.querySelector('span').textContent = qty;
+        });
+
+        // variant selects
+        modal.querySelectorAll('.shop-vsel').forEach(function (vs) {
+          var gi = parseInt(vs.dataset.g, 10);
+          var btn = vs.querySelector('.shop-vsel-btn');
+          var list = vs.querySelector('.shop-vsel-list');
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var willOpen = list.hidden;
+            modal.querySelectorAll('.shop-vsel').forEach(function (o) { o.classList.remove('open'); o.querySelector('.shop-vsel-list').hidden = true; });
+            if (willOpen) { vs.classList.add('open'); list.hidden = false; }
+          });
+          list.querySelectorAll('.shop-vsel-opt').forEach(function (opt) {
+            opt.addEventListener('click', function () {
+              variants[gi] = parseInt(opt.dataset.c, 10);
+              var ch = groups[gi].choices[variants[gi]];
+              vs.querySelector('.shop-vsel-cur').innerHTML = '<span class="nm">' + ch.name + '</span>' + (ch.price ? '<span class="pl">+NT$ ' + ch.price + '</span>' : '');
+              list.querySelectorAll('.shop-vsel-opt').forEach(function (o, ci) {
+                o.classList.toggle('on', ci === variants[gi]);
+                var chk = o.querySelector('i'); if (chk) chk.remove();
+                if (ci === variants[gi]) o.insertAdjacentHTML('beforeend', '<i class="ph-bold ph-check"></i>');
+              });
+              vs.classList.remove('open'); list.hidden = true;
+              refreshPrice();
+            });
+          });
+        });
+        modal.addEventListener('click', function (e) {
+          if (!e.target.closest('.shop-vsel')) modal.querySelectorAll('.shop-vsel').forEach(function (o) { o.classList.remove('open'); o.querySelector('.shop-vsel-list').hidden = true; });
+        });
+
+        modal.querySelector('[data-addcart]').addEventListener('click', function () { add(p.id, qty); close(); });
+        modal.querySelector('[data-buynow]').addEventListener('click', function () { add(p.id, qty); close(); });
+      }
+
+      /* ---- delegated open/add on cards + recommended ---- */
+      document.querySelector('.shop-root').addEventListener('click', function (e) {
+        var addEl = e.target.closest('[data-add]');
+        if (addEl) { e.stopPropagation(); add(addEl.dataset.add, 1); return; }
+        var openEl = e.target.closest('[data-open]');
+        if (openEl) { openDetail(openEl.dataset.open); return; }
+      });
+
+      syncBadge(); renderCart(); applyFilter();
+    })();
+  </script>
+</BaseLayout>
