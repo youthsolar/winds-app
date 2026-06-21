@@ -33,6 +33,7 @@ import { PERSONAS } from '../data/booking-teachers';
       </div>
       <p class="bk-empty" id="bkEmpty" hidden>這個風格目前還沒有老師，換個風格看看？</p>
     </main>
+    <div class="bk-wiz-mount" id="bkWiz"></div>
   </div>
 
   <script type="application/json" id="bkPersonas" set:html={JSON.stringify(PERSONAS)} />
@@ -74,6 +75,55 @@ import { PERSONAS } from '../data/booking-teachers';
     .bk-empty{font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-muted);text-align:center;padding:32px 0;}
     .bk-skel{height:320px;border-radius:var(--radius-lg);background:linear-gradient(90deg,var(--rice-100),var(--rice-50),var(--rice-100));background-size:200% 100%;animation:bkShim 1.4s linear infinite;}
     @keyframes bkShim{to{background-position:-200% 0;}}
+
+    /* ===== 預約精靈 ===== */
+    .booking-root .bw-scrim{position:fixed;inset:0;z-index:90;background:var(--scrim);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
+    .booking-root .bw-panel{position:fixed;z-index:91;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100vw - 32px));max-height:88vh;display:flex;flex-direction:column;background:var(--surface-page);border-radius:var(--radius-2xl);box-shadow:var(--shadow-xl);overflow:hidden;}
+    .booking-root .bw-head{position:relative;padding:22px 24px 16px;border-bottom:1px solid var(--border-soft);}
+    .booking-root .bw-x{position:absolute;top:16px;right:16px;border:none;background:transparent;cursor:pointer;color:var(--ink-500);padding:4px;display:flex;}
+    .booking-root .bw-x i{font-size:20px;}
+    .booking-root .bw-prog{display:flex;gap:6px;margin-bottom:14px;}
+    .booking-root .bw-dot{width:26px;height:4px;border-radius:999px;background:var(--rice-300);}
+    .booking-root .bw-dot.on{background:var(--accent);}
+    .booking-root .bw-title{font-family:var(--font-serif);font-size:22px;font-weight:500;color:var(--ink-900);}
+    .booking-root .bw-sub{font-family:var(--font-sans);font-size:13px;color:var(--text-muted);margin-top:3px;}
+    .booking-root .bw-body{padding:20px 24px;overflow:auto;flex:1;}
+    .booking-root .bw-foot{display:flex;gap:12px;padding:16px 24px;border-top:1px solid var(--border-soft);}
+    .booking-root .bw-foot .zfbtn{flex:1;}
+    .booking-root .zfbtn.primary{background:var(--accent);color:var(--text-on-accent);box-shadow:var(--shadow-sm);}
+    .booking-root .zfbtn.primary:hover{background:var(--accent-hover);}
+    .booking-root .zfbtn.disabled{opacity:.45;pointer-events:none;}
+    .booking-root .bw-list{display:flex;flex-direction:column;gap:10px;}
+    .booking-root .bw-opt{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface-card);transition:all var(--dur-fast);}
+    .booking-root .bw-opt:hover{border-color:var(--rose-300);background:var(--rose-50);}
+    .booking-root .bw-opt-nm{font-family:var(--font-serif);font-size:16px;color:var(--ink-900);display:block;}
+    .booking-root .bw-opt-meta{font-family:var(--font-sans);font-size:12px;color:var(--text-muted);}
+    .booking-root .bw-opt-price{font-family:var(--font-serif);font-size:15px;color:var(--ink-900);text-align:right;white-space:nowrap;}
+    .booking-root .bw-opt-dep{display:block;font-family:var(--font-sans);font-size:11px;color:var(--rose-600);}
+    .booking-root .bw-dates{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;}
+    .booking-root .bw-date{all:unset;cursor:pointer;flex:none;font-family:var(--font-sans);font-size:14px;color:var(--ink-700);border:1px solid var(--border-strong);border-radius:var(--radius-pill);padding:8px 14px;}
+    .booking-root .bw-date.on{background:var(--accent);color:var(--text-on-accent);border-color:transparent;}
+    .booking-root .bw-times{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+    .booking-root .bw-time{all:unset;cursor:pointer;text-align:center;font-family:var(--font-sans);font-size:14px;color:var(--ink-700);border:1px solid var(--border-strong);border-radius:var(--radius-md);padding:9px 0;}
+    .booking-root .bw-time.on{background:var(--accent);color:var(--text-on-accent);border-color:transparent;}
+    .booking-root .bw-none,.booking-root .bw-loading{font-family:var(--font-serif);font-weight:300;color:var(--text-secondary);text-align:center;padding:28px 0;}
+    .booking-root .bw-spin{display:inline-block;width:18px;height:18px;border-radius:999px;border:2px solid var(--rose-100);border-top-color:var(--rose-400);animation:bkShim 0s,bwSpin .9s linear infinite;vertical-align:middle;margin-right:8px;}
+    @keyframes bwSpin{to{transform:rotate(360deg);}}
+    .booking-root .bw-form{display:flex;flex-direction:column;gap:14px;}
+    .booking-root .bw-fld{display:flex;flex-direction:column;gap:6px;}
+    .booking-root .bw-fld span{font-family:var(--font-sans);font-size:13px;font-weight:500;color:var(--ink-700);}
+    .booking-root .bw-fld input,.booking-root .bw-fld textarea{font-family:var(--font-serif);font-size:16px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);padding:11px 14px;outline:none;resize:vertical;}
+    .booking-root .bw-fld input:focus,.booking-root .bw-fld textarea:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring);}
+    .booking-root .bw-err{font-family:var(--font-sans);font-size:13px;color:var(--critical);margin:4px 0 0;}
+    .booking-root .bw-confirm{display:flex;flex-direction:column;gap:0;}
+    .booking-root .bw-row{display:flex;gap:14px;padding:11px 0;border-bottom:1px solid var(--border-soft);}
+    .booking-root .bw-k{font-family:var(--font-sans);font-size:13px;color:var(--text-muted);flex:none;width:54px;}
+    .booking-root .bw-v{font-family:var(--font-serif);font-size:15.5px;color:var(--ink-900);}
+    .booking-root .bw-dep{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:14px 16px;background:var(--surface-tint);border-radius:var(--radius-md);font-family:var(--font-serif);}
+    .booking-root .bw-dep span{font-size:15px;color:var(--ink-700);}
+    .booking-root .bw-dep b{font-size:20px;color:var(--ink-900);}
+    .booking-root .bw-note{font-family:var(--font-serif);font-weight:300;font-size:13px;line-height:1.7;color:var(--text-muted);margin:12px 0 0;}
+    @media(max-width:760px){.booking-root .bw-times{grid-template-columns:repeat(3,1fr);}}
 
     /* ===== TeacherCard ===== */
     .booking-root .tc{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:24px 24px;height:100%;display:flex;flex-direction:column;transition:box-shadow var(--dur-base) var(--ease-soft),transform var(--dur-base) var(--ease-soft);}
@@ -161,7 +211,7 @@ import { PERSONAS } from '../data/booking-teachers';
           (t.quote?'<div class="tc-quote"><i class="ph-fill ph-quotes"></i><span>'+esc(t.quote)+'</span></div>':'')+
           '<div class="tc-foot">'+
             (price?'<div><span class="tc-price-unit">單次對談</span><span class="tc-price-val">NT$ '+price+' 起</span></div>':'<span></span>')+
-            '<a class="zfbtn md secondary" href="'+BOOK_HREF+'">預約 <i class="ph-bold ph-arrow-right"></i></a>'+
+            '<button class="zfbtn md secondary" data-book="'+esc(t.id)+'" type="button">預約 <i class="ph-bold ph-arrow-right"></i></button>'+
           '</div></article>';
       }
       function apply(){
@@ -178,10 +228,116 @@ import { PERSONAS } from '../data/booking-teachers';
         apply();
       });
 
+      /* ===== 預約精靈（項目→時段→資料→確認→付訂金）===== */
+      var GMAIL = /^[^\s@]+@gmail\.com$/i;
+      var mount = document.getElementById('bkWiz');
+      var W = {};
+      function pad2(n){return String(n).padStart(2,'0');}
+      function ymd(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+      function wizClose(){mount.innerHTML='';document.body.style.overflow='';}
+      function shell(step, title, inner, footer){
+        var dots=[1,2,3,4].map(function(n){return '<span class="bw-dot'+(n<=step?' on':'')+'"></span>';}).join('');
+        mount.innerHTML='<div class="bw-scrim" data-wclose></div><div class="bw-panel"><div class="bw-head">'+
+          '<button class="bw-x" data-wclose type="button"><i class="ph ph-x"></i></button>'+
+          '<div class="bw-prog">'+dots+'</div>'+
+          '<div class="bw-title">'+esc(title)+'</div>'+
+          '<div class="bw-sub">'+esc(W.prov?W.prov.name:'')+'</div></div>'+
+          '<div class="bw-body">'+inner+'</div>'+(footer?'<div class="bw-foot">'+footer+'</div>':'')+'</div>';
+        document.body.style.overflow='hidden';
+        mount.querySelectorAll('[data-wclose]').forEach(function(el){el.addEventListener('click',wizClose);});
+      }
+      function openWiz(id){
+        W = { prov: teachers.filter(function(t){return String(t.id)===String(id);})[0] };
+        if(!W.prov) return;
+        stepService();
+      }
+      function stepService(){
+        var svcs = W.prov.services||[];
+        var inner = '<div class="bw-list">'+svcs.map(function(s,i){
+          return '<button class="bw-opt" data-svc="'+i+'" type="button"><span class="bw-opt-main"><span class="bw-opt-nm">'+esc(s.name)+'</span>'+
+            (s.duration?'<span class="bw-opt-meta">'+s.duration+' 分鐘</span>':'')+'</span>'+
+            '<span class="bw-opt-price">NT$ '+(Number(s.price)||0).toLocaleString('en-US')+(s.deposit?'<span class="bw-opt-dep">訂金 '+s.deposit+'</span>':'')+'</span></button>';
+        }).join('')+'</div>';
+        shell(1,'選一個項目',inner);
+        mount.querySelectorAll('[data-svc]').forEach(function(b){b.addEventListener('click',function(){W.svc=svcs[+b.dataset.svc];stepTime();});});
+      }
+      function stepTime(){
+        shell(2,'選時間','<div class="bw-loading"><span class="bw-spin"></span>載入可預約時段…</div>');
+        var from=new Date(); var to=new Date(); to.setDate(to.getDate()+30);
+        fetch(WORKER_API+'/sb-slots?service='+encodeURIComponent(W.svc.id)+'&provider='+encodeURIComponent(W.prov.id)+'&from='+ymd(from)+'&to='+ymd(to))
+          .then(function(r){return r.json();}).then(function(d){
+            var slots=(d&&d.slots)||{}; var dates=Object.keys(slots).sort();
+            if(!dates.length){shell(2,'選時間','<p class="bw-none">這位老師近 30 天暫無可預約時段，換個老師或稍後再試。</p>');return;}
+            W.date=W.date&&slots[W.date]?W.date:dates[0]; W.time=null;
+            renderTime(slots,dates);
+          }).catch(function(){shell(2,'選時間','<p class="bw-none">時段載入失敗，請稍後再試。</p>');});
+      }
+      function renderTime(slots,dates){
+        function dlabel(s){var p=s.split('-');return (+p[1])+'/'+(+p[2]);}
+        var dchips='<div class="bw-dates">'+dates.map(function(dt){return '<button class="bw-date'+(dt===W.date?' on':'')+'" data-d="'+dt+'" type="button">'+dlabel(dt)+'</button>';}).join('')+'</div>';
+        var times='<div class="bw-times">'+(slots[W.date]||[]).map(function(t){return '<button class="bw-time'+(t===W.time?' on':'')+'" data-t="'+t+'" type="button">'+t+'</button>';}).join('')+'</div>';
+        var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary'+(W.time?'':' disabled')+'" data-next type="button">下一步</button>';
+        shell(2,'選時間',dchips+times,foot);
+        mount.querySelectorAll('[data-d]').forEach(function(b){b.addEventListener('click',function(){W.date=b.dataset.d;W.time=null;renderTime(slots,dates);});});
+        mount.querySelectorAll('[data-t]').forEach(function(b){b.addEventListener('click',function(){W.time=b.dataset.t;renderTime(slots,dates);});});
+        var nx=mount.querySelector('[data-next]'); if(nx)nx.addEventListener('click',function(){if(W.time)stepInfo();});
+        var bk=mount.querySelector('[data-back]'); if(bk)bk.addEventListener('click',stepService);
+      }
+      function stepInfo(){
+        var f=W.fields||{};
+        var inner='<div class="bw-form">'+
+          fld('姓名','wzName',f.name||'')+fld('手機','wzPhone',f.phone||'','tel')+
+          fld('Email（限 Gmail）','wzEmail',f.email||'','email')+
+          '<label class="bw-fld"><span>想談的主題（選填）</span><textarea id="wzTopic" rows="3">'+esc(f.topic||'')+'</textarea></label>'+
+          '<p class="bw-err" id="wzErr" hidden></p></div>';
+        var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-next type="button">下一步</button>';
+        shell(3,'留下聯絡方式',inner,foot);
+        mount.querySelector('[data-back]').addEventListener('click',stepTime);
+        mount.querySelector('[data-next]').addEventListener('click',function(){
+          var name=val('wzName'),phone=val('wzPhone'),email=val('wzEmail'),topic=val('wzTopic');
+          var err=document.getElementById('wzErr');
+          if(!name){return showErr(err,'請輸入姓名。');}
+          if(!/^09\d{8}$/.test(phone.replace(/[\s-]/g,''))){return showErr(err,'請輸入正確手機（09xxxxxxxx）。');}
+          if(!GMAIL.test(email)){return showErr(err,'Email 目前僅接受 @gmail.com。');}
+          W.fields={name:name,phone:phone.replace(/[\s-]/g,''),email:email,topic:topic};
+          stepConfirm();
+        });
+      }
+      function fld(label,id,v,t){return '<label class="bw-fld"><span>'+label+'</span><input id="'+id+'" type="'+(t||'text')+'" value="'+esc(v)+'"></label>';}
+      function val(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+      function showErr(el,m){el.textContent=m;el.hidden=false;}
+      function stepConfirm(){
+        var dep=Number(W.svc.deposit)||Number(W.svc.price)||0;
+        var inner='<div class="bw-confirm">'+
+          row('老師',W.prov.name)+row('項目',W.svc.name)+row('時間',W.date+' '+W.time)+
+          row('聯絡',W.fields.name+' · '+W.fields.phone)+
+          (W.fields.topic?row('主題',W.fields.topic):'')+
+          '<div class="bw-dep"><span>線上付訂金</span><b>NT$ '+dep.toLocaleString('en-US')+'</b></div>'+
+          '<p class="bw-note">付訂金後即為你保留時段，餘額現場結清。僅接受 Gmail，採超商/線上付款。</p>'+
+          '<p class="bw-err" id="wzErr2" hidden></p></div>';
+        var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-go type="button">確認並付訂金</button>';
+        shell(4,'確認預約',inner,foot);
+        mount.querySelector('[data-back]').addEventListener('click',stepInfo);
+        mount.querySelector('[data-go]').addEventListener('click',function(){
+          var btn=this; btn.classList.add('disabled'); btn.textContent='建立訂單中…';
+          fetch(WORKER_API+'/sb-book',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({service:W.svc.id,provider:W.prov.id,datetime:W.date+' '+W.time+':00',
+              name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null})})
+           .then(function(r){return r.json();}).then(function(d){
+             if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
+             else{showErr(document.getElementById('wzErr2'),d&&d.message||'建立預約失敗，請稍後再試。');btn.classList.remove('disabled');btn.textContent='確認並付訂金';}
+           }).catch(function(){showErr(document.getElementById('wzErr2'),'網路錯誤，請稍後再試。');btn.classList.remove('disabled');btn.textContent='確認並付訂金';});
+        });
+      }
+      function row(k,v){return '<div class="bw-row"><span class="bw-k">'+esc(k)+'</span><span class="bw-v">'+esc(v)+'</span></div>';}
+
+      grid.addEventListener('click',function(e){var b=e.target.closest('[data-book]');if(b)openWiz(b.dataset.book);});
+
       fetch(WORKER_API + '/sb-providers').then(function(r){return r.json();}).then(function(d){
         teachers = (d && d.providers) || [];
         if (!teachers.length){ grid.innerHTML=''; empty.hidden=false; empty.textContent='老師清單載入中或暫無，稍後再試。'; return; }
         apply();
+        var bp = new URLSearchParams(location.search).get('book'); if (bp) openWiz(bp);
       }).catch(function(){ grid.innerHTML=''; empty.hidden=false; empty.textContent='老師清單載入失敗，請稍後再試。'; });
     })();
   </script>
