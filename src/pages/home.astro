@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import servicesData from '../data/services.json';
 // 首頁輕入口 — 值對齊 handoff home-page.jsx + home-free-draw.jsx + site-nav-footer.jsx
 // 暫放 /home（不動現有 root=/ 占卜流程）；之後翻 root 再一步處理
 const SCENARIOS = [
@@ -19,11 +20,32 @@ const DECK = [
 const DEFAULT = 2;
 const DAILY_QUOTE = '這不是算命，而是跟自己的靈魂對話。';
 const FIELDS = ['姓', '名', '國曆生日', '出生時間', '手機', '電子郵件'];
-const FEATURED = { glyph: '宮', kind: '主力靈性診斷', name: '元辰宮代觀：知運勢', line: '由老師代你進入靈界，親見元辰宮（靈魂居所），看清現況與失衡的根源。', price: 'NT$ 7,600', duration: '120 分鐘' };
-const SVC = [
-  { glyph: '鏡', name: '通靈水鏡法：查因果', line: '看清關係的真相與潛藏的因果。', price: 'NT$ 3,600', duration: '60 分鐘' },
-  { glyph: '籤', name: '命書籤詩問事：問事件', line: '只需姓名，從命書摘籤、直接解惑。', price: 'NT$ 1,200', duration: '30 分鐘' },
-];
+// 預約項目：接真實 SB 服務（services.json = D1，source==='simplybook'），連到真項目頁
+const sbServices = (servicesData as any[]).filter((s) => s.source === 'simplybook' && (s.price ?? 0) > 0);
+const glyphOf = (name: string) => {
+  const m = String(name || '').replace(/[【\[\(（][^】\]\)）]*[】\]\)）]/g, '').match(/[一-鿿]/);
+  return m ? m[0] : '占';
+};
+const cleanName = (name: string) => String(name || '').replace(/^[【\[]/, '').replace(/[】\]][\s\S]*$/, '').trim() || name;
+const lineOf = (s: any) => String(s.llm_description || (s.description || '').replace(/<[^>]+>/g, '') || '').replace(/\s+/g, ' ').trim();
+const durOf = (s: any) => (s.duration_minutes ? `${s.duration_minutes} 分鐘` : '一對一');
+const ntd = (p: number) => `NT$ ${Number(p).toLocaleString()}`;
+const featuredSvc = sbServices.find((s) => /元辰宮|知運勢/.test(s.name)) || sbServices[0];
+const FEATURED = featuredSvc && {
+  id: featuredSvc.id, glyph: glyphOf(featuredSvc.name), kind: '主力靈性診斷',
+  name: cleanName(featuredSvc.name), line: lineOf(featuredSvc).slice(0, 64),
+  price: ntd(featuredSvc.price), duration: durOf(featuredSvc),
+};
+const smallPicks: any[] = [];
+for (const re of [/水鏡|查因果|通靈/, /命書|籤詩|問事/]) {
+  const f = sbServices.find((s) => re.test(s.name) && s.id !== featuredSvc?.id && !smallPicks.includes(s));
+  if (f) smallPicks.push(f);
+}
+for (const s of sbServices) { if (smallPicks.length >= 2) break; if (s.id !== featuredSvc?.id && !smallPicks.includes(s)) smallPicks.push(s); }
+const SVC = smallPicks.slice(0, 2).map((s) => ({
+  id: s.id, glyph: glyphOf(s.name), name: cleanName(s.name),
+  line: lineOf(s).slice(0, 40), price: ntd(s.price), duration: durOf(s),
+}));
 const TALIS = [
   { glyph: '安', name: '安神隨身符', line: '睡不好、心緒亂時，放在枕邊。', price: '480' },
   { glyph: '緣', name: '結緣紅線手環', line: '為一段關係，繫上一點溫柔的祝福。', price: '680' },
@@ -105,7 +127,8 @@ const br = (s) => s.split('\n');
     <section class="wrap block">
       <div class="sh"><h2 class="sh-title cjk">預約項目</h2><p class="sh-lede">老師親自諮詢與進行法事。</p></div>
       <div class="svc-grid">
-        <a class="svc-featured" href={BOOK}>
+        {FEATURED && (
+        <a class="svc-featured" href={`/services/${FEATURED.id}/`}>
           <div class="sf-head">
             <span class="disc lg">{FEATURED.glyph}</span>
             <div><span class="badge">{FEATURED.kind}</span><h3>{FEATURED.name}</h3></div>
@@ -116,9 +139,10 @@ const br = (s) => s.split('\n');
             <span class="go">看介紹 <i class="ph ph-arrow-right"></i></span>
           </div>
         </a>
+        )}
         <div class="svc-small">
           {SVC.map(it => (
-            <a class="svc-card" href={BOOK}>
+            <a class="svc-card" href={`/services/${it.id}/`}>
               <span class="disc">{it.glyph}</span>
               <div class="sc-body">
                 <h4>{it.name}</h4><p>{it.line}</p>
@@ -128,7 +152,7 @@ const br = (s) => s.split('\n');
           ))}
         </div>
       </div>
-      <div class="svc-all"><a href={BOOK}>看全部預約項目 <i class="ph ph-arrow-right"></i></a></div>
+      <div class="svc-all"><a href="/services">看全部預約項目 <i class="ph ph-arrow-right"></i></a></div>
     </section>
 
     <!-- 預約對談 + 法器 -->
