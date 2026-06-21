@@ -10,20 +10,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <div class="lg-inner">
       <div class="lg-card">
         <h1 class="lg-h1">登入</h1>
-        <button id="lgBtn" class="lg-gbtn" type="button">
-          <span class="lg-gbtn-default">
-            <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true" style="flex:none;display:block">
-              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-            </svg>
-            Google 帳戶
-          </span>
-          <span class="lg-gbtn-loading" hidden>
-            <span class="lg-spinner"></span>正在前往 Google…
-          </span>
-        </button>
+        <p class="lg-sub">用 Google 帳戶登入，回看你的占卜紀錄、預約與紫微命盤。</p>
+        <div id="lgGoogle" class="lg-gmount" aria-label="使用 Google 登入"></div>
+        <p class="lg-hint" id="lgHint" hidden><span class="lg-spinner"></span>正在前往 Google…</p>
       </div>
       <p class="lg-terms">登入即表示你同意我們的<a href="/terms">使用條款</a>與<a href="/privacy">隱私權政策</a>。</p>
     </div>
@@ -35,6 +24,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* DS Card：surface-card / border-soft / radius-lg；登入卡用 shadow-md + 置中 */
     .lg-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:40px 40px 34px;text-align:center;}
     .lg-h1{margin:0;font-family:var(--font-serif);font-size:29px;font-weight:500;color:var(--ink-900);letter-spacing:0.02em;}
+    .lg-sub{margin:14px auto 0;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.7;color:var(--text-secondary);}
+    .lg-gmount{margin-top:30px;display:flex;justify-content:center;min-height:44px;}
+    .lg-hint{display:inline-flex;align-items:center;gap:8px;margin:16px 0 0;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
     .lg-gbtn{width:100%;margin-top:32px;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap;padding:14px 20px;min-height:54px;cursor:pointer;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
     .lg-gbtn:hover{background:var(--rice-100);}
     .lg-gbtn[disabled]{opacity:0.7;cursor:default;}
@@ -52,10 +44,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
   </style>
 
+  <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
   <script is:inline>
     (function () {
-      var btn = document.getElementById('lgBtn');
-      if (!btn) return;
+      // 與全站一致的 public Google client id（divination/history 也用這顆；client id 公開無風險）
+      var CLIENT_ID = '35219881811-2rnl87e0qmb9vsuhuqnfooo0a0af5ggd.apps.googleusercontent.com';
       function ret() {
         try { return new URLSearchParams(location.search).get('return') || '/'; } catch (e) { return '/'; }
       }
@@ -64,19 +57,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         var t = localStorage.getItem('winds_google_token');
         if (t) {
           var p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-          if (p.exp && p.exp * 1000 > Date.now()) { location.href = ret(); return; }
+          if (p.exp && p.exp * 1000 > Date.now()) { location.replace(ret()); return; }
         }
       } catch (e) {}
-      btn.addEventListener('click', function () {
-        // 真 SSO：Google Identity Services 已設定 client id 時走 One Tap / 憑證流程
-        if (window.google && google.accounts && google.accounts.id) {
-          btn.setAttribute('disabled', '');
-          btn.querySelector('.lg-gbtn-default').hidden = true;
-          btn.querySelector('.lg-gbtn-loading').hidden = false;
-          google.accounts.id.prompt();
+      function onCredential(resp) {
+        if (!resp || !resp.credential) return;
+        try { localStorage.setItem('winds_google_token', resp.credential); } catch (e) {}
+        var hint = document.getElementById('lgHint'); if (hint) hint.hidden = false;
+        location.replace(ret());
+      }
+      function init() {
+        if (!(window.google && google.accounts && google.accounts.id)) { setTimeout(init, 150); return; }
+        google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential, auto_select: false, context: 'signin' });
+        var mount = document.getElementById('lgGoogle');
+        if (mount) {
+          google.accounts.id.renderButton(mount, { theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
         }
-        // 🔭 client id 未填時為佔位（按鈕在、流程待 Jeffery 提供 PUBLIC_GOOGLE_CLIENT_ID）
-      });
+        // One Tap 加碼（被 cooldown 抑制也沒關係，上面的官方按鈕一定可點）
+        try { google.accounts.id.prompt(); } catch (e) {}
+      }
+      init();
     })();
   </script>
 </BaseLayout>
