@@ -659,14 +659,18 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     margin-bottom: 32px;
   }
   .page-header h1 {
-    font-size: 32px;
-    color: var(--winds-text-dark);
+    font-family: var(--font-serif);
+    font-size: 40px;
+    font-weight: 500;
+    color: var(--ink-900);
     margin: 0 0 8px;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.02em;
   }
   .page-header .subtitle {
-    color: var(--winds-text-sub);
-    font-size: 14px;
+    font-family: var(--font-serif);
+    font-weight: 300;
+    color: var(--text-secondary);
+    font-size: 16px;
   }
 
   .auth-gate { max-width: 480px; margin: 40px auto; }
@@ -683,13 +687,12 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
 
   .paid-badge { background: rgba(45, 134, 89, 0.1); color: #2d8659; font-size: 12px; padding: 4px 10px; border-radius: 12px; font-weight: 600; }
 
-  .unlock-cta { background: linear-gradient(135deg, #faf3df 0%, #f5e8c4 100%); border: 1.5px solid var(--winds-gold-dark); border-radius: 8px; padding: 24px 28px; text-align: center; margin: 32px auto 16px; max-width: 520px; }
-  .unlock-cta h3 { color: var(--winds-gold-dark); margin: 0 0 10px; font-size: 18px; }
-  .unlock-cta p { color: var(--winds-text); margin: 0 0 12px; font-size: 13px; }
-  .unlock-cta ul { text-align: left; max-width: 380px; margin: 0 auto 18px; padding-left: 20px; color: var(--winds-text); font-size: 13px; line-height: 1.8; }
-  .unlock-btn { background: var(--winds-gold-dark); color: white; border: none; padding: 12px 32px; border-radius: 4px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
-  .unlock-btn:hover { background: #6f5310; }
-  .unlock-btn:disabled { background: #999; cursor: not-allowed; }
+  .unlock-cta { background: var(--surface-tint); border: 1px solid var(--rose-100); border-radius: var(--radius-lg); padding: 24px 28px; text-align: center; margin: 32px auto 16px; max-width: 520px; }
+  .unlock-cta h3 { font-family: var(--font-serif); font-weight: 500; color: var(--ink-900); margin: 0 0 10px; font-size: 19px; }
+  .unlock-cta p { font-family: var(--font-serif); font-weight: 300; color: var(--text-secondary); margin: 0 0 12px; font-size: 14.5px; line-height: 1.8; }
+  .unlock-cta ul { text-align: left; max-width: 400px; margin: 0 auto 18px; padding-left: 20px; color: var(--ink-700); font-family: var(--font-serif); font-size: 14px; line-height: 1.9; }
+  .unlock-btn { display: inline-block; background: var(--accent); color: var(--text-on-accent); border: none; padding: 14px 32px; border-radius: var(--radius-pill); font-family: var(--font-serif); font-size: 17px; font-weight: 500; letter-spacing: 0.04em; text-decoration: none; cursor: pointer; }
+  .unlock-btn:hover { background: var(--accent-hover); }
 
   .share-block { max-width: 520px; margin: 16px auto 0; padding: 16px 20px; background: var(--winds-bg-card, #fff); border: 1px solid var(--winds-border); border-radius: 6px; }
   .share-block h4 { margin: 0 0 8px; color: var(--winds-text-dark); font-size: 14px; }
@@ -700,14 +703,14 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   .ziwei-form {
     max-width: 480px;
     margin: 0 auto;
-    background: var(--winds-bg-card, #fff);
-    border: 1px solid var(--winds-border);
-    border-radius: 8px;
-    padding: 24px 28px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 28px 30px;
     display: flex;
     flex-direction: column;
     gap: 18px;
-    box-shadow: 0 1px 8px rgba(139, 105, 20, 0.05);
+    box-shadow: var(--shadow-sm);
   }
 
   .ziwei-form .row {
@@ -721,41 +724,43 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     gap: 12px;
   }
   .ziwei-form label {
+    font-family: var(--font-sans);
     font-size: 13px;
-    color: var(--winds-text-dark);
+    color: var(--ink-700);
     font-weight: 500;
   }
   .ziwei-form input,
   .ziwei-form select {
-    padding: 10px 12px;
-    border: 1px solid var(--winds-border);
-    border-radius: 4px;
-    background: var(--winds-bg);
-    font-family: inherit;
-    font-size: 14px;
-    color: var(--winds-text-dark);
+    padding: 12px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface-card);
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--ink-900);
   }
   .ziwei-form input:focus,
   .ziwei-form select:focus {
     outline: none;
-    border-color: var(--winds-gold-dark);
-    background: white;
+    border-color: var(--rose-300);
+    box-shadow: 0 0 0 4px var(--focus-ring);
   }
 
   .submit-btn {
-    background: var(--winds-gold-dark);
-    color: white;
+    background: var(--accent);
+    color: var(--text-on-accent);
     border: none;
-    padding: 12px 16px;
-    border-radius: 4px;
-    font-size: 15px;
-    font-weight: 600;
+    padding: 15px 16px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
     cursor: pointer;
-    font-family: inherit;
     transition: background 0.2s;
   }
-  .submit-btn:hover { background: #6f5310; }
-  .submit-btn:disabled { background: #999; cursor: not-allowed; }
+  .submit-btn:hover { background: var(--accent-hover); }
+  .submit-btn:disabled { background: var(--rose-100); color: var(--rose-300); cursor: not-allowed; }
 
   .form-note {
     font-size: 12px;
@@ -802,27 +807,27 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     margin-bottom: 16px;
   }
   .toggle-btn {
-    background: var(--winds-bg-card, #fff);
-    border: 1px solid var(--winds-border);
-    color: var(--winds-text-sub);
-    padding: 8px 18px;
-    font-family: inherit;
-    font-size: 13px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-strong);
+    color: var(--ink-500);
+    padding: 9px 20px;
+    font-family: var(--font-serif);
+    font-size: 14.5px;
     cursor: pointer;
     transition: all 0.2s;
   }
-  .toggle-btn:first-child { border-radius: 4px 0 0 4px; }
-  .toggle-btn:last-child { border-radius: 0 4px 4px 0; border-left: none; }
-  .toggle-btn:hover { background: var(--winds-bg); color: var(--winds-text-dark); }
+  .toggle-btn:first-child { border-radius: var(--radius-pill) 0 0 var(--radius-pill); }
+  .toggle-btn:last-child { border-radius: 0 var(--radius-pill) var(--radius-pill) 0; border-left: none; }
+  .toggle-btn:hover { background: var(--rice-100); color: var(--ink-900); }
   .toggle-btn.is-active {
-    background: var(--winds-gold-dark);
-    color: white;
-    border-color: var(--winds-gold-dark);
+    background: var(--accent);
+    color: var(--text-on-accent);
+    border-color: var(--accent);
   }
 
   /* 流年宮名 — 取代 footer 的大限資訊（不增加 cell 高度）*/
   :global(.yearly-footer) {
-    color: #c9943c;
+    color: var(--rose-600);
     font-weight: 600;
     letter-spacing: 0.04em;
   }
@@ -833,25 +838,24 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     border: 1px solid currentColor;
     padding: 0 4px;
   }
-  :global(.star-mutagen.yearly-mutagen.mutagen-lu) { color: #2d8659; }
-  :global(.star-mutagen.yearly-mutagen.mutagen-quan) { color: #2c5e9e; }
-  :global(.star-mutagen.yearly-mutagen.mutagen-ke) { color: #7e4ca0; }
-  :global(.star-mutagen.yearly-mutagen.mutagen-ji) { color: #b03a3a; }
+  :global(.star-mutagen.yearly-mutagen.mutagen-lu) { color: var(--sage-500); }
+  :global(.star-mutagen.yearly-mutagen.mutagen-quan) { color: var(--gold-500); }
+  :global(.star-mutagen.yearly-mutagen.mutagen-ke) { color: var(--rose-600); }
+  :global(.star-mutagen.yearly-mutagen.mutagen-ji) { color: var(--critical); }
 
   /* 流年命宮 — 金圈光暈 */
   :global(.palace-cell.is-yearly-soul) {
-    border-color: #c9943c;
-    border-width: 2px;
-    background: linear-gradient(135deg, #fff8e8 0%, #fef0d4 100%);
-    box-shadow: 0 0 0 2px rgba(201, 148, 60, 0.4), 0 0 16px rgba(201, 148, 60, 0.3);
+    border-color: var(--rose-300);
+    background: linear-gradient(155deg, var(--rose-50) 0%, var(--paper) 100%);
+    box-shadow: var(--shadow-sm);
     position: relative;
   }
   :global(.yearly-soul-badge) {
     position: absolute;
     top: -1px;
     right: -1px;
-    background: #c9943c;
-    color: white;
+    background: var(--accent);
+    color: var(--text-on-accent);
     font-size: 9px;
     padding: 2px 6px;
     border-radius: 0 4px 0 6px;
@@ -866,11 +870,11 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     max-width: 960px;
     margin: 0 auto;
     aspect-ratio: 1 / 1;
-    background: var(--winds-bg-card, #fff);
-    border: 2px solid var(--winds-gold-dark);
-    border-radius: 8px;
-    padding: 8px;
-    box-shadow: 0 2px 12px rgba(139, 105, 20, 0.08);
+    background: var(--paper);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: var(--shadow-md);
   }
   :global(.ziwei-grid) {
     display: grid;
@@ -881,10 +885,10 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     height: 100%;
   }
   :global(.palace-cell) {
-    background: var(--winds-bg);
-    border: 1px solid var(--winds-border);
-    border-radius: 4px;
-    padding: 6px 8px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 9px 10px 8px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -893,21 +897,20 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     overflow: hidden;
     transition: background 0.2s, border-color 0.2s;
   }
-  :global(.palace-cell.is-body) { border-color: var(--winds-gold-dark); border-width: 1.5px; }
-  :global(.palace-cell.is-origin) { background: linear-gradient(135deg, var(--winds-bg) 0%, #faf0d8 100%); }
+  :global(.palace-cell.is-body) { border-color: var(--border-accent); }
+  :global(.palace-cell.is-origin) { background: var(--rose-50); border-color: var(--rose-300); box-shadow: var(--shadow-sm); }
   :global(.palace-cell.is-current-decadal) {
-    border-color: #c9943c;
-    border-width: 2px;
-    background: linear-gradient(135deg, #fff8e8 0%, #faecc4 100%);
-    box-shadow: 0 0 0 1px rgba(201, 148, 60, 0.3), 0 2px 8px rgba(201, 148, 60, 0.25);
+    border-color: var(--rose-300);
+    background: linear-gradient(155deg, var(--rose-50) 0%, var(--paper) 100%);
+    box-shadow: var(--shadow-sm);
     position: relative;
   }
   :global(.current-decadal-badge) {
     position: absolute;
     top: -1px;
     right: -1px;
-    background: #c9943c;
-    color: white;
+    background: var(--accent);
+    color: var(--text-on-accent);
     font-size: 9px;
     padding: 2px 6px;
     border-radius: 0 4px 0 6px;
@@ -916,24 +919,26 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     z-index: 2;
   }
   :global(.palace-cell.empty) { background: transparent; border: 1px dashed var(--winds-border); opacity: 0.3; }
-  :global(.palace-cell.trine-highlight) { background: #fff8e8; border-color: var(--winds-gold-dark); }
-  :global(.palace-cell.trine-focus) { background: #fff2d4; border-color: var(--winds-gold-dark); border-width: 2px; box-shadow: 0 0 0 1px var(--winds-gold-dark) inset; }
+  :global(.palace-cell.trine-highlight) { background: var(--rose-50); border-color: var(--rose-200); }
+  :global(.palace-cell.trine-focus) { background: var(--accent-quiet); border-color: var(--rose-300); box-shadow: 0 0 0 1px var(--rose-300) inset; }
 
-  :global(.cell-header) { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; color: var(--winds-text-sub); border-bottom: 1px dotted var(--winds-border); padding-bottom: 3px; }
-  :global(.palace-name) { font-weight: 700; color: var(--winds-text-dark); font-size: 12px; }
-  :global(.body-tag) { background: var(--winds-gold-dark); color: white; font-style: normal; font-size: 9px; padding: 1px 4px; border-radius: 2px; margin-left: 4px; }
-  :global(.cell-stem-branch) { color: var(--winds-gold-dark); font-size: 11px; }
+  :global(.cell-header) { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; color: var(--text-muted); padding-bottom: 3px; }
+  :global(.palace-name) { font-family: var(--font-serif); font-weight: 600; color: var(--ink-700); font-size: 14px; letter-spacing: 0.03em; }
+  :global(.palace-cell.is-origin .palace-name), :global(.palace-cell.is-yearly-soul .palace-name) { color: var(--rose-600); }
+  :global(.body-tag) { background: var(--rose-100); color: var(--rose-600); font-style: normal; font-size: 9.5px; font-weight: 500; padding: 1px 7px; border-radius: 999px; margin-left: 6px; }
+  :global(.cell-stem-branch) { color: var(--text-muted); font-size: 10.5px; }
 
   :global(.cell-stars) { flex: 1; display: flex; flex-direction: column; gap: 2px; overflow: hidden; font-size: 12px; line-height: 1.4; }
   :global(.star) { display: flex; align-items: baseline; gap: 3px; flex-wrap: wrap; }
-  :global(.star.major .star-name) { color: var(--winds-text-dark); font-weight: 700; font-size: 13px; }
-  :global(.star.minor .star-name) { color: var(--winds-text); font-weight: 500; font-size: 11px; }
-  :global(.star-brightness) { color: var(--winds-gold-dark); font-size: 9px; background: rgba(139, 105, 20, 0.08); padding: 0 3px; border-radius: 2px; }
-  :global(.star-mutagen) { font-size: 9px; padding: 0 3px; border-radius: 2px; color: white; font-weight: 600; }
-  :global(.mutagen-lu) { background: #2d8659; }
-  :global(.mutagen-quan) { background: #2c5e9e; }
-  :global(.mutagen-ke) { background: #7e4ca0; }
-  :global(.mutagen-ji) { background: #b03a3a; }
+  :global(.star .star-name) { font-family: var(--font-serif); letter-spacing: 0.02em; }
+  :global(.star.major .star-name) { color: var(--ink-900); font-weight: 600; font-size: 16.5px; }
+  :global(.star.minor .star-name) { color: var(--sage-500); font-weight: 500; font-size: 15.5px; }
+  :global(.star-brightness) { color: var(--text-muted); font-size: 9px; padding: 0 2px; }
+  :global(.star-mutagen) { font-family: var(--font-sans); font-size: 9px; font-weight: 700; padding: 0 3px; border-radius: 4px; }
+  :global(.mutagen-lu) { background: var(--sage-200); color: var(--sage-500); }
+  :global(.mutagen-quan) { background: var(--gold-300); color: var(--gold-500); }
+  :global(.mutagen-ke) { background: var(--rose-100); color: var(--rose-600); }
+  :global(.mutagen-ji) { background: var(--tint-rose-soft); color: var(--critical); }
 
   :global(.empty-palace) { color: var(--winds-text-muted); font-size: 11px; font-style: italic; }
   :global(.adjective-row) { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-top: 2px; padding-top: 2px; border-top: 1px dotted rgba(139, 105, 20, 0.15); }
@@ -993,16 +998,16 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   }
   :global(.cell-footer) { font-size: 9px; color: var(--winds-text-muted); border-top: 1px dotted var(--winds-border); padding-top: 2px; }
 
-  :global(.center-meta) { background: linear-gradient(135deg, #faf3df 0%, #f5e8c4 100%); border: 1.5px solid var(--winds-gold-dark); border-radius: 4px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; font-size: 12.5px; box-sizing: border-box; }
-  :global(.meta-row) { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; line-height: 1.5; }
+  :global(.center-meta) { background: linear-gradient(155deg, var(--rose-50) 0%, var(--paper) 100%); border: 1px solid var(--rose-100); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; gap: 5px; font-family: var(--font-sans); font-size: 12px; box-sizing: border-box; }
+  :global(.meta-row) { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; line-height: 1.5; color: var(--ink-700); }
   :global(.meta-row-inline) { justify-content: center; }
-  :global(.meta-line-center) { justify-content: center; color: var(--winds-text-dark); font-weight: 500; letter-spacing: 0.04em; }
-  :global(.meta-label) { color: var(--winds-text-sub); font-size: 10.5px; }
-  :global(.meta-value) { color: var(--winds-text-dark); font-weight: 500; }
-  :global(.meta-emphasize) { color: var(--winds-gold-dark); font-weight: 700; }
-  :global(.meta-sep) { color: var(--winds-gold-dark); opacity: 0.4; padding: 0 2px; }
-  :global(.meta-pill) { background: var(--winds-gold-dark); color: white; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-  :global(.meta-divider) { height: 1px; background: var(--winds-gold-dark); opacity: 0.3; margin: 2px 0; }
+  :global(.meta-line-center) { justify-content: center; font-family: var(--font-serif); color: var(--rose-600); font-weight: 500; letter-spacing: 0.04em; }
+  :global(.meta-label) { color: var(--text-muted); font-size: 10.5px; }
+  :global(.meta-value) { color: var(--ink-900); font-weight: 500; }
+  :global(.meta-emphasize) { font-family: var(--font-serif); color: var(--ink-900); font-weight: 500; }
+  :global(.meta-sep) { color: var(--rose-200); padding: 0 2px; }
+  :global(.meta-pill) { background: var(--rose-100); color: var(--rose-600); padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  :global(.meta-divider) { height: 1px; background: var(--rose-100); margin: 6px 0; }
 
   /* 解讀區 */
   :global(.interpretation-section) {
@@ -1011,33 +1016,41 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     padding: 24px 16px;
   }
   :global(.interpretation-section h2) {
-    font-size: 22px;
-    color: var(--winds-text-dark);
+    font-family: var(--font-serif);
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ink-900);
     margin: 0 0 4px;
   }
   :global(.ai-note) {
-    color: var(--winds-text-muted);
+    font-family: var(--font-sans);
+    color: var(--text-muted);
     font-size: 12px;
     margin: 0 0 24px;
   }
   :global(.interp-block) {
-    background: var(--winds-bg-card, #fff);
-    border: 1px solid var(--winds-border);
-    border-radius: 6px;
-    padding: 18px 20px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
     margin-bottom: 14px;
+    box-shadow: var(--shadow-sm);
   }
   :global(.interp-block h3) {
-    font-size: 16px;
-    color: var(--winds-gold-dark);
-    margin: 0 0 10px;
-    border-bottom: 1px solid var(--winds-border);
-    padding-bottom: 8px;
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin: 0 0 12px;
+    border-bottom: 1px solid var(--border-soft);
+    padding-bottom: 12px;
   }
   :global(.interp-text) {
-    font-size: 14px;
-    line-height: 1.85;
-    color: var(--winds-text);
+    font-family: var(--font-serif);
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.95;
+    color: var(--ink-800);
     white-space: pre-wrap;
   }
   :global(.interp-text.loading) {
