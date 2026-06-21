@@ -316,17 +316,17 @@ const br = (s) => s.split('\n');
     fetch('https://api.winds.tw/sb-services').then(function(r){return r.json();}).then(function(d){
       var all = ((d && d.services) || []).filter(function(s){ return (Number(s.price)||0) > 0; });
       if(!all.length) return;
-      var featured = all.find(function(s){ return /元辰宮|知運勢/.test(s.name); }) || all[0];
+      var featured = all.find(function(s){ return /知運勢|代觀/.test(s.name); }) || all.find(function(s){ return /元辰宮/.test(s.name); }) || all[0];
       // featured 卡
       if(featBox && featured){
         featBox.setAttribute('href', '/services?id=sb-' + featured.id);
         var fLine = String(featured.llm || (featured.desc||'').replace(/<[^>]+>/g,'') || '').replace(/\s+/g,' ').trim().slice(0,64);
-        var fDur = featured.duration ? (featured.duration + ' 分鐘') : '一對一';
+        var fDur = featured.duration ? (featured.duration + ' 分鐘 · 一對一') : '一對一';
         featBox.innerHTML =
           '<div class="sf-head"><span class="disc lg">'+escH(glyph(featured.name))+'</span>' +
             '<div><span class="badge">主力靈性診斷</span><h3>'+escH(cleanNm(featured.name))+'</h3></div></div>' +
           '<p class="sf-line">'+escH(fLine)+'</p>' +
-          '<div class="sf-foot"><span><span class="meta">'+escH(fDur)+' · 一對一</span>' +
+          '<div class="sf-foot"><span><span class="meta">'+escH(fDur)+'</span>' +
             '<span class="price">'+escH(ntd(featured.price))+'</span></span>' +
             '<span class="go">看介紹 <i class="ph ph-arrow-right"></i></span></div>';
       }
