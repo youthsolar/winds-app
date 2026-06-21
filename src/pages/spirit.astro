@@ -170,8 +170,7 @@ import '../styles/global.css';
 
   <script is:inline>
     var WORKER_API="https://api.winds.tw";
-    var API={config:WORKER_API+"/config",status:WORKER_API+"/spirit-status",chat:WORKER_API+"/spirit-chat",order:WORKER_API+"/spirit-order"};
-    var SPIRIT_PRICE=99;
+    var API={status:WORKER_API+"/spirit-status",chat:WORKER_API+"/spirit-chat"};
 
     var S={mode:"self",userId:"",idToken:"",sessionId:null,sending:false,
       subscribed:false,lockedBirthday:null,freeRemaining:null,profileExpanded:false,astro:null,
@@ -366,22 +365,15 @@ import '../styles/global.css';
       el.innerHTML='<div class="sp-paywall-in">'+
         '<span class="sp-pw-disc">'+ic(isTarget?"sparkle":"chat-circle-dots","fill")+'</span>'+
         '<div class="sp-pw-h">解鎖分靈體無限對話</div>'+
-        '<p class="sp-pw-p">'+(isTarget?"7 天內隨時感應他（可隨時更換對象），陪你把這段關係看清楚。":"自己，就是最好的老師。7 天內讓這面鏡子隨時陪你。")+'</p>'+
+        '<p class="sp-pw-p">'+(isTarget?"隨完整占卜報告一起解鎖，7 天內隨時感應他（可隨時更換對象）。":"自己，就是最好的老師。隨完整占卜報告一起解鎖，7 天內讓這面鏡子隨時陪你。")+'</p>'+
         '<div class="sp-pw-tags">'+(isTarget?["感應對象狀態","可隨時換對象","無限次問"]:["深夜說說話","陪你把話說清楚","無限次問"]).map(function(t){return '<span>'+t+'</span>'}).join("")+'</div>'+
-        '<button class="zf-btn primary lg" onclick="goSubscribe()">'+ic("sparkle")+'開通 7 天無限 · NT$'+SPIRIT_PRICE+'</button>'+
+        '<a class="zf-btn primary lg" href="/divination">'+ic("sparkle")+'解鎖完整報告 · NT$360</a>'+
         '<button class="sp-pw-close" onclick="closePaywall()">先用今天的次數</button></div>';
     }
     function openPaywall(){var el=document.getElementById("spPaywall");if(el)el.classList.add("show")}
     function closePaywall(){var el=document.getElementById("spPaywall");if(el)el.classList.remove("show")}
-    function goSubscribe(){
-      fetch(API.order,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({google_sub:S.userId})})
-       .then(function(r){return r.json()}).then(function(d){
-         if(d.success&&d.pay_url){location.href=d.pay_url}else{toast(d.error||"建立訂單失敗")}
-       }).catch(function(){toast("網路錯誤，請稍後再試")});
-    }
 
     /* ===== status / config ===== */
-    function fetchConfig(){return fetch(API.config).then(function(r){return r.json()}).then(function(c){if(c.spirit_price){SPIRIT_PRICE=c.spirit_price}}).catch(function(){})}
     function fetchStatus(){
       if(!S.userId)return Promise.resolve();
       return fetch(API.status+"?userId="+encodeURIComponent(S.userId)).then(function(r){return r.ok?r.json():null}).then(function(d){
@@ -398,7 +390,7 @@ import '../styles/global.css';
     /* ===== boot ===== */
     (function boot(){
       readToken();
-      Promise.all([fetchConfig(),fetchStatus()]).then(function(){render();renderPaywall()});
+      fetchStatus().then(function(){render();renderPaywall()});
       render(); // 先畫（含登入 gate / 殼），status 回來後 render 再更新次數
     })();
   </script>
