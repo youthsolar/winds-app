@@ -30,9 +30,9 @@ const TALIS = [
   { glyph: '淨', name: '淨化香氛．艾草', line: '回到家，先讓空間靜下來。', price: '560' },
   { glyph: '晶', name: '安定粉晶原礦', line: '放在桌上，提醒自己對自己好一點。', price: '880' },
 ];
-const FLOW = '/';            // 深度占卜（現有 root 流程）
-const BOOK = '/services/';   // 預約老師（現有 services）
-const SHOP = '/services/';   // 法器選物（暫指 services，待 winds.tw shop 頁）
+const FLOW = '/divination';  // 深度占卜漏斗（DS 重建）
+const BOOK = '/booking';     // 預約老師（真 SB 老師 + 預約精靈）
+const SHOP = '/shop';        // 法器選物（真 ES 商品）
 const pageDesc = '先聽聽現在的自己。輕輕抽一張牌，看看今天的提醒；或只用 6 個基本資料、30 秒得到完整占卜解讀。找風問幸福，陪你把心裡的事慢慢說完。';
 const br = (s) => s.split('\n');
 ---
@@ -140,7 +140,7 @@ const br = (s) => s.split('\n');
           <div class="talk-body">
             <h3>選一位老師慢慢聊</h3>
             <p>預約實體或線上對談，說說一直卡住的心怎麼了。</p>
-            <div class="readers"><span class="av rose">林</span><span class="av clay">陳</span><span class="av sage">王</span><span class="rd-note">3 位老師．今晚還有名額</span></div>
+            <div class="readers" id="homeReaders"><span class="av rose">林</span><span class="av clay">陳</span><span class="av sage">王</span><span class="rd-note">資深老師線上預約</span></div>
             <div class="talk-foot">
               <span><span class="meta">單次 60 分鐘</span><span class="price">NT$ 2,000 起</span></span>
               <a class="btn primary md" href={BOOK}>預約老師 <i class="ph ph-arrow-right"></i></a>
@@ -239,6 +239,20 @@ const br = (s) => s.split('\n');
     const el = document.getElementById('deepen');
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: 'smooth' });
   });
+
+  /* 預約對談卡：接真 SB 老師（頭像首字 + 真人數）*/
+  (function(){
+    var box = document.getElementById('homeReaders'); if(!box) return;
+    var TONES = ['rose','clay','sage'];
+    fetch('https://api.winds.tw/sb-providers').then(function(r){return r.json();}).then(function(d){
+      var ts = (d && d.providers) || []; if(!ts.length) return;
+      var avs = ts.slice(0,3).map(function(t,i){
+        var nm = (t.name||'').replace(/老師$/,'');
+        return '<span class="av '+TONES[i%3]+'">'+(nm.slice(0,1)||'師')+'</span>';
+      }).join('');
+      box.innerHTML = avs + '<span class="rd-note">'+ts.length+' 位資深老師．線上預約</span>';
+    }).catch(function(){});
+  })();
 })();
 </script>
 
