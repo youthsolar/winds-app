@@ -90,7 +90,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
         </button>
 
         <p class="form-note">
-          命盤本身免費 + 7 段試讀（每段 150 字）。付 NT$199 解鎖完整解讀（每段 600-800 字）+ 流年運勢 + 大限詳解 + 永久分享 URL。
+          命盤本身免費 + 7 段試讀（每段 150 字）。完整解讀（每段 600-800 字）+ 流年七段 + 大限詳解，已包含在「完整占卜報告 NT$360」中，一次解鎖。
         </p>
       </form>
     </section>
@@ -107,13 +107,13 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       <div id="chart-mount"></div>
       <div id="unlock-cta" class="unlock-cta" hidden>
         <h3>解鎖完整解讀</h3>
-        <p>目前每段為前 150 字試讀。付 NT$199 一次性買斷後，立即解鎖：</p>
+        <p>目前每段為前 150 字試讀。紫微完整解讀已包含在「完整占卜報告（NT$360）」中，一次解鎖即可看：</p>
         <ul>
-          <li>全 7 段完整解讀（每段 600-800 字）</li>
+          <li>全 7 段完整解讀（每段 600-800 字）+ 流年七段</li>
           <li>本命盤 + 流年盤 + 大限詳解</li>
-          <li>永久分享 URL，可分享給朋友</li>
+          <li>外加：自己＋對象分靈體 7 天對話、第一張量能靈符</li>
         </ul>
-        <button id="unlock-btn" class="unlock-btn">立即解鎖 NT$199 →</button>
+        <a id="unlock-btn" class="unlock-btn" href="/divination">解鎖完整報告 NT$360 →</a>
       </div>
       <div id="share-block" class="share-block" hidden>
         <h4>分享我的命盤</h4>
@@ -521,7 +521,6 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
 
     // 解鎖按鈕（未付費才顯示）
     const unlockCta = document.getElementById('unlock-cta') as HTMLElement;
-    const unlockBtn = document.getElementById('unlock-btn') as HTMLButtonElement;
     const paidBadge = document.getElementById('paid-badge') as HTMLElement;
     if (chartData.paid) {
       unlockCta.hidden = true;
@@ -530,29 +529,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       unlockCta.hidden = false;
       paidBadge.hidden = true;
     }
-    unlockBtn.onclick = async () => {
-      unlockBtn.disabled = true;
-      unlockBtn.textContent = '建立訂單中…';
-      try {
-        const r = await fetch(`${WORKER_API}/ziwei-create-order`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...authHeaders() },
-          body: JSON.stringify({}),
-        });
-        const d = await r.json() as any;
-        if (d.success && d.pay_url) {
-          window.location.href = d.pay_url;
-        } else if (d.already_paid) {
-          location.reload();
-        } else {
-          throw new Error(d.error || '訂單建立失敗');
-        }
-      } catch (err: any) {
-        alert(err.message || '無法建立訂單，請稍後再試');
-        unlockBtn.disabled = false;
-        unlockBtn.textContent = '立即解鎖 NT$199 →';
-      }
-    };
+    // 金流併單：紫微解鎖併入 NT$360 全解（unlock-btn 為 <a href="/divination">，無需單買 handler）
 
     // 分享連結
     const shareBlock = document.getElementById('share-block') as HTMLElement;
