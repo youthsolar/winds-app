@@ -1,211 +1,349 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import services from '../../data/services.json';
 
-type Service = {
-  id: number;
-  name: string;
-  description: string | null;
-  llm_description: string | null;
-  price: number | null;
-  duration_minutes: number | null;
-  category: string | null;
-  image_url: string | null;
-  purchase_url: string | null;
-  seo_title: string | null;
-  source: string;
-};
-
-const svcs = services as Service[];
-
-const sourceLabel = (src: string) => (src === 'simplybook' ? '預約諮詢' : '法器');
-
-// glyph＝清理後品牌名第一個中文字（去【】等括號與非中文前綴）
-const glyphOf = (name: string) => {
-  const cleaned = name.replace(/[【】\[\]（）()]/g, '').trim();
-  const m = cleaned.match(/[一-鿿]/);
-  return m ? m[0] : cleaned.charAt(0) || '·';
-};
-
-const excerptOf = (s: Service) =>
-  (s.llm_description || s.description?.replace(/<[^>]+>/g, '') || '').trim();
-
-// featured：全部分頁時，優先用品牌主打（元辰宮代觀，與首頁一致），否則挑中高價預約諮詢
-const sb = svcs.filter((s) => s.source === 'simplybook');
-const sbPriced = sb.filter((s) => (s.price ?? 0) > 0);
-const featured =
-  sbPriced.find((s) => /元辰宮/.test(s.name)) ||
-  sbPriced.find((s) => /知運勢/.test(s.name)) ||
-  // 否則挑「中位偏上」的代表項目，避免拿最貴的稀有法事當門面
-  [...sbPriced].sort((a, b) => (a.price ?? 0) - (b.price ?? 0))[Math.floor(sbPriced.length * 0.6)] ||
-  sbPriced[0];
-
-const sbCount = svcs.filter((s) => s.source === 'simplybook').length;
-const esCount = svcs.filter((s) => s.source === 'easystore').length;
-
+// 預約項目清單／詳情＝即時 worker /sb-services（SB 同步）＋ /shop-products（ES 法器）。
+// 整頁 client 渲染：無 ?id= → 列表；?id={source}-{id} → 詳情。項目異動免重建。
 const pageTitle = '找風問幸福｜預約項目・通靈問事・元辰宮代觀・開光法器';
-const pageDesc = `找風問幸福完整目錄：${sbCount} 項靈性諮詢（通靈水鏡法、元辰宮代觀、塔羅占卜等）＋ ${esCount} 項開光法器（符令、手環、供奉套組）。不確定怎麼選？先占卜，再決定。`;
-
-const fmtPrice = (p: number | null) => (p && p > 0 ? `NT$${p.toLocaleString()}` : null);
+const pageDesc =
+  '找風問幸福完整目錄：靈性諮詢（通靈水鏡法、元辰宮代觀、塔羅占卜等）＋ 開光法器（符令、手環、供奉套組）。不確定怎麼選？先占卜，再決定。';
 ---
 
 <BaseLayout title={pageTitle} description={pageDesc} ogType="website">
-  <main class="svc-index">
-    <nav class="breadcrumb" aria-label="麵包屑">
-      <a href="/">首頁</a>
-      <i class="ph ph-caret-right"></i>
-      <span class="current">預約項目</span>
-    </nav>
+  <div class="services-root">
+    <main class="services-shell" id="svcShell">
+      <div class="svc-skel" id="svcSkel">
+        <div class="ss-line ss-bc"></div>
+        <div class="ss-line ss-title"></div>
+        <div class="ss-line ss-lede"></div>
+        <p class="ss-loading">載入項目中…</p>
+      </div>
+    </main>
+    <p class="services-fallback" id="svcFallback" hidden>項目資料載入中，請稍後再試。</p>
+  </div>
 
-    <header class="zf-page-header">
-      <span class="zf-ph-eyebrow">預約項目</span>
-      <h1 class="zf-ph-title cjk-title">想為哪件事，找個人好好聊？</h1>
-      <p class="zf-ph-lede">不確定怎麼選？先占卜，再決定。</p>
-    </header>
+  <style is:global>
+    /* ====== 預約項目（namespaced under .services-root；client innerHTML 注入故走 is:global）====== */
+    .services-root { background: var(--surface-page); }
+    .services-shell { max-width: var(--container); margin: 0 auto; padding: 44px 32px 72px; }
+    @media (max-width: 760px) { .services-shell { padding: 28px 20px 48px; } }
+    .services-root .cjk-title { word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
 
-    <nav class="chip-row" aria-label="項目分類">
-      <button class="zf-chip selected" data-filter="all" aria-pressed="true">全部</button>
-      <button class="zf-chip" data-filter="simplybook" aria-pressed="false">預約諮詢</button>
-      <button class="zf-chip" data-filter="easystore" aria-pressed="false">法器選物</button>
-    </nav>
+    /* loading skeleton */
+    .svc-skel { display: flex; flex-direction: column; gap: 16px; }
+    .ss-line { border-radius: var(--radius-md); background: linear-gradient(90deg, var(--rice-100), var(--rice-50), var(--rice-100)); background-size: 200% 100%; animation: ssShim 1.4s linear infinite; }
+    .ss-bc { width: 220px; height: 14px; }
+    .ss-title { width: min(420px, 80%); height: 40px; margin-top: 14px; }
+    .ss-lede { width: min(540px, 90%); height: 20px; }
+    @keyframes ssShim { to { background-position: -200% 0; } }
+    .ss-loading { font-family: var(--font-serif); font-weight: 300; font-size: 15px; color: var(--text-muted); margin-top: 18px; }
+    .services-fallback { font-family: var(--font-serif); font-size: 16px; color: var(--text-muted); text-align: center; margin: 60px 0; }
 
-    {featured && (
-      <a
-        class="featured zf-card tint interactive"
-        href={`/services/${featured.id}/`}
-        data-featured
-      >
-        <span class="ft-glyph">{glyphOf(featured.name)}</span>
-        <div class="ft-body">
-          <span class="zf-badge rose"><span class="zf-badge-dot"></span>{sourceLabel(featured.source)}</span>
-          <h2 class="ft-name cjk-title">{featured.name}</h2>
-          {excerptOf(featured) && <p class="ft-excerpt">{excerptOf(featured)}</p>}
-        </div>
-        <div class="ft-aside">
-          {fmtPrice(featured.price) && <span class="ft-price">{fmtPrice(featured.price)}</span>}
-          {featured.duration_minutes && (
-            <span class="ft-dur">{featured.duration_minutes} 分鐘 · 一對一</span>
-          )}
-          <span class="zf-btn primary md">看介紹</span>
-        </div>
-      </a>
-    )}
+    /* breadcrumb */
+    .services-root .breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+    @media (max-width: 760px) { .services-root .breadcrumb { margin-bottom: 18px; } }
+    .services-root .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+    .services-root .breadcrumb a:hover { color: var(--accent-press); }
+    .services-root .breadcrumb .ph { font-size: 11px; color: var(--rose-200); }
+    .services-root .breadcrumb .current { color: var(--ink-700); }
 
-    <ul class="card-wall">
-      {svcs.map((s) => (
-        <li class="svc-cell" data-source={s.source}>
-          <a class="svc-card zf-card interactive" href={`/services/${s.id}/`}>
-            <div class="sc-top">
-              <span class="sc-glyph">{glyphOf(s.name)}</span>
-              <span class="zf-badge rose"><span class="zf-badge-dot"></span>{sourceLabel(s.source)}</span>
-            </div>
-            <h3 class="sc-name cjk-title">{s.name}</h3>
-            {excerptOf(s) && <p class="sc-excerpt">{excerptOf(s)}</p>}
-            <div class="sc-meta">
-              {fmtPrice(s.price) && <span class="sc-price">{fmtPrice(s.price)}</span>}
-              {s.source === 'simplybook' && s.duration_minutes && (
-                <span class="sc-dur">{s.duration_minutes} 分鐘 · 一對一</span>
-              )}
-            </div>
-          </a>
-        </li>
-      ))}
-    </ul>
-    <p class="empty-note" data-empty hidden>這個分類目前沒有項目。</p>
+    /* chip filter row */
+    .services-root .chip-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 32px; }
+    @media (max-width: 760px) { .services-root .chip-row { margin-top: 24px; } }
+    .services-root .zf-chip { all: unset; cursor: pointer; white-space: nowrap; flex: none; font-family: var(--font-serif); font-size: 16px; font-weight: 500; letter-spacing: 0.01em; line-height: 1; color: var(--accent-press); background: var(--surface-card); border: 1px solid var(--rose-200); border-radius: var(--radius-pill); padding: 11px 20px; transition: all var(--dur-fast) var(--ease-soft); }
+    .services-root .zf-chip.selected { color: var(--text-on-accent); background: var(--accent); border-color: transparent; box-shadow: var(--shadow-sm); }
+    @media (max-width: 760px) { .services-root .zf-chip { font-size: 15px; padding: 10px 17px; } }
 
-    <section class="reading-cta">
-      <p class="rc-line cjk-title">不確定適合哪個項目？先占卜看看</p>
-      <a class="rc-btn" href="/">立即占卜</a>
-    </section>
-  </main>
+    /* featured highlight card */
+    .services-root .featured { display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center; margin-top: 28px; padding: 32px 36px; text-decoration: none; color: inherit; }
+    @media (max-width: 760px) { .services-root .featured { grid-template-columns: 1fr; gap: 18px; margin-top: 22px; padding: 24px 22px; } }
+    .services-root .ft-glyph { flex: none; width: 76px; height: 76px; display: flex; align-items: center; justify-content: center; background: var(--paper); border: 1px solid var(--rose-200); border-radius: var(--radius-lg); font-family: var(--font-serif); font-size: 40px; line-height: 1; color: var(--accent-press); }
+    @media (max-width: 760px) { .services-root .ft-glyph { width: 60px; height: 60px; font-size: 32px; } }
+    .services-root .ft-body { min-width: 0; }
+    .services-root .ft-name { font-family: var(--font-serif); font-size: 27px; font-weight: 500; line-height: 1.35; color: var(--ink-900); margin: 12px 0 0; }
+    @media (max-width: 760px) { .services-root .ft-name { font-size: 22px; } }
+    .services-root .featured:hover .ft-name { color: var(--accent-press); }
+    .services-root .ft-excerpt { font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin: 10px 0 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .services-root .ft-aside { flex: none; align-self: center; text-align: right; }
+    @media (max-width: 760px) { .services-root .ft-aside { text-align: left; } }
+    .services-root .ft-price { display: block; font-family: var(--font-serif); font-size: 28px; font-weight: 500; color: var(--ink-900); }
+    @media (max-width: 760px) { .services-root .ft-price { font-size: 24px; } }
+    .services-root .ft-dur { display: block; font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); white-space: nowrap; margin-bottom: 14px; }
+    .services-root .ft-aside .zf-btn { pointer-events: none; }
+
+    /* service card wall */
+    .services-root .card-wall { list-style: none; padding: 0; margin: 44px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; align-items: stretch; }
+    @media (max-width: 1024px) { .services-root .card-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 760px) { .services-root .card-wall { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; } }
+    .services-root .svc-cell[hidden] { display: none; }
+    .services-root .svc-card { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: inherit; padding: 26px 24px; }
+    @media (max-width: 760px) { .services-root .svc-card { padding: 22px 20px; } }
+    .services-root .sc-top { display: flex; align-items: center; gap: 12px; }
+    .services-root .sc-glyph { flex: none; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--paper); border: 1px solid var(--rose-100); border-radius: var(--radius-md); font-family: var(--font-serif); font-size: 24px; line-height: 1; color: var(--accent-press); }
+    .services-root .sc-name { font-family: var(--font-serif); font-size: 19px; font-weight: 500; line-height: 1.45; color: var(--ink-900); margin: 16px 0 0; }
+    .services-root .svc-card:hover .sc-name { color: var(--accent-press); }
+    .services-root .sc-excerpt { font-family: var(--font-serif); font-weight: 300; font-size: 14.5px; line-height: 1.8; color: var(--text-secondary); margin: 10px 0 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .services-root .sc-meta { margin-top: auto; padding-top: 16px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .services-root .sc-price { font-family: var(--font-serif); font-size: 17px; font-weight: 500; color: var(--accent-press); }
+    .services-root .sc-dur { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
+    .services-root .empty-note { font-family: var(--font-serif); font-size: 16px; color: var(--text-muted); text-align: center; margin: 40px 0; }
+
+    /* reading CTA (列表) */
+    .services-root .reading-cta { margin-top: 72px; padding: 38px 32px; text-align: center; background: linear-gradient(180deg, var(--surface-tint), var(--rose-50)); border: 1px solid var(--rose-100); border-radius: var(--radius-xl); }
+    @media (max-width: 760px) { .services-root .reading-cta { margin-top: 48px; padding: 30px 22px; } }
+    .services-root .rc-line { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--ink-900); margin: 0 0 20px; }
+    @media (max-width: 760px) { .services-root .rc-line { font-size: 19px; } }
+    .services-root .rc-btn { display: inline-block; padding: 15px 30px; font-family: var(--font-serif); font-size: 17px; font-weight: 500; letter-spacing: 0.04em; color: var(--text-on-accent); background: var(--accent); border-radius: var(--radius-pill); text-decoration: none; box-shadow: var(--shadow-sm); transition: background var(--dur-fast) var(--ease-soft); }
+    .services-root .rc-btn:hover { background: var(--accent-hover); text-decoration: none; }
+
+    /* ── 詳情 view ── */
+    .services-root .layout { display: grid; grid-template-columns: 1fr 360px; gap: 44px; align-items: start; }
+    @media (max-width: 900px) { .services-root .layout { grid-template-columns: 1fr; gap: 28px; } }
+    .services-root .dt-head { padding-bottom: 26px; border-bottom: 1px solid var(--border-soft); }
+    .services-root .dt-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .services-root .dt-head h1 { font-family: var(--font-serif); font-size: 38px; font-weight: 500; line-height: 1.3; color: var(--ink-900); margin: 0; }
+    @media (max-width: 760px) { .services-root .dt-head h1 { font-size: 28px; } }
+    .services-root .dt-intro { font-family: var(--font-serif); font-weight: 300; font-size: 17.5px; line-height: 1.9; color: var(--ink-700); margin: 18px 0 0; word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+    @media (max-width: 760px) { .services-root .dt-intro { font-size: 16px; } }
+    .services-root .dt-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 20px; font-family: var(--font-sans); font-size: 14px; color: var(--text-secondary); }
+    .services-root .dt-meta .dot { color: var(--rose-200); }
+    .services-root .dt-price { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--accent-press); }
+
+    .services-root .dt-section { margin-top: 40px; }
+    @media (max-width: 760px) { .services-root .dt-section { margin-top: 32px; } }
+    .services-root .dt-section > h2 { font-family: var(--font-serif); font-size: 24px; font-weight: 500; color: var(--ink-900); margin: 0 0 16px; }
+    @media (max-width: 760px) { .services-root .dt-section > h2 { font-size: 21px; } }
+    .services-root .dt-body { font-family: var(--font-serif); font-weight: 300; font-size: 17.5px; line-height: 1.95; color: var(--ink-700); margin: 0; word-break: normal; overflow-wrap: anywhere; text-wrap: auto; white-space: pre-line; }
+    @media (max-width: 760px) { .services-root .dt-body { font-size: 16px; } }
+
+    .services-root .includes { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+    .services-root .includes li { display: flex; align-items: flex-start; gap: 11px; font-family: var(--font-serif); font-size: 16.5px; font-weight: 300; line-height: 1.7; color: var(--ink-700); }
+    @media (max-width: 760px) { .services-root .includes li { font-size: 15.5px; } }
+    .services-root .includes .ph-fill { flex: none; font-size: 20px; color: var(--sage-400); margin-top: 2px; }
+
+    .services-root .related-list { display: flex; flex-direction: column; gap: 12px; }
+    .services-root .related-item { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; padding: 16px 18px; }
+    .services-root .ri-glyph { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: var(--paper); border: 1px solid var(--rose-100); border-radius: var(--radius-md); font-family: var(--font-serif); font-size: 21px; line-height: 1; color: var(--accent-press); }
+    .services-root .ri-text { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .services-root .ri-title { font-family: var(--font-serif); font-size: 16.5px; font-weight: 500; color: var(--ink-900); }
+    .services-root .related-item:hover .ri-title { color: var(--accent-press); }
+    .services-root .ri-desc { font-family: var(--font-serif); font-weight: 300; font-size: 13.5px; line-height: 1.7; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    .services-root .aside { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 20px; }
+    @media (max-width: 900px) { .services-root .aside { position: static; } }
+    .services-root .book-card { box-shadow: var(--shadow-md); display: flex; flex-direction: column; }
+    .services-root .bc-label { font-family: var(--font-sans); font-size: 12.5px; font-weight: 500; letter-spacing: 0.02em; color: var(--text-muted); }
+    .services-root .bc-price-row { display: flex; align-items: baseline; gap: 8px; margin: 12px 0 20px; }
+    .services-root .bc-price { font-family: var(--font-serif); font-size: 28px; font-weight: 500; color: var(--ink-900); }
+    .services-root .bc-dur { font-family: var(--font-sans); font-size: 14px; color: var(--text-muted); }
+    .services-root .bc-note { font-family: var(--font-sans); font-size: 12.5px; line-height: 1.6; color: var(--text-muted); margin: 14px 0 0; text-align: center; }
+
+    .services-root .reading-cta.compact { margin-top: 0; padding: 28px 24px; }
+    .services-root .reading-cta.compact .rc-line { font-size: 18px; margin-bottom: 16px; }
+    .services-root .reading-cta.compact .rc-btn { padding: 13px 28px; font-size: 16px; }
+
+    .services-root .back-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 40px; font-family: var(--font-sans); font-size: 14px; color: var(--accent-press); text-decoration: none; }
+    .services-root .back-link .ph { font-size: 15px; }
+    .services-root .back-link:hover { text-decoration: underline; }
+  </style>
+
+  <script type="module" is:inline>
+    (function () {
+      var WORKER_API = 'https://api.winds.tw';
+      var shell = document.getElementById('svcShell');
+      var skel = document.getElementById('svcSkel');
+      var fallback = document.getElementById('svcFallback');
+
+      function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+      function stripTags(s) { return String(s == null ? '' : s).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
+      function nf(n) { return (Number(n) || 0).toLocaleString('en-US'); }
+      function priceLabel(it) { return (it.price && it.price > 0) ? 'NT$' + nf(it.price) : ''; }
+      function srcLabel(src) { return src === 'sb' ? '預約諮詢' : '法器'; }
+      function glyphOf(name) {
+        var cleaned = String(name || '').replace(/[【】\[\]（）()]/g, '').trim();
+        var m = cleaned.match(/[一-鿿]/);
+        return m ? m[0] : (cleaned.charAt(0) || '·');
+      }
+      function excerptOf(it) { return it.llm || stripTags(it.desc); }
+
+      function fail() { skel && (skel.hidden = true); shell.innerHTML = ''; fallback.hidden = false; }
+
+      /* ── 列表 view ── */
+      function renderList(items) {
+        var sb = items.filter(function (x) { return x.source === 'sb'; });
+        var featured = sb.find(function (x) { return /知運勢|代觀/.test(x.name); }) ||
+          sb.find(function (x) { return /元辰宮/.test(x.name); }) ||
+          [...sb].filter(function (x) { return x.price > 0; }).sort(function (a, b) { return b.price - a.price; })[0];
+
+        var chips = [
+          { key: 'all', name: '全部' },
+          { key: 'sb', name: '預約諮詢' },
+          { key: 'es', name: '法器選物' },
+        ].map(function (c, i) {
+          return '<button class="zf-chip' + (i === 0 ? ' selected' : '') + '" data-filter="' + c.key + '" aria-pressed="' + (i === 0 ? 'true' : 'false') + '">' + esc(c.name) + '</button>';
+        }).join('');
+
+        var featuredHtml = featured ? (
+          '<a class="featured zf-card tint interactive" href="/services?id=' + esc(featured.source) + '-' + esc(featured.id) + '" data-featured>' +
+            '<span class="ft-glyph">' + esc(glyphOf(featured.name)) + '</span>' +
+            '<div class="ft-body">' +
+              '<span class="zf-badge rose"><span class="zf-badge-dot"></span>' + esc(srcLabel(featured.source)) + '</span>' +
+              '<h2 class="ft-name cjk-title">' + esc(featured.name) + '</h2>' +
+              (excerptOf(featured) ? '<p class="ft-excerpt">' + esc(excerptOf(featured)) + '</p>' : '') +
+            '</div>' +
+            '<div class="ft-aside">' +
+              (priceLabel(featured) ? '<span class="ft-price">' + priceLabel(featured) + '</span>' : '') +
+              (featured.duration ? '<span class="ft-dur">' + esc(featured.duration) + ' 分鐘 · 一對一</span>' : '') +
+              '<span class="zf-btn primary md">看介紹</span>' +
+            '</div>' +
+          '</a>'
+        ) : '';
+
+        var cells = items.map(function (it) {
+          return '<li class="svc-cell" data-source="' + esc(it.source) + '">' +
+            '<a class="svc-card zf-card interactive" href="/services?id=' + esc(it.source) + '-' + esc(it.id) + '">' +
+              '<div class="sc-top"><span class="sc-glyph">' + esc(glyphOf(it.name)) + '</span>' +
+                '<span class="zf-badge rose"><span class="zf-badge-dot"></span>' + esc(srcLabel(it.source)) + '</span></div>' +
+              '<h3 class="sc-name cjk-title">' + esc(it.name) + '</h3>' +
+              (excerptOf(it) ? '<p class="sc-excerpt">' + esc(excerptOf(it)) + '</p>' : '') +
+              '<div class="sc-meta">' +
+                (priceLabel(it) ? '<span class="sc-price">' + priceLabel(it) + '</span>' : '') +
+                (it.source === 'sb' && it.duration ? '<span class="sc-dur">' + esc(it.duration) + ' 分鐘 · 一對一</span>' : '') +
+              '</div>' +
+            '</a></li>';
+        }).join('');
+
+        shell.innerHTML =
+          '<nav class="breadcrumb" aria-label="麵包屑"><a href="/">首頁</a><i class="ph ph-caret-right"></i><span class="current">預約項目</span></nav>' +
+          '<header class="zf-page-header"><span class="zf-ph-eyebrow">預約項目</span>' +
+            '<h1 class="zf-ph-title cjk-title">想為哪件事，找個人好好聊？</h1>' +
+            '<p class="zf-ph-lede">不確定怎麼選？先占卜，再決定。</p></header>' +
+          '<nav class="chip-row" aria-label="項目分類">' + chips + '</nav>' +
+          featuredHtml +
+          '<ul class="card-wall">' + cells + '</ul>' +
+          '<p class="empty-note" data-empty hidden>這個分類目前沒有項目。</p>' +
+          '<section class="reading-cta"><p class="rc-line cjk-title">不確定適合哪個項目？先占卜看看</p>' +
+            '<a class="rc-btn" href="/">立即占卜</a></section>';
+
+        wireFilter();
+      }
+
+      function wireFilter() {
+        var chips = shell.querySelectorAll('.chip-row .zf-chip');
+        var cells = shell.querySelectorAll('.svc-cell');
+        var featured = shell.querySelector('[data-featured]');
+        var empty = shell.querySelector('[data-empty]');
+        function apply(filter) {
+          var shown = 0;
+          cells.forEach(function (cell) {
+            var match = filter === 'all' || cell.dataset.source === filter;
+            cell.hidden = !match;
+            if (match) shown++;
+          });
+          if (featured) featured.hidden = filter !== 'all';
+          if (empty) empty.hidden = shown !== 0;
+        }
+        chips.forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            chips.forEach(function (c) { c.classList.remove('selected'); c.setAttribute('aria-pressed', 'false'); });
+            chip.classList.add('selected'); chip.setAttribute('aria-pressed', 'true');
+            apply(chip.dataset.filter || 'all');
+          });
+        });
+      }
+
+      /* ── 詳情 view ── */
+      function renderDetail(it, all) {
+        var isSB = it.source === 'sb';
+        var sourceLabel = srcLabel(it.source);
+        var descBody = stripTags(it.desc);
+        var intro = it.llm || descBody;
+        var priceTxt = priceLabel(it);
+        var durTxt = (isSB && it.duration) ? it.duration + ' 分鐘' : '';
+
+        var includes = isSB
+          ? ['一對一即時對談（線上或實體）', '老師親自為你解讀與建議', '可預約你方便的時段']
+          : ['開光法器，老師親手處理', '超商店到店 · 7 天內出貨', '台灣限定寄送'];
+        var includesHtml = includes.map(function (x) {
+          return '<li><i class="ph-fill ph-check-circle"></i><span>' + esc(x) + '</span></li>';
+        }).join('');
+
+        var related = all.filter(function (x) { return x.source === it.source && !(x.id === it.id && x.source === it.source); }).slice(0, 3);
+        var relatedHtml = related.length ? (
+          '<section class="dt-section"><h2>相關項目</h2><div class="related-list">' +
+          related.map(function (r) {
+            return '<a class="zf-card interactive related-item" href="/services?id=' + esc(r.source) + '-' + esc(r.id) + '">' +
+              '<span class="ri-glyph">' + esc(glyphOf(r.name)) + '</span>' +
+              '<span class="ri-text"><span class="ri-title cjk-title">' + esc(r.name) + '</span>' +
+              (excerptOf(r) ? '<span class="ri-desc">' + esc(excerptOf(r)) + '</span>' : '') + '</span></a>';
+          }).join('') + '</div></section>'
+        ) : '';
+
+        var primaryHref = isSB ? '/booking' : (it.url || '/booking');
+        var primaryLabel = isSB ? '預約老師' : '前往購買';
+        var reassurance = isSB ? '報名與付款將前往安全頁完成' : '超商店到店 · 7天內 · 台灣限定';
+        var primaryBtn = isSB
+          ? '<a class="zf-btn primary lg full" href="' + esc(primaryHref) + '">' + esc(primaryLabel) + '</a>'
+          : '<a class="zf-btn primary lg full" href="' + esc(primaryHref) + '" target="_blank" rel="noopener">' + esc(primaryLabel) + '</a>';
+
+        shell.innerHTML =
+          '<nav class="breadcrumb" aria-label="麵包屑"><a href="/">首頁</a><i class="ph ph-caret-right"></i>' +
+            '<a href="/services">' + esc(sourceLabel) + '</a><i class="ph ph-caret-right"></i>' +
+            '<span class="current cjk-title">' + esc(it.name) + '</span></nav>' +
+          '<div class="layout"><article class="main">' +
+            '<header class="dt-head"><div class="dt-tags">' +
+              '<span class="zf-badge rose"><span class="zf-badge-dot"></span>' + esc(sourceLabel) + '</span>' +
+              (durTxt ? '<span class="zf-tag rose">' + esc(durTxt) + '</span>' : '') + '</div>' +
+              '<h1 class="cjk-title">' + esc(it.name) + '</h1>' +
+              (intro ? '<p class="dt-intro">' + esc(intro) + '</p>' : '') +
+              '<div class="dt-meta">' +
+                (priceTxt ? '<span class="dt-price">' + priceTxt + '</span>' : '') +
+                (durTxt ? '<span class="dot">·</span><span>' + esc(durTxt) + '</span>' : '') +
+              '</div></header>' +
+            (descBody ? '<section class="dt-section"><h2>項目說明</h2><p class="dt-body">' + esc(descBody) + '</p></section>' : '') +
+            '<section class="dt-section"><h2>' + (isSB ? '這項諮詢包含' : '這件法器') + '</h2><ul class="includes">' + includesHtml + '</ul></section>' +
+            relatedHtml +
+            '<a class="back-link" href="/services"><i class="ph ph-arrow-left"></i>回項目列表</a>' +
+          '</article>' +
+          '<aside class="aside"><div class="book-card zf-card">' +
+            '<span class="bc-label">' + (isSB ? '預約這個項目' : '請這件法器') + '</span>' +
+            (priceTxt ? '<div class="bc-price-row"><span class="bc-price">' + priceTxt + '</span>' +
+              (isSB && durTxt ? '<span class="bc-dur">/ ' + esc(it.duration) + ' 分鐘</span>' : '') + '</div>' : '') +
+            primaryBtn +
+            '<p class="bc-note">' + esc(reassurance) + '</p></div>' +
+            '<section class="reading-cta compact"><p class="rc-line cjk-title">不確定適合哪個項目？</p>' +
+            '<a class="rc-btn" href="/">立即占卜</a></section>' +
+          '</aside></div>';
+      }
+
+      function route(items) {
+        var params = new URLSearchParams(window.location.search);
+        var rid = params.get('id');
+        if (skel) skel.hidden = true;
+        if (rid) {
+          var m = rid.match(/^(sb|es)-(.+)$/);
+          if (m) {
+            var src = m[1], id = m[2];
+            var it = items.find(function (x) { return x.source === src && String(x.id) === String(id); });
+            if (it) { document.title = (it.seo_title || it.name) + '｜找風問幸福'; renderDetail(it, items); return; }
+          }
+        }
+        renderList(items);
+      }
+
+      Promise.all([
+        fetch(WORKER_API + '/sb-services').then(function (r) { return r.json(); }),
+        fetch(WORKER_API + '/shop-products').then(function (r) { return r.json(); }),
+      ]).then(function (res) {
+        var sb = ((res[0] && res[0].services) || []).map(function (s) {
+          return { source: 'sb', id: s.id, name: s.name, price: Number(s.price) || 0, duration: s.duration || null, image: s.image || '', desc: s.desc || '', llm: (s.llm || '').trim(), category: s.category || '', seo_title: s.seo_title || '' };
+        });
+        var es = ((res[1] && res[1].products) || []).map(function (p) {
+          return { source: 'es', id: p.id, name: p.name, price: Number(p.price) || 0, duration: null, image: p.image || '', desc: p.desc || '', llm: (p.llm || '').trim(), url: p.url || '', variants: p.variants || null };
+        });
+        var items = sb.concat(es);
+        if (!items.length) { fail(); return; }
+        route(items);
+      }).catch(fail);
+    })();
+  </script>
 </BaseLayout>
-
-<script>
-  const chips = document.querySelectorAll<HTMLButtonElement>('.chip-row .zf-chip');
-  const cells = document.querySelectorAll<HTMLElement>('.svc-cell');
-  const featured = document.querySelector<HTMLElement>('[data-featured]');
-  const empty = document.querySelector<HTMLElement>('[data-empty]');
-
-  function applyFilter(filter: string) {
-    let shown = 0;
-    cells.forEach((cell) => {
-      const match = filter === 'all' || cell.dataset.source === filter;
-      cell.hidden = !match;
-      if (match) shown++;
-    });
-    if (featured) featured.hidden = filter !== 'all';
-    if (empty) empty.hidden = shown !== 0;
-  }
-
-  chips.forEach((chip) => {
-    chip.addEventListener('click', () => {
-      chips.forEach((c) => {
-        c.classList.remove('selected');
-        c.setAttribute('aria-pressed', 'false');
-      });
-      chip.classList.add('selected');
-      chip.setAttribute('aria-pressed', 'true');
-      applyFilter(chip.dataset.filter || 'all');
-    });
-  });
-</script>
-
-<style>
-  .svc-index { max-width: var(--container); margin: 0 auto; padding: 44px 32px 72px; background: var(--surface-page); }
-  @media (max-width: 760px) { .svc-index { padding: 28px 20px 48px; } }
-  .cjk-title { word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
-
-  /* breadcrumb */
-  .breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
-  @media (max-width: 760px) { .breadcrumb { margin-bottom: 18px; } }
-  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
-  .breadcrumb a:hover { color: var(--accent-press); }
-  .breadcrumb .ph { font-size: 11px; color: var(--rose-200); }
-  .breadcrumb .current { color: var(--ink-700); }
-
-  /* chip filter row */
-  .chip-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 32px; }
-  @media (max-width: 760px) { .chip-row { margin-top: 24px; } }
-
-  /* featured highlight card */
-  .featured { display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center; margin-top: 28px; text-decoration: none; color: inherit; }
-  @media (max-width: 760px) { .featured { grid-template-columns: 1fr; gap: 18px; margin-top: 22px; } }
-  .ft-glyph { flex: none; width: 76px; height: 76px; display: flex; align-items: center; justify-content: center; background: var(--paper); border: 1px solid var(--rose-200); border-radius: var(--radius-lg); font-family: var(--font-serif); font-size: 40px; line-height: 1; color: var(--accent-press); }
-  @media (max-width: 760px) { .ft-glyph { width: 60px; height: 60px; font-size: 32px; } }
-  .ft-body { min-width: 0; }
-  .ft-name { font-family: var(--font-serif); font-size: 27px; font-weight: 500; line-height: 1.35; color: var(--ink-900); margin: 12px 0 0; }
-  @media (max-width: 760px) { .ft-name { font-size: 22px; } }
-  .featured:hover .ft-name { color: var(--accent-press); }
-  .ft-excerpt { font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin: 10px 0 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .ft-aside { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; text-align: right; }
-  @media (max-width: 760px) { .ft-aside { align-items: flex-start; text-align: left; } }
-  .ft-price { font-family: var(--font-serif); font-size: 28px; font-weight: 500; color: var(--ink-900); }
-  @media (max-width: 760px) { .ft-price { font-size: 24px; } }
-  .ft-dur { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); white-space: nowrap; }
-  .ft-aside .zf-btn { margin-top: 6px; pointer-events: none; }
-
-  /* service card wall */
-  .card-wall { list-style: none; padding: 0; margin: 44px 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
-  @media (max-width: 1024px) { .card-wall { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 760px) { .card-wall { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; } }
-  .svc-cell[hidden] { display: none; }
-  .svc-card { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: inherit; }
-  .sc-top { display: flex; align-items: center; gap: 12px; }
-  .sc-glyph { flex: none; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--paper); border: 1px solid var(--rose-100); border-radius: var(--radius-md); font-family: var(--font-serif); font-size: 24px; line-height: 1; color: var(--accent-press); }
-  .sc-name { font-family: var(--font-serif); font-size: 19px; font-weight: 500; line-height: 1.45; color: var(--ink-900); margin: 16px 0 0; }
-  .svc-card:hover .sc-name { color: var(--accent-press); }
-  .sc-excerpt { font-family: var(--font-serif); font-weight: 300; font-size: 14.5px; line-height: 1.8; color: var(--text-secondary); margin: 10px 0 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .sc-meta { margin-top: auto; padding-top: 16px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .sc-price { font-family: var(--font-serif); font-size: 17px; font-weight: 500; color: var(--accent-press); }
-  .sc-dur { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
-
-  .empty-note { font-family: var(--font-serif); font-size: 16px; color: var(--text-muted); text-align: center; margin: 40px 0; }
-
-  /* reading CTA */
-  .reading-cta { margin-top: 72px; padding: 38px 32px; text-align: center; background: linear-gradient(180deg, var(--surface-tint), var(--rose-50)); border: 1px solid var(--rose-100); border-radius: var(--radius-xl); }
-  @media (max-width: 760px) { .reading-cta { margin-top: 48px; padding: 30px 22px; } }
-  .rc-line { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--ink-900); margin: 0 0 20px; }
-  @media (max-width: 760px) { .rc-line { font-size: 19px; } }
-  .rc-btn { display: inline-block; padding: 15px 30px; font-family: var(--font-serif); font-size: 17px; font-weight: 500; letter-spacing: 0.04em; color: var(--text-on-accent); background: var(--accent); border-radius: var(--radius-pill); text-decoration: none; box-shadow: var(--shadow-sm); transition: background var(--dur-fast) var(--ease-soft); }
-  .rc-btn:hover { background: var(--accent-hover); text-decoration: none; }
-</style>

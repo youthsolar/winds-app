@@ -128,7 +128,7 @@ const br = (s) => s.split('\n');
       <div class="sh"><h2 class="sh-title cjk">預約項目</h2><p class="sh-lede">老師親自諮詢與進行法事。</p></div>
       <div class="svc-grid">
         {FEATURED && (
-        <a class="svc-featured" href={`/services/${FEATURED.id}/`}>
+        <a class="svc-featured" href={`/services?id=sb-${FEATURED.id}`} id="homeSvcFeatured">
           <div class="sf-head">
             <span class="disc lg">{FEATURED.glyph}</span>
             <div><span class="badge">{FEATURED.kind}</span><h3>{FEATURED.name}</h3></div>
@@ -140,9 +140,9 @@ const br = (s) => s.split('\n');
           </div>
         </a>
         )}
-        <div class="svc-small">
+        <div class="svc-small" id="homeSvcSmall">
           {SVC.map(it => (
-            <a class="svc-card" href={`/services/${it.id}/`}>
+            <a class="svc-card" href={`/services?id=sb-${it.id}`}>
               <span class="disc">{it.glyph}</span>
               <div class="sc-body">
                 <h4>{it.name}</h4><p>{it.line}</p>
@@ -302,6 +302,55 @@ const br = (s) => s.split('\n');
           (line?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13px;line-height:1.6;color:var(--text-secondary)">'+escH(line)+'</div>':'')+'</div>'+
           '<span style="font-family:var(--font-sans);font-size:13.5px;color:var(--ink-700);white-space:nowrap">NT$ '+escH(p.price)+'</span></div>';
       }).join('');
+    }).catch(function(){});
+  })();
+
+  /* 預約項目：接真實 SB 服務（/sb-services），覆蓋 SSR 佔位 */
+  (function(){
+    var featBox = document.getElementById('homeSvcFeatured');
+    var smallBox = document.getElementById('homeSvcSmall');
+    if(!featBox && !smallBox) return;
+    function cleanNm(n){ return String(n||'').replace(/^[【\[]/,'').replace(/[】\]][\s\S]*$/,'').trim() || n; }
+    function glyph(n){ var m = String(n||'').replace(/[【\[\(（][^】\]\)）]*[】\]\)）]/g,'').match(/[一-鿿]/); return m ? m[0] : '占'; }
+    function ntd(p){ return 'NT$ ' + (Number(p)||0).toLocaleString('en-US'); }
+    fetch('https://api.winds.tw/sb-services').then(function(r){return r.json();}).then(function(d){
+      var all = ((d && d.services) || []).filter(function(s){ return (Number(s.price)||0) > 0; });
+      if(!all.length) return;
+      var featured = all.find(function(s){ return /元辰宮|知運勢/.test(s.name); }) || all[0];
+      // featured 卡
+      if(featBox && featured){
+        featBox.setAttribute('href', '/services?id=sb-' + featured.id);
+        var fLine = String(featured.llm || (featured.desc||'').replace(/<[^>]+>/g,'') || '').replace(/\s+/g,' ').trim().slice(0,64);
+        var fDur = featured.duration ? (featured.duration + ' 分鐘') : '一對一';
+        featBox.innerHTML =
+          '<div class="sf-head"><span class="disc lg">'+escH(glyph(featured.name))+'</span>' +
+            '<div><span class="badge">主力靈性診斷</span><h3>'+escH(cleanNm(featured.name))+'</h3></div></div>' +
+          '<p class="sf-line">'+escH(fLine)+'</p>' +
+          '<div class="sf-foot"><span><span class="meta">'+escH(fDur)+' · 一對一</span>' +
+            '<span class="price">'+escH(ntd(featured.price))+'</span></span>' +
+            '<span class="go">看介紹 <i class="ph ph-arrow-right"></i></span></div>';
+      }
+      // 2 張小卡：依品牌主題挑，去重排除 featured
+      if(smallBox){
+        var picks = [], used = {};
+        used[featured && featured.id] = true;
+        [/水鏡|查因果|通靈/, /命書|籤詩|問事/].forEach(function(re){
+          var f = all.find(function(s){ return re.test(s.name) && !used[s.id]; });
+          if(f){ picks.push(f); used[f.id] = true; }
+        });
+        for(var i=0;i<all.length && picks.length<2;i++){ if(!used[all[i].id]){ picks.push(all[i]); used[all[i].id]=true; } }
+        if(picks.length){
+          smallBox.innerHTML = picks.slice(0,2).map(function(s){
+            var line = String(s.llm || (s.desc||'').replace(/<[^>]+>/g,'') || '').replace(/\s+/g,' ').trim().slice(0,40);
+            var dur = s.duration ? (s.duration + ' 分鐘') : '一對一';
+            return '<a class="svc-card" href="/services?id=sb-'+escH(s.id)+'">' +
+              '<span class="disc">'+escH(glyph(s.name))+'</span>' +
+              '<div class="sc-body"><h4>'+escH(cleanNm(s.name))+'</h4><p>'+escH(line)+'</p>' +
+              '<div class="sc-foot"><span class="price">'+escH(ntd(s.price))+'</span>' +
+              '<span class="meta">'+escH(dur)+'</span></div></div></a>';
+          }).join('');
+        }
+      }
     }).catch(function(){});
   })();
 })();
