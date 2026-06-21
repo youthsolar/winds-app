@@ -71,7 +71,8 @@ import { PERSONAS } from '../data/booking-teachers';
     .bk-rec-reason i{font-size:18px;color:var(--rose-500);flex:none;margin-top:2px;}
     .bk-rec-reason span{font-family:var(--font-serif);font-size:16px;line-height:1.75;color:var(--ink-700);}
 
-    .bk-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+    .bk-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;}
+    @media (max-width:1024px){.bk-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
     .bk-empty{font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-muted);text-align:center;padding:32px 0;}
     .bk-skel{height:320px;border-radius:var(--radius-lg);background:linear-gradient(90deg,var(--rice-100),var(--rice-50),var(--rice-100));background-size:200% 100%;animation:bkShim 1.4s linear infinite;}
     @keyframes bkShim{to{background-position:-200% 0;}}
@@ -146,7 +147,7 @@ import { PERSONAS } from '../data/booking-teachers';
     .booking-root .tc-tag.soft.rose{background:var(--rose-50);color:var(--rose-600);}
     .booking-root .tc-tag.soft.clay{background:var(--tint-clay-hi);color:var(--clay-500);}
     .booking-root .tc-tag.soft.sage{background:var(--tint-sage-hi);color:var(--sage-500);}
-    .booking-root .tc-tag.outline{background:transparent;color:var(--ink-500);border-color:var(--rice-300);}
+    .booking-root .tc-tag.outline{background:transparent;color:var(--ink-500);border-color:var(--rice-300);white-space:normal;}
     .booking-root .tc-blurb{font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.8;color:var(--text-secondary);margin:16px 0 0;}
     .booking-root .tc-quote{display:flex;align-items:flex-start;gap:8px;margin:14px 0 0;padding:12px 14px;background:var(--surface-sunken);border-radius:var(--radius-md);}
     .booking-root .tc-quote i{font-size:14px;color:var(--rose-300);flex:none;margin-top:3px;}
