@@ -175,6 +175,7 @@ import '../styles/global.css';
 
     var S={mode:"self",userId:"",idToken:"",sessionId:null,sending:false,
       subscribed:false,lockedBirthday:null,freeRemaining:null,profileExpanded:false,astro:null,
+      spiritName:"",spiritTraits:null,
       targetDate:"",targetTime:"",targetConfirmed:false,hasMsg:false};
 
     function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -229,13 +230,15 @@ import '../styles/global.css';
     function renderProfile(){
       var el=document.getElementById("spProf");if(!el)return;
       var isSelf=S.mode==="self";
-      var name=isSelf?"你的分靈體":"對象的分靈體";
-      var glyph=isSelf?"靈":"緣";
+      var hasName=isSelf&&S.spiritName;
+      var name=hasName?S.spiritName:(isSelf?"你的分靈體":"對象的分靈體");
+      var glyph=hasName?S.spiritName.slice(0,1):(isSelf?"靈":"緣");
       var sub=isSelf?"就是最懂你的老師":"感應對象的靈性頻率";
+      var traits=(hasName&&S.spiritTraits&&S.spiritTraits.length)?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">'+S.spiritTraits.map(function(t){return '<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-600);background:var(--rose-50);border:1px solid var(--rose-100);border-radius:var(--radius-pill);padding:2px 10px">'+esc(t)+'</span>'}).join("")+'</div>':'';
       var body=S.astro?factHtml(S.astro):'<p style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-muted);margin:0">開始對話後，這裡會顯示'+(isSelf?"你":"對象")+'的命理檔案。</p>';
       el.innerHTML='<div class="sp-prof"><div class="sp-prof-row">'+
-        '<span class="sp-prof-av">'+glyph+'</span>'+
-        '<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="sp-prof-name">'+name+'</span><span class="sp-prof-tag">'+(isSelf?"你的分靈體":"對象分靈體感應中")+'</span></div><div class="sp-prof-sub">'+sub+'</div></div>'+
+        '<span class="sp-prof-av">'+esc(glyph)+'</span>'+
+        '<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="sp-prof-name">'+esc(name)+'</span><span class="sp-prof-tag">'+(isSelf?"你的分靈體":"對象分靈體感應中")+'</span></div><div class="sp-prof-sub">'+sub+'</div>'+traits+'</div>'+
         '<button class="sp-prof-toggle" onclick="toggleProfile()">'+ic(S.profileExpanded?"caret-up":"caret-down")+(S.profileExpanded?"收起":"命理檔案")+'</button>'+
         '</div>'+(S.profileExpanded?'<div class="sp-prof-body">'+body+'</div>':'')+'</div>';
     }
@@ -301,17 +304,18 @@ import '../styles/global.css';
       return "先把對象的生日告訴我，我才能接收他的頻率。";
     }
     function showWelcome(){document.getElementById("spMsgs").innerHTML="";appendMsg("spirit",welcomeText(),nowHM())}
+    function avGlyph(){if(S.mode==="self")return S.spiritName?esc(S.spiritName.slice(0,1)):"靈";return "緣"}
     function appendMsg(role,text,time){
       var box=document.getElementById("spMsgs");if(!box)return null;
       var isUser=role==="user";
       var row=document.createElement("div");row.className="sp-bubble "+(isUser?"user":"spirit");
-      var av=isUser?'':'<span class="sp-av">'+(S.mode==="self"?"靈":"緣")+'</span>';
+      var av=isUser?'':'<span class="sp-av">'+avGlyph()+'</span>';
       row.innerHTML=av+'<div class="sp-bubble-in"><p class="sp-bubble-txt">'+esc(text)+'</p>'+(time?'<div class="sp-time">'+esc(time)+'</div>':'')+'</div>'+(isUser?'<span style="width:32px;flex:none"></span>':'');
       box.appendChild(row);box.scrollTop=box.scrollHeight;return row;
     }
     function showTyping(){
       var box=document.getElementById("spMsgs");var d=document.createElement("div");d.className="sp-typing";d.id="spTyping";
-      d.innerHTML='<span class="sp-av">'+(S.mode==="self"?"靈":"緣")+'</span><div class="dots"><span></span><span></span><span></span></div>';
+      d.innerHTML='<span class="sp-av">'+avGlyph()+'</span><div class="dots"><span></span><span></span><span></span></div>';
       box.appendChild(d);box.scrollTop=box.scrollHeight;return d;
     }
     function removeTyping(){var t=document.getElementById("spTyping");if(t&&t.parentNode)t.parentNode.removeChild(t)}
@@ -345,7 +349,9 @@ import '../styles/global.css';
          if(d.has_subscription){S.subscribed=true}
          if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;
          renderCount();
-         if(d.astro){S.astro=d.astro;renderProfile()}
+         if(d.spirit_name)S.spiritName=d.spirit_name;
+         if(d.spirit_traits&&d.spirit_traits.length)S.spiritTraits=d.spirit_traits;
+         if(d.astro){S.astro=d.astro;renderProfile()}else if(d.spirit_name){renderProfile()}
          appendMsg("spirit",d.reply,nowHM());
          S.hasMsg=true;
        })
