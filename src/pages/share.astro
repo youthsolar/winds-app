@@ -1,0 +1,150 @@
+---
+/*
+ * 分享落地頁 /share?uid= — 純 Astro + vanilla（公開頁，無需登入）。
+ * 視覺＝DS share-page.jsx（415a282e）逐值對齊：分享者 + 本命資訊 + 本命塔羅(1顯3鎖)
+ *   + 五行/靈符柔光鎖 + 抽牌 CTA + 品牌。
+ * 資料＝worker /share-profile?uid=（公開命理：星座/生肖/星宿/本命塔羅；農曆等 PII 已由 C6 排除）。
+ * OG＝靜態通用預覽（per-user 動態 OG 走 worker，未來增強）。
+ */
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>命理報告 · 找風問幸福</title>
+  <meta name="description" content="易經 × 塔羅 × 量能靈符——抽一張牌，看你的五行分佈與專屬靈符。" />
+  <meta property="og:title" content="找風問幸福 — 一份命理報告" />
+  <meta property="og:description" content="抽一張牌，看你的本命塔羅、五行分佈與量能靈符 ✨" />
+  <meta property="og:image" content="https://app.winds.tw/assets/og-share.png" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
+
+  <style is:global>
+    body{margin:0;background:var(--surface-page)}
+    .sh-wrap{max-width:440px;margin:0 auto;padding:28px 18px 56px}
+    .sh-sharer{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+    .sh-av{flex:none;width:44px;height:44px;border-radius:999px;background:var(--rose-100);color:var(--rose-600);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:18px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
+    .sh-sharer-t{font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)}
+    .sh-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:22px 20px;margin-bottom:14px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+    .sh-lbl{font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:10px}
+    .sh-facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .sh-fact{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 18px}
+    .sh-fact dt{font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:7px}
+    .sh-fact dd{margin:0;font-family:var(--font-serif);font-size:21px;font-weight:500;color:var(--ink-900);line-height:1.3}
+    .sh-tarot{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .sh-tcard{position:relative;aspect-ratio:.62;border-radius:var(--radius-md);border:1px solid var(--rose-200);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 8px;text-align:center;overflow:hidden}
+    .sh-tpos{position:absolute;top:7px;right:7px;z-index:2;font-family:var(--font-sans);font-size:12px;color:var(--rose-600);background:transparent;border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:2px 9px}
+    .sh-tdisc{position:relative;display:inline-flex;width:44px;height:44px;border-radius:999px;background:var(--disc-frost-soft);border:1px solid rgba(255,253,248,.8);align-items:center;justify-content:center;font-family:var(--font-serif);font-size:22px;line-height:1;margin-bottom:8px;flex-shrink:0}
+    .sh-tname{position:relative;font-family:var(--font-serif);font-size:14px;font-weight:500;color:var(--ink-900)}
+    .sh-trule{position:relative;width:18px;height:1px;background:var(--rose-200);margin:5px auto}
+    .sh-tline{position:relative;font-family:var(--font-serif);font-weight:300;font-size:11px;line-height:1.6;color:var(--text-secondary);padding:0 4px}
+    .sh-tlock{aspect-ratio:.62;border-radius:var(--radius-md);border:1px solid var(--rose-200);display:flex;align-items:center;justify-content:center;filter:blur(6px);opacity:.5;font-family:var(--font-serif);font-size:22px;color:var(--rose-300)}
+    .sh-veil{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px;background:var(--bar-translucent);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+    .sh-veil-t{font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--ink-900)}
+    .sh-veil-s{font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-secondary)}
+    .sh-veil i{color:var(--rose-400)}
+    .sh-cta{text-align:center;margin-bottom:28px}
+    .sh-cta-h{font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900);margin-bottom:8px;line-height:1.5}
+    .sh-cta-p{font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.85;color:var(--text-secondary);margin-bottom:20px}
+    .sh-foot{text-align:center;border-top:1px solid var(--border-soft);padding-top:20px}
+    .sh-foot img{height:50px;width:auto;opacity:.8}
+    .sh-foot p{font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-muted);margin:8px 0 0}
+    .zf-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-serif);font-weight:var(--w-medium);letter-spacing:.04em;line-height:1;border-radius:var(--radius-pill);white-space:nowrap;cursor:pointer;text-decoration:none;border:1px solid transparent}
+    .zf-btn.primary{background:var(--accent);color:var(--text-on-accent);box-shadow:var(--shadow-sm)}
+    .zf-btn.lg.full{display:flex;width:100%;padding:15px 30px;font-size:18px;min-height:54px}
+    .sh-skel{height:200px;border-radius:var(--radius-lg);background:linear-gradient(90deg,var(--rice-100),var(--rice-50),var(--rice-100));background-size:200% 100%;animation:shShimmer 1.4s linear infinite}
+    @keyframes shShimmer{to{background-position:-200% 0}}
+  </style>
+</head>
+<body>
+  <div class="sh-wrap" id="shRoot">
+    <div class="sh-skel"></div>
+  </div>
+
+  <script is:inline>
+    var WORKER_API="https://api.winds.tw";
+    var EL_BG={'木':'var(--el-wood-bg)','火':'var(--el-fire-bg)','土':'var(--el-earth-bg)','金':'var(--el-metal-bg)','水':'var(--el-water-bg)'};
+    var EL_TX={'木':'var(--el-wood-tx)','火':'var(--el-fire-tx)','土':'var(--el-earth-tx)','金':'var(--el-metal-tx)','水':'var(--el-water-tx)'};
+    function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+    function ic(n,w){return '<i class="ph'+(w?'-'+w:'')+' ph-'+n+'"></i>'}
+
+    function facts(d){
+      var f=[];
+      if(d.xingzuo)f.push(["星座",d.xingzuo]);
+      if(d.shengxiao)f.push(["生肖",d.shengxiao]);
+      if(d.twenty_eight_mansion)f.push(["星宿",d.twenty_eight_mansion]);
+      return f;
+    }
+    function tarotCard(t){
+      var el=t.element||"";var bg=EL_BG[el]||'var(--rose-100)',tx=EL_TX[el]||'var(--rose-500)';
+      return '<div class="sh-tcard" style="background:linear-gradient(165deg,var(--paper),'+bg+')">'+
+        '<span style="position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 38%,'+bg+',transparent 68%);opacity:.9"></span>'+
+        '<span class="sh-tpos">本命</span>'+
+        '<span class="sh-tdisc" style="color:'+tx+'">'+esc((t.card_name||"").slice(0,1))+'</span>'+
+        '<div class="sh-tname">'+esc(t.card_name||"")+'</div><div class="sh-trule"></div>'+
+        (t.line?'<div class="sh-tline">'+esc(t.line)+'</div>':'')+'</div>';
+    }
+    var lockCard='<div style="position:relative;border-radius:var(--radius-md);overflow:hidden"><div class="sh-tlock">?</div><div class="sh-veil">'+ic("lock-simple","thin")+'</div></div>';
+
+    function lockPanel(title,sub,inner){
+      return '<div class="sh-card"><div style="filter:blur(8px);opacity:.45;pointer-events:none;padding:4px">'+inner+'</div>'+
+        '<div class="sh-veil"><i style="font-size:24px">'+ic("lock-simple","thin")+'</i><div class="sh-veil-t">'+title+'</div><div class="sh-veil-s">'+sub+'</div></div></div>';
+    }
+    var wuxingInner='<p style="font-family:var(--font-sans);font-size:11px;letter-spacing:.18em;color:var(--rose-400);margin:0 0 8px">五行分佈</p>'+
+      '<div style="display:flex;align-items:flex-end;gap:8px;height:80px">'+
+      [['var(--sage-200)','78%'],['var(--rose-200)','35%'],['var(--el-earth-bg)','58%'],['var(--el-metal-bg)','42%'],['var(--el-water-bg)','64%']].map(function(b){return '<div style="flex:1;background:'+b[0]+';border-radius:6px 6px 0 0;height:'+b[1]+'"></div>'}).join("")+
+      '</div><div style="display:flex;justify-content:space-between;font-family:var(--font-sans);font-size:11px;color:var(--text-muted);margin-top:6px"><span>木</span><span>火</span><span>土</span><span>金</span><span>水</span></div>';
+    var fuluInner='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+
+      [['安','linear-gradient(155deg,var(--rose-100),var(--clay-200))','var(--rose-500)'],['定','linear-gradient(155deg,var(--tint-clay-hi),var(--clay-300))','var(--el-earth-tx)'],['緣','linear-gradient(155deg,var(--rose-100),var(--rose-200))','var(--rose-500)']].map(function(g){return '<div style="aspect-ratio:.62;background:'+g[1]+';border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:32px;color:'+g[2]+'">'+g[0]+'</div>'}).join("")+'</div>';
+
+    function render(d){
+      var root=document.getElementById("shRoot");
+      var ff=facts(d);
+      var tarots=(d&&d.tarots)||[];
+      var first=tarots[0];
+      var h='';
+      h+='<div class="sh-sharer"><span class="sh-av">'+ic("sparkle")+'</span><div class="sh-sharer-t">一份命理報告</div></div>';
+      // 可見：本命資訊 + 本命塔羅
+      h+='<div class="sh-card"><div class="sh-lbl">本命資訊</div><div class="sh-facts">'+
+        ff.map(function(x){return '<div class="sh-fact"><dt>'+x[0]+'</dt><dd>'+esc(x[1])+'</dd></div>'}).join("")+'</div>'+
+        '<div class="sh-lbl">本命塔羅牌組</div><div class="sh-tarot">'+
+        (first?tarotCard(first):lockCard)+lockCard+lockCard+lockCard+'</div></div>';
+      // 鎖：五行 + 靈符
+      h+=lockPanel("抽完牌就解鎖","即可解鎖你的五行量能分佈",wuxingInner);
+      h+=lockPanel("你的專屬量能靈符","抽完牌即可解鎖",fuluInner);
+      // CTA
+      h+='<div class="sh-cta"><div class="sh-cta-h">看看你的是什麼</div>'+
+        '<div class="sh-cta-p">抽一張牌，看完整五行分佈和你的量能靈符。只需要填 6 個基本資料，30 秒出結果。</div>'+
+        '<a href="/divination" class="zf-btn primary lg full">'+ic("cards","thin")+'抽牌，看我的</a></div>';
+      // 品牌
+      h+='<div class="sh-foot"><a href="/home"><img src="/assets/logo.png" alt="找風問幸福"></a><p>選擇比努力更重要，命理是對自己的溫柔。</p></div>';
+      root.innerHTML=h;
+    }
+    function renderEmpty(){
+      var root=document.getElementById("shRoot");
+      root.innerHTML='<div class="sh-sharer"><span class="sh-av">'+ic("sparkle")+'</span><div class="sh-sharer-t">命理報告</div></div>'+
+        '<div class="sh-card" style="text-align:center"><p style="font-family:var(--font-serif);font-weight:300;font-size:15px;color:var(--text-secondary);margin:8px 0 20px">這份報告連結已失效，或還沒有資料。<br>不如，看看你自己的？</p>'+
+        '<a href="/divination" class="zf-btn primary lg full">'+ic("cards","thin")+'抽牌，看我的</a></div>'+
+        '<div class="sh-foot"><a href="/home"><img src="/assets/logo.png" alt="找風問幸福"></a><p>選擇比努力更重要，命理是對自己的溫柔。</p></div>';
+    }
+
+    (function boot(){
+      var uid=new URLSearchParams(location.search).get("uid")||"";
+      if(!uid){renderEmpty();return}
+      fetch(WORKER_API+"/share-profile?uid="+encodeURIComponent(uid))
+        .then(function(r){return r.json()}).then(function(d){
+          if(d&&d.success){render(d)}else{renderEmpty()}
+        }).catch(function(){renderEmpty()});
+    })();
+  </script>
+</body>
+</html>
