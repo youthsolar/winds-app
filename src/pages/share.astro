@@ -95,8 +95,8 @@ import '../styles/global.css';
     }
     var lockCard='<div style="position:relative;border-radius:var(--radius-md);overflow:hidden"><div class="sh-tlock">?</div><div class="sh-veil">'+ic("lock-simple","thin")+'</div></div>';
 
-    function lockPanel(title,sub,inner){
-      return '<div class="sh-card"><div style="filter:blur(8px);opacity:.45;pointer-events:none;padding:4px">'+inner+'</div>'+
+    function lockPanel(title,sub,inner,blur){
+      return '<div class="sh-card"><div style="filter:blur('+(blur||8)+'px);opacity:.45;pointer-events:none;padding:4px">'+inner+'</div>'+
         '<div class="sh-veil"><i style="font-size:24px">'+ic("lock-simple","thin")+'</i><div class="sh-veil-t">'+title+'</div><div class="sh-veil-s">'+sub+'</div></div></div>';
     }
     var wuxingInner='<p style="font-family:var(--font-sans);font-size:11px;letter-spacing:.18em;color:var(--rose-400);margin:0 0 8px">五行分佈</p>'+
@@ -120,7 +120,7 @@ import '../styles/global.css';
         (first?tarotCard(first):lockCard)+lockCard+lockCard+lockCard+'</div></div>';
       // 鎖：五行 + 靈符
       h+=lockPanel("抽完牌就解鎖","即可解鎖你的五行量能分佈",wuxingInner);
-      h+=lockPanel("你的專屬量能靈符","抽完牌即可解鎖",fuluInner);
+      h+=lockPanel("你的專屬量能靈符","抽完牌即可解鎖",fuluInner,10);
       // CTA
       h+='<div class="sh-cta"><div class="sh-cta-h">看看你的是什麼</div>'+
         '<div class="sh-cta-p">抽一張牌，看完整五行分佈和你的量能靈符。只需要填 6 個基本資料，30 秒出結果。</div>'+
