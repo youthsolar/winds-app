@@ -10,6 +10,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   ogType="website"
 >
   <div class="shop-root">
+    <div class="shop-bar" id="shopBar" hidden>
+      <div class="shop-bar-in">
+        <div class="shop-cats" id="shopCats"></div>
+      </div>
+    </div>
     <main class="shop-main">
       <div class="shop-intro">
         <span class="shop-eyebrow"><span class="shop-eyebrow-dot"></span>法器選物</span>
@@ -267,10 +272,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         'linear-gradient(155deg, var(--tint-clay-hi), var(--clay-200) 72%, var(--clay-400))',
         'linear-gradient(155deg, var(--tint-sage-hi), var(--sage-200) 72%, var(--sage-300))'
       ];
+      var CAT_ORDER = ['結緣感情', '財運', '淨化辟邪', '命書'];
       var grid = document.getElementById('shopGrid');
       var empty = document.getElementById('shopEmpty');
       var mount = document.getElementById('shopModalMount');
       var products = [];
+      var activeCat = '__all__';
       function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
       function stripHtml(h){var d=document.createElement('div');d.innerHTML=h||'';return (d.textContent||'').replace(/\s+/g,' ').trim();}
       function nf(n){return (Number(n)||0).toLocaleString('en-US');}
@@ -319,10 +326,38 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       document.querySelector('.shop-root').addEventListener('click',function(e){
         var o=e.target.closest('[data-open]'); if(o) openDetail(parseInt(o.dataset.open,10));
       });
+      function renderGrid(){
+        // data-open 仍指向 products[] 原始 index，filter 不影響 openDetail
+        var html=products.map(function(p,i){return{p:p,i:i};})
+          .filter(function(x){return activeCat==='__all__'||x.p.category===activeCat;})
+          .map(function(x){return card(x.p,x.i);}).join('');
+        grid.innerHTML=html;
+        empty.hidden=!!html;
+        if(!html){empty.hidden=false;empty.textContent='此分類暫無商品。';}
+      }
+      function renderCats(){
+        var present={};
+        products.forEach(function(p){if(p.category)present[p.category]=1;});
+        var cats=CAT_ORDER.filter(function(c){return present[c];});
+        // 容錯：CAT_ORDER 沒列到的分類補在後面
+        Object.keys(present).forEach(function(c){if(cats.indexOf(c)<0)cats.push(c);});
+        if(cats.length<2)return; // 只有一類就不顯示篩選器
+        var box=document.getElementById('shopCats');
+        box.innerHTML=['<button class="shop-chip on" type="button" data-cat="__all__">全部</button>']
+          .concat(cats.map(function(c){return '<button class="shop-chip" type="button" data-cat="'+esc(c)+'">'+esc(c)+'</button>';})).join('');
+        box.addEventListener('click',function(e){
+          var b=e.target.closest('[data-cat]'); if(!b)return;
+          activeCat=b.getAttribute('data-cat');
+          box.querySelectorAll('.shop-chip').forEach(function(el){el.classList.toggle('on',el===b);});
+          renderGrid();
+        });
+        document.getElementById('shopBar').hidden=false;
+      }
       fetch(WORKER_API+'/shop-products').then(function(r){return r.json();}).then(function(d){
         products=(d&&d.products)||[];
         if(!products.length){grid.innerHTML='';empty.hidden=false;return;}
-        grid.innerHTML=products.map(card).join('');
+        renderCats();
+        renderGrid();
       }).catch(function(){grid.innerHTML='';empty.hidden=false;empty.textContent='商品載入失敗，請稍後再試。';});
     })();
   </script>
