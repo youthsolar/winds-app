@@ -149,7 +149,7 @@ const br = (s) => s.split('\n');
         </div>
         <div class="shop-card">
           <div class="shop-head"><h3>帶一件靈性的小物回家</h3><span class="badge">法器選物</span></div>
-          <div class="shop-list">
+          <div class="shop-list" id="homeShopList">
             {TALIS.map(t => (
               <div class="shop-item">
                 <span class="disc sm">{t.glyph}</span>
@@ -240,17 +240,44 @@ const br = (s) => s.split('\n');
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: 'smooth' });
   });
 
-  /* 預約對談卡：接真 SB 老師（頭像首字 + 真人數）*/
+  /* JS 注入元素無 Astro scope → 樣式一律 inline（gotcha：scoped <style> 不套用到 innerHTML 元素）*/
+  function escH(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+  /* 預約對談卡：接真 SB 老師（圓形彩色頭像 + 真人數）*/
   (function(){
     var box = document.getElementById('homeReaders'); if(!box) return;
-    var TONES = ['rose','clay','sage'];
+    var TONE_BG = ['var(--rose-100)','var(--clay-200)','var(--sage-200)'];
+    var TONE_FG = ['var(--rose-600)','var(--clay-500)','var(--sage-500)'];
+    var TONE_RING = ['var(--rose-300)','var(--clay-300)','var(--sage-300)'];
     fetch('https://api.winds.tw/sb-providers').then(function(r){return r.json();}).then(function(d){
       var ts = (d && d.providers) || []; if(!ts.length) return;
       var avs = ts.slice(0,3).map(function(t,i){
         var nm = (t.name||'').replace(/老師$/,'');
-        return '<span class="av '+TONES[i%3]+'">'+(nm.slice(0,1)||'師')+'</span>';
+        var ring = t.color || TONE_RING[i%3];
+        var st = 'display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:999px;font-family:var(--font-serif);font-size:17px;font-weight:500;overflow:hidden;flex:none;background:'+TONE_BG[i%3]+';color:'+TONE_FG[i%3]+';box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px '+ring+';margin-left:'+(i?-10:0)+'px;position:relative;z-index:'+(9-i);
+        return '<span style="'+st+'">'+escH(nm.slice(0,1)||'師')+'</span>';
       }).join('');
-      box.innerHTML = avs + '<span class="rd-note">'+ts.length+' 位資深老師．線上預約</span>';
+      box.innerHTML = avs + '<span style="font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted);margin-left:12px;white-space:nowrap">'+ts.length+' 位資深老師．線上預約</span>';
+    }).catch(function(){});
+  })();
+
+  /* 法器選物：接真實 ES 商品（/shop-products），覆蓋 SSR 佔位 */
+  (function(){
+    var box = document.getElementById('homeShopList'); if(!box) return;
+    fetch('https://api.winds.tw/shop-products').then(function(r){return r.json();}).then(function(d){
+      var ps = (d && d.products) || []; if(!ps.length) return;
+      box.innerHTML = ps.slice(0,4).map(function(p,idx){
+        var nm = (p.name||'').replace(/^[【\[]/,'').replace(/[】\]][\s\S]*$/,'').trim() || p.name;
+        var pm = (p.desc||'').match(/<p[^>]*>([\s\S]*?)<\/p>/i);
+        var line = pm ? pm[1].replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim().slice(0,20) : '';
+        var thumb = p.image
+          ? '<span style="flex:none;width:46px;height:46px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--rose-100);background:var(--paper);display:block"><img src="'+escH(p.image)+'" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block"></span>'
+          : '<span style="flex:none;width:46px;height:46px;border-radius:var(--radius-md);background:var(--paper);border:1px solid var(--rose-100);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:22px;color:var(--accent-press)">符</span>';
+        return '<div style="display:flex;align-items:center;gap:14px;padding:12px 0;'+(idx?'border-top:1px solid var(--rose-100);':'')+'">'+thumb+
+          '<div style="flex:1;min-width:0"><div style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">'+escH(nm)+'</div>'+
+          (line?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13px;line-height:1.6;color:var(--text-secondary)">'+escH(line)+'</div>':'')+'</div>'+
+          '<span style="font-family:var(--font-sans);font-size:13.5px;color:var(--ink-700);white-space:nowrap">NT$ '+escH(p.price)+'</span></div>';
+      }).join('');
     }).catch(function(){});
   })();
 })();
@@ -276,9 +303,9 @@ const br = (s) => s.split('\n');
   @media (max-width: 760px) { .lead { font-size: 18px; } }
 
   .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
-  .chip { all: unset; cursor: pointer; font-family: var(--font-serif); font-size: 16px; font-weight: 500; letter-spacing: 0.02em; padding: 10px 22px; border-radius: var(--radius-pill); white-space: nowrap; color: var(--accent-press); background: var(--paper); border: 1px solid var(--rose-200); transition: all var(--dur-fast) var(--ease-soft); }
+  .chip { all: unset; cursor: pointer; font-family: var(--font-serif); font-size: 16px; font-weight: 500; letter-spacing: 0.01em; line-height: 1; padding: 11px 20px; border-radius: var(--radius-pill); white-space: nowrap; color: var(--accent-press); background: var(--surface-card); border: 1px solid var(--rose-200); transition: all var(--dur-fast) var(--ease-soft); }
   .chip.on { color: var(--text-on-accent); background: var(--accent); border-color: transparent; box-shadow: var(--shadow-sm); }
-  @media (max-width: 760px) { .chip { font-size: 15px; padding: 9px 16px; } }
+  @media (max-width: 760px) { .chip { font-size: 15px; padding: 10px 17px; } }
 
   .qzone { min-height: 140px; display: flex; flex-direction: column; justify-content: center; margin-top: 22px; transition: opacity 320ms var(--ease-soft), transform 320ms var(--ease-soft); }
   .qzone.fade-out { opacity: 0; transform: translateY(6px); }
@@ -377,10 +404,10 @@ const br = (s) => s.split('\n');
   .sh-lede { margin: 12px 0 0; font-family: var(--font-serif); font-weight: 300; font-size: var(--t-body-lg); line-height: 1.7; color: var(--text-secondary); }
 
   /* glyph disc */
-  .disc { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: var(--radius-md); background: var(--paper); border: 1px solid var(--rose-200); font-family: var(--font-serif); font-size: 25px; line-height: 1; color: var(--accent-press); }
-  .disc.lg { width: 72px; height: 72px; border-radius: var(--radius-lg); font-size: 37px; }
+  .disc { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: var(--radius-md); background: var(--paper); border: 1px solid var(--rose-100); font-family: var(--font-serif); font-size: 24px; line-height: 1; color: var(--accent-press); }
+  .disc.lg { width: 72px; height: 72px; border-radius: var(--radius-lg); font-size: 35px; }
   .disc.sm { width: 46px; height: 46px; font-size: 22px; }
-  @media (max-width: 760px) { .disc.lg { width: 60px; height: 60px; font-size: 31px; } }
+  @media (max-width: 760px) { .disc.lg { width: 60px; height: 60px; font-size: 29px; } }
 
   /* badges */
   .badge { display: inline-flex; align-items: center; font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--rose-600); background: var(--rose-50); border-radius: var(--radius-pill); padding: 4px 11px; white-space: nowrap; }
@@ -441,6 +468,8 @@ const br = (s) => s.split('\n');
   .shop-list { display: flex; flex-direction: column; gap: 4px; }
   .shop-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; }
   .shop-item + .shop-item { border-top: 1px solid var(--rose-100); }
+  .si-thumb { flex: none; width: 46px; height: 46px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--rose-100); background: var(--paper); }
+  .si-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .si-body { flex: 1; min-width: 0; }
   .si-name { font-family: var(--font-serif); font-size: 16px; font-weight: 500; color: var(--ink-900); }
   .si-line { font-family: var(--font-serif); font-weight: 300; font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
