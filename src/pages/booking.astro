@@ -1,12 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import TeacherCard from '../components/TeacherCard.astro';
-import { TEACHERS, PERSONAS, RECOMMENDED } from '../data/booking-teachers';
+import { PERSONAS } from '../data/booking-teachers';
 
-// 🔭 預約流程（地點→項目→法術→老師→時間→資料→確認）走 SimplyBook，待 SB 串接。
-// 目前老師卡 CTA 暫指既有預約目錄 /services。
-const BOOK_HREF = '/services';
-const recT = TEACHERS.find((t) => t.id === RECOMMENDED.id)!;
+// 老師卡＝真實 SimplyBook 老師（/sb-providers）+ LLM 生成 persona/介紹/引言（teacher_meta）。
+// 🔭 7 步預約精靈（地點→項目→老師→時間→資料→確認）待建；目前卡 CTA 暫指 /services。
 ---
 <BaseLayout
   title="預約老師 · 找風問幸福｜塔羅・紫微・八字・通靈一對一對談"
@@ -31,19 +28,8 @@ const recT = TEACHERS.find((t) => t.id === RECOMMENDED.id)!;
         <p class="bk-persona-desc" id="bkPersonaDesc" hidden></p>
       </div>
 
-      <!-- 為你推薦（只在「全部」時顯示）-->
-      <div class="bk-rec" id="bkRec">
-        <div class="bk-rec-label"><i class="ph-fill ph-sparkle"></i><span>為你推薦</span></div>
-        <div class="bk-rec-frame">
-          <div class="bk-rec-inner">
-            <div class="bk-rec-reason"><i class="ph-thin ph-hand-heart"></i><span>{RECOMMENDED.reason}</span></div>
-            <TeacherCard t={recT} bookHref={BOOK_HREF} />
-          </div>
-        </div>
-      </div>
-
       <div class="bk-grid" id="bkGrid">
-        {TEACHERS.map((t) => <TeacherCard t={t} bookHref={BOOK_HREF} />)}
+        <div class="bk-skel"></div><div class="bk-skel"></div><div class="bk-skel"></div>
       </div>
       <p class="bk-empty" id="bkEmpty" hidden>這個風格目前還沒有老師，換個風格看看？</p>
     </main>
@@ -86,6 +72,8 @@ const recT = TEACHERS.find((t) => t.id === RECOMMENDED.id)!;
 
     .bk-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
     .bk-empty{font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-muted);text-align:center;padding:32px 0;}
+    .bk-skel{height:320px;border-radius:var(--radius-lg);background:linear-gradient(90deg,var(--rice-100),var(--rice-50),var(--rice-100));background-size:200% 100%;animation:bkShim 1.4s linear infinite;}
+    @keyframes bkShim{to{background-position:-200% 0;}}
 
     /* ===== TeacherCard ===== */
     .booking-root .tc{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:24px 24px;height:100%;display:flex;flex-direction:column;transition:box-shadow var(--dur-base) var(--ease-soft),transform var(--dur-base) var(--ease-soft);}
@@ -138,36 +126,63 @@ const recT = TEACHERS.find((t) => t.id === RECOMMENDED.id)!;
 
   <script is:inline>
     (function () {
+      var WORKER_API = 'https://api.winds.tw';
+      var BOOK_HREF = '/services'; // 🔭 7 步精靈未建前暫指既有預約目錄
       var PERSONAS = JSON.parse(document.getElementById('bkPersonas').textContent);
       var descMap = {}; PERSONAS.forEach(function (p) { descMap[p.key] = p.desc; });
-      var RECOMMENDED_ID = 'lin';
+      var TONE = { gentle: 'rose', rational: 'clay', energy: 'sage', direct: 'clay' };
       var active = 'all';
-      var rec = document.getElementById('bkRec');
+      var teachers = [];
+      var grid = document.getElementById('bkGrid');
       var descEl = document.getElementById('bkPersonaDesc');
       var empty = document.getElementById('bkEmpty');
-      var cards = Array.prototype.slice.call(document.querySelectorAll('.bk-grid .tc'));
 
-      function apply() {
-        var showRec = active === 'all';
-        rec.style.display = showRec ? '' : 'none';
-        if (showRec) { descEl.hidden = true; descEl.textContent = ''; }
-        else { descEl.hidden = false; descEl.textContent = descMap[active] || ''; }
-        var shown = 0;
-        cards.forEach(function (c) {
-          var vis = active === 'all' ? c.dataset.id !== RECOMMENDED_ID : c.dataset.persona === active;
-          c.style.display = vis ? '' : 'none';
-          if (vis) shown++;
-        });
-        empty.hidden = shown !== 0;
+      function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+      function priceOf(t){
+        var ps = (t.services||[]).map(function(s){return Number(s.price)||0;}).filter(function(n){return n>0;});
+        return ps.length ? Math.min.apply(null, ps) : 0;
+      }
+      function card(t){
+        var tone = TONE[t.persona] || 'rose';
+        var skills = (t.skills||[]).slice(0,3);
+        var price = priceOf(t);
+        var av = t.photo
+          ? '<span class="tc-av tc-av-'+tone+'"><img src="'+esc(t.photo)+'" alt="'+esc(t.name)+'" style="width:100%;height:100%;object-fit:cover"></span>'
+          : '<span class="tc-av tc-av-'+tone+'">'+esc((t.name||'').slice(0,1))+'</span>';
+        return '<article class="tc" data-persona="'+esc(t.persona||'')+'">'+
+          '<div class="tc-top">'+av+
+            '<div class="tc-id"><div class="tc-namerow"><span class="tc-name">'+esc(t.name)+'</span></div>'+
+            (t.skill_main?'<div class="tc-stars"><span class="tc-rating">'+esc(t.skill_main)+'</span></div>':'')+
+            '<div class="tc-tags">'+skills.map(function(s){return '<span class="tc-tag soft '+tone+'">'+esc(s)+'</span>';}).join('')+
+            (t.style?'<span class="tc-tag outline">'+esc(t.style)+'</span>':'')+'</div></div>'+
+          '</div>'+
+          (t.blurb?'<p class="tc-blurb">'+esc(t.blurb)+'</p>':'')+
+          (t.quote?'<div class="tc-quote"><i class="ph-fill ph-quotes"></i><span>'+esc(t.quote)+'</span></div>':'')+
+          '<div class="tc-foot">'+
+            (price?'<div><span class="tc-price-unit">單次對談</span><span class="tc-price-val">NT$ '+price+' 起</span></div>':'<span></span>')+
+            '<a class="zfbtn md secondary" href="'+BOOK_HREF+'">預約 <i class="ph-bold ph-arrow-right"></i></a>'+
+          '</div></article>';
+      }
+      function apply(){
+        if (active==='all'){descEl.hidden=true;descEl.textContent='';}
+        else {descEl.hidden=false;descEl.textContent=descMap[active]||'';}
+        var list = active==='all' ? teachers : teachers.filter(function(t){return t.persona===active;});
+        grid.innerHTML = list.map(card).join('');
+        empty.hidden = list.length !== 0;
       }
       document.getElementById('bkChips').addEventListener('click', function (e) {
         var b = e.target.closest('.bk-chip'); if (!b) return;
-        // 再點同一個＝回全部（與 DS toggle 行為一致）
         active = (b.dataset.persona === active && active !== 'all') ? 'all' : b.dataset.persona;
         document.querySelectorAll('.bk-chip').forEach(function (c) { c.classList.toggle('on', c.dataset.persona === active); });
         apply();
       });
-      apply();
+
+      fetch(WORKER_API + '/sb-providers').then(function(r){return r.json();}).then(function(d){
+        teachers = (d && d.providers) || [];
+        if (!teachers.length){ grid.innerHTML=''; empty.hidden=false; empty.textContent='老師清單載入中或暫無，稍後再試。'; return; }
+        apply();
+      }).catch(function(){ grid.innerHTML=''; empty.hidden=false; empty.textContent='老師清單載入失敗，請稍後再試。'; });
     })();
   </script>
 </BaseLayout>
