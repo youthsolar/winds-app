@@ -1,0 +1,223 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import courses from '../../data/courses.json';
+
+type Course = {
+  id: number;
+  cat: 'cultivate' | 'sense' | 'ritual' | 'bundle';
+  glyph: string;
+  name: string;
+  level: string;
+  format: string;
+  kind: string;
+  featured: boolean;
+  price: string;
+  sessions: string;
+  excerpt: string;
+};
+
+const list = courses as Course[];
+
+const cats = [
+  { key: 'all', name: '全部' },
+  { key: 'cultivate', name: '靈修' },
+  { key: 'sense', name: '通靈' },
+  { key: 'ritual', name: '法術' },
+];
+
+const featured = list.find((c) => c.featured);
+// 卡牆：排除 bundle（只在主推卡出現）
+const wall = list.filter((c) => c.cat !== 'bundle');
+
+const pageTitle = '靈修課程｜找風問幸福 靈修・通靈・法術三條路';
+const pageDesc =
+  '找風問幸福靈修課程：靈修、通靈、法術三條路，循序漸進的實體課程。從一堂適合你的開始，慢慢學，把自己照顧好。';
+---
+
+<BaseLayout title={pageTitle} description={pageDesc} ogType="website">
+  <main class="course-index">
+    <nav class="breadcrumb" aria-label="麵包屑">
+      <a href="/">首頁</a>
+      <i class="ph ph-caret-right"></i>
+      <span class="current">靈修課程</span>
+    </nav>
+
+    <header class="zf-page-header">
+      <span class="zf-ph-eyebrow">靈修課程</span>
+      <h1 class="zf-ph-title cjk-title">慢慢學，把自己照顧好。</h1>
+      <p class="zf-ph-lede">靈修、通靈、法術三條路，循序漸進。不用一次到位，從一堂適合你的開始。</p>
+    </header>
+
+    <nav class="chip-row" aria-label="課程分類">
+      {cats.map((c, i) => (
+        <button
+          class={`zf-chip${i === 0 ? ' selected' : ''}`}
+          data-filter={c.key}
+          aria-pressed={i === 0 ? 'true' : 'false'}
+        >{c.name}</button>
+      ))}
+    </nav>
+
+    {featured && (
+      <a
+        class="featured zf-card tint interactive"
+        href={`/course/${featured.id}/`}
+        data-featured
+      >
+        <span class="ft-glyph zf-glyph-disc">{featured.glyph}</span>
+        <div class="ft-body">
+          <div class="ft-tags">
+            <span class="zf-badge rose"><span class="zf-badge-dot"></span>{featured.kind}</span>
+            <span class="zf-tag sage outline format-tag">
+              <i class="ph ph-users-three"></i>{featured.format}
+            </span>
+          </div>
+          <h2 class="ft-name cjk-title">{featured.name}</h2>
+          <p class="ft-excerpt">{featured.excerpt}</p>
+        </div>
+        <div class="ft-aside">
+          <span class="ft-price">{featured.price}</span>
+          <span class="ft-sessions">{featured.sessions}</span>
+          <span class="zf-btn primary md">看課程<i class="ph ph-arrow-right"></i></span>
+        </div>
+      </a>
+    )}
+
+    <ul class="card-wall">
+      {wall.map((c) => (
+        <li class="course-cell" data-cat={c.cat}>
+          <a class="course-card zf-card interactive" href={`/course/${c.id}/`}>
+            <div class="cc-top">
+              <span class="cc-glyph zf-glyph-disc">{c.glyph}</span>
+              <div class="cc-tags">
+                <span class="zf-tag sage outline format-tag">
+                  <i class="ph ph-users-three"></i>{c.format}
+                </span>
+                <span class="zf-tag rose">{c.level}</span>
+              </div>
+            </div>
+            <h3 class="cc-name cjk-title">{c.name}</h3>
+            <p class="cc-excerpt">{c.excerpt}</p>
+            <div class="cc-meta">
+              <span class="cc-priceblock">
+                <span class="cc-sessions">{c.sessions}</span>
+                <span class="cc-price">{c.price}</span>
+              </span>
+              <span class="cc-more">看課程<i class="ph ph-arrow-right"></i></span>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+    <p class="empty-note" data-empty hidden>這個分類目前沒有課程。</p>
+
+    <section class="reading-cta">
+      <p class="rc-line cjk-title">不確定哪一堂適合你？先占卜看看</p>
+      <a class="rc-btn" href="/">立即占卜</a>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  const chips = document.querySelectorAll<HTMLButtonElement>('.chip-row .zf-chip');
+  const cells = document.querySelectorAll<HTMLElement>('.course-cell');
+  const featured = document.querySelector<HTMLElement>('[data-featured]');
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+
+  function applyFilter(filter: string) {
+    let shown = 0;
+    cells.forEach((cell) => {
+      const match = filter === 'all' || cell.dataset.cat === filter;
+      cell.hidden = !match;
+      if (match) shown++;
+    });
+    // 主推卡（bundle）只在「全部」顯示
+    if (featured) featured.hidden = filter !== 'all';
+    if (empty) empty.hidden = shown !== 0;
+  }
+
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      chips.forEach((c) => {
+        c.classList.remove('selected');
+        c.setAttribute('aria-pressed', 'false');
+      });
+      chip.classList.add('selected');
+      chip.setAttribute('aria-pressed', 'true');
+      applyFilter(chip.dataset.filter || 'all');
+    });
+  });
+</script>
+
+<style>
+  .course-index { max-width: var(--container); margin: 0 auto; padding: 44px 32px 72px; background: var(--surface-page); }
+  @media (max-width: 760px) { .course-index { padding: 28px 20px 48px; } }
+  .cjk-title { word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+
+  /* breadcrumb */
+  .breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+  @media (max-width: 760px) { .breadcrumb { margin-bottom: 18px; } }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-press); }
+  .breadcrumb .ph { font-size: 11px; color: var(--rose-200); }
+  .breadcrumb .current { color: var(--ink-700); }
+
+  /* chip filter row */
+  .chip-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 34px; }
+  @media (max-width: 760px) { .chip-row { margin-top: 26px; } }
+
+  /* format tag (sage outline) */
+  .format-tag { font-size: 12.5px; }
+  .format-tag .ph { font-size: 13px; }
+
+  /* featured highlight card */
+  .featured { display: grid; grid-template-columns: auto 1fr auto; gap: 28px; align-items: center; margin-top: 38px; text-decoration: none; color: inherit; }
+  @media (max-width: 760px) { .featured { grid-template-columns: 1fr; gap: 18px; margin-top: 28px; } }
+  .ft-glyph { width: 76px; height: 76px; font-size: 40px; background: var(--paper); border-color: var(--rose-200); }
+  @media (max-width: 760px) { .ft-glyph { width: 60px; height: 60px; font-size: 32px; } }
+  .ft-body { min-width: 0; }
+  .ft-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .ft-name { font-family: var(--font-serif); font-size: 27px; font-weight: 500; line-height: 1.35; color: var(--ink-900); margin: 0; }
+  @media (max-width: 760px) { .ft-name { font-size: 22px; } }
+  .featured:hover .ft-name { color: var(--accent-press); }
+  .ft-excerpt { font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin: 8px 0 0; }
+  .ft-aside { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
+  @media (max-width: 760px) { .ft-aside { align-items: flex-start; text-align: left; } }
+  .ft-price { font-family: var(--font-serif); font-size: 28px; font-weight: 500; color: var(--ink-900); }
+  @media (max-width: 760px) { .ft-price { font-size: 24px; } }
+  .ft-sessions { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); white-space: nowrap; margin-bottom: 10px; }
+  .ft-aside .zf-btn { pointer-events: none; }
+
+  /* course card wall */
+  .card-wall { list-style: none; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; align-items: stretch; }
+  @media (max-width: 1024px) { .card-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 760px) { .card-wall { grid-template-columns: 1fr; gap: 16px; margin-top: 22px; } }
+  .course-cell[hidden] { display: none; }
+  .course-card { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: inherit; padding: 26px 24px; }
+  @media (max-width: 760px) { .course-card { padding: 22px 20px; } }
+  .cc-top { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .cc-glyph { width: 56px; height: 56px; font-size: 28px; }
+  @media (max-width: 760px) { .cc-glyph { width: 50px; height: 50px; font-size: 25px; } }
+  .cc-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cc-name { font-family: var(--font-serif); font-size: 21px; font-weight: 500; line-height: 1.4; color: var(--ink-900); margin: 0; }
+  @media (max-width: 760px) { .cc-name { font-size: 19px; } }
+  .course-card:hover .cc-name { color: var(--accent-press); }
+  .cc-excerpt { font-family: var(--font-serif); font-weight: 300; font-size: 14.5px; line-height: 1.85; color: var(--text-secondary); margin: 10px 0 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .cc-meta { margin-top: auto; padding-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .cc-priceblock { display: flex; flex-direction: column; }
+  .cc-sessions { font-family: var(--font-sans); font-size: 11.5px; color: var(--text-muted); }
+  .cc-price { font-family: var(--font-serif); font-size: 19px; font-weight: 500; color: var(--ink-900); }
+  .cc-more { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-sans); font-size: 13.5px; color: var(--accent-press); white-space: nowrap; transition: transform var(--dur-fast) var(--ease-soft); }
+  .cc-more .ph { font-size: 14px; }
+  .course-card:hover .cc-more { transform: translateX(2px); }
+
+  .empty-note { font-family: var(--font-serif); font-size: 16px; color: var(--text-muted); text-align: center; margin: 40px 0; }
+
+  /* reading CTA */
+  .reading-cta { margin-top: 80px; padding: 38px 32px; text-align: center; background: linear-gradient(180deg, var(--surface-tint), var(--rose-50)); border: 1px solid var(--rose-100); border-radius: var(--radius-xl); }
+  @media (max-width: 760px) { .reading-cta { margin-top: 52px; padding: 30px 22px; } }
+  .rc-line { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--ink-900); margin: 0 0 20px; }
+  @media (max-width: 760px) { .rc-line { font-size: 19px; } }
+  .rc-btn { display: inline-block; padding: 15px 30px; font-family: var(--font-serif); font-size: 17px; font-weight: 500; letter-spacing: 0.04em; color: var(--text-on-accent); background: var(--accent); border-radius: var(--radius-pill); text-decoration: none; box-shadow: var(--shadow-sm); transition: background var(--dur-fast) var(--ease-soft); }
+  .rc-btn:hover { background: var(--accent-hover); text-decoration: none; }
+</style>
