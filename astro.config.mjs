@@ -41,7 +41,7 @@ function remarkStripTrailingPromo() {
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://app.winds.tw',
+  site: 'https://winds.tw',
   output: 'static',
   markdown: {
     remarkPlugins: [remarkStripTrailingPromo],
@@ -58,10 +58,10 @@ export default defineConfig({
     sitemap({
       filter: (page) => !page.includes('/auth/') && !page.includes('/history'),
       customPages: [
-        'https://app.winds.tw/',
-        'https://app.winds.tw/delivery',
-        'https://app.winds.tw/share',
-        'https://app.winds.tw/spirit',
+        'https://winds.tw/home',
+        'https://winds.tw/delivery',
+        'https://winds.tw/share',
+        'https://winds.tw/spirit',
       ],
     }),
   ],
