@@ -72,6 +72,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
 
   <!-- Google Identity Services (One Tap + Sign In) -->
   {GOOGLE_CLIENT_ID && (
@@ -79,7 +80,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
   )}
 
   <!-- Nav auth button (shared with public/index.html) -->
-  <script src="/assets/nav-auth.js" defer></script>
+  <script src="/assets/nav-auth.js?v=4" defer></script>
 </head>
 <body class="min-h-screen flex flex-col">
   <!-- Google One Tap prompt (if logged out) -->
@@ -98,22 +99,22 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
       <a href="/home" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福" /></a>
       <div class="zf-nav-links">
         <a href="/home">首頁</a>
-        <a href="/">問一件事</a>
+        <a href="/divination">問一件事</a>
         <a href="/blog">案例專欄</a>
         <a href="/booking">老師介紹</a>
         <a href="/shop">法器選物</a>
-        <a href="/" class="zf-btn ghost sm">占卜</a>
+        <a href="/divination" class="zf-btn ghost sm">占卜</a>
         <div id="auth-button" class="zf-account"></div>
       </div>
       <button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>
     </div>
     <div class="zf-drawer" id="zfDrawer" hidden>
       <a href="/home">首頁</a>
-      <a href="/">問一件事</a>
+      <a href="/divination">問一件事</a>
       <a href="/blog">案例專欄</a>
       <a href="/booking">老師介紹</a>
       <a href="/shop">法器選物</a>
-      <a href="/" class="zf-btn primary md full">占卜</a>
+      <a href="/divination" class="zf-btn primary md full">占卜</a>
       <div id="auth-button-m" class="zf-account-m"></div>
     </div>
   </nav>
@@ -130,7 +131,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
           <p>選擇比努力更重要，命理是對自己的溫柔。</p>
         </div>
         <div class="zf-footer-cols">
-          <div class="zf-fcol"><div class="zf-fh">命理項目</div><a href="/">易經</a><a href="/">塔羅</a><a href="/ziwei">紫微</a><a href="/spirit">分靈體</a></div>
+          <div class="zf-fcol"><div class="zf-fh">命理項目</div><a href="/divination">易經</a><a href="/divination">塔羅</a><a href="/ziwei">紫微</a><a href="/spirit">分靈體</a></div>
           <div class="zf-fcol"><div class="zf-fh">探索</div><a href="/blog">案例專欄</a><a href="/services">預約項目</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a><a href="/services">靈修課程</a></div>
           <div class="zf-fcol"><div class="zf-fh">關於</div><a href="/about">品牌故事</a><a href="/account">會員中心</a><a href="/faq">常見問題</a></div>
         </div>
@@ -167,6 +168,8 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
     .zf-btn.primary:hover{background:var(--accent-hover);text-decoration:none;}
 
     /* auth 連結由 nav-auth.js innerHTML 注入 → 需 :global（Astro scoped 不套 JS 注入元素）*/
+    .zf-account{display:flex;align-items:center;}            /* 頭像與占卜鈕同列垂直置中 */
+    .zf-account :global(.nav-acct){display:flex;align-items:center;}  /* 內層也 flex：消掉繼承行高的基線位移，頭像不再略高 */
     .zf-account :global(a){display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:0.03em;text-decoration:none;}
     .zf-account :global(a:hover){color:var(--accent-press);text-decoration:none;}
     .zf-account-m{margin-top:8px;padding-top:10px;border-top:1px solid var(--border-soft);}

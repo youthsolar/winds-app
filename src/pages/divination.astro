@@ -1,0 +1,1167 @@
+---
+/*
+ * 核心占卜漏斗 /divination — 純 Astro + vanilla（不用 React）。
+ * 金流邏輯原樣搬自 live public/index.html（端點 / payload / 輪詢 / 付款 / 驗證 / storage 全部保留）。
+ * 視覺＝新設計（design .jsx 為真值來源）；token 走 global.css（不重定 :root）。
+ * 全螢幕 funnel，自帶 ProgressHeader，不掛 site Nav/Footer。
+ */
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>占卜流程 · 找風問幸福</title>
+  <meta name="description" content="易經 × 塔羅 × 量能靈符，為你讀一件事。" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style is:global>
+    #root{min-height:100vh}
+    .shell{max-width:var(--container);margin:0 auto;padding:48px 28px 88px}
+    .shell.narrow{max-width:680px}
+    @media(max-width:760px){.shell{padding:28px 18px 56px}}
+
+    /* eyebrow（中文 → 不大寫、窄字距 0.02em，依新設計）*/
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:.02em;color:var(--accent-press)}
+    .eyebrow .dot{width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none}
+    .lede{font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.8;color:var(--text-secondary);max-width:30em}
+    @media(max-width:760px){.lede{font-size:15.5px}}
+    .step-intro{display:flex;flex-direction:column;gap:12px;margin-bottom:34px}
+    .step-intro h1{font-size:38px;font-weight:500;line-height:1.3;color:var(--ink-900);letter-spacing:.01em;word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
+    @media(max-width:760px){.step-intro{margin-bottom:24px}.step-intro h1{font-size:26px}}
+
+    /* buttons */
+    .btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-serif);font-weight:500;letter-spacing:.04em;line-height:1;border-radius:var(--radius-pill);transition:background var(--dur-fast) var(--ease-soft);white-space:nowrap}
+    .btn.lg{font-size:18px;padding:15px 30px;min-height:54px}
+    .btn.md{font-size:16px;padding:11px 22px;min-height:44px}
+    .btn.sm{font-size:14px;padding:8px 16px;min-height:36px}
+    .btn.primary{background:var(--accent);color:var(--text-on-accent);border:1px solid transparent;box-shadow:var(--shadow-sm)}
+    .btn.primary:hover{background:var(--accent-hover)}
+    .btn.secondary{background:var(--surface-card);color:var(--ink-900);border:1px solid var(--border-strong);box-shadow:var(--shadow-xs)}
+    .btn.secondary:hover{background:var(--rice-100)}
+    .btn.ghost{background:transparent;color:var(--accent-press);border:1px solid var(--rose-300)}
+    .btn.ghost:hover{background:var(--rose-50)}
+    .btn.full{display:flex;width:100%}
+    .btn:disabled,.btn[aria-disabled=true]{opacity:.45;cursor:default;box-shadow:none}
+    .btn:active{transform:translateY(1px) scale(.99)}
+
+    /* cards */
+    .card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:24px}
+    .card.sunken{background:var(--surface-sunken)}
+    .card.tint{background:var(--surface-tint);border-color:var(--rose-100)}
+    @media(max-width:760px){.card{padding:20px 18px}}
+
+    /* tags */
+    .tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:14px;font-weight:500;letter-spacing:.02em;border-radius:var(--radius-pill);padding:5px 13px;line-height:1.4}
+    .tag.rose.soft{background:var(--rose-50);color:var(--rose-600)}
+    .tag.rose.outline{background:transparent;color:var(--rose-600);border:1px solid var(--rose-200)}
+    .tag.clay.outline{background:transparent;color:var(--clay-500);border:1px solid var(--clay-300)}
+    .placeholder-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:11px;color:var(--text-muted);background:var(--surface-page);border:1px dashed var(--border-strong);border-radius:var(--radius-pill);padding:3px 10px;white-space:nowrap}
+
+    /* chips */
+    .chip{all:unset;cursor:pointer;white-space:nowrap;font-family:var(--font-serif);font-size:16px;font-weight:500;letter-spacing:.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:11px 20px;transition:all var(--dur-fast) var(--ease-soft)}
+    .chip.on{color:var(--text-on-accent);background:var(--accent);border-color:transparent;box-shadow:var(--shadow-sm)}
+
+    /* fields */
+    .f-label{display:block;margin-bottom:7px;font-family:var(--font-sans);font-size:13.5px;font-weight:500;color:var(--ink-700)}
+    .f-input,.f-select,.f-textarea{width:100%;box-sizing:border-box;padding:12px 14px;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);outline:none;transition:border-color var(--dur-fast),box-shadow var(--dur-fast)}
+    .f-input:focus,.f-select:focus,.f-textarea:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring)}
+    .f-textarea{line-height:1.7;resize:vertical}
+    .f-select-wrap{position:relative;flex:1 1 0;min-width:0}
+    .f-select{padding-right:34px;appearance:none;-webkit-appearance:none}
+    .f-select-wrap .caret{position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--rose-400)}
+    .hint{display:flex;align-items:flex-start;gap:8px;font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)}
+    /* info 表單格線：姓名/生日時間/手機email 各成對；性別/出生地整列 */
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .info-grid .fw{grid-column:1 / -1}
+    @media(max-width:600px){.info-grid{grid-template-columns:1fr;gap:14px}}
+    /* 性別三選一（依新設計）*/
+    .gbtn{all:unset;cursor:pointer;flex:1;text-align:center;padding:11px 0;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-700);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);transition:all var(--dur-fast) var(--ease-soft)}
+    .gbtn.on{color:var(--text-on-accent);background:var(--accent);border-color:transparent}
+
+    /* progress header */
+    .ph-hdr{position:sticky;top:0;z-index:40;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft)}
+    .ph-hdr .row{max-width:var(--container);margin:0 auto;padding:0 28px;height:70px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .ph-back,.ph-exit{display:inline-flex;align-items:center;gap:6px;border:none;background:transparent;cursor:pointer;color:var(--ink-700);font-family:var(--font-sans);font-size:14px;padding:0}
+    .ph-exit{color:var(--ink-400)}
+    .ph-steps{display:flex;align-items:center;gap:8px}
+    .ph-step{display:inline-flex;align-items:center;gap:8px}
+    .ph-num{width:24px;height:24px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:12px;font-weight:600;border:1px solid var(--border-strong);color:var(--ink-300)}
+    .ph-step.cur .ph-num{background:var(--accent);color:var(--text-on-accent);border:none}
+    .ph-step.done .ph-num{background:var(--rose-100);color:var(--rose-600);border:none}
+    .ph-lbl{font-family:var(--font-serif);font-size:15px;color:var(--ink-400)}
+    .ph-step.cur .ph-lbl{color:var(--ink-900);font-weight:500}
+    .ph-step.done .ph-lbl{color:var(--ink-700)}
+    .ph-sep{width:26px;height:1px;background:var(--border-strong)}
+    .ph-bar{height:2px;background:var(--rice-200)}
+    .ph-bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--rose-300),var(--rose-500));transition:width var(--dur-slow) var(--ease-soft)}
+    .ph-mob{display:none;font-family:var(--font-serif);font-size:15px;color:var(--ink-900);font-weight:500}
+    .ph-mob b{color:var(--accent-press);font-weight:600}
+    @media(max-width:760px){.ph-hdr .row{padding:0 16px;height:60px}.ph-steps{display:none}.ph-mob{display:inline}.ph-back span{display:none}}
+
+    /* topic */
+    .dir-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+    .dir-card{all:unset;cursor:pointer;box-sizing:border-box;display:flex;flex-direction:column;gap:18px;padding:26px 24px;border-radius:var(--radius-lg);background:var(--surface-card);border:1px solid var(--border-soft);box-shadow:var(--shadow-sm);transition:all var(--dur-base) var(--ease-soft);width:100%}
+    .dir-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+    .dir-mark{flex:none;width:56px;height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:28px;font-weight:500}
+    .dir-mark.rose{background:var(--rose-100);color:var(--rose-600);box-shadow:0 0 0 4px var(--surface-page),0 0 0 5px var(--rose-300)}
+    .dir-mark.clay{background:var(--clay-200);color:var(--clay-500);box-shadow:0 0 0 4px var(--surface-page),0 0 0 5px var(--clay-300)}
+    .dir-mark.sage{background:var(--sage-200);color:var(--sage-500);box-shadow:0 0 0 4px var(--surface-page),0 0 0 5px var(--sage-300)}
+    .dir-title{font-family:var(--font-serif);font-size:22px;font-weight:500;color:var(--ink-900)}
+    .dir-sub{font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.65;color:var(--text-secondary)}
+    @media(max-width:760px){.dir-grid{grid-template-columns:1fr;gap:12px}.dir-card{flex-direction:row;align-items:center;gap:16px;padding:18px}.dir-mark{width:48px;height:48px;font-size:24px}.dir-title{font-size:19px}}
+    .crumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+    .crumb{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:14px;color:var(--rose-600);background:var(--rose-50);border:1px solid var(--rose-100);border-radius:var(--radius-pill);padding:5px 12px}
+    .q-list{display:flex;flex-direction:column;gap:10px;margin-bottom:30px}
+    .q-item{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font-serif);font-size:17.5px;line-height:1.6;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 20px;transition:all var(--dur-fast) var(--ease-soft)}
+    .q-item.on{background:var(--surface-tint);border-color:var(--rose-300)}
+    .q-radio{flex:none;width:18px;height:18px;border-radius:999px;border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center}
+    .q-item.on .q-radio{border-color:var(--accent);background:var(--accent);color:var(--text-on-accent)}
+    .section-q{font-family:var(--font-serif);font-size:19px;color:var(--ink-900);margin:0 0 16px}
+
+    /* interpreting */
+    .interp{min-height:calc(100vh - 72px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 22px;position:relative;overflow:hidden}
+    .interp .glow{position:absolute;inset:0;background:radial-gradient(620px 460px at 50% 32%,var(--rose-100),transparent 62%)}
+    .interp .feng{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;line-height:1;font-family:var(--font-serif);font-size:40px;color:var(--accent-press);animation:breath 2.4s var(--ease-soft) infinite}
+    .interp .line{font-family:var(--font-serif);font-size:23px;color:var(--ink-900);margin:0;position:relative}
+    @media(max-width:760px){.interp .line{font-size:19px}}
+    @keyframes breath{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.08);opacity:1}}
+    @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .fade{animation:fade 420ms var(--ease-soft)}
+
+    /* result */
+    .summary{position:relative;border-radius:var(--radius-xl);overflow:hidden;background:linear-gradient(160deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);padding:38px 40px;margin-bottom:8px}
+    @media(max-width:760px){.summary{padding:26px 22px}}
+    .summary .q{font-family:var(--font-serif);font-size:32px;font-weight:500;line-height:1.45;color:var(--ink-900);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
+    @media(max-width:760px){.summary .q{font-size:23px}}
+    .res-block{margin-top:26px}
+    .res-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+    .res-head h3{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)}
+    .res-h3{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900);margin:0 0 14px}
+    .res-note-tag{margin:-6px 0 16px}
+    .res-note{display:flex;align-items:flex-start;gap:6px;font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.7;color:var(--text-secondary);margin:-6px 0 16px}
+    .tpos-tag{position:absolute;top:8px;right:8px;z-index:1}
+    .fact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    @media(max-width:760px){.fact-grid{grid-template-columns:1fr 1fr}}
+    .fact{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 18px}
+    .fact .l{font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:7px}
+    .fact .v{font-family:var(--font-serif);font-size:21px;font-weight:500;color:var(--ink-900);line-height:1.3}
+    .fact .s{font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-secondary);margin-top:4px}
+    .profile-lower{display:grid;grid-template-columns:.9fr 1.1fr;gap:16px;margin-top:14px}
+    @media(max-width:760px){.profile-lower{grid-template-columns:1fr}}
+    .mini-panel{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 18px;display:flex;flex-direction:column}
+    /* 完整命理檔案 ProfileCard */
+    .pf-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .pf-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+    @media(max-width:760px){.pf-grid4,.pf-grid3{grid-template-columns:1fr 1fr}}
+    .ftile{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 18px}
+    .ftile-l{font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:7px}
+    .ftile-v{font-family:var(--font-serif);font-size:21px;font-weight:500;color:var(--ink-900);line-height:1.3}
+    .ftile-s{font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-secondary);margin-top:4px}
+    .pf-block{margin-top:14px}.pf-block.s{margin-top:10px}
+    .pf-lbl{font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px}
+    .bazi-grid,.nayin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .bz-cell{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:12px 8px;text-align:center}
+    .bz-pos{font-family:var(--font-sans);font-size:10.5px;color:var(--text-muted);margin-bottom:6px}
+    .bz-ch{font-family:var(--font-serif);font-size:26px;font-weight:500;color:var(--ink-900);line-height:1.2}
+    .bz-ch.b{color:var(--rose-600)}
+    .bz-bar{width:1px;height:8px;background:var(--border-soft);margin:4px auto}
+    .ny-cell{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:10px 8px;text-align:center}
+    .ny-pos{font-family:var(--font-sans);font-size:10.5px;color:var(--text-muted);margin-bottom:5px}
+    .ny-val{font-family:var(--font-serif);font-size:14px;font-weight:500;color:var(--ink-900);line-height:1.4}
+    .mmt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .mmt-card{position:relative;aspect-ratio:.62;border-radius:var(--radius-md);border:1px solid var(--rose-200);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 8px;text-align:center;overflow:hidden}
+    .mmt-tag{position:absolute;top:7px;right:7px;z-index:2}
+    .mmt-disc{position:relative;display:inline-flex;width:52px;height:52px;border-radius:999px;background:var(--disc-frost-soft);border:1px solid rgba(255,253,248,0.8);align-items:center;justify-content:center;font-family:var(--font-serif);font-size:26px;line-height:1;margin-bottom:8px;flex-shrink:0}
+    .mmt-name{position:relative;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
+    .mmt-rule{position:relative;width:18px;height:1px;background:var(--rose-200);margin:5px auto}
+    .mmt-line{position:relative;font-family:var(--font-serif);font-weight:300;font-size:12px;line-height:1.6;color:var(--text-secondary);padding:0 4px}
+    @media(max-width:760px){.mmt-grid{grid-template-columns:1fr 1fr}.bz-ch{font-size:22px}.ny-val{font-size:13px}.mmt-disc{width:44px;height:44px;font-size:22px}.mmt-name{font-size:14px}.mmt-line{font-size:11px}}
+    /* 紫微命盤摘要 */
+    .zw-card{background:linear-gradient(160deg,var(--tint-sage-disc),var(--paper) 78%);border:1px solid var(--sage-200);border-radius:var(--radius-lg);padding:26px 28px}
+    .zw-top{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .zw-cell{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 16px}
+    .zw-k{font-family:var(--font-sans);font-size:11px;color:var(--text-muted);margin-bottom:5px}
+    .zw-v{font-family:var(--font-serif);font-size:16.5px;font-weight:500;color:var(--ink-900);line-height:1.4}
+    .zw-year{margin-top:14px;padding:16px 18px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md)}
+    .zw-yhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .zw-ytitle{font-family:var(--font-serif);font-size:15.5px;font-weight:500;color:var(--ink-900)}
+    .zw-ysub{font-family:var(--font-sans);font-size:12.5px;color:var(--text-secondary)}
+    .zw-muts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+    .zw-mut{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-serif);font-size:13.5px;color:var(--ink-900);background:var(--surface-tint);border:1px solid var(--border-soft);border-radius:var(--radius-pill);padding:3px 10px 3px 8px}
+    .zw-mut-b{width:18px;height:18px;border-radius:999px;color:var(--paper);font-family:var(--font-sans);font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+    .zw-ycards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .zw-ycard{display:flex;align-items:baseline;justify-content:space-between;gap:8px;background:var(--surface-tint);border-radius:var(--radius-md);padding:9px 12px}
+    .zw-yk{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
+    .zw-yv{font-family:var(--font-serif);font-size:14.5px;font-weight:500;color:var(--ink-900)}
+    @media(max-width:760px){.zw-card{padding:20px 18px}.zw-top{grid-template-columns:1fr 1fr}.zw-ycards{grid-template-columns:1fr}}
+    /* 姓名學 */
+    .nm-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+    .nm-full{font-family:var(--font-serif);font-size:36px;font-weight:500;color:var(--ink-900);letter-spacing:.14em}
+    .nm-score{display:flex;flex-direction:column;align-items:center;gap:4px}
+    .nm-score-l{font-family:var(--font-sans);font-size:11px;color:var(--text-muted)}
+    .nm-chars{display:flex;gap:10px;flex-wrap:wrap}
+    .nm-char{flex:1 1 90px;min-width:86px;border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 10px;text-align:center}
+    .nm-c{font-family:var(--font-serif);font-size:34px;font-weight:500;color:var(--ink-900);line-height:1}
+    .nm-cs{font-family:var(--font-sans);font-size:12px;color:var(--ink-500);margin-top:7px}
+    .nm-ce{font-family:var(--font-sans);font-size:13px;font-weight:500;margin-top:5px}
+    .nm-wuge{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .nm-wg{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:12px 10px;text-align:center}
+    .nm-wk{font-family:var(--font-sans);font-size:11px;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px}
+    .nm-ws{font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--ink-900);line-height:1.1}
+    .nm-we{font-family:var(--font-sans);font-size:12px;font-weight:500;margin-top:5px}
+    .nm-wl{font-family:var(--font-sans);font-size:12px;font-weight:500;margin-top:3px}
+    .nm-sancai{margin-top:14px;display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-md);flex-wrap:wrap}
+    .nm-sc-cfg{font-family:var(--font-serif);font-size:21px;font-weight:500;color:var(--ink-900);margin-top:3px}
+    .nm-sc-bar{width:1px;height:32px;background:var(--border-soft);flex:none}
+    .nm-sc-r{flex:1;min-width:0}
+    .nm-sc-luck{font-family:var(--font-sans);font-size:13px;font-weight:500;color:var(--sage-500);margin-right:8px}
+    .nm-sc-short{font-family:var(--font-serif);font-weight:300;font-size:15px;color:var(--ink-700)}
+    .nm-sum{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.85;color:var(--ink-700);margin:14px 0 0}
+    .nm-paid{margin-top:18px;display:flex;flex-direction:column;gap:14px}
+    .nm-pe{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:18px 20px}
+    .nm-pe-h{font-family:var(--font-serif);font-size:16.5px;font-weight:500;color:var(--ink-900);margin-bottom:8px}
+    .nm-pe-b{font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.9;color:var(--ink-700);margin:0}
+    @media(max-width:760px){.nm-full{font-size:30px}.nm-wuge{grid-template-columns:1fr 1fr}}
+    /* 分靈體側寫 */
+    .sp-row{display:flex;gap:20px;align-items:flex-start}
+    .sp-av-col{display:flex;flex-direction:column;align-items:center;gap:10px;flex:none}
+    .sp-av{width:76px;height:76px;border-radius:999px;background:var(--rose-100);color:var(--rose-600);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:32px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
+    .sp-name{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--accent-press)}
+    .sp-body{flex:1;min-width:0}
+    .sp-traits{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .sp-p{font-family:var(--font-serif);font-weight:300;font-size:17px;line-height:1.9;color:var(--ink-700);margin:0}
+    @media(max-width:760px){.sp-row{flex-direction:column;gap:16px}.sp-av{width:64px;height:64px;font-size:27px}.sp-p{font-size:15.5px}}
+    .tarot-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+    @media(max-width:760px){.tarot-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
+    .tcard{aspect-ratio:.62;border-radius:var(--radius-md);border:1px solid var(--rose-200);background:linear-gradient(165deg,var(--paper),var(--rose-50));box-shadow:var(--shadow-sm);padding:12px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative}
+    .tcard .no{position:absolute;top:8px;left:0;right:0;font-family:var(--font-sans);font-size:10.5px;color:var(--rose-400);letter-spacing:.06em}
+    .tcard .nm{font-family:var(--font-serif);font-size:23px;font-weight:500;color:var(--accent-press)}
+    .tpos{font-family:var(--font-sans);font-size:11.5px;color:var(--rose-500);font-weight:500;margin:6px 0 3px;text-align:center}
+    .tline{font-family:var(--font-serif);font-weight:300;font-size:13px;line-height:1.6;color:var(--text-secondary);text-align:center}
+    .qk-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    @media(max-width:760px){.qk-grid{grid-template-columns:1fr}}
+    .vqian{display:flex;flex-direction:column;gap:10px}
+    .vqian .no{font-family:var(--font-serif);font-size:16px;color:var(--rose-600);letter-spacing:.1em;border-bottom:1px solid var(--rose-100);padding-bottom:8px}
+    .vqian .poem{display:flex;flex-direction:column;gap:6px}
+    .vqian .poem span{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900);letter-spacing:.08em}
+    .vqian .poem span.dim{color:var(--ink-300)}
+    .qno{font-family:var(--font-sans);font-size:12.5px;color:var(--rose-500);letter-spacing:.06em;margin-bottom:10px}
+    .qpoem{display:grid;grid-template-columns:max-content max-content;justify-content:start;gap:6px 1em}
+    .qpoem span{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900)}
+    @media(max-width:760px){.qpoem{gap:6px 0.8em}.qpoem span{font-size:16.5px}}
+
+    /* talisman */
+    .tal-hero{display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center}
+    @media(max-width:760px){.tal-hero{grid-template-columns:1fr;gap:18px}}
+    .tal-wrap{width:196px;position:relative}
+    @media(max-width:760px){.tal-wrap{width:168px;margin:0 auto}}
+    .tframe{position:relative;width:100%;aspect-ratio:9/16;border-radius:var(--radius-lg);background:var(--paper);border:1px solid var(--rose-200);box-shadow:var(--shadow-md);overflow:hidden;display:flex;align-items:center;justify-content:center}
+    .tframe .glow{position:absolute;inset:0;background:radial-gradient(120% 70% at 50% 40%,var(--rose-100),transparent 62%)}
+    .tframe .inner-border{position:absolute;inset:12px;border-radius:14px;border:1px solid var(--rose-100)}
+    .fulu{position:relative;z-index:1;height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:30px 0 20px;color:var(--ink-700)}
+    .fulu .chi{font-family:var(--font-sans);font-size:12px;letter-spacing:.42em;color:var(--rose-500);margin-left:.42em}
+    .fulu .glyph{font-family:var(--font-serif);font-size:84px;line-height:1;color:var(--accent-press)}
+    .fulu .bar{width:1px;height:28px;background:linear-gradient(var(--rose-300),transparent)}
+    .fulu .name{writing-mode:vertical-rl;font-family:var(--font-serif);font-size:32px;font-weight:500;letter-spacing:.16em;color:var(--ink-700)}
+    .fulu .brand{font-family:var(--font-serif);font-size:11px;letter-spacing:.08em;color:var(--rose-400)}
+    .fulu.sm{padding:18px 0 13px}.fulu.sm .glyph{font-size:50px}.fulu.sm .name{font-size:21px}.fulu.sm .chi{font-size:9.5px}.fulu.sm .bar{height:16px}.fulu.sm .brand{font-size:8.5px}
+    .blurred{filter:blur(7px);width:100%;height:100%}
+    @media(max-width:760px){.blurred{filter:blur(6px)}}
+    .fog{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:0 18px 20px;background:linear-gradient(180deg,var(--veil-top),var(--veil-bottom) 78%)}
+    .fog .lk{width:30px;height:30px;border-radius:999px;background:var(--paper);border:1px solid var(--rose-200);display:flex;align-items:center;justify-content:center;margin-bottom:8px;box-shadow:var(--shadow-xs);color:var(--rose-500)}
+    .fog .cap{font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.6;color:var(--ink-700)}
+    .tal-caption{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
+    .hex-name{font-family:var(--font-serif);font-size:30px;font-weight:500;color:var(--ink-900)}
+    @media(max-width:760px){.hex-name{font-size:24px}.tal-hero .hexcol{text-align:center}}
+    .hex-read{font-family:var(--font-serif);font-weight:300;font-size:17px;line-height:1.9;color:var(--text-secondary);margin:12px 0 0;max-width:28em}
+    .season-tip{display:inline-flex;align-items:flex-start;gap:10px;margin-top:18px;padding:13px 18px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-md);text-align:left}
+    .season-tip .t{font-family:var(--font-serif);font-size:15px;line-height:1.7;color:var(--ink-700)}
+    .season-tip b{font-weight:500;color:var(--accent-press)}
+    .tal5-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+    @media(max-width:760px){.tal5-grid{grid-template-columns:repeat(2,1fr);gap:12px}}
+    .tal5 .nm{font-family:var(--font-serif);font-size:14.5px;font-weight:500;color:var(--ink-900);text-align:center;margin-top:9px}
+    .tal5 .ln{font-family:var(--font-serif);font-weight:300;font-size:12.5px;line-height:1.55;color:var(--text-secondary);text-align:center;margin-top:2px}
+
+    /* paywall */
+    .paywall{position:relative;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--rose-100);background:var(--surface-card)}
+    .paywall .behind{position:absolute;inset:0;z-index:0;filter:blur(7px);opacity:.55;padding:30px 32px;pointer-events:none;user-select:none;background:var(--surface-card)}
+    .paywall .behind p{font-family:var(--font-serif);font-size:17px;line-height:1.9;color:var(--ink-700);margin:0}
+    .paywall .behind .row{display:flex;gap:10px;margin-top:16px}
+    .paywall .behind .row i{width:64px;height:80px;border-radius:10px;background:var(--rose-100)}
+    .paywall .veil{position:relative;z-index:1;background:linear-gradient(180deg,var(--veil-top),var(--veil-bottom) 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:44px 32px}
+    .paywall .veil .lk{width:48px;height:48px;border-radius:999px;background:var(--rose-100);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--rose-500)}
+    .paywall .veil h3{font-family:var(--font-serif);font-size:25px;font-weight:500;color:var(--ink-900);margin:0 0 8px}
+    .paywall .veil p{font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.8;color:var(--text-secondary);margin:0 0 6px;max-width:26em;text-align:left}
+    .feat{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:14px 0 20px}
+    .feat span{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:12.5px;color:var(--rose-600);background:var(--rose-50);border-radius:var(--radius-pill);padding:5px 12px}
+    .paid-card{background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-lg);overflow:hidden}
+    .paid-card .topbar{height:4px;background:linear-gradient(90deg,var(--rose-300),var(--clay-400))}
+    .paid-card .body{padding:30px 34px}
+    .paid-card .body p{font-family:var(--font-serif);font-weight:300;font-size:17px;line-height:2;color:var(--ink-700);margin:0 0 16px}
+
+    /* recs */
+    .recs{margin-top:60px}
+    .recs .head{text-align:center;margin-bottom:34px}
+    .recs .head h2{font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.18;letter-spacing:.02em;color:var(--ink-900);margin:0 0 8px}
+    .recs .head p{font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary)}
+    .rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    @media(max-width:760px){.recs{margin-top:44px}.rec-grid{grid-template-columns:1fr;gap:14px}}
+    .rec{display:flex;flex-direction:column;height:100%;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;text-decoration:none;transition:all var(--dur-fast) var(--ease-soft)}
+    .rec:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+    .rec .top{padding:24px 24px 0;display:flex;align-items:center;justify-content:space-between}
+    .rec-ic{width:42px;height:42px;border-radius:999px;display:flex;align-items:center;justify-content:center}
+    .rec-ic.book{background:var(--rose-100);color:var(--rose-500)}
+    .rec-ic.tal{background:var(--clay-200);color:var(--clay-500)}
+    .rec .b{padding:16px 24px 26px;flex:1;display:flex;flex-direction:column}
+    .rec h4{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);margin:0 0 8px}
+    .rec .reason{display:flex;gap:7px;margin-bottom:16px}
+    .rec .reason p{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary)}
+    .rec .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between}
+    .rec .price{font-family:var(--font-sans);font-size:13.5px;color:var(--ink-700)}
+    .rec .cta{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-serif);font-size:14.5px;color:var(--accent-press);font-weight:500}
+
+    /* banner */
+    .banner{position:relative;border-radius:var(--radius-xl);overflow:hidden;margin:30px 0;box-shadow:var(--shadow-sm);border:1px solid var(--rose-100)}
+    .banner img{display:block;width:100%;height:188px;object-fit:cover}
+    .banner .cap{position:absolute;left:0;right:0;bottom:0;padding:34px 26px 20px;background:linear-gradient(transparent,var(--photo-scrim));pointer-events:none}
+    .banner .cap span{font-family:var(--font-serif);font-size:19px;color:var(--ink-on-photo);text-shadow:0 1px 8px var(--photo-scrim-shadow,rgba(46,40,35,.3))}
+    @media(max-width:760px){.banner img{height:132px}.banner .cap span{font-size:16px}}
+
+    /* cooldown */
+    .cool{min-height:calc(100vh - 72px);display:flex;align-items:center;justify-content:center;padding:60px 32px;position:relative;overflow:hidden}
+    .cool .glow{position:absolute;inset:0;background:radial-gradient(620px 460px at 50% 20%,var(--rose-100),transparent 62%)}
+    .cool .card{position:relative;max-width:560px;text-align:center;padding:44px 48px}
+    @media(max-width:760px){.cool .card{padding:30px 24px}}
+    .cool .moon{width:56px;height:56px;border-radius:999px;background:var(--rose-100);display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;color:var(--rose-500)}
+    .cool h1{font-family:var(--font-serif);font-size:28px;font-weight:500;line-height:1.45;color:var(--ink-900);margin:0 0 16px}
+    @media(max-width:760px){.cool h1{font-size:23px}}
+    .cool .when{background:var(--surface-sunken);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 20px;margin:24px 0;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--rose-500)}
+    .cool .when span{font-family:var(--font-serif);font-size:17px;color:var(--ink-900)}
+    .cool .when b{font-weight:500;color:var(--accent-press)}
+    .cool-btns{display:flex;gap:12px;justify-content:center}
+    @media(max-width:760px){.cool-btns{flex-direction:column}}
+
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script is:inline>
+/* ===== 後端設定（一律以現行 production 為準，原樣搬自 live index.html）===== */
+var GOOGLE_CLIENT_ID="35219881811-2rnl87e0qmb9vsuhuqnfooo0a0af5ggd.apps.googleusercontent.com";
+var WORKER_API="https://api.winds.tw";
+var API={submit:WORKER_API+"/liff-submit",status:WORKER_API+"/liff-status",order:WORKER_API+"/liff-order",prefill:WORKER_API+"/liff-prefill",prefetch:WORKER_API+"/liff-prefetch-profile",recommend:WORKER_API+"/divination-recommend",naming:WORKER_API+"/api/naming/analyze"};
+var TALISMAN_PRICE=360;
+var LINE_OA_URL="https://lin.ee/tQHsgWB";
+
+/* ===== 前端漏斗內容（TOPICS 48 題＝新設計 shared-fortune-data.jsx 權威版；含 service 軟性提示）===== */
+var DIVINATION_PRAYER="（占卜前請靜心默想一位神尊或天使做主，再繼續補充你想占卜的問題）";
+var TOPICS=[
+ {key:"love",mark:"緣",title:"感情與婚姻",tone:"rose",sub:"關於感情、婚姻、那個人的事——想看清彼此真實的想法與走向。",
+  subs:[
+   {key:"reunion",name:"復合與舊愛",desc:"分手後想知道是否還有機會，或好好放下。",
+    qs:[{q:"我們分手了，還有沒有復合的可能？",desc:"想看清這段關係是真的結束，還是還有轉機。",service:"fortune"},
+          {q:"他跟我分手的真正原因，到底是什麼？",desc:"對方沒說清楚，想了解背後是不是有別的原因。",service:"karma"},
+          {q:"這段感情讓我好累，我該放下，還是再等等？",desc:"需要一個方向，幫我好好做決定、往前走。",service:"event"},
+          {q:"我還放不下他，他現在對我，是什麼感覺？",desc:"想知道對方此刻真實的心意。",service:"karma"}]},
+   {key:"crush",name:"暗戀與曖昧",desc:"想知道對方的心意、發展的可能，或行動的時機。",
+    qs:[{q:"我喜歡他，我們有沒有可能在一起？",desc:"看你們之間的緣分與未來的走向。",service:"fortune"},
+          {q:"他對我忽冷忽熱，到底喜不喜歡我？",desc:"想看清對方真實的心意與態度。",service:"karma"},
+          {q:"我想告白，但不知道現在是不是好時機？",desc:"看看行動的時機，和成功的機會。",service:"event"},
+          {q:"這段曖昧一直沒有結果，是不是有我沒看見的原因？",desc:"找出讓關係卡住、無法前進的癥結。",service:"karma"}]},
+   {key:"partner",name:"伴侶與婚姻",desc:"化解爭執、冷淡、懷疑，或想改善這段關係。",
+    qs:[{q:"最近常吵架，我們是不是個性不合，還是有別的結？",desc:"看看關係裡的癥結與相處的課題。",service:"karma"},
+          {q:"這段婚姻／感情，未來一年會怎麼走？",desc:"看你們感情運勢的起伏。",service:"fortune"},
+          {q:"我心裡有疑慮，想知道他對這段感情是不是還專心？",desc:"想釐清關係裡讓你不安的地方。",service:"karma"},
+          {q:"我想挽回這段關係，有沒有方向或建議？",desc:"尋找改善關係的具體做法。",service:"event"}]},
+   {key:"single",name:"單身與桃花",desc:"求正緣、調整感情運，或想看看桃花的走向。",
+    qs:[{q:"我單身好一陣子了，正緣什麼時候會出現？",desc:"看桃花運勢與正緣出現的時機。",service:"fortune"},
+          {q:"為什麼我總是遇到不對的人？是哪裡卡住了？",desc:"探索感情總是不順的深層原因。",service:"karma"},
+          {q:"我想擺脫爛桃花，怎麼做才能遇到對的人？",desc:"想找到調整感情運、招來好緣分的方法。",service:"event"},
+          {q:"接下來這幾個月，我的桃花運勢如何？",desc:"看近期的感情能量。",service:"fortune"}]}]},
+ {key:"work",mark:"業",title:"事業與財富",tone:"clay",sub:"包含工作方向、轉職創業、財務壓力與收入穩定度——想釐清下一步。",
+  subs:[
+   {key:"job",name:"求職與換工作",desc:"轉職評估、去留抉擇、面試運勢。",
+    qs:[{q:"現在這份工作做得好累，該轉職，還是繼續？",desc:"面臨留或去的抉擇，需要一個方向。",service:"event"},
+          {q:"我想換工作，換到新環境會不會更好？",desc:"看看換工作之後的運勢與發展。",service:"fortune"},
+          {q:"我一直找不到合適的工作，是不是哪裡卡住了？",desc:"找出讓求職不順的隱形阻礙。",service:"karma"},
+          {q:"手上有幾個工作機會在選，哪一個比較適合我？",desc:"針對選項一起看看、給你建議。",service:"event"}]},
+   {key:"business",name:"創業與副業",desc:"創業運勢、合夥評估、生意診斷。",
+    qs:[{q:"我想創業或做副業，適不適合走這條路？",desc:"看你的事業能量與時機穩不穩。",service:"fortune"},
+          {q:"最近生意變差，是什麼原因造成的？",desc:"找出生意下滑的外在或內在因素。",service:"karma"},
+          {q:"我想跟人合夥，這個對象能不能信任？",desc:"先看看合作對象的能量與誠信。",service:"karma"},
+          {q:"我想擴大經營，這個決策正不正確？",desc:"針對重大決定，給你方向上的指引。",service:"event"}]},
+   {key:"office",name:"職場人際與升遷",desc:"人際相處、升遷機會、工作環境。",
+    qs:[{q:"我在公司是不是被針對？為什麼一直不順？",desc:"看看職場上的人際與隱形干擾。",service:"karma"},
+          {q:"今年有沒有升遷、加薪的機會？",desc:"看你今年職場運勢的走向。",service:"fortune"},
+          {q:"跟主管或同事處不來，怎麼改善關係？",desc:"找出改善職場關係的方法。",service:"event"},
+          {q:"我覺得辦公室的氣場怪怪的，是不是有問題？",desc:"感受一下工作環境的能量。",service:"karma"}]},
+   {key:"wealth",name:"投資與財運",desc:"正偏財運、漏財原因、投資吉凶。",
+    qs:[{q:"我這一生的財運，穩不穩？",desc:"看你本命的財帛與財富大局。",service:"fortune"},
+          {q:"最近一直破財，錢總是留不住，想查原因？",desc:"找出漏財的漏洞與原因。",service:"karma"},
+          {q:"我想投資這個項目，適不適合？",desc:"看看這筆投資的時機與走勢。",service:"event"},
+          {q:"未來半年的偏財運如何？適合增加收入嗎？",desc:"看近期的偏財能量。",service:"fortune"}]}]},
+ {key:"self",mark:"安",title:"身心與健康",tone:"sage",sub:"身心狀態、睡眠、壓力或長期不適——先好好照顧一下自己。",
+  subs:[
+   {key:"body",name:"身體健康",desc:"不明原因的不適、手術平安、健康運勢。",
+    qs:[{q:"檢查都正常，但身體就是不舒服，想知道為什麼？",desc:"想了解一些醫學查不出的可能原因。",service:"karma"},
+          {q:"我想知道今年的健康運勢，要注意什麼？",desc:"看健康狀態與需要留意的地方。",service:"fortune"},
+          {q:"孩子身體一直好不了，是不是有我沒注意到的原因？",desc:"想多了解孩子健康背後的狀況。",service:"karma"},
+          {q:"快要動手術了，想問會不會順利、平安？",desc:"為即將到來的手術祈福、安心。",service:"event"}]},
+   {key:"mind",name:"心理與情緒",desc:"低落焦慮、睡不好、情緒起伏。",
+    qs:[{q:"最近心情很低落、焦慮，又找不出原因。",desc:"想找到情緒波動的來源與出口。",service:"fortune"},
+          {q:"常做惡夢、容易驚醒，為什麼會這樣？",desc:"看看是壓力，還是別的影響。",service:"karma"},
+          {q:"總是很累、睡不好、壓力很大。",desc:"了解睡眠與精神卡住的地方。",service:"fortune"},
+          {q:"心裡有個結一直打不開，鬱悶很久了。",desc:"想找一個方向，慢慢調整。",service:"event"}]},
+   {key:"luck",name:"運勢與安定",desc:"諸事不順、居家空間、想求個安心。",
+    qs:[{q:"最近運氣好差，一直不順，是不是哪裡需要調整？",desc:"看看氣場與運勢的狀態。",service:"karma"},
+          {q:"孩子最近常做怪夢、講怪話，想了解一下。",desc:"多了解孩子的體質與狀況。",service:"karma"},
+          {q:"想關心一下過世的長輩，有沒有需要為他們做的？",desc:"想為先人盡一份心、求個安心。",service:"karma"},
+          {q:"想知道家裡或某個空間，氣場適不適合我？",desc:"了解居家環境與你的能量是否相合。",service:"fortune"}]},
+   {key:"family",name:"家庭與寵物",desc:"孩子受驚、寵物溝通、家人運勢。",
+    qs:[{q:"孩子最近容易受驚、常哭鬧，是不是嚇到了？",desc:"想了解孩子是不是受了驚。",service:"karma"},
+          {q:"家裡的寵物最近怪怪的，想知道牠怎麼了？",desc:"與寵物溝通，了解牠的身心狀況。",service:"karma"},
+          {q:"擔心家人的運勢，想幫他們看看要注意什麼。",desc:"看看家人運勢上需要留意的地方。",service:"event"},
+          {q:"想知道過世的親人，現在過得好不好？",desc:"想關心已經離開的家人。",service:"karma"}]}]}
+];
+var READING_LINES=["正在為你翻開這張牌……","對齊你的命盤與節氣……","聽聽風，怎麼說……","把該說的，輕輕收攏……"];
+
+/* ===== state ===== */
+var STATE={step:"topic",paid:false,dir:null,sub:null,q:null,text:"",gender:"",service:"",
+ lineUserId:"",logId:"",talismanName:"量能靈符",
+ submitting:false,ordering:false,soulConfirmed:false,
+ prefill:null,cooldown:null,result:null,error:""};
+var STEPS=[{k:"topic",l:"選題"},{k:"info",l:"資料"},{k:"interpreting",l:"解讀"},{k:"result",l:"結果"}];
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function ic(n,w){return '<i class="ph'+(w?'-'+w:'')+' ph-'+n+'"></i>'}
+function pad2(n){n=String(n);return n.length<2?"0"+n:n}
+/* 輕量 markdown：去掉 ##/**，換行轉 <br> */
+function md(t){if(!t)return"";return esc(t).replace(/^#{1,6}\s*/gm,"").replace(/\*\*(.+?)\*\*/g,"$1").replace(/\*(.+?)\*/g,"$1").replace(/`{1,3}([^`]*)`{1,3}/g,"$1").replace(/---+/g,"─────").replace(/\n{2,}/g,"<br><br>").replace(/\n/g,"<br>")}
+/* 八卦 unicode */
+var GUA_UNI={'乾':'☰','天':'☰','兌':'☱','澤':'☱','離':'☲','火':'☲','震':'☳','雷':'☳','巽':'☴','風':'☴','坎':'☵','水':'☵','艮':'☶','山':'☶','坤':'☷','地':'☷'};
+function parseKongmingText(text){
+  if(!text)return null;var k={};var lines=text.split('\n');
+  for(var i=0;i<lines.length;i++){var line=lines[i];
+    if(line.indexOf('籤序：')===0)k.signOrder=line.substring(3);
+    else if(line.indexOf('本卦：')===0){var m=line.substring(3).match(/^(.+?)（(.+?)·(.+?)）$/);if(m){k.curHex=m[1];k.palace=m[2];k.curEl=m[3];}else k.curHex=line.substring(3);}
+    else if(line.indexOf('變爻：')===0)k.trigger=line.substring(3);
+    else if(line.indexOf('變卦：')===0){var m2=line.substring(3).match(/^(.+?)（(.+?)）$/);if(m2){k.chgHex=m2[1];k.chgEl=m2[2];}else k.chgHex=line.substring(3);}
+    else if(line.indexOf('籤等：')===0)k.fortuneLevel=line.substring(3);
+    else if(line.indexOf('吉凶：')===0)k.fortuneCategory=line.substring(3);
+    else if(line.indexOf('籤詩：')===0)k.poem=line.substring(3);
+    else if(line.indexOf('解讀：')===0)k.interp=line.substring(3);
+  }
+  return k;
+}
+function parseOracle(type,text){
+  if(!type||!text)return null;var lines=text.split('\n');var head=lines[0]||'';
+  var poem=(lines.find(function(l){return l.indexOf('詩：')===0;})||'').replace('詩：','');
+  var lvl='';var m=head.match(/（(.+?)）/);if(m)lvl=m[1];
+  var no=head.replace(/（.+?）/,'').replace(type+' ','').trim();
+  return {type:type,no:no,poem:poem,level:lvl};
+}
+function buildResult(d){
+  var a=d.astro||{};var wr=a.wuxing_radar||null;
+  return {
+    summary:d.summary||"",
+    purchased:!!d.purchased,deliveryUrl:d.delivery_url||"",
+    hexName:d.hexagram_name||"",upperGua:d.upper_gua||"",lowerGua:d.lower_gua||"",
+    talismanImg:d.talisman_image_url||"",talismanElements:d.talisman_elements||[],shengKe:d.sheng_ke||"",
+    wuxing:wr?(function(){var ks=["木","火","土","金","水"],vs=ks.map(function(k){return +wr[k]||0}),mx=Math.max.apply(null,vs);return ks.map(function(k,i){return{k:k,v:mx>0?Math.round(vs[i]/mx*100):0}})})():[],
+    fortuneLine:a.fortune_line||d.fortune_line||[],
+    tarot:d.tarot_cards||[],
+    bazi:a.full_bazi||"",zodiac:a.shengxiao||"",star:a.xingzuo||"",taisui:a.taisui_conflict_status||"",mansion:a.twenty_eight_mansion||"",
+    lunar:a.lunar_birthday||"",
+    naiyin:[a.naiyin_year,a.naiyin_month,a.naiyin_day,a.naiyin_hour],
+    deityBirth:a.taisui_deity_birth||"",deityYear:a.taisui_deity_year||"",
+    mmtarot:(d.ben_ming_tarots||[]).map(function(t){return {name:t.card_name||"",glyph:(t.card_name||"").slice(0,1),el:t.element||"",line:t.line||"",pos:t.label||""}}),
+    spiritName:d.spirit_name||"",spiritTraits:(d.spirit_traits&&d.spirit_traits.length)?d.spirit_traits:null,
+    name:null,
+    profile:d.personality_profile||"",profileGenerating:!!d.personality_generating,
+    oracle:parseOracle(d.oracle_type,d.oracle_sign_text),
+    kongming:parseKongmingText(d.secondary_oracle_sign_text),
+    recs:null
+  };
+}
+
+/* ===== progress header ===== */
+function header(){
+  var idx=Math.max(0,STEPS.findIndex(function(s){return s.k===STATE.step}));
+  var pct=((idx+(STATE.step==="result"?1:0.5))/STEPS.length)*100;
+  var steps=STEPS.map(function(s,i){
+    var cls=i<idx?"done":(i===idx?"cur":"");
+    var num=i<idx?ic("check","bold"):(i+1);
+    return '<span class="ph-step '+cls+'"><span class="ph-num">'+num+'</span><span class="ph-lbl">'+s.l+'</span></span>'+(i<STEPS.length-1?'<span class="ph-sep"></span>':'');
+  }).join("");
+  return '<header class="ph-hdr"><div class="row">'+
+    '<button class="ph-back" onclick="back()">'+ic("arrow-left")+'<span>上一步</span></button>'+
+    '<div class="ph-steps">'+steps+'</div>'+
+    '<span class="ph-mob"><b>'+(idx+1)+'</b> / '+STEPS.length+' · '+STEPS[idx].l+'</span>'+
+    '<button class="ph-exit" onclick="exitFlow()">'+ic("x")+'</button>'+
+    '</div><div class="ph-bar"><span style="width:'+pct+'%"></span></div></header>';
+}
+
+/* ===== Step 1 topic ===== */
+function viewTopic(){
+  var dir=TOPICS.find(function(t){return t.key===STATE.dir});
+  var sub=dir&&dir.subs.find(function(s){return s.key===STATE.sub});
+  var h='';
+  var intro = dir
+    ? {e:"想問一件事",t:"好，我們繼續往下看。",l:"先選一個最接近你的問題。"}
+    : {e:"想問一件事",t:"今天，想讓哪件事安心？",l:"先選一個大方向，我再陪你找出那個不安的點"};
+  h+='<div class="step-intro"><span class="eyebrow"><span class="dot"></span>'+intro.e+'</span><h1>'+intro.t+'</h1><p class="lede">'+intro.l+'</p></div>';
+  if(dir){
+    h+='<div class="crumbs"><button class="crumb" onclick="pickDir(null)">'+esc(dir.title)+ic("pencil-simple")+'</button>';
+    if(sub)h+='<button class="crumb" onclick="pickSub(null)">'+esc(sub.name)+ic("pencil-simple")+'</button>';
+    h+='</div>';
+  }
+  if(!dir){
+    h+='<div class="dir-grid">'+TOPICS.map(function(t){
+      return '<button class="dir-card" onclick="pickDir(\''+t.key+'\')"><span class="dir-mark '+t.tone+'">'+t.mark+'</span>'+
+        '<span><span class="dir-title">'+esc(t.title)+'</span><br><span class="dir-sub">'+esc(t.sub)+'</span></span></button>';
+    }).join("")+'</div>';
+  } else if(!sub){
+    h+='<div class="fade"><p class="section-q">關於「'+esc(dir.title)+'」，比較接近哪一種？</p><div style="display:flex;flex-wrap:wrap;gap:10px">'+
+      dir.subs.map(function(s){return '<button class="chip" onclick="pickSub(\''+s.key+'\')">'+esc(s.name)+'</button>'}).join("")+'</div></div>';
+  } else {
+    h+='<div class="fade"><p class="section-q">哪個狀況最接近你現在想問的問題？</p><div class="q-list">'+
+      sub.qs.map(function(q){var on=STATE.q===q.q;
+        return '<button class="q-item'+(on?' on':'')+'" style="align-items:flex-start" onclick="pickQ(this,\''+esc(q.q).replace(/'/g,"\\'")+'\')"><span class="q-radio" style="margin-top:5px"></span><span><span style="display:block">'+esc(q.q)+'</span><span style="display:block;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);margin-top:3px">'+esc(q.desc||'')+'</span></span></button>';
+      }).join("")+'</div>';
+    if(STATE.q){
+      h+='<div class="fade"><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">'+
+        '<span style="font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--ink-700)">把括號裡的提示，換成你想問的。</span>'+
+        '<span style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted)">'+STATE.text.length+' / 300</span></div>'+
+        '<textarea class="f-textarea" maxlength="300" rows="'+Math.max(4,Math.min(10,Math.ceil(STATE.text.length/22)+1))+'" oninput="STATE.text=this.value;this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'" style="font-size:18px">'+esc(STATE.text)+'</textarea>'+
+        '<p class="hint" style="margin-top:8px">'+ic("heart")+'一次問一件事，解讀會更清楚也更貼近你。</p>'+
+        '<div style="margin-top:28px"><button class="btn primary lg" onclick="go(\'info\')">就問這個 '+ic("arrow-right")+'</button></div></div>';
+    }
+    h+='</div>';
+  }
+  return '<main class="shell narrow">'+h+'</main>';
+}
+function pickDir(k){STATE.dir=k;STATE.sub=null;STATE.q=null;STATE.text="";render()}
+function pickSub(k){STATE.sub=k;STATE.q=null;STATE.text="";render()}
+function pickQ(el,qt){
+  STATE.q=qt;
+  var d=TOPICS.find(function(t){return t.key===STATE.dir})||{};
+  var s=(d.subs||[]).find(function(x){return x.key===STATE.sub})||{};
+  var qo=(s.qs||[]).find(function(x){return x.q===qt})||{};
+  STATE.service=qo.service||"";
+  STATE.text="我目前最想處理的問題是「"+(d.title||"")+" - "+(s.name||"")+"」，狀況比較接近「"+qt+"」："+(qo.desc||"")+"　實際情況是："+DIVINATION_PRAYER;
+  render();
+}
+
+/* ===== Step 2 info ===== */
+function viewInfo(){
+  var pf=STATE.prefill||{};
+  var pfDate="",pfTime="";
+  if(pf.date_of_birth){var dp=String(pf.date_of_birth).split(" ");pfDate=dp[0]||"";pfTime=(dp[1]||"").slice(0,5);}
+  var pfY="",pfM="",pfD="";if(pfDate){var ymd=pfDate.split("-");pfY=+ymd[0]||"";pfM=+ymd[1]||"";pfD=+ymd[2]||"";}
+  var pfPhone=pf.phone?String(pf.phone).replace(/^\+886/,"0"):"";
+  function selA(v,cur){return (cur!==""&&v==cur)?' selected':''}
+  var years='';for(var y=2026;y>=1940;y--)years+='<option value="'+y+'"'+selA(y,pfY)+'>'+y+' 年</option>';
+  var months='';for(var m=1;m<=12;m++)months+='<option value="'+m+'"'+selA(m,pfM)+'>'+m+' 月</option>';
+  var days='';for(var d=1;d<=31;d++)days+='<option value="'+d+'"'+selA(d,pfD)+'>'+d+' 日</option>';
+  var sc=[["子時 23–01","00:00"],["丑時 01–03","02:00"],["寅時 03–05","04:00"],["卯時 05–07","06:00"],["辰時 07–09","08:00"],["巳時 09–11","10:00"],["午時 11–13","12:00"],["未時 13–15","14:00"],["申時 15–17","16:00"],["酉時 17–19","18:00"],["戌時 19–21","20:00"],["亥時 21–23","22:00"]];
+  var pfShi="";if(pfTime){var hh=parseInt(pfTime.split(":")[0],10);if(!isNaN(hh)){pfShi=sc[Math.floor(((hh+1)%24)/2)][1];}}
+  var sco=sc.map(function(s){return '<option value="'+s[1]+'"'+selA(s[1],pfShi)+'>'+s[0]+'</option>'}).join("");
+  function field(id,l,ph,t,v,fw){return '<label style="display:block"'+(fw?' class="fw"':'')+'><span class="f-label">'+l+'</span><input id="'+id+'" class="f-input" type="'+(t||"text")+'" placeholder="'+ph+'" value="'+esc(v||"")+'"></label>'}
+  var gNow=STATE.gender||pf.gender||"";
+  var h='<div class="step-intro"><span class="eyebrow"><span class="dot"></span>先讓我認識你</span><h1>留下幾個基本資料就好。</h1><p class="lede">只要這幾項，30 秒就能為你排出命盤和呼叫你的分靈體。</p></div>';
+  if(!STATE.userId){h+='<div class="card tint" style="margin-bottom:26px;text-align:center;padding:22px">'+
+    '<div style="font-family:var(--font-serif);font-size:16.5px;font-weight:500;color:var(--ink-900);margin-bottom:4px">先用 Google 登入</div>'+
+    '<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);margin-bottom:14px">這次的解讀會存進你的帳號，下次回來不用重填。</div>'+
+    '<div id="googleSignInBtn" style="display:flex;justify-content:center"></div></div>';}
+  h+='<div class="info-grid">';
+  h+=field("inSurname","姓","王","text",pf.last_name)+field("inGiven","名","怡君","text",pf.first_name);
+  h+='<label style="display:block"><span class="f-label">國曆生日</span><div style="display:flex;gap:8px">'+
+     '<div class="f-select-wrap" style="flex:1.5"><select id="inYear" class="f-select"><option value="" disabled'+(pfY?'':' selected')+'>年</option>'+years+'</select><span class="caret">'+ic("caret-down","bold")+'</span></div>'+
+     '<div class="f-select-wrap"><select id="inMonth" class="f-select"><option value="" disabled'+(pfM?'':' selected')+'>月</option>'+months+'</select><span class="caret">'+ic("caret-down","bold")+'</span></div>'+
+     '<div class="f-select-wrap"><select id="inDay" class="f-select"><option value="" disabled'+(pfD?'':' selected')+'>日</option>'+days+'</select><span class="caret">'+ic("caret-down","bold")+'</span></div></div></label>';
+  h+='<div><label style="display:block"><span class="f-label">出生時間</span><div class="f-select-wrap"><select class="f-select" id="shichen"><option value="" disabled'+(pfShi?'':' selected')+'>選一個時辰</option>'+sco+'</select><span class="caret">'+ic("caret-down","bold")+'</span></div></label>'+
+     '<button type="button" onclick="toggleNoon(this)" style="all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;margin-top:10px"><span class="noonbox" style="width:18px;height:18px;border-radius:5px;border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;flex:none"></span><span style="font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700)">不知道？用午時（11:00–13:00）</span></button></div>';
+  /* 性別（依新設計）*/
+  h+='<div class="fw"><div class="f-label">性別</div><div style="display:flex;gap:10px;margin-top:2px">'+
+     ['女','男','不指定'].map(function(g){return '<button type="button" class="gbtn'+(gNow===g?' on':'')+'" data-g="'+g+'" onclick="pickGender(\''+g+'\')">'+g+'</button>'}).join("")+'</div></div>';
+  /* 出生地（選填，依新設計；目前不送後端）*/
+  h+='<label class="fw" style="display:block"><span class="f-label">出生地 <span style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);font-weight:400">選填</span></span><input id="inLocation" class="f-input" type="text" placeholder="例：出生的城市" value="'+esc(pf.location||"")+'"><span class="hint" style="margin-top:6px">填寫有助於更準確的時辰校正</span></label>';
+  h+=field("inPhone","手機","0912 345 678","tel",pfPhone)+field("inEmail","電子郵件","you@gmail.com","email",pf.email||STATE.gEmail);
+  h+='</div>';
+  h+='<p class="hint" style="margin-top:18px">'+ic("lock-simple")+'手機與 email 只用來給你結果與聯繫，不會公開。Email 目前僅接受 @gmail.com。</p>';
+  h+='<div id="infoErr" class="hidden" style="margin-top:14px;font-family:var(--font-sans);font-size:13.5px;color:var(--critical);background:var(--rose-50);border:1px solid var(--rose-100);border-radius:var(--radius-md);padding:11px 14px"></div>';
+  /* 分靈體 teaser（保留 live 真實 prefetch）*/
+  h+='<div class="card tint" style="margin-top:32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">'+
+     '<div style="display:flex;align-items:center;gap:14px"><span style="flex:none;width:46px;height:46px;border-radius:999px;background:var(--rose-100);display:flex;align-items:center;justify-content:center;color:var(--rose-500);font-size:24px">'+ic("butterfly","thin")+'</span>'+
+     '<div><div style="font-family:var(--font-serif);font-size:16.5px;font-weight:500;color:var(--ink-900)">先認識自己的分靈體</div>'+
+     '<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);margin-top:2px">祂會陪你看這次的占卜結果——解讀前，先接通</div></div></div>'+
+     '<button type="button" id="soulBtn" class="btn ghost sm" onclick="soulPrefetch()">'+(STATE.soulConfirmed?ic("check","bold")+'分靈體已上線':ic("sparkle")+'接通')+'</button></div>';
+  h+='<div style="margin-top:36px"><button class="btn primary lg full" id="submitBtn" onclick="submitDivination()">開始為我解讀 '+ic("arrow-right")+'</button></div>';
+  return '<main class="shell narrow">'+h+'</main>';
+}
+function toggleNoon(btn){var box=btn.querySelector(".noonbox");var sel=document.getElementById("shichen");var on=box.getAttribute("data-on")==="1";
+  if(on){box.removeAttribute("data-on");box.style.background="transparent";box.innerHTML="";sel.disabled=false;}
+  else{box.setAttribute("data-on","1");box.style.background="var(--accent)";box.style.borderColor="var(--accent)";box.style.color="var(--text-on-accent)";box.innerHTML='<i class="ph-bold ph-check" style="font-size:12px"></i>';sel.value="12:00";sel.disabled=true;}}
+function pickGender(g){STATE.gender=(STATE.gender===g?"":g);var bs=document.querySelectorAll(".gbtn");for(var i=0;i<bs.length;i++){bs[i].classList.toggle("on",bs[i].getAttribute("data-g")===STATE.gender);}}
+
+/* ===== Step 3 interpreting ===== */
+var interpTimer=null;
+function viewInterp(){
+  return '<header style="height:4px;background:var(--rice-200)"></header><div class="interp"><div class="glow"></div>'+
+    '<div style="position:relative"><svg width="140" height="140" viewBox="0 0 140 140" style="display:block"><circle cx="70" cy="70" r="54" fill="none" stroke="var(--rice-200)" stroke-width="3"/>'+
+    '<circle id="progRing" cx="70" cy="70" r="54" fill="none" stroke="var(--rose-400)" stroke-width="3" stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="339.3" transform="rotate(-90 70 70)"/></svg>'+
+    '<span class="feng">風</span></div>'+
+    '<div style="position:relative;min-height:40px;margin-top:30px"><p class="line fade" id="interpLine">'+READING_LINES[0]+'</p></div>'+
+    '<p style="position:relative;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);margin-top:14px">正在排你的命盤、翻你的牌，大約 30 秒。</p></div>';
+}
+function startInterp(){
+  var i=0,ring=document.getElementById("progRing"),C=339.3,t0=Date.now();
+  var li=setInterval(function(){i=(i+1)%READING_LINES.length;var el=document.getElementById("interpLine");if(el){el.textContent=READING_LINES[i];el.classList.remove("fade");void el.offsetWidth;el.classList.add("fade");}},1800);
+  var pr=setInterval(function(){var e=Math.min(0.95,(Date.now()-t0)/26000);if(ring)ring.setAttribute("stroke-dashoffset",C*(1-e));},80);
+  interpTimer=function(){clearInterval(pr);clearInterval(li)};
+}
+
+/* ===== SVG charts ===== */
+function radarSVG(size){
+  var data=(STATE.result&&STATE.result.wuxing)||[];if(data.length<3)return"";
+  var cx=size/2,cy=size/2,R=size/2-26,n=data.length;
+  function pt(i,r){var a=-Math.PI/2+i*2*Math.PI/n;return[cx+r*Math.cos(a),cy+r*Math.sin(a)]}
+  function poly(r){return data.map(function(_,i){return pt(i,R*r).join(",")}).join(" ")}
+  var val=data.map(function(d,i){return pt(i,R*d.v/100).join(",")}).join(" ");
+  var s='<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">';
+  [0.33,0.66,1].forEach(function(r){s+='<polygon points="'+poly(r)+'" fill="none" stroke="var(--rice-300)" stroke-width="1" opacity="0.7"/>'});
+  data.forEach(function(_,i){var p=pt(i,R);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+p[0]+'" y2="'+p[1]+'" stroke="var(--rice-300)" stroke-width="1" opacity="0.6"/>'});
+  s+='<polygon points="'+val+'" fill="var(--rose-300)" fill-opacity="0.34" stroke="var(--rose-500)" stroke-width="1.5" stroke-linejoin="round"/>';
+  data.forEach(function(d,i){var p=pt(i,R*d.v/100);s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="2.6" fill="var(--rose-500)"/>'});
+  data.forEach(function(d,i){var p=pt(i,R+15);s+='<text x="'+p[0]+'" y="'+p[1]+'" text-anchor="middle" dominant-baseline="middle" style="font-family:var(--font-serif);font-size:14px;fill:var(--ink-700)">'+d.k+'</text>'});
+  return s+'</svg>';
+}
+function seasonSVG(paid){
+  var fl=(STATE.result&&STATE.result.fortuneLine)||[];if(fl.length<2)return"";
+  var data=fl.map(function(p){return (Number(p.score)+100)/2}),w=520,h=150,pad=8,max=100,min=0,n=data.length,cut=paid?n:Math.ceil(n/2);
+  function X(i){return pad+i*(w-pad*2)/(n-1)}function Y(v){return h-pad-(v-min)/(max-min)*(h-pad*2)}
+  var line=data.map(function(v,i){return(i?"L":"M")+X(i).toFixed(1)+","+Y(v).toFixed(1)}).join(" ");
+  var area=line+" L"+X(n-1).toFixed(1)+","+h+" L"+X(0).toFixed(1)+","+h+" Z";
+  var cutX=paid?w:X(cut);
+  var s='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+
+   '<defs><linearGradient id="sf" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--rose-300)" stop-opacity="0.34"/><stop offset="100%" stop-color="var(--rose-300)" stop-opacity="0.02"/></linearGradient>'+
+   '<clipPath id="fc"><rect x="0" y="0" width="'+cutX+'" height="'+h+'"/></clipPath><clipPath id="lc"><rect x="'+cutX+'" y="0" width="'+(w-cutX)+'" height="'+h+'"/></clipPath></defs>'+
+   '<line x1="0" y1="'+h*0.5+'" x2="'+w+'" y2="'+h*0.5+'" stroke="var(--rice-200)" stroke-width="1"/>'+
+   '<g clip-path="'+(paid?'':'url(#fc)')+'"><path d="'+area+'" fill="url(#sf)"/><path d="'+line+'" fill="none" stroke="var(--rose-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></g>';
+  if(!paid)s+='<g clip-path="url(#lc)" style="filter:blur(4px);opacity:0.5"><path d="'+area+'" fill="url(#sf)"/><path d="'+line+'" fill="none" stroke="var(--rose-400)" stroke-width="2"/></g>'+
+   '<line x1="'+cutX+'" y1="0" x2="'+cutX+'" y2="'+h+'" stroke="var(--rose-200)" stroke-width="1" stroke-dasharray="3 4"/>';
+  return s+'</svg>';
+}
+
+/* ===== talisman frame ===== */
+function fulu(glyph,name,big){
+  var c=big?"":" sm";
+  return '<div class="fulu'+c+'"><span class="chi">敕令</span>'+
+    '<div style="display:flex;flex-direction:column;align-items:center;gap:'+(big?12:7)+'px"><span class="glyph">'+glyph+'</span><span class="bar"></span><span class="name">'+name+'</span></div>'+
+    '<span class="brand">找風問幸福</span></div>';
+}
+function tframe(inner,big){return '<div class="tframe"><span class="glow"></span><span class="inner-border"></span>'+inner+'</div>'}
+
+/* ===== Step 4 result ===== */
+function viewResult(){
+  var R=STATE.result||{};var paid=STATE.paid||R.purchased;var q=STATE.text||"";
+  var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span>';
+  if(q)h+='<p style="font-family:var(--font-serif);font-size:15px;color:var(--text-muted);margin:14px 0 6px">你問的是——</p><h1 class="q">「'+esc(q)+'」</h1>';
+  if(R.summary)h+='<div style="font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.95;color:var(--ink-700);margin:18px 0 0">'+md(R.summary)+'</div>';
+  h+='</div>';
+  h+='<div class="banner"><div style="height:188px;background:linear-gradient(135deg,var(--rose-100),var(--clay-200))"></div><div class="cap"><span>慢慢看，不用急。</span></div></div>';
+  h+=block("你的命理檔案","",profileCard(paid));
+  h+=block("紫微命盤","",ziweiBlock());
+  h+=block("姓名學分析","",'<div id="nameMount">'+nameCard(paid)+'</div>');
+  h+=block("你的分靈體側寫","",spiritCard(paid));
+  if(R.tarot&&R.tarot.length){
+    var POS=["過去","現在","未來","建議","結果"];
+    h+=block("為這題抽的牌","",'<div class="tarot-grid">'+R.tarot.map(function(c,i){
+      var pol=c.is_reversed?"逆位":"正位";var img=c.image_url||c.image||"";
+      var face=img?'<img src="'+esc(img)+'" alt="'+esc(c.card_name)+'" style="width:100%;height:100%;object-fit:contain">':'<span class="nm">'+esc(c.card_name)+'</span>';
+      return '<div><div class="tcard"><span class="tpos-tag tag rose outline">'+(POS[i]||("牌位"+(i+1)))+'</span>'+face+'</div>'+
+        '<div class="tline">'+esc(c.card_name)+' · '+pol+'</div></div>';
+    }).join("")+'</div>');
+  }
+  var oc=R.oracle,km=R.kongming;
+  if(oc||(km&&km.curHex)){
+    var qk='<div class="qk-grid">';
+    if(oc)qk+='<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">'+esc(oc.type)+'</span>'+(oc.level?'<span class="tag rose outline">'+esc(oc.level)+'</span>':'')+'</div>'+
+      (oc.no?'<div class="qno">'+esc(oc.no)+'</div>':'')+(oc.poem?'<div class="qpoem">'+oc.poem.split(/[，。、\s]+/).filter(Boolean).map(function(l){return '<span>'+esc(l)+'</span>'}).join("")+'</div>':'')+
+      (paid?'':'<p class="hint" style="margin-top:14px">'+ic("lock-simple")+'完整籤解，解鎖後為你打開。</p>')+'</div>';
+    if(km&&km.curHex){var kmLine=km.interp?(paid?km.interp:(km.interp.length>80?km.interp.substring(0,80)+'…':km.interp)):'';
+      qk+='<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數</span>'+(km.fortuneLevel?'<span class="tag rose outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
+        (km.signOrder?'<div class="qno">'+esc(km.signOrder)+'</div>':'')+
+        (km.poem?'<p style="font-family:var(--font-serif);font-size:18px;font-weight:500;line-height:1.8;color:var(--ink-900);margin:0">'+esc(km.poem)+'</p>':'')+
+        (kmLine?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+esc(kmLine)+(!paid&&km.interp&&km.interp.length>80?' <span style="color:var(--rose-500)">解鎖完整預言 →</span>':'')+'</p>':'')+'</div>';
+    }
+    qk+='</div>';
+    h+=block("籤詩與神數","",qk);
+  }
+  h+='<div class="banner"><div style="height:188px;background:linear-gradient(135deg,var(--clay-200),var(--rose-100))"></div><div class="cap"><span>要不要改變，你決定。</span></div></div>';
+  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("完整解讀與你的靈符","完整解讀，得到答案；解開靈符，舒緩問題。",hexTalismans(paid)+'<div style="margin-top:20px">'+paywall(paid)+'</div>',true);
+  else h+=block("完整解讀","",paywall(paid));
+  h+=recsSection();
+  h+='<div style="display:flex;flex-direction:column;align-items:center;gap:22px;margin-top:54px">'+
+    '<button class="btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
+    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
+  return '<main class="shell" style="max-width:820px">'+h+'</main>';
+}
+function block(title,note,inner,noteTag){return '<section class="res-block"><h3 class="res-h3">'+title+'</h3>'+(note?(noteTag?'<div class="res-note-tag"><span class="tag rose outline">'+esc(note)+'</span></div>':'<p class="res-note">'+ic("sparkle")+esc(note)+'</p>'):'')+inner+'</section>'}
+function fact(l,v,s){return '<div class="fact"><div class="l">'+l+'</div><div class="v">'+v+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>'}
+/* ===== 完整命理檔案（逐值對齊 DS step4-result.jsx ProfileCard；real 有則用、缺則示意待後端）===== */
+var EL_BG={'木':'var(--el-wood-bg)','火':'var(--el-fire-bg)','土':'var(--el-earth-bg)','金':'var(--el-metal-bg)','水':'var(--el-water-bg)'};
+var EL_TX={'木':'var(--el-wood-tx)','火':'var(--el-fire-tx)','土':'var(--el-earth-tx)','金':'var(--el-metal-tx)','水':'var(--el-water-tx)'};
+var PH_PROFILE={lunar:'辛未年 十月初九',star:'天蠍座',starSub:'水象',zodiac:'馬',zodiacSub:'午馬',xingsu:{name:'危宿',group:'玄武七宿'},taisui:'與太歲相合',mingling:'文曲星君',liuyear:'武曲星君',bazi:['庚午','丁亥','甲子','辛未'],nayin:[{pos:'年柱',value:'路旁土'},{pos:'月柱',value:'屋上土'},{pos:'日柱',value:'海中金'},{pos:'時柱',value:'路旁土'}],mmtarot:[{name:'女祭司',glyph:'祭',el:'火',line:'直覺敏銳，感知到別人察覺不到的細節。'},{name:'星星',glyph:'星',el:'木',line:'底色是溫柔的希望，即使受傷也不輕易放棄。'},{name:'節制',glyph:'節',el:'土',line:'習慣在混亂裡找平衡，這是智慧。'},{name:'命運之輪',glyph:'輪',el:'火',line:'時機比努力更重要，你懂得等對的浪。'}],note:'木氣偏旺，火稍弱——你想得多，行動前容易先消耗自己。',seasonNote:'前段平穩、略有起色；穀雨後一路走高，夏至前後是這半年最順的一段。'};
+function ftile2(l,v,s){return '<div class="ftile"><div class="ftile-l">'+l+'</div><div class="ftile-v">'+v+'</div>'+(s?'<div class="ftile-s">'+s+'</div>':'')+'</div>'}
+function profileCard(paid){
+  var R=STATE.result||{};var P=PH_PROFILE;
+  var bazi4=(R.bazi&&String(R.bazi).trim())?String(R.bazi).trim().split(/\s+/):P.bazi;
+  var lp=(R.lunar||P.lunar).split(/\s+/);
+  var h='<div class="card sunken">';
+  h+='<div class="pf-grid4">'+
+     ftile2('農曆','<span style="display:block">'+esc(lp[0]||'')+'</span>'+(lp.slice(1).join(' ')?'<span style="display:block">'+esc(lp.slice(1).join(' '))+'</span>':''))+
+     ftile2('星座',esc(R.star||P.star),P.starSub)+
+     ftile2('生肖',esc(R.zodiac||P.zodiac),P.zodiacSub)+
+     ftile2('星宿（28宿）',esc(R.mansion||P.xingsu.name),P.xingsu.group)+'</div>';
+  h+='<div class="pf-grid3">'+
+     ftile2('本命星君',esc(R.deityBirth||P.mingling))+ftile2('流年星君',esc(R.deityYear||P.liuyear))+ftile2('太歲',esc(R.taisui||'相合'),R.taisui?'':P.taisui)+'</div>';
+  h+='<div class="pf-block"><div class="pf-lbl">八字四柱</div><div class="bazi-grid">'+
+     ['年柱','月柱','日柱','時柱'].map(function(pos,i){var bz=bazi4[i]||'--';return '<div class="bz-cell"><div class="bz-pos">'+pos+'</div><div class="bz-ch">'+esc(bz[0]||'')+'</div><div class="bz-bar"></div><div class="bz-ch b">'+esc(bz[1]||'')+'</div></div>'}).join("")+'</div></div>';
+  var ny=(R.naiyin&&R.naiyin.length===4&&R.naiyin.every(function(x){return x&&String(x).trim()}))
+    ?[{pos:'年柱',value:R.naiyin[0]},{pos:'月柱',value:R.naiyin[1]},{pos:'日柱',value:R.naiyin[2]},{pos:'時柱',value:R.naiyin[3]}]:P.nayin;
+  h+='<div class="pf-block s"><div class="pf-lbl">納音</div><div class="nayin-grid">'+
+     ny.map(function(n){return '<div class="ny-cell"><div class="ny-pos">'+n.pos+'</div><div class="ny-val">'+esc(n.value)+'</div></div>'}).join("")+'</div></div>';
+  var MMP=['本命','功課','業力','天緣'];
+  var mmt=(R.mmtarot&&R.mmtarot.length)?R.mmtarot:P.mmtarot;
+  h+='<div class="pf-block"><div class="pf-lbl">本命塔羅牌組</div><div class="mmt-grid">'+
+     mmt.map(function(t,i){var bg=EL_BG[t.el]||'var(--rose-100)',tx=EL_TX[t.el]||'var(--rose-500)';
+       return '<div class="mmt-card" style="background:linear-gradient(165deg,var(--paper),'+bg+')"><span style="position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 38%,'+bg+',transparent 68%);opacity:.9"></span>'+
+         '<span class="mmt-tag tag rose outline">'+esc(t.pos||MMP[i])+'</span><span class="mmt-disc" style="color:'+tx+'">'+esc(t.glyph)+'</span>'+
+         '<div class="mmt-name">'+esc(t.name)+'</div><div class="mmt-rule"></div>'+(t.line?'<div class="mmt-line">'+esc(t.line)+'</div>':'')+'</div>'}).join("")+'</div></div>';
+  var radar=radarSVG(188),season=seasonSVG(paid),lower='';
+  if(radar)lower+='<div class="mini-panel" style="align-items:center"><div style="align-self:flex-start;font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px">五行分布</div>'+radar+'<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);text-align:center;margin-top:4px">'+P.note+'</div></div>';
+  if(season)lower+='<div class="mini-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted)">節氣運勢 · 未來半年</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:11px;color:var(--rose-500)">'+ic("lock-simple")+' 後段付費</span>')+'</div>'+season+'<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);margin-top:8px">'+P.seasonNote+'</div></div>';
+  if(lower)h+='<div class="profile-lower" style="margin-top:14px">'+lower+'</div>';
+  return h+'</div>';
+}
+/* ===== 紫微命盤摘要（逐值對齊 DS ZiweiSummaryBlock；示意待後端 /ziwei-chart）===== */
+function ziweiBlock(){
+  var cards=[['五行局','火六局'],['命宮','丑宮 太陽太陰'],['目前大限','26–35 歲'],['流年','丙午年 · 2026']];
+  var yearCards=[['流年命宮','午宮 七殺'],['流年財帛','寅宮 貪狼'],['流年夫妻','辰宮 紫微天相']];
+  var yearMut=[['天同','祿'],['天機','權'],['文昌','科'],['廉貞','忌']];
+  var MUT={'祿':'var(--sage-500)','權':'var(--clay-400)','科':'var(--rose-400)','忌':'var(--ink-500)'};
+  var h='<div class="zw-card">';
+  h+='<div class="zw-top">'+cards.map(function(c){return '<div class="zw-cell"><div class="zw-k">'+c[0]+'</div><div class="zw-v">'+c[1]+'</div></div>'}).join("")+'</div>';
+  h+='<div class="zw-year"><div class="zw-yhead"><span class="zw-ytitle">2026 丙午年</span><span class="zw-ysub">流年命宮在 僕役（午）</span></div>'+
+     '<div class="zw-muts">'+yearMut.map(function(m){return '<span class="zw-mut"><span class="zw-mut-b" style="background:'+MUT[m[1]]+'">'+m[1]+'</span>'+m[0]+'</span>'}).join("")+'</div>'+
+     '<div class="zw-ycards">'+yearCards.map(function(c){return '<div class="zw-ycard"><span class="zw-yk">'+c[0]+'</span><span class="zw-yv">'+c[1]+'</span></div>'}).join("")+'</div></div>';
+  h+='<div style="display:flex;justify-content:flex-end;margin-top:16px"><a class="btn secondary sm" href="/ziwei" style="text-decoration:none">看完整命盤 '+ic("arrow-right")+'</a></div>';
+  return h+'</div>';
+}
+/* ===== 姓名學分析（逐值對齊 DS NameCard；示意待後端命名 D1）===== */
+var PH_NAME={fullname:'王怡君',chars:[{ch:'王',s:4,el:'土'},{ch:'怡',s:9,el:'木'},{ch:'君',s:7,el:'火',inf:true}],wuge:[{k:'天格',s:5,el:'土',luck:'吉'},{k:'人格',s:13,el:'火',luck:'中吉'},{k:'地格',s:16,el:'土',luck:'吉'},{k:'外格',s:8,el:'金',luck:'小吉'},{k:'總格',s:20,el:'水',luck:'平'}],score:74,sancai:{config:'土火土',luck:'吉',short:'三才相生，格局穩固，適合走穩紮穩打的路線。'},free_summary:'名字整體筆畫均衡，五行以土為主，帶有踏實、穩定的特質。人格數 13 帶旺氣，先天條件不差。',paid_extra:[{h:'三才完整解讀',b:'天格土、人格火、地格土——三才形成「土火土」夾火格局。火居中，主熱情與表達；上下的土給予支撐，讓你不至於因衝動而走偏。'},{h:'生肖命中分析',b:'你屬馬，馬逢土地為行運之象。名中土氣充足，對命格有補益。唯「君」字火旺，情緒激動時，多給自己幾個小時再決定。'},{h:'靈符推薦',b:'根據名字五行與命格，為你推薦「定心符」——土中有火，最需要的是沉澱而非加速。'}]};
+var LUCK_C={'吉':'var(--sage-500)','大吉':'var(--sage-500)','中吉':'var(--el-earth-tx)','小吉':'var(--ink-500)','平':'var(--text-muted)','凶':'var(--critical)'};
+/* 把 /api/naming/analyze 回應正規化成 PH_NAME 同結構（缺欄位才退示意）*/
+function normName(api){
+  if(!api||!api.success)return null;
+  var chars=(api.characters||[]).map(function(c){return {ch:c.char,s:c.stroke,el:c.five_element||''}});
+  var g=api.five_grid||{};
+  function row(k,o){o=o||{};return {k:k,s:(o.grid_stroke!=null?o.grid_stroke:''),el:o.element||'',luck:o.fortune||''}}
+  var wuge=[row('天格',g.tian),row('人格',g.ren),row('地格',g.di),row('外格',g.wai),row('總格',g.zong)];
+  var config=api.san_cai_key||'';
+  var scLuck=(api.san_cai&&api.san_cai.fortune_text)||'';
+  var paid_extra=[];
+  if(api.san_cai){var sc=api.san_cai;var body=sc.content||sc.fortune_text||'';
+    try{var pj=(typeof sc.content==='string')?JSON.parse(sc.content):sc.content;if(pj&&(pj.summary||pj.text))body=pj.summary||pj.text;}catch(e){}
+    if(body)paid_extra.push({h:'三才完整解讀',b:String(body)});}
+  if(api.zodiac_analysis&&api.zodiac_analysis.hits&&api.zodiac_analysis.hits.length){
+    var pref={good:'相生宜用',bad:'相剋宜避',neutral:'中性'};
+    var zb=api.zodiac_analysis.hits.map(function(h){return h.char+'（'+(pref[h.preference]||h.preference)+'）'}).join('、');
+    paid_extra.push({h:'生肖命中分析',b:'屬'+api.zodiac_analysis.zodiac+'：'+zb+'。'});}
+  return {fullname:api.name||'',chars:chars,wuge:wuge,score:api.composite_score||0,
+    sancai:{config:config,luck:scLuck,short:''},
+    free_summary:'綜合分數 '+(api.composite_score||0)+' 分，三才配置「'+config+'」'+(scLuck?'（'+scLuck+'）':'')+'。',
+    paid_extra:paid_extra};
+}
+function nameCard(paid){
+  var R=STATE.result||{};var N=(R&&R.name)?R.name:PH_NAME;var circ=2*Math.PI*30;var dash=(N.score/100)*circ;
+  var h='<div class="card sunken">';
+  h+='<div class="nm-head"><span class="nm-full">'+N.fullname+'</span>'+
+     '<div class="nm-score"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-100)" stroke-width="5"/><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-400)" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+dash.toFixed(1)+' '+circ.toFixed(1)+'" stroke-dashoffset="'+(circ*0.25).toFixed(1)+'" transform="rotate(-90 36 36)"/><text x="36" y="40" text-anchor="middle" dominant-baseline="middle" style="font-family:var(--font-sans);font-size:19px;font-weight:600;fill:var(--ink-900)">'+N.score+'</text></svg><span class="nm-score-l">綜合分數</span></div></div>';
+  h+='<div class="pf-block"><div class="pf-lbl">逐字分析</div><div class="nm-chars">'+N.chars.map(function(c){return '<div class="nm-char" style="background:'+(EL_BG[c.el]||'var(--surface-card)')+'"><div class="nm-c">'+c.ch+'</div><div class="nm-cs">'+c.s+' 畫</div><div class="nm-ce" style="color:'+(EL_TX[c.el]||'var(--ink-700)')+'">'+c.el+(c.inf?' ⚡':'')+'</div></div>'}).join("")+'</div></div>';
+  h+='<div class="pf-block s"><div class="pf-lbl">五格</div><div class="nm-wuge">'+N.wuge.map(function(w){return '<div class="nm-wg"><div class="nm-wk">'+w.k+'</div><div class="nm-ws">'+w.s+'</div><div class="nm-we" style="color:'+(EL_TX[w.el]||'var(--ink-700)')+'">'+w.el+'</div><div class="nm-wl" style="color:'+(LUCK_C[w.luck]||'var(--text-muted)')+'">'+w.luck+'</div></div>'}).join("")+'</div></div>';
+  h+='<div class="nm-sancai"><div><div class="pf-lbl" style="margin-bottom:3px">三才配置</div><div class="nm-sc-cfg">'+N.sancai.config+'</div></div><div class="nm-sc-bar"></div><div class="nm-sc-r"><span class="nm-sc-luck">'+N.sancai.luck+'</span><span class="nm-sc-short">'+N.sancai.short+'</span></div></div>';
+  h+='<p class="nm-sum">'+N.free_summary+'</p>';
+  if(paid)h+='<div class="nm-paid">'+N.paid_extra.map(function(s){return '<div class="nm-pe"><div class="nm-pe-h">'+s.h+'</div><p class="nm-pe-b">'+s.b+'</p></div>'}).join("")+'</div>';
+  return h+'</div>';
+}
+/* ===== 分靈體側寫（逐值對齊 DS SpiritCard；body 用 real profile、名/特質示意待 Zoho）===== */
+var PH_SPIRIT={name:'夜合',trait:['念舊','心軟','想得深'],body:'你是那種把話都放在心裡、反覆想很久的人。表面上很穩，其實對在乎的人特別容易動搖。這不是壞事，只是別讓自己一直扛著。\n\n你的能量場偏陰柔，對環境的氣場很敏感——某些地方或某些人，會讓你莫名地累。這是感知力，不是脆弱。\n\n分靈體「夜合」，代表的是在深夜開花的溫柔。你在安靜裡最有力量，給自己一些獨處的時間，你才能真正充電。'};
+function spiritCard(paid){
+  var R=STATE.result||{};var S=PH_SPIRIT;
+  var sName=(R.spiritName&&R.spiritName.trim())?R.spiritName.trim():S.name;
+  var sTraits=(R.spiritTraits&&R.spiritTraits.length)?R.spiritTraits:S.trait;
+  var body=(R.profile&&R.profile.trim())?R.profile:S.body;
+  var paras=body.split(/\n\n+/);
+  var h='<div class="card tint"><div class="sp-row">'+
+    '<div class="sp-av-col"><span class="sp-av">'+esc((sName||'').slice(0,1))+'</span><span class="sp-name">'+esc(sName)+'</span></div>'+
+    '<div class="sp-body"><div class="sp-traits">'+sTraits.map(function(t){return '<span class="tag rose soft" style="font-size:12.5px">'+esc(t)+'</span>'}).join("")+'</div>'+
+    paras.map(function(p,i){return '<p class="sp-p"'+(i?' style="margin-top:12px"':'')+'>'+esc(p)+'</p>'}).join("")+
+    '<div style="margin-top:18px"><a class="btn primary sm" href="/spirit" style="text-decoration:none">和祂聊聊 '+ic("chat-circle","thin")+'</a></div>'+
+    '</div></div></div>';
+  return h;
+}
+var PH_SOLAR={next:'芒種',date:'6 月 5 日',line:'芒種前後，天地交接。這時候看一張靈符，比較對。',seq:['芒種','夏至','小暑','大暑','立秋']};
+function hexTalismans(paid){
+  var R=STATE.result||{};
+  var inner=R.talismanImg
+    ? '<img src="'+esc(R.talismanImg)+'" draggable="false" oncontextmenu="return false;" class="'+(paid?'':'blurred')+'" style="width:100%;height:100%;object-fit:cover">'
+    : '<div class="'+(paid?'':'blurred')+'" style="width:100%;height:100%">'+fulu('䷀',R.hexName||'靈符',true)+'</div>';
+  var guaSym=(GUA_UNI[R.upperGua]||'')+(GUA_UNI[R.lowerGua]||'');
+  var h='<div class="card sunken" style="margin-bottom:20px"><div class="tal-hero">'+
+    '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
+    (paid?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這是為你而生的靈符——解鎖後就會清晰</span></div>')+
+    '</div>'+
+    '<div class="tal-caption">'+ic("device-mobile")+(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16')+'</div></div>'+
+    '<div class="hexcol"><span class="hex-name">這次的卦，是「'+esc(R.hexName||'')+'」</span>'+
+    (guaSym?'<p class="hex-read" style="font-size:24px;letter-spacing:6px;color:var(--accent-press);margin:10px 0 0">'+guaSym+'</p>':'')+
+    '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+PH_SOLAR.next+'</b>（'+PH_SOLAR.date+'）。'+PH_SOLAR.line+'</span></div></div>'+
+    '</div></div>';
+  var els=R.talismanElements||[];
+  if(els.length){
+    h+='<div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">對應卦象的 '+els.length+' 張量能靈符</span><span class="tag rose outline" style="font-size:12px">隨「'+esc(R.hexName||'本')+'卦」而對應</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:11.5px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
+      '<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">每一張靈符，都由老師依卦象親手繪製維持法效。</p>';
+    h+='<div class="tal5-grid">'+els.map(function(el,i){
+      return '<div class="tal5"><div style="position:relative">'+tframe('<div class="'+(paid?'':'blurred')+'" style="width:100%;height:100%">'+fulu(String(el).slice(0,1),el)+'</div>')+
+        (paid?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span></div>')+'</div>'+
+        '<div class="nm">'+(PH_SOLAR.seq[i]||PH_SOLAR.next)+' · '+esc(el)+'</div></div>';
+    }).join("")+'</div>';
+    if(paid&&R.deliveryUrl)h+='<div style="text-align:center;margin-top:16px"><a class="btn ghost md" href="'+esc(R.deliveryUrl)+'" target="_blank" rel="noopener">'+ic("download-simple")+'下載你的 '+els.length+' 張靈符</a></div>';
+  }
+  return h;
+}
+function paywall(paid){
+  var R=STATE.result||{};
+  if(paid){
+    var km=R.kongming;var body=(km&&km.interp)?'<p>'+esc(km.interp)+'</p>':'';
+    var els=R.talismanElements||[];
+    return '<div class="paid-card"><div class="topbar"></div><div class="body">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">'+ic("check-circle","fill")+'<span style="font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)">完整解讀已為你打開</span></div>'+
+      (body?'<div>'+body+'</div>':'<p style="font-family:var(--font-serif);font-weight:300;color:var(--text-secondary)">完整節氣運勢圖與量能靈符已於上方為你解鎖。</p>')+
+      (els.length?'<div style="border-top:1px solid var(--rose-100);margin-top:22px;padding-top:18px"><div style="font-family:var(--font-sans);font-size:12px;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px">已解鎖 · 為你量身的 '+els.length+' 張數位量能靈符</div><div style="display:flex;gap:10px;flex-wrap:wrap">'+els.map(function(e){return '<span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:13.5px;color:var(--rose-600);background:var(--rose-50);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:6px 14px">'+ic("seal","thin")+esc(e)+'</span>'}).join("")+'</div></div>':'')+
+      (R.deliveryUrl?'<div style="margin-top:20px"><a class="btn primary md" href="'+esc(R.deliveryUrl)+'" target="_blank" rel="noopener">'+ic("arrow-right")+'查看完整解讀</a></div>':'')+
+      '</div></div>';
+  }
+  return '<div class="paywall"><div class="behind"><p>完整解讀、整年的節氣運勢圖，還有為你量身的數位量能靈符，都在解鎖後為你打開。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>'+
+    '<div class="veil"><span class="lk">'+ic("lock-simple","thin")+'</span><h3>完整解讀與靈符，一起解鎖</h3>'+
+    '<p>一次解鎖兩件事：<strong style="font-weight:500;color:var(--ink-900)">完整解讀</strong>，讓你得到答案；<strong style="font-weight:500;color:var(--ink-900)">五張靈符</strong>，陪你舒緩這個問題。</p>'+
+    '<div class="feat"><span>'+ic("check","bold")+'完整解讀·得到答案</span><span>'+ic("check","bold")+'五張靈符·舒緩問題</span><span>'+ic("check","bold")+'紫微七段解讀</span><span>'+ic("check","bold")+'完整節氣運勢圖</span></div>'+
+    '<button class="btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE+'</button></div></div>';
+}
+function recsSection(){
+  var recs=(STATE.result&&STATE.result.recs)||null;
+  if(!recs||!recs.length)return '<section class="recs" id="recsMount" style="display:none"></section>';
+  return '<section class="recs" id="recsMount">'+recsInner(recs)+'</section>';
+}
+function recsInner(recs){
+  return '<div class="head"><h2>讀完之後，也許你會想——</h2><p>不是非做不可，只是如果心裡還懸著，這些可以接住你。</p></div>'+
+    '<div class="rec-grid">'+recs.map(function(r){
+      var book=r.source==='simplybook';var price=r.price?('NT$ '+Number(r.price).toLocaleString()+(book?' 起':'')):'';
+      var url=r.url||r.purchase_url||'';
+      var inner='<div class="top"><span class="rec-ic '+(book?"book":"tal")+'">'+ic(book?"calendar-heart":"seal","thin")+'</span><span class="tag '+(book?"rose":"clay")+' outline">'+(book?'預約問事':'法器選物')+'</span></div>'+
+        '<div class="b"><h4>'+esc(r.name)+'</h4>'+(r.reason?'<div class="reason">'+ic("quotes","fill")+'<p>'+esc(r.reason)+'</p></div>':'')+
+        '<div class="foot"><span class="price">'+price+'</span>'+(url?'<span class="cta">'+(book?'看時間':'看看這個')+' '+ic("arrow-right")+'</span>':'')+'</div></div>';
+      return url?'<a class="rec" href="'+esc(url)+'" target="_blank" rel="noopener">'+inner+'</a>':'<div class="rec">'+inner+'</div>';
+    }).join("")+'</div>'+
+    '<p style="text-align:center;font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">'+ic("arrow-bend-down-right")+' 都會留在站內，帶你到預約頁或法器頁，不會跳開。</p>';
+}
+
+/* ===== 延伸閱讀（部落格）===== */
+var BLOG_LINKS={
+ love:[["感情挽回","這段感情還能不能走？想挽回之前，先讀讀這些。"],["感情和合","兩個人怎麼走得更穩——關於相處與和合。"],["斬桃花","遇到不對的緣分，怎麼安全地放手。"]],
+ work:[["開運招財","錢留不住、運卡住的時候，可以先做的事。"],["命理占卜","用命理看懂自己的時機與節奏。"],["星座運勢","從星象讀最近的工作運勢。"]],
+ self:[["塔羅牌","塔羅怎麼幫你把混亂的心整理清楚。"],["星座運勢","從星座讀自己最近的狀態。"],["命理占卜","用命理看懂自己的時機與節奏。"]]
+};
+function blogSection(){
+  var list=BLOG_LINKS[STATE.dir]||BLOG_LINKS.love;
+  return '<section class="recs" style="margin-top:44px"><div class="head"><h2>想多讀一點——</h2><p>這些主題的文章，慢慢看，也許正好說中你現在的處境。</p></div>'+
+    '<div class="rec-grid">'+list.map(function(b){
+      return '<a class="rec" href="/blog/category/'+encodeURIComponent(b[0])+'/" target="_blank" rel="noopener">'+
+        '<div class="top"><span class="rec-ic book">'+ic("book-open-text","thin")+'</span><span class="tag rose outline">專欄文章</span></div>'+
+        '<div class="b"><h4>'+b[0]+'</h4><div class="reason">'+ic("quotes","fill")+'<p>'+b[1]+'</p></div>'+
+        '<div class="foot"><span class="price"></span><span class="cta">看文章 '+ic("arrow-right")+'</span></div></div></a>';
+    }).join("")+'</div></section>';
+}
+
+/* ===== Cooldown ===== */
+function viewCooldown(){
+  var c=STATE.cooldown||{};var when=c.available_at?fmtWhen(c.available_at):'';
+  return '<div class="cool"><div class="glow"></div><div class="card"><span class="moon">'+ic("moon-stars","thin")+'</span>'+
+    '<h1>我知道你很在意這件事。</h1>'+
+    '<p style="font-family:var(--font-serif);font-weight:300;font-size:17.5px;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
+    (when?'<div class="when">'+ic("clock")+'<span>這一題，<b>'+esc(when)+'</b>可以再問</span></div>':'')+
+    '<div class="cool-btns"><button class="btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button><button class="btn primary md" onclick="openOA()">到 LINE 看看 '+ic("arrow-right")+'</button></div>'+
+    '<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">這不是限制，是想陪你把心放穩一點。</p></div></div>';
+}
+function fmtWhen(iso){try{var d=new Date(iso);if(isNaN(d.getTime()))return iso;return (d.getMonth()+1)+'/'+d.getDate()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes());}catch(e){return iso;}}
+
+/* ===== router ===== */
+function render(){
+  if(interpTimer){interpTimer();interpTimer=null;}
+  var root=document.getElementById("root");
+  var showHdr=STATE.step!=="cooldown"&&STATE.step!=="interpreting";
+  var fn={topic:viewTopic,info:viewInfo,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown}[STATE.step]||viewTopic;
+  root.innerHTML=(showHdr?header():"")+fn();
+  if(STATE.step==="info"&&!STATE.userId)mountGisButton();
+  window.scrollTo(0,0);
+  if(STATE.step==="interpreting")startInterp();
+}
+function go(s){STATE.step=s;render()}
+function back(){var map={info:"topic",result:"info"};if(map[STATE.step])go(map[STATE.step])}
+function exitFlow(){location.href="/home";}
+function openOA(){window.open(LINE_OA_URL,"_blank");}
+function askAnother(){STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.logId="";go("topic");}
+function showInfoErr(msg){var e=document.getElementById("infoErr");if(e){e.textContent=msg;e.classList.remove("hidden");e.scrollIntoView({behavior:"smooth",block:"center"});}else{alert(msg);}}
+
+/* ===== Google SSO auth ===== */
+var googleIdToken="";
+function getIdToken(){return googleIdToken||"";}
+function authHeaders(extra){var h={"X-Google-Id-Token":getIdToken()};if(extra)for(var k in extra)h[k]=extra[k];return h;}
+
+/* ===== validators ===== */
+function validGmail(e){return /^[^\s@]+@gmail\.com$/i.test(e||"");}
+function validPhoneTW(p){return /^09\d{8}$/.test((p||"").replace(/[\s-]/g,""));}
+function phoneE164(p){p=(p||"").replace(/[\s-]/g,"");return p.indexOf("0")===0?"+886"+p.slice(1):p;}
+
+/* ===== 表單收集 ===== */
+function gatherInfo(){
+  function v(id){var el=document.getElementById(id);return el?el.value.trim():"";}
+  var surname=v("inSurname"),given=v("inGiven"),phone=v("inPhone").replace(/[\s-]/g,""),email=v("inEmail");
+  var y=v("inYear"),m=v("inMonth"),d=v("inDay"),t=v("shichen");
+  if(!surname)return{err:"請先輸入姓氏。"};
+  if(!given)return{err:"請先輸入名字。"};
+  if(!y||!m||!d)return{err:"請先選擇你的出生日期。"};
+  if(!t)return{err:"請選擇出生時間（不確定可勾選午時）。"};
+  if(!validPhoneTW(phone))return{err:"請輸入正確的手機號碼（例如 0912345678）。"};
+  if(!validGmail(email))return{err:"Email 目前僅接受 @gmail.com 信箱。"};
+  return{surname:surname,given:given,phone:phone,email:email,dob:y+"-"+pad2(m)+"-"+pad2(d)+" "+t};
+}
+
+/* ===== 分靈體 prefetch（best-effort）===== */
+function soulPrefetch(){
+  var btn=document.getElementById("soulBtn");if(!btn||STATE.soulConfirmed)return;
+  if(!STATE.userId){showInfoErr("請先用 Google 登入（表單上方），分靈體才能認得你。");return;}
+  var info=gatherInfo();if(info.err){showInfoErr(info.err);return;}
+  btn.disabled=true;btn.innerHTML=ic("circle-notch")+'凝聚中…';
+  fetch(API.prefetch,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
+    body:JSON.stringify({google_sub:STATE.userId,date_of_birth:info.dob,last_name:info.surname,first_name:info.given})})
+   .then(function(r){return r.json();}).then(function(d){
+     STATE.soulConfirmed=!!d.success;
+     btn.disabled=false;btn.innerHTML=d.success?ic("check","bold")+'分靈體已上線':ic("sparkle")+'先認識它';
+   }).catch(function(){btn.disabled=false;btn.innerHTML=ic("sparkle")+'再試一次';});
+}
+
+/* ===== 送出占卜 → interpreting → 輪詢 ===== */
+function submitDivination(){
+  if(STATE.submitting)return;
+  if(!STATE.userId){showInfoErr("請先用 Google 登入（表單上方），我才能把這次的解讀保留給你。");return;}
+  if(!STATE.text){showInfoErr("請先回到上一步，選一句想問的話。");return;}
+  var info=gatherInfo();if(info.err){showInfoErr(info.err);return;}
+  STATE.userName={surname:info.surname,given:info.given};
+  STATE.submitting=true;STATE.logId="";STATE.result=null;STATE.paid=false;
+  go("interpreting");
+  fetch(API.submit,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
+    body:JSON.stringify({google_sub:STATE.userId,question:STATE.text,divination_method:"雙占卜",
+      date_of_birth:info.dob,last_name:info.surname,first_name:info.given,
+      gender:STATE.gender||((STATE.prefill&&STATE.prefill.gender)||""),phone:phoneE164(info.phone),email:info.email})})
+   .then(function(resp){
+     if(!resp.ok){return resp.json().catch(function(){return{};}).then(function(d){
+       if(resp.status===429||d.blocked){STATE.cooldown={message:d.message,available_at:d.available_at};STATE.submitting=false;go("cooldown");return null;}
+       if(d.error==="phone_duplicate"||d.error==="email_duplicate"){STATE.submitting=false;go("info");setTimeout(function(){showInfoErr(d.message||"此聯絡資料已被使用。");},60);return null;}
+       throw new Error(d.message||("HTTP "+resp.status));
+     });}
+     return resp.json();
+   })
+   .then(function(data){
+     if(!data)return;
+     if(data.blocked){STATE.cooldown={message:data.message,available_at:data.available_at};STATE.submitting=false;go("cooldown");return;}
+     if(data.success===false){STATE.submitting=false;go("info");setTimeout(function(){showInfoErr(data.message||"發生錯誤，請再試一次。");},60);return;}
+     if(data.pending){pollStatus(data.log_id||"");return;}
+     finishResult(data);
+   })
+   .catch(function(e){STATE.submitting=false;go("info");setTimeout(function(){showInfoErr("送出失敗："+e.message);},60);});
+}
+
+function pollStatus(logId){
+  var attempts=0,max=23;
+  var timer=setInterval(function(){
+    attempts++;
+    fetch(API.status+"?log_id="+encodeURIComponent(logId)+"&google_sub="+encodeURIComponent(STATE.userId),{headers:authHeaders()})
+     .then(function(r){return r.json();}).then(function(d){
+       if(d.ready&&d.summary){clearInterval(timer);finishResult(d,logId);}
+       else if(attempts>=max){clearInterval(timer);STATE.submitting=false;go("info");setTimeout(function(){showInfoErr("占卜仍在進行，結果會透過 LINE 推送給你，請留意通知 🔔");},60);}
+     }).catch(function(){if(attempts>=max){clearInterval(timer);STATE.submitting=false;go("info");setTimeout(function(){showInfoErr("連線中斷，結果會透過 LINE 推送給你。");},60);}});
+  },4000);
+}
+
+function finishResult(d,logId){
+  STATE.submitting=false;
+  STATE.logId=d.log_id||d.reading_id||logId||"";
+  if(d.next_action)STATE.talismanName=d.next_action.talisman_name||STATE.talismanName;
+  STATE.result=buildResult(d);
+  STATE.paid=!!d.purchased;
+  go("result");
+  if(STATE.logId)loadRecs(STATE.logId);
+  loadNaming();
+}
+
+/* ===== 姓名學（無狀態端點，安全；載入後就地換 #nameMount）===== */
+function loadNaming(){
+  var u=STATE.userName;if(!u||!u.surname||!u.given||!STATE.result)return;
+  var R=STATE.result;
+  fetch(API.naming,{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({surname:u.surname,given_name:u.given,zodiac:R.zodiac||"",full_access:!!STATE.paid})})
+   .then(function(r){return r.json();}).then(function(d){
+     var n=normName(d);if(!n||!STATE.result)return;
+     STATE.result.name=n;
+     var m=document.getElementById("nameMount");if(m)m.innerHTML=nameCard(STATE.paid||STATE.result.purchased);
+   }).catch(function(){});
+}
+
+/* ===== 推薦 ===== */
+function loadRecs(logId){
+  fetch(API.recommend+"?log_id="+encodeURIComponent(logId)).then(function(r){return r.json();}).then(function(d){
+    if(!STATE.result)return;
+    STATE.result.recs=(d.success&&d.recommendations)?d.recommendations:[];
+    var mount=document.getElementById("recsMount");
+    if(mount&&STATE.result.recs.length){mount.innerHTML=recsInner(STATE.result.recs);mount.style.display="";}
+  }).catch(function(){});
+}
+
+/* ===== 解鎖付款（ECPay）===== */
+function createOrder(){
+  if(STATE.ordering)return;
+  var btn=document.getElementById("unlockBtn");
+  if(!STATE.logId){alert("找不到占卜記錄，請重新占卜。");return;}
+  STATE.ordering=true;
+  if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'建立訂單中…';}
+  fetch(API.order,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
+    body:JSON.stringify({google_sub:STATE.userId,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName})})
+   .then(function(r){return r.json();}).then(function(d){
+     STATE.ordering=false;
+     if(d.success&&d.pay_url){
+       try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);}catch(e){}
+       var w=window.open(d.pay_url,"_blank");if(!w){location.href=d.pay_url;return;}
+       if(btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}
+     }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE;}alert(d.message||"建立訂單失敗，請再試一次。");}
+   }).catch(function(e){STATE.ordering=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE;}alert("付款錯誤："+e.message);});
+}
+
+/* ===== 分享（Web Share API / 剪貼簿）===== */
+function shareResult(btn){
+  var orig=btn?btn.innerHTML:"";
+  if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'生成分享圖中…';}
+  var done=function(){if(btn){btn.disabled=false;btn.innerHTML=orig;}};
+  fetch(WORKER_API+"/generate-og-image",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({google_sub:STATE.userId})}).catch(function(){}).then(function(){
+    done();
+    var shareUrl="https://app.winds.tw/share?uid="+encodeURIComponent(STATE.userId)+"&t="+Date.now();
+    var R=STATE.result||{};
+    var snippet=(R.summary||"").replace(/[#*`>]/g,"").replace(/\s+/g," ").trim().slice(0,100);
+    var shareText="🌀 找風問幸福 — 我的占卜結果\n\n"+(snippet?snippet+"…\n\n":"")+"你也來試試 ✨\n👉 "+shareUrl;
+    if(navigator.share){
+      navigator.share({title:"🌀 找風問幸福 — 我的占卜結果",text:shareText,url:shareUrl})
+       .catch(function(){if(navigator.clipboard)navigator.clipboard.writeText(shareText).then(function(){alert("已複製分享內容 👍");});});
+    }else if(navigator.clipboard){
+      navigator.clipboard.writeText(shareText).then(function(){alert("已複製分享連結 👍\n可以貼到 LINE、Facebook、Threads 分享");});
+    }else{
+      prompt("請複製以下連結分享：",shareUrl);
+    }
+  });
+}
+
+/* ===== 預填（回訪）===== */
+function doPrefill(){
+  if(!STATE.userId)return;
+  fetch(API.prefill+"?google_sub="+encodeURIComponent(STATE.userId),{headers:authHeaders()})
+   .then(function(r){return r.json();}).then(function(d){
+     if(d&&d.error==="maintenance"){location.href="/maintenance.html";return;}
+     if(!d||!d.found)return;
+     STATE.prefill={last_name:d.last_name||"",first_name:d.first_name||"",date_of_birth:d.date_of_birth||"",phone:d.phone||"",email:d.email||"",gender:d.gender||"",location:d.location||""};
+     if(d.gender&&!STATE.gender)STATE.gender=d.gender;
+     if(d.personality_profile)STATE.soulConfirmed=true;
+     if(STATE.step==="info")render();
+   }).catch(function(){});
+}
+
+/* ===== 開機（Google SSO）===== */
+function adoptGoogleToken(tok){
+  try{
+    var p=JSON.parse(atob(tok.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+    if(p.exp&&p.exp*1000<Date.now())return false;
+    googleIdToken=tok;STATE.userId=p.sub||"";
+    STATE.gEmail=p.email||"";
+    return !!STATE.userId;
+  }catch(e){return false;}
+}
+function handleGoogleCredential(resp){
+  if(!resp||!resp.credential)return;
+  if(!adoptGoogleToken(resp.credential))return;
+  try{localStorage.setItem("winds_google_token",resp.credential);}catch(e){}
+  doPrefill();
+  if(STATE.step==="info")render();
+}
+function initGoogleGIS(){
+  if(typeof google==="undefined"||!google.accounts){setTimeout(initGoogleGIS,250);return;}
+  google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:handleGoogleCredential,auto_select:true,context:"signin"});
+  if(!STATE.userId)google.accounts.id.prompt();
+  mountGisButton();
+}
+function mountGisButton(){
+  if(STATE.userId)return;
+  var el=document.getElementById("googleSignInBtn");
+  if(!el||el.childNodes.length)return;
+  if(typeof google==="undefined"||!google.accounts)return;
+  google.accounts.id.renderButton(el,{theme:"outline",size:"large",text:"signin_with",shape:"pill",width:280,locale:"zh-TW"});
+}
+function boot(){
+  var params=new URLSearchParams(location.search);
+  var saved="";try{saved=localStorage.getItem("winds_google_token")||"";}catch(e){}
+  if(saved&&!adoptGoogleToken(saved)){try{localStorage.removeItem("winds_google_token");}catch(e){}}
+  var rid=params.get("log_id"),pending="";try{pending=sessionStorage.getItem("winds_pending_log_id")||"";}catch(e){}
+  if(rid||pending){
+    if(pending){try{sessionStorage.removeItem("winds_pending_log_id");}catch(e){}}
+    STATE.step="interpreting";render();pollStatus(rid||pending);
+    if(!STATE.userId)initGoogleGIS();
+    return;
+  }
+  if(STATE.userId)doPrefill();
+  render();
+  initGoogleGIS();
+}
+
+/* 對外（onclick handlers 需 global）*/
+window.pickDir=pickDir;window.pickSub=pickSub;window.pickQ=pickQ;window.toggleNoon=toggleNoon;window.pickGender=pickGender;
+window.go=go;window.back=back;window.exitFlow=exitFlow;window.openOA=openOA;window.askAnother=askAnother;
+window.submitDivination=submitDivination;window.soulPrefetch=soulPrefetch;window.createOrder=createOrder;window.shareResult=shareResult;
+window.STATE=STATE;
+
+boot();
+</script>
+</body>
+</html>
