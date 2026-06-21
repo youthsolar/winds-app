@@ -1,0 +1,400 @@
+---
+/*
+ * 分靈體對話 /spirit — 純 Astro + vanilla（不用 React）。
+ * 視覺＝DS 權威 spirit-chat-page.jsx（415a282e）逐值對齊。
+ * 聊天/金流邏輯原樣保留自 live public/spirit.html：
+ *   端點 /config /spirit-status /spirit-chat /spirit-order；token winds_google_token；
+ *   模式 self/target；錯誤路 no_profile/daily_limit/target_locked/ai_failed/needSubscribe。
+ * ⚠️ DS paywall 寫 NT$360 併單模型；後端目前仍 NT$99/7天 訂閱（金流併單未做）→ 暫用真實 NT$99。
+ */
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>分靈體對話 · 找風問幸福</title>
+  <meta name="description" content="與你靈魂深處的另一個自己對話——不預測、不評判，把你說的話說回給你聽。" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+  <script src="/assets/nav-auth.js?v=4" defer></script>
+
+  <style is:global>
+    html,body{height:100%}
+    body{margin:0;overflow:hidden}
+    .sp-app{height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--surface-page);overflow:hidden}
+
+    /* ===== DS site nav（對齊 BaseLayout/site-nav-footer.jsx）===== */
+    .zf-nav{flex:none;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft)}
+    .zf-nav-row{max-width:var(--container);margin:0 auto;padding:0 32px;height:76px;display:flex;align-items:center;justify-content:space-between}
+    .zf-logo{display:block}
+    .zf-nav .zf-logo img{height:54px;width:auto;display:block}
+    .zf-nav-links{display:flex;align-items:center;gap:26px}
+    .zf-nav-links > a:not(.zf-btn){font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:.03em;text-decoration:none}
+    .zf-nav-links > a:not(.zf-btn):hover{color:var(--accent-press)}
+    .zf-burger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:transparent;color:var(--ink-700);cursor:pointer}
+    .zf-burger i{font-size:24px;line-height:1}
+    .zf-drawer{display:none;border-top:1px solid var(--border-soft);background:var(--surface-page);padding:8px 20px 18px}
+    .zf-drawer > a:not(.zf-btn){font-family:var(--font-serif);font-size:17px;color:var(--ink-900);padding:12px 4px;border-bottom:1px solid var(--border-soft);text-decoration:none}
+    .zf-account{display:flex;align-items:center}
+    .zf-account .nav-acct{display:flex;align-items:center}
+    .zf-account a{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:.03em;text-decoration:none}
+    .zf-account a:hover{color:var(--accent-press)}
+    .zf-account-m{margin-top:8px;padding-top:10px;border-top:1px solid var(--border-soft)}
+    .zf-account-m a{display:block;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);padding:10px 4px;text-decoration:none}
+    @media(max-width:980px){.zf-nav-row{padding:0 20px;height:64px}.zf-nav .zf-logo img{height:42px}.zf-nav-links{display:none}.zf-burger{display:flex}.zf-drawer:not([hidden]){display:flex;flex-direction:column;gap:2px}}
+
+    /* ===== Tab 切換列（DS TabBar）===== */
+    .sp-tabs{flex:none;display:flex;border-bottom:1px solid var(--border-soft);background:var(--surface-page)}
+    .sp-tab{all:unset;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 8px;font-family:var(--font-serif);font-size:15.5px;font-weight:400;color:var(--ink-500);border-bottom:2px solid transparent;transition:all var(--dur-fast) var(--ease-soft)}
+    .sp-tab.on{font-weight:500;color:var(--rose-600);border-bottom-color:var(--rose-400)}
+
+    /* ===== 主容器 ===== */
+    .sp-wrap{flex:1;min-height:0;display:flex;flex-direction:column;max-width:680px;width:100%;margin:0 auto;box-sizing:border-box;padding:14px 24px 0;position:relative;overflow:hidden}
+    @media(max-width:760px){.sp-wrap{padding:10px 14px 0}}
+
+    /* 命理小卡（可收合）*/
+    .sp-prof{flex:none;background:linear-gradient(168deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:14px 18px;margin-bottom:10px}
+    .sp-prof-row{display:flex;gap:12px;align-items:center}
+    .sp-prof-av{flex:none;width:50px;height:50px;border-radius:999px;background:var(--rose-100);color:var(--rose-600);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:22px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
+    .sp-prof-name{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900)}
+    .sp-prof-tag{font-family:var(--font-sans);font-size:11px;color:var(--text-muted)}
+    .sp-prof-sub{font-family:var(--font-sans);font-size:10.5px;color:var(--text-muted);margin-top:3px}
+    .sp-prof-toggle{all:unset;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:var(--font-sans);font-size:12px;color:var(--rose-600);flex:none;padding:4px 10px;background:var(--rose-50);border:1px solid var(--rose-100);border-radius:var(--radius-pill)}
+    .sp-prof-body{margin-top:12px;max-height:42vh;overflow:auto;-webkit-overflow-scrolling:touch}
+    .sp-fact{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-family:var(--font-serif);font-size:13.5px;line-height:1.7}
+    .sp-fact dt{color:var(--text-muted);white-space:nowrap}
+    .sp-fact dd{margin:0;color:var(--ink-900)}
+
+    /* 對象生日輸入 */
+    .sp-target{flex:none;margin-bottom:10px;padding:14px 16px;background:var(--surface-sunken);border:1px solid var(--border-soft);border-radius:var(--radius-lg);display:flex;flex-direction:column;gap:12px}
+    .sp-target.locked{background:var(--surface-tint);border-color:var(--rose-100);flex-direction:row;align-items:center;gap:10px;padding:10px 14px}
+    .sp-target .f-label{display:block;margin-bottom:6px;font-family:var(--font-sans);font-size:13px;font-weight:500;color:var(--ink-700)}
+    .sp-target input{width:100%;box-sizing:border-box;padding:11px 14px;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);outline:none}
+    .sp-target input:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring)}
+
+    /* 次數列 */
+    .sp-count{flex:none;display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:8px}
+    .sp-count .muted{font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)}
+    .sp-count .num{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-sans);font-size:13px;font-weight:600;color:var(--rose-600)}
+    .sp-count .num.zero{color:var(--ink-400)}
+    .sp-count .unl{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-sans);font-size:12px;font-weight:500;color:var(--sage-500);background:var(--tint-sage-hi);border-radius:var(--radius-pill);padding:3px 10px}
+    .sp-count .unlock{all:unset;cursor:pointer;font-family:var(--font-sans);font-size:12px;color:var(--accent-press);border-bottom:1px solid var(--rose-200);padding-bottom:1px}
+
+    /* 訊息區 */
+    .sp-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 0 16px}
+    .sp-bubble{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px}
+    .sp-bubble.user{justify-content:flex-end}
+    .sp-av{flex:none;width:32px;height:32px;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:13px;font-weight:500;color:var(--rose-600)}
+    .sp-bubble-in{max-width:calc(100% - 52px)}
+    .sp-bubble-txt{padding:12px 16px;border-radius:18px 18px 18px 6px;background:var(--surface-card);border:1px solid var(--border-soft);box-shadow:var(--shadow-sm);font-family:var(--font-serif);font-size:16px;font-weight:300;line-height:1.75;color:var(--ink-900);margin:0;white-space:pre-line;word-break:normal;text-wrap:wrap}
+    .sp-bubble.user .sp-bubble-txt{border-radius:18px 18px 6px 18px;background:var(--accent);border:none;color:var(--text-on-accent);font-weight:400}
+    .sp-time{font-family:var(--font-sans);font-size:11px;color:var(--text-muted);margin-top:4px}
+    .sp-bubble.user .sp-time{text-align:right}
+    .sp-typing{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px}
+    .sp-typing .dots{padding:12px 16px;border-radius:18px 18px 18px 6px;background:var(--surface-card);border:1px solid var(--border-soft);display:flex;gap:5px}
+    .sp-typing .dots span{width:7px;height:7px;border-radius:999px;background:var(--rose-300);animation:spBlink 1.2s ease-in-out infinite}
+    .sp-typing .dots span:nth-child(2){animation-delay:.2s}
+    .sp-typing .dots span:nth-child(3){animation-delay:.4s}
+    @keyframes spBlink{0%,100%{opacity:.3}50%{opacity:1}}
+
+    /* 輸入列 */
+    .sp-input{flex:none;border-top:1px solid var(--border-soft);padding:10px 0 18px;display:flex;gap:10px;align-items:flex-end;background:var(--surface-page)}
+    .sp-input textarea{flex:1;padding:12px 16px;font-family:var(--font-serif);font-size:16px;line-height:1.6;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);outline:none;resize:none;max-height:120px}
+    .sp-input textarea:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring)}
+    .sp-input textarea:disabled{opacity:.5}
+    .sp-send{all:unset;cursor:pointer;width:46px;height:46px;border-radius:var(--radius-md);background:var(--accent);display:flex;align-items:center;justify-content:center;flex:none;transition:background var(--dur-fast) var(--ease-soft)}
+    .sp-send[disabled]{cursor:default;background:var(--rose-100)}
+    .sp-send i{font-size:22px;color:var(--text-on-accent)}
+    .sp-send[disabled] i{color:var(--rose-300)}
+
+    /* paywall overlay */
+    .sp-paywall{position:absolute;inset:0;display:none}
+    .sp-paywall.show{display:block}
+    .sp-paywall-in{position:absolute;left:0;right:0;bottom:0;padding:24px 18px 28px;background:linear-gradient(180deg,transparent,var(--surface-page) 42%);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+    .sp-pw-disc{flex:none;width:48px;height:48px;border-radius:999px;background:var(--rose-50);border:1px solid var(--rose-200);display:flex;align-items:center;justify-content:center;color:var(--rose-500);font-size:24px}
+    .sp-pw-h{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)}
+    .sp-pw-p{font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--text-secondary);max-width:22em}
+    .sp-pw-tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .sp-pw-tags span{font-family:var(--font-sans);font-size:12.5px;color:var(--rose-600);background:var(--rose-50);border-radius:var(--radius-pill);padding:4px 12px;border:1px solid var(--rose-100)}
+    .sp-pw-close{all:unset;cursor:pointer;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);border-bottom:1px solid var(--border-strong);padding-bottom:2px}
+
+    /* login gate */
+    .sp-gate{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+    .sp-gate-card{max-width:360px;text-align:center;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-xl);padding:32px 26px;box-shadow:var(--shadow-sm)}
+    .sp-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink-900);color:var(--surface-card);font-family:var(--font-sans);font-size:13.5px;padding:10px 18px;border-radius:var(--radius-pill);box-shadow:var(--shadow-lg);opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
+    .sp-toast.show{opacity:1}
+  </style>
+</head>
+<body>
+  <div class="sp-app">
+    <nav class="zf-nav">
+      <div class="zf-nav-row">
+        <a href="/home" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福" /></a>
+        <div class="zf-nav-links">
+          <a href="/home">首頁</a>
+          <a href="/divination">問一件事</a>
+          <a href="/blog">案例專欄</a>
+          <a href="/booking">老師介紹</a>
+          <a href="/shop">法器選物</a>
+          <a href="/divination" class="zf-btn ghost sm">占卜</a>
+          <div id="auth-button" class="zf-account"></div>
+        </div>
+        <button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>
+      </div>
+      <div class="zf-drawer" id="zfDrawer" hidden>
+        <a href="/home">首頁</a>
+        <a href="/divination">問一件事</a>
+        <a href="/blog">案例專欄</a>
+        <a href="/booking">老師介紹</a>
+        <a href="/shop">法器選物</a>
+        <a href="/divination" class="zf-btn primary md full">占卜</a>
+        <div id="auth-button-m" class="zf-account-m"></div>
+      </div>
+    </nav>
+
+    <div id="spRoot"></div>
+  </div>
+
+  <div class="sp-toast" id="spToast"></div>
+
+  <script is:inline>
+    var WORKER_API="https://api.winds.tw";
+    var API={config:WORKER_API+"/config",status:WORKER_API+"/spirit-status",chat:WORKER_API+"/spirit-chat",order:WORKER_API+"/spirit-order"};
+    var SPIRIT_PRICE=99;
+
+    var S={mode:"self",userId:"",idToken:"",sessionId:null,sending:false,
+      subscribed:false,lockedBirthday:null,freeRemaining:null,profileExpanded:false,astro:null,
+      targetDate:"",targetTime:"",targetConfirmed:false,hasMsg:false};
+
+    function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+    function ic(n,w){return '<i class="ph'+(w?'-'+w:'')+' ph-'+n+'"></i>'}
+    function nowHM(){var d=new Date();return d.getHours()+":"+String(d.getMinutes()).padStart(2,"0")}
+    function toast(m){var t=document.getElementById("spToast");if(!t)return;t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},2600)}
+
+    /* ===== auth ===== */
+    function readToken(){
+      var tok=localStorage.getItem("winds_google_token")||"";
+      if(!tok)return false;
+      try{var p=JSON.parse(atob(tok.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+        if(p.exp&&p.exp*1000<Date.now()){localStorage.removeItem("winds_google_token");return false}
+        S.userId=p.sub;S.idToken=tok;return true;
+      }catch(e){localStorage.removeItem("winds_google_token");return false}
+    }
+
+    /* ===== shell render ===== */
+    function render(){
+      var root=document.getElementById("spRoot");
+      if(!S.userId){
+        root.outerHTML='<div id="spRoot" class="sp-gate"><div class="sp-gate-card">'+
+          '<div style="font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900);margin-bottom:6px">先用 Google 登入</div>'+
+          '<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;color:var(--text-secondary);margin:0 0 18px">分靈體要先認得你，才能跟你說話。</p>'+
+          '<a class="zf-btn primary md" href="/login?return=/spirit">用 Google 登入</a></div></div>';
+        return;
+      }
+      root.outerHTML='<div id="spRoot" class="sp-tabs-wrap" style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden">'+
+        '<div class="sp-tabs">'+
+          tabBtn("self","靈魂深處的另一個自己","spiral")+
+          tabBtn("target","對象的分靈體","sparkle")+
+        '</div>'+
+        '<div class="sp-wrap">'+
+          '<div id="spProf"></div>'+
+          '<div id="spTarget"></div>'+
+          '<div id="spCount"></div>'+
+          '<div class="sp-msgs" id="spMsgs"></div>'+
+          inputRow()+
+          '<div class="sp-paywall" id="spPaywall"></div>'+
+        '</div></div>';
+      renderProfile();renderTarget();renderCount();renderPaywall();
+      bindInput();
+      showWelcome();
+      if(S.mode==="self")fetchAstroLazy();
+    }
+    function tabBtn(k,label,icon){
+      return '<button class="sp-tab'+(S.mode===k?' on':'')+'" onclick="switchMode(\''+k+'\')">'+ic(icon,S.mode===k?"fill":"")+(k==="self"?"自己的分靈體":"對象的分靈體")+'</button>';
+    }
+    function switchMode(m){if(m===S.mode)return;S.mode=m;S.sessionId=null;S.astro=null;S.hasMsg=false;S.profileExpanded=false;render()}
+
+    /* ===== profile card ===== */
+    function renderProfile(){
+      var el=document.getElementById("spProf");if(!el)return;
+      var isSelf=S.mode==="self";
+      var name=isSelf?"你的分靈體":"對象的分靈體";
+      var glyph=isSelf?"靈":"緣";
+      var sub=isSelf?"就是最懂你的老師":"感應對象的靈性頻率";
+      var body=S.astro?factHtml(S.astro):'<p style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-muted);margin:0">開始對話後，這裡會顯示'+(isSelf?"你":"對象")+'的命理檔案。</p>';
+      el.innerHTML='<div class="sp-prof"><div class="sp-prof-row">'+
+        '<span class="sp-prof-av">'+glyph+'</span>'+
+        '<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="sp-prof-name">'+name+'</span><span class="sp-prof-tag">'+(isSelf?"你的分靈體":"對象分靈體感應中")+'</span></div><div class="sp-prof-sub">'+sub+'</div></div>'+
+        '<button class="sp-prof-toggle" onclick="toggleProfile()">'+ic(S.profileExpanded?"caret-up":"caret-down")+(S.profileExpanded?"收起":"命理檔案")+'</button>'+
+        '</div>'+(S.profileExpanded?'<div class="sp-prof-body">'+body+'</div>':'')+'</div>';
+    }
+    function toggleProfile(){S.profileExpanded=!S.profileExpanded;renderProfile()}
+    function factHtml(a){
+      var r='';
+      function row(l,v){if(v)r+='<dt>'+l+'</dt><dd>'+esc(v)+'</dd>'}
+      row("農曆",a.lunar_birthday);row("星座",a.xingzuo);row("生肖",a.shengxiao);
+      row("星宿",a.twenty_eight_mansion);row("八字",a.full_bazi);
+      var ny=[a.naiyin_year&&"年 "+a.naiyin_year,a.naiyin_month&&"月 "+a.naiyin_month,a.naiyin_day&&"日 "+a.naiyin_day,a.naiyin_hour&&"時 "+a.naiyin_hour].filter(Boolean).join("｜");
+      row("納音",ny);row("太歲",a.taisui_conflict_status);row("本命星君",a.taisui_deity_birth);row("流年星君",a.taisui_deity_year);
+      if(a.ben_ming_tarots&&a.ben_ming_tarots.length)row("本命塔羅",a.ben_ming_tarots.map(function(t){return t.label+"："+t.card_name}).join("　"));
+      return '<dl class="sp-fact">'+r+'</dl>';
+    }
+
+    /* ===== target birth ===== */
+    function renderTarget(){
+      var el=document.getElementById("spTarget");if(!el)return;
+      if(S.mode!=="target"){el.innerHTML="";return}
+      if(S.targetConfirmed||S.lockedBirthday){
+        var lab=(S.lockedBirthday||(S.targetDate+" "+(S.targetTime||"12:00"))).split(" ")[0].replace(/-/g," / ");
+        el.innerHTML='<div class="sp-target locked">'+ic(S.subscribed?"lock-simple":"sparkle","fill")+
+          '<span style="flex:1;min-width:0;font-family:var(--font-sans);font-size:13px;color:var(--ink-700)">'+(S.subscribed?"訂閱期間已鎖定對象 · ":"感應對象 · ")+'<strong style="font-family:var(--font-serif);font-weight:500;letter-spacing:.04em">'+esc(lab)+'</strong></span>'+
+          (S.subscribed||S.lockedBirthday?"":'<button onclick="editTarget()" style="all:unset;cursor:pointer;font-family:var(--font-sans);font-size:12.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:1px">修改</button>')+'</div>';
+        return;
+      }
+      el.innerHTML='<div class="sp-target">'+
+        '<div style="display:flex;align-items:center;gap:7px"><span style="color:var(--rose-400);font-size:15px">'+ic("sparkle","fill")+'</span><span style="font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--ink-900)">輸入對象的生日，我就能感應到他</span></div>'+
+        '<label><span class="f-label">對象國曆生日</span><input type="date" id="tgDate" value="'+esc(S.targetDate)+'" min="1920-01-01" max="2026-12-31"></label>'+
+        '<label><span class="f-label">出生時間（不確定可留空＝午時）</span><input type="time" id="tgTime" value="'+esc(S.targetTime)+'"></label>'+
+        '<button class="zf-btn primary md full" style="margin-top:2px" onclick="confirmTarget()">開始感應 '+ic("arrow-right")+'</button></div>';
+    }
+    function confirmTarget(){
+      var d=document.getElementById("tgDate"),t=document.getElementById("tgTime");
+      if(!d||!d.value){toast("請先選對象生日");return}
+      S.targetDate=d.value;S.targetTime=(t&&t.value)||"";S.targetConfirmed=true;renderTarget();
+    }
+    function editTarget(){S.targetConfirmed=false;renderTarget()}
+
+    /* ===== count row ===== */
+    function renderCount(){
+      var el=document.getElementById("spCount");if(!el)return;
+      if(S.subscribed){el.innerHTML='<span class="unl">'+ic("infinity","bold")+'無限對話中</span>';return}
+      var n=(S.freeRemaining==null)?"—":S.freeRemaining;
+      el.innerHTML='<span class="muted">今日剩餘</span>'+
+        '<span class="num'+(S.freeRemaining===0?" zero":"")+'">'+ic("chat-circle")+n+' 次</span>'+
+        '<button class="unlock" onclick="openPaywall()">解鎖無限</button>';
+    }
+
+    /* ===== input ===== */
+    function inputRow(){
+      return '<div class="sp-input"><textarea id="spText" rows="1" placeholder="輸入訊息…（Enter 送出）" oninput="autoResize(this)" onkeydown="onKey(event)"></textarea>'+
+        '<button class="sp-send" id="spSend" onclick="send()">'+ic("paper-plane-tilt","bold")+'</button></div>';
+    }
+    function bindInput(){}
+    function autoResize(el){el.style.height="auto";el.style.height=Math.min(120,el.scrollHeight)+"px"}
+    function onKey(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}
+
+    /* ===== messages ===== */
+    function welcomeText(){
+      if(S.mode==="self")return "你找到我了。\n最近心裡在轉什麼？想聊什麼都可以。";
+      if(S.lockedBirthday)return "跟我聊吧——訂閱期間已鎖定你選的對象（"+S.lockedBirthday+"）。";
+      return "先把對象的生日告訴我，我才能接收他的頻率。";
+    }
+    function showWelcome(){document.getElementById("spMsgs").innerHTML="";appendMsg("spirit",welcomeText(),nowHM())}
+    function appendMsg(role,text,time){
+      var box=document.getElementById("spMsgs");if(!box)return null;
+      var isUser=role==="user";
+      var row=document.createElement("div");row.className="sp-bubble "+(isUser?"user":"spirit");
+      var av=isUser?'':'<span class="sp-av">'+(S.mode==="self"?"靈":"緣")+'</span>';
+      row.innerHTML=av+'<div class="sp-bubble-in"><p class="sp-bubble-txt">'+esc(text)+'</p>'+(time?'<div class="sp-time">'+esc(time)+'</div>':'')+'</div>'+(isUser?'<span style="width:32px;flex:none"></span>':'');
+      box.appendChild(row);box.scrollTop=box.scrollHeight;return row;
+    }
+    function showTyping(){
+      var box=document.getElementById("spMsgs");var d=document.createElement("div");d.className="sp-typing";d.id="spTyping";
+      d.innerHTML='<span class="sp-av">'+(S.mode==="self"?"靈":"緣")+'</span><div class="dots"><span></span><span></span><span></span></div>';
+      box.appendChild(d);box.scrollTop=box.scrollHeight;return d;
+    }
+    function removeTyping(){var t=document.getElementById("spTyping");if(t&&t.parentNode)t.parentNode.removeChild(t)}
+
+    /* ===== send（金流/錯誤路原樣保留）===== */
+    function send(){
+      if(S.sending)return;
+      var ta=document.getElementById("spText");var msg=ta.value.trim();if(!msg)return;
+      if(S.mode==="target"&&!S.targetConfirmed&&!S.lockedBirthday){toast("請先輸入對象生日");return}
+      var targetBirthday=null;
+      if(S.mode==="target")targetBirthday=S.lockedBirthday||(S.targetDate+" "+(S.targetTime||"12:00"));
+      ta.value="";autoResize(ta);
+      var userEl=appendMsg("user",msg,nowHM());
+      var send_=document.getElementById("spSend");send_.setAttribute("disabled","");S.sending=true;
+      showTyping();
+      fetch(API.chat,{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({userId:S.userId,message:msg,sessionId:S.sessionId,sessionType:S.mode,targetBirthday:S.mode==="target"?targetBirthday:null})})
+       .then(function(resp){return resp.json().then(function(d){return{status:resp.status,d:d}})})
+       .then(function(o){
+         removeTyping();var d=o.d;
+         if(o.status===403&&d.needSubscribe){openPaywall();return}
+         if(!d.success){
+           if(d.error==="no_profile"){appendMsg("spirit","我還不認識你呢——先去完成一次占卜，讓我感應你的靈魂頻率，回來我們再好好聊。",nowHM());setTimeout(function(){location.href="/divination"},3000);return}
+           if(d.error==="daily_limit"){appendMsg("spirit",d.message||"今天聊得夠多了，讓彼此沉澱一下，明天再來。",nowHM());ta.disabled=true;ta.placeholder="分靈體已休息，明天再來";return}
+           if(d.error==="target_locked"){toast("訂閱期間已鎖定對象（"+d.locked_birthday+"）");S.lockedBirthday=d.locked_birthday;renderTarget();return}
+           if(d.error==="ai_failed"){if(userEl&&userEl.parentNode)userEl.parentNode.removeChild(userEl);ta.value=msg;autoResize(ta);toast(d.message||"分靈體暫時無法回應，請稍後再試");return}
+           toast(d.message||d.error||"對話失敗，請稍後再試");return;
+         }
+         if(d.session_id)S.sessionId=d.session_id;
+         if(d.locked_birthday&&S.mode==="target"){S.lockedBirthday=d.locked_birthday;renderTarget()}
+         if(d.has_subscription){S.subscribed=true}
+         if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;
+         renderCount();
+         if(d.astro){S.astro=d.astro;renderProfile()}
+         appendMsg("spirit",d.reply,nowHM());
+         S.hasMsg=true;
+       })
+       .catch(function(){removeTyping();toast("網路錯誤，請稍後再試")})
+       .finally(function(){S.sending=false;var b=document.getElementById("spSend");if(b)b.removeAttribute("disabled")});
+    }
+
+    /* ===== paywall（DS 視覺；後端目前 NT$99/7天 訂閱）===== */
+    function renderPaywall(){
+      var el=document.getElementById("spPaywall");if(!el)return;
+      var isTarget=S.mode==="target";
+      el.innerHTML='<div class="sp-paywall-in">'+
+        '<span class="sp-pw-disc">'+ic(isTarget?"sparkle":"chat-circle-dots","fill")+'</span>'+
+        '<div class="sp-pw-h">解鎖分靈體無限對話</div>'+
+        '<p class="sp-pw-p">'+(isTarget?"7 天內隨時感應他（可隨時更換對象），陪你把這段關係看清楚。":"自己，就是最好的老師。7 天內讓這面鏡子隨時陪你。")+'</p>'+
+        '<div class="sp-pw-tags">'+(isTarget?["感應對象狀態","可隨時換對象","無限次問"]:["深夜說說話","陪你把話說清楚","無限次問"]).map(function(t){return '<span>'+t+'</span>'}).join("")+'</div>'+
+        '<button class="zf-btn primary lg" onclick="goSubscribe()">'+ic("sparkle")+'開通 7 天無限 · NT$'+SPIRIT_PRICE+'</button>'+
+        '<button class="sp-pw-close" onclick="closePaywall()">先用今天的次數</button></div>';
+    }
+    function openPaywall(){var el=document.getElementById("spPaywall");if(el)el.classList.add("show")}
+    function closePaywall(){var el=document.getElementById("spPaywall");if(el)el.classList.remove("show")}
+    function goSubscribe(){
+      fetch(API.order,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({google_sub:S.userId})})
+       .then(function(r){return r.json()}).then(function(d){
+         if(d.success&&d.pay_url){location.href=d.pay_url}else{toast(d.error||"建立訂單失敗")}
+       }).catch(function(){toast("網路錯誤，請稍後再試")});
+    }
+
+    /* ===== status / config ===== */
+    function fetchConfig(){return fetch(API.config).then(function(r){return r.json()}).then(function(c){if(c.spirit_price){SPIRIT_PRICE=c.spirit_price}}).catch(function(){})}
+    function fetchStatus(){
+      if(!S.userId)return Promise.resolve();
+      return fetch(API.status+"?userId="+encodeURIComponent(S.userId)).then(function(r){return r.ok?r.json():null}).then(function(d){
+        if(d){S.subscribed=!!d.subscribed;S.lockedBirthday=d.locked_birthday||null}
+      }).catch(function(){});
+    }
+    /* self 模式：尚未對話前不打 LLM；命理檔案於首次回應 d.astro 帶入。此處保留接口（暫不額外打）。*/
+    function fetchAstroLazy(){}
+
+    /* ===== burger ===== */
+    (function(){var b=document.getElementById("zfBurger"),d=document.getElementById("zfDrawer");if(!b||!d)return;
+      b.addEventListener("click",function(){var i=b.querySelector("i");if(d.hasAttribute("hidden")){d.removeAttribute("hidden");if(i)i.className="ph-thin ph-x"}else{d.setAttribute("hidden","");if(i)i.className="ph-thin ph-list"}})})();
+
+    /* ===== boot ===== */
+    (function boot(){
+      readToken();
+      Promise.all([fetchConfig(),fetchStatus()]).then(function(){render();renderPaywall()});
+      render(); // 先畫（含登入 gate / 殼），status 回來後 render 再更新次數
+    })();
+  </script>
+</body>
+</html>
