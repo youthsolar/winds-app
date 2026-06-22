@@ -106,11 +106,13 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
         <button class="toggle-btn" data-mode="yearly">流年盤 (今年)</button>
       </div>
       <div id="chart-mount"></div>
+      <div id="trend-mount"></div>
       <div id="unlock-cta" class="unlock-cta" hidden>
         <h3>解鎖完整解讀</h3>
         <p>目前每段為前 150 字試讀。紫微完整解讀已包含在「完整占卜報告（NT$360）」中，一次解鎖即可看：</p>
         <ul>
-          <li>全 7 段完整解讀（每段 600-800 字）+ 流年七段</li>
+          <li>全 12 宮逐宮解讀 + 流年逐宮</li>
+          <li>一生大限／流年運勢走勢線 + 總述</li>
           <li>本命盤 + 流年盤 + 大限詳解</li>
           <li>外加：自己＋對象分靈體 7 天對話、第一張量能靈符</li>
         </ul>
@@ -164,6 +166,9 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     heavenlyStem: string; earthlyBranch: string;
     palaceNames: string[]; mutagen: string[];
   };
+  type TrendDecadal = { index: number; ageStart: number; ageEnd: number; stem: string; branch: string; palaceName: string; mutagen: string[]; score: number; isCurrent: boolean };
+  type TrendYearly = { year: number; age: number; mutagen: string[]; score: number; isCurrent: boolean };
+  type ZiweiTrend = { decadal: TrendDecadal[]; yearly: { ageStart: number; ageEnd: number; years: TrendYearly[] }; currentAge: number; currentYear: number; currentDecadalIndex: number };
   type Horoscope = {
     date: string; lunarDate: string;
     decadal: HoroscopeItem;
@@ -171,6 +176,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     yearly: HoroscopeItem & { yearlyDecStar?: any };
     monthly: HoroscopeItem;
     daily: HoroscopeItem;
+    trend?: ZiweiTrend | null;
   };
 
   const form = document.getElementById('ziwei-form') as HTMLFormElement;
@@ -434,6 +440,61 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   }
 
   // 主入口：根據 chartData 渲染結果區（共用 newly-created / already-existing 路徑）
+  function trendSvg(pts: { label: string; sub: string; score: number; cur: boolean }[], which: string): string {
+    const W = 680, H = 240, padL = 8, padR = 8, padT = 18, padB = 44;
+    const n = pts.length; if (!n) return '';
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const x = (i: number) => padL + (n === 1 ? innerW / 2 : innerW * i / (n - 1));
+    const y = (s: number) => padT + innerH * (1 - (s + 100) / 200);
+    const zeroY = y(0);
+    // 柔曲線（Catmull-Rom → 三次貝茲，合品牌調性）
+    const C = pts.map((p, i) => [x(i), y(p.score)] as [number, number]);
+    const T = 0.18;
+    let dPath = C.length ? `M ${C[0][0].toFixed(1)},${C[0][1].toFixed(1)}` : '';
+    for (let i = 0; i < C.length - 1; i++) {
+      const p0 = C[i - 1] || C[i], p1 = C[i], p2 = C[i + 1], p3 = C[i + 2] || p2;
+      dPath += ` C ${(p1[0] + (p2[0] - p0[0]) * T).toFixed(1)},${(p1[1] + (p2[1] - p0[1]) * T).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) * T).toFixed(1)},${(p2[1] - (p3[1] - p1[1]) * T).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+    }
+    const dots = pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.score).toFixed(1)}" r="${p.cur ? 5 : 3}" fill="${p.cur ? 'var(--accent)' : 'var(--rose-300)'}"${p.cur ? ' stroke="var(--paper)" stroke-width="2"' : ''}/>`).join('');
+    const labels = pts.map((p, i) => {
+      if (!(which === 'decadal' || n <= 10 || i % 2 === 0)) return '';
+      const lab = `<text x="${x(i).toFixed(1)}" y="${H - padB + 16}" text-anchor="middle" font-size="9" fill="${p.cur ? 'var(--accent-press)' : 'var(--text-muted)'}" font-family="var(--font-sans)">${p.label}</text>`;
+      const sub = p.sub ? `<text x="${x(i).toFixed(1)}" y="${H - padB + 28}" text-anchor="middle" font-size="8.5" fill="var(--text-muted)" font-family="var(--font-serif)">${p.sub}</text>` : '';
+      return lab + sub;
+    }).join('');
+    return `<svg viewBox="0 0 ${W} ${H}" class="trend-svg" role="img" aria-label="運勢走勢線"><line x1="${padL}" y1="${zeroY.toFixed(1)}" x2="${W - padR}" y2="${zeroY.toFixed(1)}" stroke="var(--rose-200)" stroke-width="1" stroke-dasharray="3 3"/><path d="${dPath}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>${dots}${labels}</svg>`;
+  }
+
+  function renderTrendSection(mount: HTMLElement | null, chart: Chart, trend?: ZiweiTrend | null) {
+    if (!mount) return;
+    if (!trend || !trend.decadal || !trend.decadal.length) { mount.innerHTML = ''; return; }
+    mount.innerHTML = `<section class="trend-section"><h2>運勢走勢</h2>`
+      + `<p class="ai-note">大限為十年一運、流年為單一年；分數由星曜四化推算，為輔助參考</p>`
+      + `<div class="trend-toggle"><button class="ttog is-active" data-t="decadal">大限（一生）</button><button class="ttog" data-t="yearly">流年（本大限）</button></div>`
+      + `<div id="trend-chart"></div>`
+      + `<article class="interp-block" data-palace="trend"><h3>走勢總述</h3><div class="interp-text loading">走勢總述生成中…</div></article></section>`;
+    const box = mount.querySelector('#trend-chart') as HTMLElement;
+    const draw = (which: string) => {
+      const pts = which === 'yearly'
+        ? trend.yearly.years.map((v) => ({ label: String(v.year), sub: v.age + '歲', score: v.score, cur: v.isCurrent }))
+        : trend.decadal.map((v) => ({ label: v.ageStart + '-' + v.ageEnd, sub: v.palaceName, score: v.score, cur: v.isCurrent }));
+      box.innerHTML = trendSvg(pts, which);
+    };
+    draw('decadal');
+    mount.querySelectorAll('.ttog').forEach((b) => b.addEventListener('click', () => {
+      mount.querySelectorAll('.ttog').forEach((x) => x.classList.toggle('is-active', x === b));
+      draw((b as HTMLElement).dataset.t || 'decadal');
+    }));
+    const loadNarr = () => fetchPalace(chart, 'trend', 'natal').then((t) => renderPalaceText('trend', t, mount));
+    loadNarr();
+    mount.addEventListener('click', (ev) => {
+      if (!(ev.target as HTMLElement).closest('.retry-palace')) return;
+      const blk = mount.querySelector('[data-palace="trend"] .interp-text');
+      if (blk) { blk.classList.remove('error'); blk.classList.add('loading'); blk.textContent = '走勢總述生成中…'; }
+      loadNarr();
+    });
+  }
+
   function showResult(chartData: any) {
     hideAllSections();
     resultSection.hidden = false;
@@ -504,6 +565,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
 
     renderChartCurrent();
     loadInterpretations('natal');
+    renderTrendSection(document.getElementById('trend-mount'), chartData.chart as Chart, horoscope?.trend);
 
     chartToggle.querySelectorAll<HTMLButtonElement>('.toggle-btn').forEach((btn) => {
       btn.onclick = () => {
@@ -1047,6 +1109,13 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     font-size: 12px;
     margin: 0 0 24px;
   }
+  :global(.trend-section) { margin: 26px 0 0; }
+  :global(.trend-section h2) { font-family: var(--font-serif); font-size: 20px; font-weight: 500; color: var(--ink-900); margin: 0 0 4px; }
+  :global(.trend-toggle) { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+  :global(.ttog) { font-family: var(--font-sans); font-size: 13px; padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--rose-200); background: var(--paper); color: var(--accent-press); cursor: pointer; }
+  :global(.ttog.is-active) { background: var(--accent); color: var(--text-on-accent); border-color: transparent; }
+  :global(#trend-chart) { background: var(--paper); border: 1px solid var(--rose-100); border-radius: var(--radius-md); padding: 10px 6px 4px; }
+  :global(.trend-svg) { width: 100%; height: auto; display: block; }
   :global(.interp-block) {
     background: var(--surface-card);
     border: 1px solid var(--border-soft);
