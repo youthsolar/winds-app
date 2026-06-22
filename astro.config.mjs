@@ -60,7 +60,6 @@ export default defineConfig({
       filter: (page) => !page.includes('/auth/') && !page.includes('/history'),
       customPages: [
         'https://winds.tw/home',
-        'https://winds.tw/delivery',
         'https://winds.tw/share',
         'https://winds.tw/spirit',
       ],
