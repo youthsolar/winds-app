@@ -239,8 +239,8 @@ import '../styles/global.css';
     .vqian .poem span{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900);letter-spacing:.08em}
     .vqian .poem span.dim{color:var(--ink-300)}
     .qno{font-family:var(--font-sans);font-size:12.5px;color:var(--rose-500);letter-spacing:.06em;margin-bottom:10px}
-    .qpoem{display:grid;grid-template-columns:1fr 1fr;gap:6px 1em}
-    .qpoem span{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900);word-break:normal;overflow-wrap:anywhere}
+    .qpoem{display:grid;grid-template-columns:max-content max-content;justify-content:start;gap:6px 1em}
+    .qpoem span{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900)}
     @media(max-width:760px){.qpoem{gap:6px 0.8em}.qpoem span{font-size:16.5px}}
 
     /* talisman */
@@ -684,7 +684,7 @@ function viewResult(){
   if(oc||(km&&km.curHex)){
     var qk='<div class="qk-grid">';
     if(oc)qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">'+esc(oc.type)+'</span>'+(oc.level?'<span class="zf-tag rose outline">'+esc(oc.level)+'</span>':'')+'</div>'+
-      (oc.no?'<div class="qno">'+esc(oc.no)+'</div>':'')+(oc.poem?'<div class="qpoem">'+oc.poem.split(/[，。、\s]+/).filter(Boolean).map(function(l){return '<span>'+esc(l)+'</span>'}).join("")+'</div>':'')+
+      (oc.no?'<div class="qno">'+esc(oc.no)+'</div>':'')+(oc.poem?'<div class="qpoem">'+oc.poem.split(/[，。、；;\s]+/).filter(Boolean).map(function(l){return '<span>'+esc(l)+'</span>'}).join("")+'</div>':'')+
       (paid?'':'<p class="hint" style="margin-top:14px">'+ic("lock-simple")+'完整籤解，解鎖後為你打開。</p>')+'</div>';
     if(km&&km.curHex){var kmLine=km.interp?(paid?km.interp:(km.interp.length>80?km.interp.substring(0,80)+'…':km.interp)):'';
       qk+='<div class="zf-card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數</span>'+(km.fortuneLevel?'<span class="zf-tag rose outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+

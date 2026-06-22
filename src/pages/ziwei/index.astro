@@ -107,6 +107,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       </div>
       <div id="chart-mount"></div>
       <div id="trend-mount"></div>
+      <div id="sihua-mount"></div>
       <div id="unlock-cta" class="unlock-cta" hidden>
         <h3>解鎖完整解讀</h3>
         <p>目前每段為前 150 字試讀。紫微完整解讀已包含在「完整占卜報告（NT$360）」中，一次解鎖即可看：</p>
@@ -170,6 +171,9 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   type TrendDecadal = { index: number; ageStart: number; ageEnd: number; stem: string; branch: string; palaceName: string; mutagen: string[]; score: number; isCurrent: boolean };
   type TrendYearly = { year: number; age: number; mutagen: string[]; score: number; isCurrent: boolean };
   type ZiweiTrend = { decadal: TrendDecadal[]; yearly: { ageStart: number; ageEnd: number; years: TrendYearly[] }; currentAge: number; currentYear: number; currentDecadalIndex: number };
+  type SihuaTransform = { type: string; star: string; toIndex: number; toPalace: string; isSelf: boolean };
+  type SihuaPalaceFly = { fromIndex: number; fromPalace: string; stem: string; transforms: SihuaTransform[] };
+  type ZiweiSihua = { flies: SihuaPalaceFly[]; selfTransforms: { palaceIndex: number; palace: string; type: string; star: string }[] };
   type Horoscope = {
     date: string; lunarDate: string;
     decadal: HoroscopeItem;
@@ -178,6 +182,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     monthly: HoroscopeItem;
     daily: HoroscopeItem;
     trend?: ZiweiTrend | null;
+    sihua?: ZiweiSihua | null;
   };
 
   const form = document.getElementById('ziwei-form') as HTMLFormElement;
@@ -242,6 +247,11 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   const MUTAGEN_COLOR: Record<string, string> = {
     '祿': 'mutagen-lu', '權': 'mutagen-quan', '科': 'mutagen-ke', '忌': 'mutagen-ji',
   };
+  // 化星 bg/fg（對齊 DS ziwei-page.jsx MUT_COLOR；四化飛星 chip + 自化角標共用）
+  const MUT_VAL: Record<string, { bg: string; fg: string }> = {
+    '祿': { bg: 'var(--sage-200)', fg: 'var(--sage-500)' }, '權': { bg: 'var(--gold-300)', fg: 'var(--gold-500)' },
+    '科': { bg: 'var(--rose-100)', fg: 'var(--rose-600)' }, '忌': { bg: 'var(--tint-rose-soft)', fg: 'var(--critical)' },
+  };
   // 副星依類型上色（對齊 share.ts / ziwei-page.jsx：六煞紅、桃花玫瑰、其餘鼠尾草綠）
   const TOUGH = new Set(['擎羊', '陀羅', '火星', '鈴星', '地空', '地劫']);
   const FLOWER = new Set(['紅鸞', '天喜', '天姚', '咸池', '大耗']);
@@ -286,6 +296,11 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     if (yearly) {
       const labels = ['祿', '權', '科', '忌'];
       yearly.mutagen.forEach((star, i) => { if (star) yearlyMutagenMap[star] = labels[i]; });
+    }
+    // 自化標記（本命固定，僅本命盤顯示）
+    const selfMark: Record<number, string[]> = {};
+    if (mode === 'natal' && horoscope?.sihua?.selfTransforms) {
+      for (const s of horoscope.sihua.selfTransforms) (selfMark[s.palaceIndex] = selfMark[s.palaceIndex] || []).push(s.type);
     }
 
     const cells = grid.map((cell, i) => {
@@ -337,7 +352,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
         ${isCurrentDecadal && mode === 'natal' ? '<div class="current-decadal-badge">目前大限</div>' : ''}
         ${isYearlySoul && mode === 'yearly' ? '<div class="yearly-soul-badge">流年命宮</div>' : ''}
         <div class="cell-header">
-          <span class="palace-name">${cell.name}${cell.isBodyPalace ? '<em class="body-tag">身</em>' : ''}</span>
+          <span class="palace-name">${cell.name}${cell.isBodyPalace ? '<em class="body-tag">身</em>' : ''}${(selfMark[cell.index] || []).map(t => { const c = MUT_VAL[t] || { bg: 'var(--ink-500)', fg: '#fff' }; return `<span class="cell-self-chip" style="background:${c.bg};color:${c.fg}">自${t}</span>`; }).join('')}</span>
           <span class="cell-stem-branch">${cell.heavenlyStem}${cell.earthlyBranch}</span>
         </div>
         <div class="cell-stars">
@@ -383,10 +398,6 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   }
 
   function openZiweiSheet(p: Palace, mode: 'natal' | 'yearly', yearly: (HoroscopeItem & { nominalAge?: number }) | null) {
-    const MUT_VAL: Record<string, { bg: string; fg: string }> = {
-      '祿': { bg: 'var(--sage-200)', fg: 'var(--sage-500)' }, '權': { bg: 'var(--gold-300)', fg: 'var(--gold-500)' },
-      '科': { bg: 'var(--rose-100)', fg: 'var(--rose-600)' }, '忌': { bg: 'var(--tint-rose-soft)', fg: 'var(--critical)' },
-    };
     const ymap: Record<string, string> = {};
     if (yearly && yearly.mutagen) yearly.mutagen.forEach((n, i) => { if (n) ymap[n] = ['祿', '權', '科', '忌'][i]; });
     const bigStar = (s: Star, kind: 'major' | 'minor') => {
@@ -515,6 +526,35 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     });
   }
 
+  function renderSihuaSection(mount: HTMLElement | null, chart: Chart, sihua?: ZiweiSihua | null) {
+    if (!mount) return;
+    if (!sihua || !sihua.flies || !sihua.flies.length) { mount.innerHTML = ''; return; }
+    const flies = [...sihua.flies].sort((a, b) =>
+      (a.fromPalace === '命宮' ? -1 : a.fromIndex) - (b.fromPalace === '命宮' ? -1 : b.fromIndex));
+    const rows = flies.map((f) => {
+      const flows = f.transforms.map((t) => {
+        const c = MUT_VAL[t.type] || { bg: 'var(--ink-500)', fg: '#fff' };
+        return `<span class="sihua-flow ${t.isSelf ? 'self' : ''}"><span class="sihua-tag" style="background:${c.bg};color:${c.fg}">${t.type}</span>${t.star}<span class="to">→${t.isSelf ? '自化' : t.toPalace}</span></span>`;
+      }).join('');
+      return `<div class="sihua-row ${f.fromPalace === '命宮' ? 'is-ming' : ''}"><span class="sihua-from">${f.fromPalace}<span class="stem"> ${f.stem}</span></span><span class="sihua-flows">${flows}</span></div>`;
+    }).join('');
+    const selfSum = sihua.selfTransforms && sihua.selfTransforms.length
+      ? `自化：${sihua.selfTransforms.map((s) => `${s.palace}化${s.type}`).join('、')}（能量回到本宮，多主隨和或外漏）`
+      : '此盤無自化，能量牽引較穩定向外。';
+    mount.innerHTML = `<section class="sihua-section"><h2>四化飛星</h2>`
+      + `<p class="ai-note">每宮天干各自引動祿權科忌飛入他宮，呈現宮與宮之間主動的能量牽引；★標自化</p>`
+      + `<div class="sihua-map">${rows}<p class="sihua-self-sum">${selfSum}</p></div>`
+      + `<article class="interp-block" data-palace="sihua"><h3>四化飛星解讀</h3><div class="interp-text loading">四化飛星解讀生成中…</div></article></section>`;
+    const loadNarr = () => fetchPalace(chart, 'sihua', 'natal').then((t) => renderPalaceText('sihua', t, mount));
+    loadNarr();
+    mount.addEventListener('click', (ev) => {
+      if (!(ev.target as HTMLElement).closest('.retry-palace')) return;
+      const blk = mount.querySelector('[data-palace="sihua"] .interp-text');
+      if (blk) { blk.classList.remove('error'); blk.classList.add('loading'); blk.textContent = '四化飛星解讀生成中…'; }
+      loadNarr();
+    });
+  }
+
   function showResult(chartData: any) {
     hideAllSections();
     resultSection.hidden = false;
@@ -586,6 +626,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     renderChartCurrent();
     loadInterpretations('natal');
     renderTrendSection(document.getElementById('trend-mount'), chartData.chart as Chart, horoscope?.trend);
+    renderSihuaSection(document.getElementById('sihua-mount'), chartData.chart as Chart, horoscope?.sihua);
 
     chartToggle.querySelectorAll<HTMLButtonElement>('.toggle-btn').forEach((btn) => {
       btn.onclick = () => {
@@ -1154,8 +1195,22 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     font-size: 12px;
     margin: 0 0 24px;
   }
-  :global(.trend-section) { margin: 26px 0 0; }
-  :global(.trend-section h2) { font-family: var(--font-serif); font-size: 20px; font-weight: 500; color: var(--ink-900); margin: 0 0 4px; }
+  :global(.trend-section), :global(.sihua-section) { margin: 26px 0 0; }
+  :global(.trend-section h2), :global(.sihua-section h2) { font-family: var(--font-serif); font-size: 20px; font-weight: 500; color: var(--ink-900); margin: 0 0 4px; }
+  /* 四化飛星（沿用 trend 區版式 + MUT chip 詞彙，對齊 DS token；與 LIFF 雙生同款）*/
+  :global(.sihua-map) { background: var(--paper); border: 1px solid var(--rose-100); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 12px; }
+  :global(.sihua-row) { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; border-bottom: 1px dotted var(--border-soft); font-family: var(--font-sans); font-size: 12.5px; line-height: 1.6; }
+  :global(.sihua-row:last-child) { border-bottom: none; }
+  :global(.sihua-row.is-ming) { background: linear-gradient(90deg, var(--rose-50), transparent); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: var(--radius-sm); }
+  :global(.sihua-from) { flex: 0 0 auto; color: var(--rose-600); font-weight: 600; white-space: nowrap; }
+  :global(.sihua-from .stem) { color: var(--text-muted); font-weight: 400; font-size: 11px; }
+  :global(.sihua-flows) { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+  :global(.sihua-flow) { white-space: nowrap; color: var(--ink-700); }
+  :global(.sihua-tag) { font-size: 9px; padding: 0 4px; border-radius: 2px; color: #fff; font-weight: 600; margin-right: 2px; }
+  :global(.sihua-flow .to) { color: var(--accent-press); }
+  :global(.sihua-flow.self .to) { color: var(--critical); font-weight: 600; }
+  :global(.sihua-self-sum) { font-family: var(--font-sans); font-size: 11.5px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.7; }
+  :global(.cell-self-chip) { font-size: 7.5px; line-height: 1; padding: 1px 3px; border-radius: 2px; color: #fff; font-weight: 700; margin-left: 3px; vertical-align: middle; }
   :global(.trend-toggle) { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
   :global(.ttog) { font-family: var(--font-sans); font-size: 13px; padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--rose-200); background: var(--paper); color: var(--accent-press); cursor: pointer; }
   :global(.ttog.is-active) { background: var(--accent); color: var(--text-on-accent); border-color: transparent; }
