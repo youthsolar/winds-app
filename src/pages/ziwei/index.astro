@@ -132,15 +132,21 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
 
 <script>
   const WORKER_API = 'https://api.winds.tw';
-  const FOCUS_PALACES = ['summary', '命宮', '父母', '夫妻', '財帛', '官祿', '福德'];
+  const FOCUS_PALACES = ['summary', '命宮', '兄弟', '夫妻', '子女', '財帛', '疾厄', '遷移', '僕役', '官祿', '田宅', '福德', '父母'];
   const PALACE_LABEL: Record<string, string> = {
     summary: '整體格局',
     '命宮': '命宮（自我）',
-    '父母': '父母宮（原生家庭）',
+    '兄弟': '兄弟宮（手足平輩）',
     '夫妻': '夫妻宮（伴侶）',
+    '子女': '子女宮（子女晚輩）',
     '財帛': '財帛宮（金錢）',
+    '疾厄': '疾厄宮（健康身體）',
+    '遷移': '遷移宮（外出機遇）',
+    '僕役': '僕役宮（朋友人脈）',
     '官祿': '官祿宮（事業）',
+    '田宅': '田宅宮（家庭財庫）',
     '福德': '福德宮（精神）',
+    '父母': '父母宮（原生家庭）',
   };
 
   type Star = { name: string; type?: string; brightness: string; mutagen: string };
@@ -481,11 +487,17 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       // 沒打過就打
       if (!interpStarted[mode]) {
         interpStarted[mode] = true;
-        FOCUS_PALACES.forEach(async (palace) => {
-          const text = await fetchPalace(chartData.chart as Chart, palace, mode, mode === 'yearly' ? yearlyApiCtx ?? undefined : undefined);
-          cache[palace] = text;
-          // 只在當前 mode 還是這個時渲染（避免快速切換 race condition）
-          if (currentMode === mode) renderPalaceText(palace, text, interpMount);
+        // 13 段（摘要 + 12 宮）分批並發，cap 4，避免一次打爆 Anthropic 速率限制
+        const queue = [...FOCUS_PALACES];
+        const CONCURRENCY = 4;
+        Array.from({ length: CONCURRENCY }, async () => {
+          while (queue.length) {
+            const palace = queue.shift()!;
+            const text = await fetchPalace(chartData.chart as Chart, palace, mode, mode === 'yearly' ? yearlyApiCtx ?? undefined : undefined);
+            cache[palace] = text;
+            // 只在當前 mode 還是這個時渲染（避免快速切換 race condition）
+            if (currentMode === mode) renderPalaceText(palace, text, interpMount);
+          }
         });
       }
     };
