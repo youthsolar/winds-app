@@ -11,17 +11,17 @@ const isP = (b: Block): b is { p: string } => 'p' in b;
 ---
 <main class="lg2">
   <!-- PageHeader -->
-  <header class="lg2-head">
-    <span class="lg2-eyebrow"><span class="lg2-eyebrow-dot"></span>{eyebrow}</span>
-    <h1 class="lg2-h1">{title}</h1>
-    <p class="lg2-lede">{lede}</p>
-    <p class="lg2-meta">最後更新 · {UPDATED}</p>
+  <header class="zf-page-header">
+    <span class="zf-ph-eyebrow">{eyebrow}</span>
+    <h1 class="zf-ph-title">{title}</h1>
+    <p class="zf-ph-lede">{lede}</p>
+    <p class="zf-ph-meta">最後更新 · {UPDATED}</p>
   </header>
 
   {intro && <div class="lg2-intro"><p class="lg2-para">{intro}</p></div>}
 
   <!-- 目錄 -->
-  <div class="lg2-toc">
+  <div class="zf-card tint lg2-toc">
     <div class="lg2-toc-label">本頁內容</div>
     <ol class="lg2-toc-list">
       {sections.map((s, i) => (
@@ -35,7 +35,7 @@ const isP = (b: Block): b is { p: string } => 'p' in b;
     <section class="lg2-sec" id={s.id}>
       <div class="lg2-sec-head">
         <span class="lg2-sec-num">{pad2(i + 1)}</span>
-        <h2 class="lg2-h2">{s.title}</h2>
+        <h2 class="zf-sh-title">{s.title}</h2>
       </div>
       <div class="lg2-sec-body">
         {s.blocks.map((b) => (
@@ -68,7 +68,7 @@ const isP = (b: Block): b is { p: string } => 'p' in b;
 
   <!-- 聯絡 -->
   <section class="lg2-contact">
-    <h2 class="lg2-h2">有任何疑問，歡迎與我們聯絡。</h2>
+    <h2 class="zf-sh-title">有任何疑問，歡迎與我們聯絡。</h2>
     <p class="lg2-contact-lede">關於這份說明，或你的資料與權利，都可以寫信給我們，我們會盡快回覆。</p>
     <a class="lg2-contact-link" href={`mailto:${CONTACT}`}><i class="ph-thin ph-envelope-simple"></i>{CONTACT}</a>
   </section>
@@ -77,17 +77,13 @@ const isP = (b: Block): b is { p: string } => 'p' in b;
 <style>
   /* DS legal-pages.jsx 逐值對齊；breakpoint 820 */
   .lg2{max-width:760px;margin:0 auto;padding:84px 32px 0;}
-  /* PageHeader */
-  .lg2-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;color:var(--accent-press);}
-  .lg2-eyebrow-dot{width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none;}
-  .lg2-h1{margin:14px 0 0;font-family:var(--font-serif);font-size:42px;font-weight:500;line-height:1.2;color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
-  .lg2-lede{margin:16px 0 0;font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.8;color:var(--text-secondary);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
-  .lg2-meta{margin:10px 0 0;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted);}
+  /* PageHeader → DS .zf-page-header（eyebrow/h1/lede/meta 全收斂，含手機 30/16）*/
   .lg2-intro{margin-top:36px;}
   /* Para (Prose tone ink) */
   .lg2-para{font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.9;color:var(--ink-700);margin:0;max-width:none;word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
   /* TOC Card (tone tint) */
-  .lg2-toc{margin-top:36px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-lg);padding:24px 26px;}
+  /* TOC = DS zf-card tint（去重；保留 padding 對齊權威 24/26 與手機 20）*/
+  .lg2-toc{margin-top:36px;padding:24px 26px;}
   .lg2-toc-label{font-family:var(--font-sans);font-size:12.5px;letter-spacing:0.02em;color:var(--text-muted);margin-bottom:14px;}
   .lg2-toc-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;}
   .lg2-toc-li{display:flex;gap:10px;align-items:baseline;}
@@ -98,7 +94,7 @@ const isP = (b: Block): b is { p: string } => 'p' in b;
   .lg2-sec{margin-top:56px;scroll-margin-top:96px;}
   .lg2-sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
   .lg2-sec-num{flex:none;font-family:var(--font-sans);font-size:15px;color:var(--rose-400);font-weight:500;}
-  .lg2-h2{margin:0;font-family:var(--font-serif);font-weight:500;font-size:var(--t-h2);line-height:var(--lh-tight);letter-spacing:var(--ls-heading);color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+  /* 分節標題 → DS .zf-sh-title */
   .lg2-sec-body{display:flex;flex-direction:column;gap:18px;}
   /* List */
   .lg2-list{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:13px;}
@@ -120,8 +116,6 @@ const isP = (b: Block): b is { p: string } => 'p' in b;
 
   @media (max-width:820px){
     .lg2{padding:48px 20px 0;}
-    .lg2-h1{font-size:30px;}
-    .lg2-lede{font-size:16px;}
     .lg2-intro{margin-top:28px;}
     .lg2-para{font-size:15.5px;}
     .lg2-toc{margin-top:28px;padding:20px 20px;}

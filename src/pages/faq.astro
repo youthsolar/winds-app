@@ -39,17 +39,17 @@ let gi = 0;
 ---
 <BaseLayout title="常見問題｜找風問幸福" description={pageDesc} ogType="website" jsonLd={faqLd}>
   <main class="faq">
-    <div class="sh">
-      <span class="eyebrow"><span class="dot"></span>常見問題</span>
-      <h1 class="sh-title cjk">想問的，這裡先說清楚。</h1>
-      <p class="lede">還是不確定的話，隨時可以從一張牌開始，或直接預約老師聊聊。</p>
+    <div class="zf-section-heading">
+      <span class="zf-sh-eyebrow">常見問題</span>
+      <h1 class="zf-sh-title cjk">想問的，這裡先說清楚。</h1>
+      <p class="zf-sh-lede">還是不確定的話，隨時可以從一張牌開始，或直接預約老師聊聊。</p>
     </div>
 
     {FAQ_GROUPS.map((group) => (
       <section class="faq-group">
         <div class="group-head">
           <span class="glyph-disc">{group.g}</span>
-          <h2 class="sh-title cjk">{group.title}</h2>
+          <h2 class="zf-sh-title cjk">{group.title}</h2>
         </div>
         <div class="faq-list">
           {group.items.map((it) => {
@@ -73,8 +73,8 @@ let gi = 0;
       <h2 class="cjk">還有想問的嗎？</h2>
       <p class="cta-lede">把你心裡的事說出來，我們陪你一起看。</p>
       <div class="cta-btns">
-        <a class="btn primary" href="/">抽一張牌</a>
-        <a class="btn secondary" href="/services/"><i class="ph-thin ph-calendar-heart"></i>預約老師</a>
+        <a class="zf-btn lg primary" href="/" style="font-size:17px">抽一張牌</a>
+        <a class="zf-btn lg secondary" href="/services/"><i class="ph-thin ph-calendar-heart" style="font-size:16px"></i>預約老師</a>
       </div>
     </section>
   </main>
@@ -85,19 +85,13 @@ let gi = 0;
   @media (max-width: 820px) { .faq { padding: 48px 20px 48px; } }
   .cjk { word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
 
-  /* SectionHeading */
-  .sh { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
-  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: var(--t-micro); font-weight: var(--w-medium); letter-spacing: 0.02em; color: var(--accent-press); }
-  .eyebrow .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); flex: none; }
-  .sh-title { margin: 0; font-family: var(--font-serif); font-weight: var(--w-medium); font-size: var(--t-h2); line-height: var(--lh-tight); letter-spacing: var(--ls-heading); color: var(--ink-900); }
-  .lede { margin: 0; font-family: var(--font-serif); font-weight: var(--w-light); font-size: var(--t-body-lg); line-height: 1.7; color: var(--text-secondary); }
+  /* SectionHeading → DS .zf-section-heading / .zf-sh-eyebrow / .zf-sh-title / .zf-sh-lede（值相同）*/
 
   /* group head */
   .faq-group { margin-top: 52px; }
   @media (max-width: 820px) { .faq-group { margin-top: 36px; } }
   .group-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
   @media (max-width: 820px) { .group-head { margin-bottom: 4px; } }
-  .group-head .sh-title { font-size: var(--t-h2); }
   .glyph-disc { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: var(--radius-md); background: var(--surface-card); border: 1px solid var(--rose-100); font-family: var(--font-serif); font-size: 21px; line-height: 1; color: var(--accent-press); }
 
   /* accordion item（原生 details）*/
@@ -126,9 +120,4 @@ let gi = 0;
   .faq-cta h2 { font-family: var(--font-serif); font-size: var(--t-h2); font-weight: var(--w-medium); color: var(--ink-900); margin: 0; }
   .cta-lede { font-family: var(--font-serif); font-weight: var(--w-light); font-size: var(--t-body-lg); line-height: 1.7; color: var(--text-secondary); margin: 12px auto 0; max-width: 32rem; text-wrap: pretty; }
   .cta-btns { margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 15px 30px; font-family: var(--font-serif); font-size: 17px; font-weight: var(--w-medium); letter-spacing: 0.04em; border-radius: var(--radius-pill); text-decoration: none; transition: background var(--dur-fast) var(--ease-soft); }
-  .btn.primary { color: var(--text-on-accent); background: var(--accent); box-shadow: var(--shadow-sm); }
-  .btn.primary:hover { background: var(--accent-hover); text-decoration: none; }
-  .btn.secondary { color: var(--ink-900); background: var(--surface-card); border: 1px solid var(--border-strong); }
-  .btn.secondary:hover { background: var(--rice-100); text-decoration: none; }
 </style>

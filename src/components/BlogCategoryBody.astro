@@ -59,7 +59,7 @@ const items = pageItems(page, totalPages);
   <ul class="post-grid">
     {posts.map(post => (
       <li>
-        <a class="art-card" href={`/blog/${post.id}/`}>
+        <a class="zf-card interactive art-card" href={`/blog/${post.id}/`}>
           <h3 class="art-title cjk-title">{post.data.title}</h3>
           <p class="art-desc">{post.data.description}</p>
           <div class="art-meta">
@@ -85,7 +85,7 @@ const items = pageItems(page, totalPages);
   <div class="reading-cta-wrap">
     <section class="reading-cta">
       <p class="rc-line cjk-title">想知道你現在的量能狀態？</p>
-      <a class="rc-btn" href="/">立即占卜</a>
+      <a class="zf-btn primary lg" href="/" style="font-size:17px">立即占卜</a>
     </section>
   </div>
 </main>
@@ -125,9 +125,9 @@ const items = pageItems(page, totalPages);
   /* article cards（同首頁） */
   .post-grid { list-style: none; padding: 0; margin: 44px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch; }
   @media (max-width: 760px) { .post-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; } }
-  .art-card { display: flex; flex-direction: column; height: 100%; padding: 24px 26px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; transition: transform var(--dur-base) var(--ease-soft), box-shadow var(--dur-base) var(--ease-soft); }
+  /* art-card = DS zf-card interactive（去重；保留 layout + 標題 hover 變色）*/
+  .art-card { display: flex; flex-direction: column; height: 100%; padding: 24px 26px; text-decoration: none; color: inherit; }
   @media (max-width: 760px) { .art-card { padding: 20px; } }
-  .art-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); text-decoration: none; }
   .art-title { font-family: var(--font-serif); font-size: 19.5px; font-weight: 500; line-height: 1.45; letter-spacing: 0.01em; color: var(--ink-900); margin: 0; }
   @media (max-width: 760px) { .art-title { font-size: 18px; } }
   .art-card:hover .art-title { color: var(--accent-press); }
@@ -152,6 +152,4 @@ const items = pageItems(page, totalPages);
   @media (max-width: 760px) { .reading-cta { padding: 30px 22px; } }
   .rc-line { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--ink-900); margin: 0 0 20px; }
   @media (max-width: 760px) { .rc-line { font-size: 19px; } }
-  .rc-btn { display: inline-block; padding: 15px 30px; font-family: var(--font-serif); font-size: 17px; font-weight: 500; letter-spacing: 0.04em; color: var(--text-on-accent); background: var(--accent); border-radius: var(--radius-pill); text-decoration: none; box-shadow: var(--shadow-sm); transition: background var(--dur-fast) var(--ease-soft); }
-  .rc-btn:hover { background: var(--accent-hover); text-decoration: none; }
 </style>
