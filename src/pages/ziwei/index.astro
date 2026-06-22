@@ -321,13 +321,12 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       const majors = cell.majorStars.map((s) => renderStar(s, 'major')).join('');
       const minors = cell.minorStars.map((s) => renderStar(s, 'minor')).join('');
       // 雜星收摺：cell 內顯示「+N」徽章，click 展開 popover 浮在 cell 上方
-      const adj = cell.adjectiveStars.length
-        ? `<div class="adj-row">${cell.adjectiveStars.map(s => `<span class="adj" style="color:${FLOWER.has(s.name) ? 'var(--rose-500)' : 'var(--text-muted)'}">${s.name}</span>`).join('')}</div>`
-          + `<button class="adj-toggle" data-action="toggle-adj" type="button" title="${cell.adjectiveStars.map(s => s.name).join('、')}">
-            <span class="adj-count">${cell.adjectiveStars.length}</span><span class="adj-tag">雜</span>
-          </button>
-          <div class="adj-popover" hidden>${cell.adjectiveStars.map(s => `<span class="adj-star">${s.name}</span>`).join('')}</div>`
-        : '';
+      const adjList = cell.adjectiveStars;
+      const adjRow = adjList.length ? `<div class="adj-row">${adjList.map(s => `<span class="adj" style="color:${FLOWER.has(s.name) ? 'var(--rose-500)' : 'var(--text-muted)'}">${s.name}</span>`).join('')}</div>` : '';
+      const flowers = adjList.filter(s => FLOWER.has(s.name));
+      const others = adjList.filter(s => !FLOWER.has(s.name));
+      const adjMobile = adjList.length ? `<div class="adj-mobile">${flowers.map(s => `<span class="adj-fl">${s.name}</span>`).join('')}${others.length ? `<span class="adj-more">+${others.length}雜</span>` : ''}</div>` : '';
+      const adj = adjRow + adjMobile;
       const empty = cell.majorStars.length === 0 && cell.minorStars.length === 0 ? '<span class="empty-palace">空宮</span>' : '';
 
       const isCurrentDecadal = cell.index === currentDecadalIndex;
@@ -372,26 +371,40 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       });
     });
 
-    // 雜星 popover toggle（手機/桌面通用）
+    // 手機點宮位 → 底部詳情卡（對齊 DS ziwei-page.jsx ZiweiSheet）
     mount.addEventListener('click', (ev) => {
-      const target = ev.target as HTMLElement;
-      const toggleBtn = target.closest<HTMLElement>('[data-action="toggle-adj"]');
-      // 先關掉所有已開的 popover
-      const allPopovers = mount.querySelectorAll<HTMLElement>('.adj-popover:not([hidden])');
-      if (toggleBtn) {
-        const cell = toggleBtn.closest('.palace-cell');
-        const popover = cell?.querySelector<HTMLElement>('.adj-popover');
-        const isOpen = popover && !popover.hidden;
-        // 關閉其他所有
-        allPopovers.forEach(p => { if (p !== popover) p.hidden = true; });
-        // toggle 自己
-        if (popover) popover.hidden = isOpen ? true : false;
-        ev.stopPropagation();
-      } else {
-        // click 在外面 → 關全部
-        allPopovers.forEach(p => p.hidden = true);
-      }
+      if (!window.matchMedia('(max-width:480px)').matches) return;
+      const cellEl = (ev.target as HTMLElement).closest<HTMLElement>('.palace-cell');
+      if (!cellEl || cellEl.classList.contains('empty')) return;
+      const idx = Number(cellEl.dataset.palaceIndex);
+      const p = chart.palaces.find(x => x.index === idx);
+      if (p) openZiweiSheet(p, mode, yearly);
     });
+  }
+
+  function openZiweiSheet(p: Palace, mode: 'natal' | 'yearly', yearly: (HoroscopeItem & { nominalAge?: number }) | null) {
+    const MUT_VAL: Record<string, { bg: string; fg: string }> = {
+      '祿': { bg: 'var(--sage-200)', fg: 'var(--sage-500)' }, '權': { bg: 'var(--gold-300)', fg: 'var(--gold-500)' },
+      '科': { bg: 'var(--rose-100)', fg: 'var(--rose-600)' }, '忌': { bg: 'var(--tint-rose-soft)', fg: 'var(--critical)' },
+    };
+    const ymap: Record<string, string> = {};
+    if (yearly && yearly.mutagen) yearly.mutagen.forEach((n, i) => { if (n) ymap[n] = ['祿', '權', '科', '忌'][i]; });
+    const bigStar = (s: Star, kind: 'major' | 'minor') => {
+      const mc = MUT_VAL[s.mutagen], yt = ymap[s.name], yc = MUT_VAL[yt];
+      return `<span class="zs-star ${kind}"><span class="zs-name" style="color:${starColor(s.name, kind)}">${s.name}</span>${s.brightness ? `<span class="zs-br">${s.brightness}</span>` : ''}${s.mutagen && mc ? `<span class="zs-mut" style="background:${mc.bg};color:${mc.fg}">化${s.mutagen}</span>` : ''}${yt && yc ? `<span class="zs-mut" style="border:1px solid ${yc.fg};color:${yc.fg};background:transparent">流${yt}</span>` : ''}</span>`;
+    };
+    const yName = yearly ? yearly.palaceNames[p.index] : null;
+    const title = (mode === 'yearly' && yName) ? yName : p.name;
+    const sub = (mode === 'yearly' ? `本${p.name} · ` : '') + p.heavenlyStem + p.earthlyBranch;
+    const nMajor = p.majorStars.length;
+    const main = [...p.majorStars, ...p.minorStars];
+    const mainHtml = main.length ? main.map((s, i) => bigStar(s, i < nMajor ? 'major' : 'minor')).join('') : '<span class="zs-empty">（無主星，借對宮）</span>';
+    const adjHtml = p.adjectiveStars.map(a => `<span class="zs-adj" style="color:${FLOWER.has(a.name) ? 'var(--rose-500)' : 'var(--text-muted)'}">${a.name}</span>`).join('');
+    const foot = `大限 ${p.decadal ? p.decadal.range[0] + '–' + p.decadal.range[1] : '—'} 歲　·　長生十二神「${p.changsheng12 || '—'}」`;
+    let host = document.getElementById('zw-sheet-host');
+    if (!host) { host = document.createElement('div'); host.id = 'zw-sheet-host'; document.body.appendChild(host); }
+    host.innerHTML = `<div class="zw-scrim" data-close></div><div class="zw-sheet"><div class="zw-handle"></div><div class="zw-title">${title}<span class="zw-sub">${sub}</span></div><div class="zw-stars">${mainHtml}</div>${adjHtml ? `<div class="zw-adjs">${adjHtml}</div>` : ''}<div class="zw-foot">${foot}</div></div>`;
+    host.querySelector('[data-close]')!.addEventListener('click', () => { host!.innerHTML = ''; });
   }
 
   function renderInterpretationSkeleton(mount: HTMLElement, mode: 'natal' | 'yearly', year?: number) {
@@ -1035,6 +1048,27 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   /* 雜曜：桌機全列、手機(≤480)摺成徽章 popover */
   :global(.adj-row) { display: flex; flex-wrap: wrap; gap: 1px 8px; margin-top: auto; padding-top: 4px; }
   :global(.adj-row .adj) { font-size: 10px; line-height: 1.3; }
+  /* 手機雜曜：桃花 inline + +N雜 計數徽章（預設隱藏，≤480 顯示）*/
+  :global(.adj-mobile) { display: none; flex-wrap: wrap; gap: 2px 6px; margin-top: 4px; }
+  :global(.adj-mobile .adj-fl) { font-size: 10px; line-height: 1.3; color: var(--rose-500); }
+  :global(.adj-mobile .adj-more) { font-family: var(--font-sans); font-size: 9.5px; color: var(--text-muted); background: var(--surface-sunken); border-radius: 999px; padding: 0 6px; line-height: 1.6; }
+  /* 底部詳情卡（對齊 DS ZiweiSheet；全寬出血 + 過高捲動不破格）*/
+  :global(#zw-sheet-host .zw-scrim) { position: fixed; inset: 0; background: rgba(46,40,35,.4); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); z-index: 60; }
+  :global(.zw-sheet) { position: fixed; left: 0; right: 0; bottom: 0; box-sizing: border-box; max-height: 82vh; overflow-y: auto; background: var(--surface-card); border-radius: 22px 22px 0 0; padding: 10px 22px calc(34px + env(safe-area-inset-bottom)); z-index: 61; box-shadow: 0 -8px 32px rgba(46,40,35,.18); animation: zwUp .26s var(--ease-soft); }
+  @keyframes zwUp { from { transform: translateY(101%); } to { transform: none; } }
+  :global(.zw-handle) { width: 38px; height: 4px; border-radius: 999px; background: var(--rice-300); margin: 0 auto 14px; }
+  :global(.zw-title) { font-family: var(--font-serif); font-size: 19px; font-weight: 600; color: var(--ink-900); margin-bottom: 14px; }
+  :global(.zw-title .zw-sub) { font-size: 13px; font-weight: 400; color: var(--text-muted); margin-left: 8px; }
+  :global(.zw-stars) { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+  :global(.zs-star) { display: inline-flex; align-items: flex-start; line-height: 1.15; }
+  :global(.zs-star .zs-name) { font-family: var(--font-serif); font-size: 23px; font-weight: 600; letter-spacing: .02em; }
+  :global(.zs-star.minor .zs-name) { font-size: 21px; font-weight: 500; }
+  :global(.zs-br) { font-family: var(--font-sans); font-size: 11px; color: var(--text-muted); margin-left: 1px; margin-top: 2px; }
+  :global(.zs-mut) { font-family: var(--font-sans); font-size: 10px; font-weight: 700; border-radius: 4px; padding: 0 3px; margin-left: 2px; margin-top: 1px; line-height: 1.5; }
+  :global(.zw-adjs) { display: flex; flex-wrap: wrap; gap: 7px 13px; margin-bottom: 16px; }
+  :global(.zs-adj) { font-size: 14.5px; }
+  :global(.zs-empty) { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); }
+  :global(.zw-foot) { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); border-top: 1px solid var(--border-soft); padding-top: 13px; }
   /* 雜星收摺徽章（手機用） */
   :global(.adj-toggle) {
     display: none;
@@ -1191,8 +1225,9 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     :global(.adj-star) { font-size: 8.5px; }
     :global(.cell-footer), :global(.decadal) { font-size: 8px; }
     :global(.adj-row) { display: none; }
-    :global(.adj-toggle) { display: inline-flex; }
-    :global(.cell-footer .cs) { display: none; }
+    :global(.adj-mobile) { display: flex; }
+    :global(.cell-footer) { display: none; }
+    :global(.palace-cell) { cursor: pointer; }
     :global(.center-meta) { padding: 12px 10px; font-size: 11px; gap: 4px; }
     :global(.meta-label) { font-size: 9.5px; }
     :global(.meta-pill) { padding: 0 6px; font-size: 9.5px; }
