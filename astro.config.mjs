@@ -57,12 +57,9 @@ export default defineConfig({
 
   integrations: [
     sitemap({
+      // home/share/spirit 皆已是真實 Astro 頁，會自動帶入（含 trailing slash）；
+      // 舊 customPages 的無斜線版本會造成重複條目，已移除
       filter: (page) => !page.includes('/auth/') && !page.includes('/history'),
-      customPages: [
-        'https://winds.tw/home',
-        'https://winds.tw/share',
-        'https://winds.tw/spirit',
-      ],
     }),
   ],
 });
