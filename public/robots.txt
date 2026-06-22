@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://app.winds.tw/sitemap-index.xml
+Sitemap: https://winds.tw/sitemap-index.xml
 
 # Block auth pages from indexing
 Disallow: /auth/
