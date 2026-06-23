@@ -37,6 +37,11 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       <p class="form-warning">⚠️ 紫微命盤每位使用者終身只能算一次。請仔細確認生日、時辰、性別、出生地，送出後無法修改。</p>
       <form id="ziwei-form" class="ziwei-form">
         <div class="row">
+          <label for="name">姓名（選填）</label>
+          <input type="text" id="name" name="name" maxlength="20" autocomplete="name" placeholder="顯示在命盤上，可留空" />
+        </div>
+
+        <div class="row">
           <label for="solarDate">西元生日（陽曆）</label>
           <input type="date" id="solarDate" name="solarDate" required min="1900-01-01" max="2100-12-31" />
         </div>
@@ -320,18 +325,29 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       const row = Math.floor(i / 4);
       const col = i % 4;
 
-      // 中宮 2x2 — Plan B 合併版（6-7 行，padding 留白足夠）
+      // 中宮 2x2 — DS ZiweiChart 中宮（inline styles，免 Astro scoped 注入問題）
       if (row === 1 && col === 1) {
         const m = chart.meta;
-        const timeStr = m.timeRange ? `${m.time} (${m.timeRange})` : m.time;
-        return `<div class="center-meta" style="grid-row: 2 / 4; grid-column: 2 / 4;">
-          <div class="meta-row meta-row-inline"><span class="meta-pill">${m.gender}</span><span class="meta-value">${m.solarDate}</span><span class="meta-sep">·</span><span class="meta-value">${timeStr}</span></div>
-          <div class="meta-row meta-line-center">${m.lunarDate}</div>
-          <div class="meta-row meta-line-center">${m.chineseDate}</div>
-          <div class="meta-divider"></div>
-          <div class="meta-row meta-row-inline"><span class="meta-label">命主</span><span class="meta-value meta-emphasize">${m.soul}</span><span class="meta-sep">·</span><span class="meta-label">身主</span><span class="meta-value meta-emphasize">${m.body}</span></div>
-          <div class="meta-row meta-row-inline"><span class="meta-label">五行局</span><span class="meta-value meta-emphasize">${m.fiveElementsClass}</span></div>
-          <div class="meta-row meta-line-center"><span class="meta-value">${m.sign}</span><span class="meta-sep">·</span><span class="meta-value">屬${m.zodiac}</span></div>
+        const mobile = window.matchMedia('(max-width:760px)').matches;
+        const yearStr = horoscope ? horoscope.date.split('-')[0] : String(new Date().getFullYear());
+        const emphB = `font-family:var(--font-serif);font-weight:500;color:var(--ink-900)`;
+        const nameLine = m.name
+          ? `<div style="font-family:var(--font-serif);font-size:${mobile ? 15 : 21}px;font-weight:600;color:var(--ink-900);text-align:center">${m.name}</div>`
+          : '';
+        return `<div style="grid-row: 2 / 4; grid-column: 2 / 4;background:linear-gradient(155deg, var(--rose-50), var(--paper));border:1px solid var(--rose-100);border-radius:${mobile ? 10 : 14}px;padding:${mobile ? '10px 9px' : '16px 18px'};display:flex;flex-direction:column;justify-content:center">
+          ${nameLine}
+          <div style="font-family:var(--font-sans);font-size:${mobile ? 8.5 : 10}px;letter-spacing:0.02em;color:var(--accent-press);text-align:center;margin:${mobile ? '2px 0 8px' : '3px 0 12px'}">${m.gender} · ${mode === 'yearly' ? yearStr + ' 流年盤' : '本命盤'}</div>
+          <div style="display:flex;flex-direction:column;gap:${mobile ? 3 : 5}px;font-family:var(--font-sans);font-size:${mobile ? 9.5 : 12}px;color:var(--ink-700)">
+            <div><span style="color:var(--text-muted);margin-right:${mobile ? 4 : 6}px">國曆</span>${m.solarDate} ${m.time}</div>
+            <div><span style="color:var(--text-muted);margin-right:${mobile ? 4 : 6}px">農曆</span>${m.lunarDate}</div>
+            <div><span style="color:var(--text-muted);margin-right:${mobile ? 4 : 6}px">八字</span><span style="font-family:var(--font-serif);letter-spacing:0.08em;color:var(--ink-900)">${m.chineseDate}</span></div>
+          </div>
+          <div style="height:1px;background:var(--rose-100);margin:${mobile ? '8px 0' : '12px 0'}"></div>
+          <div style="font-family:var(--font-serif);font-size:${mobile ? 11 : 14}px;font-weight:500;color:var(--rose-600);text-align:center;margin-bottom:${mobile ? 6 : 10}px">${m.sign} · 屬${m.zodiac} · ${m.fiveElementsClass}</div>
+          <div style="display:flex;flex-direction:column;gap:${mobile ? 3 : 5}px;font-family:var(--font-sans);font-size:${mobile ? 9.5 : 12}px;color:var(--ink-700);text-align:center">
+            <div><span style="color:var(--text-muted);margin-right:4px">命主</span><b style="${emphB}">${m.soul}</b>　<span style="color:var(--text-muted);margin-right:4px">身主</span><b style="${emphB}">${m.body}</b></div>
+            <div><span style="color:var(--text-muted);margin-right:4px">命宮</span><b style="${emphB}">${m.earthlyBranchOfSoulPalace}宮</b>　<span style="color:var(--text-muted);margin-right:4px">身宮</span><b style="${emphB}">${m.earthlyBranchOfBodyPalace}宮</b></div>
+          </div>
         </div>`;
       }
       if ((row === 1 && col === 2) || (row === 2 && col === 1) || (row === 2 && col === 2)) return '';
@@ -780,6 +796,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
 
     const fd = new FormData(form);
     const payload: Record<string, unknown> = {
+      name: String(fd.get('name') || '').trim(),
       solarDate: fd.get('solarDate'),
       gender: fd.get('gender'),
       withHoroscope: true,
@@ -1207,17 +1224,6 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   :global(.cell-footer) { font-size: 9px; color: var(--ink-500); border-top: 1px dotted var(--border-soft); padding-top: 2px; display: flex; justify-content: space-between; align-items: center; gap: 4px; }
   :global(.cell-footer .cs) { color: var(--ink-500); white-space: nowrap; }
 
-  :global(.center-meta) { background: linear-gradient(155deg, var(--rose-50) 0%, var(--paper) 100%); border: 1px solid var(--rose-100); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; gap: 5px; font-family: var(--font-sans); font-size: 12px; box-sizing: border-box; }
-  :global(.meta-row) { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; line-height: 1.5; color: var(--ink-700); }
-  :global(.meta-row-inline) { justify-content: center; }
-  :global(.meta-line-center) { justify-content: center; font-family: var(--font-serif); color: var(--rose-600); font-weight: 500; letter-spacing: 0.04em; }
-  :global(.meta-label) { color: var(--text-muted); font-size: 10.5px; }
-  :global(.meta-value) { color: var(--ink-900); font-weight: 500; }
-  :global(.meta-emphasize) { font-family: var(--font-serif); color: var(--ink-900); font-weight: 500; }
-  :global(.meta-sep) { color: var(--rose-200); padding: 0 2px; }
-  :global(.meta-pill) { background: var(--rose-100); color: var(--rose-600); padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
-  :global(.meta-divider) { height: 1px; background: var(--rose-100); margin: 6px 0; }
-
   /* 解讀區 */
   :global(.interpretation-section) {
     max-width: 760px;
@@ -1307,10 +1313,6 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     :global(.adj-mobile) { display: flex; }
     :global(.cell-footer) { display: none; }
     :global(.palace-cell) { cursor: pointer; }
-    :global(.center-meta) { padding: 12px 10px; font-size: 11px; gap: 4px; }
-    :global(.meta-label) { font-size: 9.5px; }
-    :global(.meta-pill) { padding: 0 6px; font-size: 9.5px; }
-    :global(.meta-row-inline) { gap: 4px; }
   }
   @media (max-width: 480px) {
     :global(.star.major .star-name) { font-size: 10px; }
