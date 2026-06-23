@@ -1027,20 +1027,6 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     flex-wrap: wrap;
     gap: 8px;
   }
-  .back-btn {
-    background: transparent;
-    border: 1px solid var(--border-soft);
-    color: var(--ink-700);
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .back-btn:hover {
-    background: var(--surface-page);
-    color: var(--ink-900);
-  }
 
   .tst-badge {
     background: rgba(139, 105, 20, 0.1);
@@ -1191,8 +1177,6 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   :global(.mutagen-ji) { background: var(--tint-rose-soft); color: var(--critical); }
 
   :global(.empty-palace) { color: var(--ink-500); font-size: 11px; font-style: italic; }
-  :global(.adjective-row) { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-top: 2px; padding-top: 2px; border-top: 1px dotted rgba(139, 105, 20, 0.15); }
-  :global(.adj-star) { color: var(--ink-500); font-size: 10.5px; line-height: 1.5; }
 
   /* 雜曜：桌機全列、手機(≤480)摺成徽章 popover */
   :global(.adj-row) { display: flex; flex-wrap: wrap; gap: 1px 8px; margin-top: auto; padding-top: 4px; }
@@ -1218,58 +1202,8 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   :global(.zs-adj) { font-size: 14.5px; }
   :global(.zs-empty) { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); }
   :global(.zw-foot) { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); border-top: 1px solid var(--border-soft); padding-top: 13px; }
-  /* 雜星收摺徽章（手機用） */
-  :global(.adj-toggle) {
-    display: none;
-    align-items: center;
-    gap: 2px;
-    background: rgba(139, 105, 20, 0.08);
-    border: 1px dashed rgba(139, 105, 20, 0.3);
-    color: var(--ink-500);
-    font-family: inherit;
-    font-size: 9.5px;
-    padding: 1px 6px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 3px;
-    align-self: flex-start;
-    transition: all 0.15s;
-  }
-  :global(.adj-toggle:hover) { background: rgba(139, 105, 20, 0.15); border-style: solid; color: var(--rose-600); }
-  :global(.adj-count) { font-weight: 700; }
-  :global(.adj-tag) { letter-spacing: 0.05em; }
 
-  /* 雜星 popover — absolute 浮在 cell 上方 */
-  :global(.palace-cell) { position: relative; }  /* 確保 popover anchor */
-  :global(.adj-popover) {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--surface-card);
-    border: 1px solid var(--rose-600);
-    border-radius: 6px;
-    box-shadow: 0 4px 16px rgba(139, 105, 20, 0.25);
-    padding: 8px 10px;
-    z-index: 10;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 8px;
-    min-width: 120px;
-    max-width: 200px;
-    white-space: nowrap;
-  }
-  :global(.adj-popover[hidden]) { display: none; }
-  :global(.adj-popover .adj-star) { font-size: 11px; color: var(--ink-900); }
-  :global(.adj-popover::after) {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: var(--rose-600);
-  }
+  :global(.palace-cell) { position: relative; }
   :global(.cell-footer) { font-size: 9px; color: var(--ink-500); border-top: 1px dotted var(--border-soft); padding-top: 2px; display: flex; justify-content: space-between; align-items: center; gap: 4px; }
   :global(.cell-footer .cs) { color: var(--ink-500); white-space: nowrap; }
 
@@ -1305,28 +1239,6 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     color: var(--ink-900);
     margin: 0 0 4px;
   }
-  :global(.ai-note) {
-    font-family: var(--font-sans);
-    color: var(--text-muted);
-    font-size: 12px;
-    margin: 0 0 24px;
-  }
-  /* 四化飛星（沿用 trend 區版式 + MUT chip 詞彙，對齊 DS token；與 LIFF 雙生同款）*/
-  :global(.sihua-map) { background: var(--paper); border: 1px solid var(--rose-100); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 12px; }
-  :global(.sihua-row) { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; border-bottom: 1px dotted var(--border-soft); font-family: var(--font-sans); font-size: 12.5px; line-height: 1.6; }
-  :global(.sihua-row:last-child) { border-bottom: none; }
-  :global(.sihua-row.is-ming) { background: linear-gradient(90deg, var(--rose-50), transparent); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: var(--radius-sm); }
-  :global(.sihua-from) { flex: 0 0 auto; color: var(--rose-600); font-weight: 600; white-space: nowrap; }
-  :global(.sihua-from .stem) { color: var(--text-muted); font-weight: 400; font-size: 11px; }
-  :global(.sihua-flows) { display: flex; flex-wrap: wrap; gap: 4px 8px; }
-  :global(.sihua-flow) { white-space: nowrap; color: var(--ink-700); }
-  :global(.sihua-tag) { font-size: 9px; padding: 0 4px; border-radius: 2px; color: #fff; font-weight: 600; margin-right: 2px; }
-  :global(.sihua-flow .to) { color: var(--accent-press); }
-  :global(.sihua-flow.self .to) { color: var(--critical); font-weight: 600; }
-  :global(.sihua-self-sum) { font-family: var(--font-sans); font-size: 11.5px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.7; }
-  :global(.trend-toggle) { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
-  :global(.ttog) { font-family: var(--font-sans); font-size: 13px; padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--rose-200); background: var(--paper); color: var(--accent-press); cursor: pointer; }
-  :global(.ttog.is-active) { background: var(--accent); color: var(--text-on-accent); border-color: transparent; }
   :global(#trend-chart) { background: var(--paper); border: 1px solid var(--rose-100); border-radius: var(--radius-md); padding: 10px 6px 4px; }
   :global(.trend-svg) { width: 100%; height: auto; display: block; }
   :global(.interp-block) {
@@ -1390,7 +1302,6 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     :global(.star.major .star-name) { font-size: 11px; }
     :global(.star.minor .star-name) { font-size: 10px; }
     :global(.star-brightness), :global(.star-mutagen) { font-size: 8px; }
-    :global(.adj-star) { font-size: 8.5px; }
     :global(.cell-footer), :global(.decadal) { font-size: 8px; }
     :global(.adj-row) { display: none; }
     :global(.adj-mobile) { display: flex; }
@@ -1404,8 +1315,5 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   @media (max-width: 480px) {
     :global(.star.major .star-name) { font-size: 10px; }
     :global(.star.minor .star-name) { font-size: 9px; }
-    :global(.adj-toggle) { font-size: 8.5px; padding: 0 5px; }
-    :global(.adj-popover) { font-size: 10px; padding: 6px 8px; max-width: 160px; }
-    :global(.adj-popover .adj-star) { font-size: 10px; }
   }
 </style>
