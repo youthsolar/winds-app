@@ -1,0 +1,21 @@
+---
+// 完整報告永久連結（DS report-page）。報告本體＝/divination?log_id=（已套站台 Nav/Footer），
+// 渲染器同源不複製。/report?log_id= 為乾淨的可分享別名，導向報告頁。
+---
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>完整報告 · 找風問幸福</title>
+  <script is:inline>
+    (function () {
+      var p = new URLSearchParams(location.search);
+      var id = p.get('log_id') || p.get('id') || '';
+      location.replace(id ? ('/divination?log_id=' + encodeURIComponent(id)) : '/account');
+    })();
+  </script>
+</head>
+<body></body>
+</html>
