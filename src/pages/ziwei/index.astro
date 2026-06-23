@@ -625,7 +625,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       + `<p style="font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--text-secondary);margin:8px 0 0;max-width:34em">每一宮的天干各自引動祿、權、科、忌，飛入被引動星所在的宮位——呈現宮與宮之間主動的能量牽引；化星落回本宮即為「自化」。</p></div>`
       + sihuaLegend()
       + `<div class="ds-flight-list" style="margin-top:14px;display:flex;flex-direction:column;gap:10px">${cards}</div>`
-      + `<div style="display:flex;align-items:flex-start;gap:8px;margin:12px 2px 0"><span style="flex:none;margin-top:2px;display:inline-flex;color:var(--rose-300)">${ICON_INFO}</span><span style="font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)">每宮天干引動祿、權、科、忌飛入他宮，由 worker computeSihua 帶入（十干四化表與盤面生年四化同源）。</span></div>`
+      + `<div style="display:flex;align-items:flex-start;gap:8px;margin:12px 2px 0"><span style="flex:none;margin-top:2px;display:inline-flex;color:var(--rose-300)">${ICON_INFO}</span><span style="font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)">完整 12 宮飛星依你的命盤帶入（十干四化表與盤面生年四化同源）。</span></div>`
       + `<div style="margin-top:14px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:22px 18px"><h3 style="font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);margin:0 0 14px">四化飛星解讀</h3><div style="position:relative"><div class="interp-text loading" data-palace="sihua" style="font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.95;color:var(--ink-800);white-space:pre-wrap;margin:0">四化飛星解讀生成中…</div>${paid ? '' : '<div style="position:absolute;bottom:0;left:0;right:0;height:64px;background:linear-gradient(transparent,var(--surface-card));pointer-events:none"></div>'}</div>${paid ? '' : `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:13px 16px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-md);flex-wrap:wrap;gap:12px"><div style="font-family:var(--font-serif);font-weight:300;font-size:14px;color:var(--text-secondary)">完整四化飛星解讀隨占卜完整解讀一併解鎖。</div><button class="ds-unlock-btn" data-unlock style="cursor:pointer;background:var(--accent);color:var(--text-on-accent);border:1px solid transparent;padding:11px 22px;border-radius:var(--radius-pill);font-family:var(--font-serif);font-weight:500;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow-sm)">${ICON_LOCK_OPEN}<span>隨完整解讀解鎖 · NT$ 360</span></button></div>`}</div>`
       + `</section>`;
     const loadNarr = () => fetchPalace(chart, 'sihua', 'natal').then((t) => renderPalaceText('sihua', t, mount));
@@ -907,9 +907,13 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     font-family: var(--font-serif);
     font-weight: 300;
     color: var(--text-secondary);
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.8;
+    max-width: 30em;
     margin: 10px 0 0;
+  }
+  @media (max-width: 760px) {
+    .page-header .lede { font-size: 15.5px; }
   }
 
   .auth-gate { max-width: 480px; margin: 40px auto; }
