@@ -222,6 +222,29 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     return t ? { 'X-Google-Id-Token': t } : {};
   }
 
+  function getGoogleSub(): string {
+    const t = getGoogleToken();
+    if (!t) return '';
+    try {
+      const p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return p.sub || '';
+    } catch (e) { return ''; }
+  }
+
+  // 已登入時用命理檔案自動帶入姓名（對齊 DS 共用 profile 預填）
+  async function prefillName() {
+    try {
+      const sub = getGoogleSub();
+      if (!sub) return;
+      const r = await fetch(`${WORKER_API}/liff-prefill?google_sub=${encodeURIComponent(sub)}`, { headers: authHeaders() });
+      const data = await r.json();
+      if (!data || !data.found) return;
+      const name = (data.last_name || '') + (data.first_name || '');
+      const input = document.getElementById('name') as HTMLInputElement | null;
+      if (name && input && !input.value) input.value = name;
+    } catch (e) {}
+  }
+
   function setLoading(on: boolean) {
     if (!submitBtn) return;
     submitBtn.disabled = on;
@@ -339,7 +362,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
           <div style="font-family:var(--font-sans);font-size:${mobile ? 8.5 : 10}px;letter-spacing:0.02em;color:var(--accent-press);text-align:center;margin:${mobile ? '2px 0 8px' : '3px 0 12px'}">${m.gender} · ${mode === 'yearly' ? yearStr + ' 流年盤' : '本命盤'}</div>
           <div style="display:flex;flex-direction:column;gap:${mobile ? 3 : 5}px;font-family:var(--font-sans);font-size:${mobile ? 9.5 : 12}px;color:var(--ink-700)">
             <div><span style="color:var(--text-muted);margin-right:${mobile ? 4 : 6}px">國曆</span>${m.solarDate} ${m.time}</div>
-            <div><span style="color:var(--text-muted);margin-right:${mobile ? 4 : 6}px">農曆</span>${m.lunarDate}</div>
+            <div><span style="color:var(--text-muted);margin-right:${mobile ? 4 : 6}px">農曆</span>${m.lunarGZ || m.lunarDate}</div>
             <div><span style="color:var(--text-muted);margin-right:${mobile ? 4 : 6}px">八字</span><span style="font-family:var(--font-serif);letter-spacing:0.08em;color:var(--ink-900)">${m.chineseDate}</span></div>
           </div>
           <div style="height:1px;background:var(--rose-100);margin:${mobile ? '8px 0' : '12px 0'}"></div>
@@ -876,6 +899,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       } else {
         hideAllSections();
         formSection.hidden = false;
+        prefillName();
       }
     } catch (err: any) {
       showError(err.message || '無法連線');
