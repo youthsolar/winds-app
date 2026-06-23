@@ -112,6 +112,13 @@ const pageDesc =
     @media (max-width: 760px) { .services-root .dt-section { margin-top: 32px; } }
     .services-root .dt-section > h2 { font-family: var(--font-serif); font-size: 24px; font-weight: 500; color: var(--ink-900); margin: 0 0 16px; }
     @media (max-width: 760px) { .services-root .dt-section > h2 { font-size: 21px; } }
+    /* 信任元素三欄（DS ServiceDetail）*/
+    .services-root .dt-trust { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .services-root .dt-trust-card { background: var(--surface-sunken); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 20px 20px; }
+    .services-root .dt-trust-card > i { font-size: 24px; color: var(--rose-500); }
+    .services-root .dt-trust-h { font-family: var(--font-serif); font-size: 16.5px; font-weight: 500; color: var(--ink-900); margin-top: 10px; }
+    .services-root .dt-trust-s { font-family: var(--font-serif); font-weight: 300; font-size: 14px; line-height: 1.7; color: var(--text-secondary); margin-top: 4px; }
+    @media (max-width: 760px) { .services-root .dt-trust { grid-template-columns: 1fr; gap: 10px; } }
     .services-root .dt-body { font-family: var(--font-serif); font-weight: 300; font-size: 17.5px; line-height: 1.95; color: var(--ink-700); margin: 0; word-break: normal; overflow-wrap: anywhere; text-wrap: auto; white-space: pre-line; }
     @media (max-width: 760px) { .services-root .dt-body { font-size: 16px; } }
 
@@ -267,6 +274,19 @@ const pageDesc =
           return '<li><i class="ph-fill ph-check-circle"></i><span>' + esc(x) + '</span></li>';
         }).join('');
 
+        // 信任元素（DS ServiceDetail 三欄）— 只放對服務模式為真的訊號
+        var trust = isSB
+          ? [{ i: 'user-circle-check', h: '真人一對一', s: '老師親自與你對談，不是罐頭回覆。' },
+             { i: 'calendar-check', h: '預約保留時段', s: '付訂金後，這個時段就是你的。' },
+             { i: 'lock-simple', h: '安心保密', s: '你說的事，只留在你和老師之間。' }]
+          : [{ i: 'hand-heart', h: '親手開光', s: '每一件都由老師依個案親撰處理。' },
+             { i: 'package', h: '超商店到店', s: '付款後 7 天內出貨，就近取貨。' },
+             { i: 'shield-check', h: '台灣現貨寄送', s: '台灣限定，安心收件。' }];
+        var trustHtml = '<section class="dt-section"><div class="dt-trust">' + trust.map(function (t) {
+          return '<div class="dt-trust-card"><i class="ph ph-' + t.i + '"></i>' +
+            '<div class="dt-trust-h">' + esc(t.h) + '</div><div class="dt-trust-s">' + esc(t.s) + '</div></div>';
+        }).join('') + '</div></section>';
+
         var related = all.filter(function (x) { return x.source === it.source && !(x.id === it.id && x.source === it.source); }).slice(0, 3);
         var relatedHtml = related.length ? (
           '<section class="dt-section"><h2>相關項目</h2><div class="related-list">' +
@@ -301,6 +321,7 @@ const pageDesc =
               '</div></header>' +
             (descBody ? '<section class="dt-section"><h2>項目說明</h2><p class="dt-body">' + esc(descBody) + '</p></section>' : '') +
             '<section class="dt-section"><h2>' + (isSB ? '這項諮詢包含' : '這件法器') + '</h2><ul class="includes">' + includesHtml + '</ul></section>' +
+            trustHtml +
             relatedHtml +
             '<a class="back-link" href="/services"><i class="ph ph-arrow-left"></i>回項目列表</a>' +
           '</article>' +

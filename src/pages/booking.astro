@@ -3,7 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { PERSONAS } from '../data/booking-teachers';
 
 // 老師卡＝真實 SimplyBook 老師（/sb-providers）+ LLM 生成 persona/介紹/引言（teacher_meta）。
-// 🔭 7 步預約精靈（地點→項目→老師→時間→資料→確認）待建；目前卡 CTA 暫指 /services。
+// 站內 4 步預約精靈（項目→時間→資料→確認→付訂金），吃真實 SB 時段（/sb-slots）+
+// 自家 ECPay 收訂金（/sb-book）。對齊 2026-06-07 拍板 4 步流程（teacher→time→info→confirm）。
 ---
 <BaseLayout
   title="預約老師 · 找風問幸福｜塔羅・紫微・八字・通靈一對一對談"
@@ -178,7 +179,6 @@ import { PERSONAS } from '../data/booking-teachers';
   <script is:inline>
     (function () {
       var WORKER_API = 'https://api.winds.tw';
-      var BOOK_HREF = '/services'; // 🔭 7 步精靈未建前暫指既有預約目錄
       var PERSONAS = JSON.parse(document.getElementById('bkPersonas').textContent);
       var descMap = {}; PERSONAS.forEach(function (p) { descMap[p.key] = p.desc; });
       var TONE = { gentle: 'rose', rational: 'clay', energy: 'sage', direct: 'clay' };
