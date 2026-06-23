@@ -12,19 +12,8 @@
     --ink-900:#2E2823; --ink-700:#4A4038; --ink-500:#6E6359; --ink-400:#948A7E;
 
     --paper: #FBF8F3;
-    --paper-2: #F6EFE6;
     --surface: #FFFDF8;
-    --ink: #2E2823;
-    --ink-2: #4A4038;
-    --ink-3: #6E6359;
-    --ink-4: #948A7E;
-    --line: #EEE4D6;
-    --line-strong: #E2D4C1;
     --accent: #C18C84;
-    --accent-deep: #8F574E;
-    --accent-soft: #F0DAD3;
-    --error: #B5675C;
-    --success: #2D6A4F;
     --font-sans: "Noto Sans TC", system-ui, -apple-system, sans-serif;
     --radius-xs:6px; --radius-sm:10px; --radius-md:14px; --radius-lg:20px; --radius-xl:28px; --radius-2xl:36px; --radius-pill:999px;
     --shadow-sm:0 1px 2px rgba(70,52,40,.04),0 2px 6px rgba(70,52,40,.05);
@@ -86,18 +75,6 @@
     --dur-fast:140ms; --dur-base:240ms; --dur-slow:420ms;
     --shadow-xs: 0 1px 2px rgba(70,52,40,.05);
     --shadow-xl: 0 10px 28px rgba(70,52,40,.08), 0 28px 72px rgba(70,52,40,.14);
-
-    /* backward-compat aliases (will be removed after full migration) */
-    --winds-text-dark: var(--ink);
-    --winds-text: var(--ink-2);
-    --winds-text-sub: var(--ink-2);
-    --winds-text-muted: var(--ink-3);
-    --winds-gold-dark: var(--accent-deep);
-    --winds-gold-light: var(--accent-soft);
-    --winds-danger: var(--error);
-    --winds-bg: var(--paper);
-    --winds-bg-card: var(--surface);
-    --winds-border: var(--line);
   }
 
   /* ── 逐項對齊 DS tokens/base.css（2026-06-20 Jeffery「全部比對設計稿」）── */
@@ -132,13 +109,13 @@
   .nav-link,
   .nav-link a,
   #auth-button a {
-    color: var(--winds-text);
+    color: var(--ink-700);
     text-decoration: none;
   }
   .nav-link:hover,
   .nav-link a:hover,
   #auth-button a:hover {
-    color: var(--winds-gold-dark);
+    color: var(--accent-press);
     text-decoration: none;
   }
 }
