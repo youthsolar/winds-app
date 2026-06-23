@@ -252,6 +252,18 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     '祿': { bg: 'var(--sage-200)', fg: 'var(--sage-500)' }, '權': { bg: 'var(--gold-300)', fg: 'var(--gold-500)' },
     '科': { bg: 'var(--rose-100)', fg: 'var(--rose-600)' }, '忌': { bg: 'var(--tint-rose-soft)', fg: 'var(--critical)' },
   };
+  // Design 定稿 MUT_COLOR（四化飛星區塊用；對齊 LIFF 雙生 + sihua-design.jsx）
+  const MUT_COLOR: Record<string, { bg: string; fg: string }> = {
+    '祿': { bg: 'var(--sage-200)', fg: 'var(--sage-500)' }, '權': { bg: 'var(--gold-300)', fg: 'var(--gold-500)' },
+    '科': { bg: 'var(--rose-100)', fg: 'var(--rose-600)' }, '忌': { bg: 'var(--tint-rose-soft)', fg: 'var(--critical)' },
+  };
+  const MUT_ORDER = ['祿', '權', '科', '忌'];
+  // 內聯 SVG 圖示（currentColor 驅動，對齊 LIFF 雙生頁，不依賴 Phosphor）
+  const ICON_ARROW_RIGHT = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="flex:none"><path d="M3 8h8.5M8.5 4l3.5 4-3.5 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const ICON_SELF_LOOP = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="flex:none"><path d="M13 12V9a4 4 0 0 0-4-4H3.5M6 2 2.5 5 6 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const ICON_SELF_LOOP_SM = '<svg width="10" height="10" viewBox="0 0 16 16" fill="none" style="flex:none"><path d="M13 12V9a4 4 0 0 0-4-4H3.5M6 2 2.5 5 6 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const ICON_INFO = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" style="flex:none"><circle cx="8" cy="8" r="6.4" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.3v3.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="5.2" r="0.9" fill="currentColor"/></svg>';
+  const ICON_LOCK_OPEN = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex:none"><rect x="3" y="7.3" width="10" height="6.5" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7.3V5a2.5 2.5 0 0 1 4.9-.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
   // 副星依類型上色（對齊 share.ts / ziwei-page.jsx：六煞紅、桃花玫瑰、其餘鼠尾草綠）
   const TOUGH = new Set(['擎羊', '陀羅', '火星', '鈴星', '地空', '地劫']);
   const FLOWER = new Set(['紅鸞', '天喜', '天姚', '咸池', '大耗']);
@@ -348,11 +360,17 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       const yearlyName = yearly ? yearly.palaceNames[cell.index] : null;
       const isYearlySoul = yearly ? cell.index === yearly.index : false;
 
+      // 自化角落徽記（critical 圓底 + ↺ self-loop；本命固定，僅本命盤一格一枚）
+      const hasSelf = (selfMark[cell.index] || []).length > 0;
+      const selfBadge = hasSelf
+        ? `<span class="cell-self-badge" title="自化（化星落回本宮）" style="position:absolute;right:-4px;bottom:-4px;width:17px;height:17px;border-radius:999px;background:var(--critical);color:var(--text-on-accent);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-xs);z-index:3">${ICON_SELF_LOOP_SM}</span>`
+        : '';
+
       return `<div class="palace-cell ${cell.isBodyPalace ? 'is-body' : ''} ${cell.isOriginalPalace ? 'is-origin' : ''} ${isCurrentDecadal ? 'is-current-decadal' : ''} ${isYearlySoul ? 'is-yearly-soul' : ''}" data-palace-index="${cell.index}">
         ${isCurrentDecadal && mode === 'natal' ? '<div class="current-decadal-badge">目前大限</div>' : ''}
         ${isYearlySoul && mode === 'yearly' ? '<div class="yearly-soul-badge">流年命宮</div>' : ''}
         <div class="cell-header">
-          <span class="palace-name">${cell.name}${cell.isBodyPalace ? '<em class="body-tag">身</em>' : ''}${(selfMark[cell.index] || []).map(t => { const c = MUT_VAL[t] || { bg: 'var(--ink-500)', fg: '#fff' }; return `<span class="cell-self-chip" style="background:${c.bg};color:${c.fg}">自${t}</span>`; }).join('')}</span>
+          <span class="palace-name">${cell.name}${cell.isBodyPalace ? '<em class="body-tag">身</em>' : ''}</span>
           <span class="cell-stem-branch">${cell.heavenlyStem}${cell.earthlyBranch}</span>
         </div>
         <div class="cell-stars">
@@ -364,6 +382,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
             : (cell.decadal ? `<span class="decadal">大限 ${cell.decadal.range[0]}-${cell.decadal.range[1]}</span>` : '')}</span>
           ${cell.changsheng12 ? `<span class="cs">${cell.changsheng12}</span>` : ''}
         </div>
+        ${selfBadge}
       </div>`;
     }).join('');
 
@@ -458,7 +477,9 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   }
 
   function renderPalaceText(palace: string, text: string | null, mount: HTMLElement) {
-    const block = mount.querySelector(`[data-palace="${palace}"] .interp-text`);
+    // trend/sihua 區塊 data-palace 與 .interp-text 在同一元素；12 宮則為父子關係 — 兩者都要命中
+    const block = mount.querySelector(`[data-palace="${palace}"].interp-text`)
+      || mount.querySelector(`[data-palace="${palace}"] .interp-text`);
     if (!block) return;
     block.classList.remove('loading');
     if (text) {
@@ -471,39 +492,67 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   }
 
   // 主入口：根據 chartData 渲染結果區（共用 newly-created / already-existing 路徑）
-  function trendSvg(pts: { label: string; sub: string; score: number; cur: boolean }[], which: string): string {
-    const W = 680, H = 240, padL = 8, padR = 8, padT = 18, padB = 44;
+  // === Design TrendChart（trArea/trHalo 漸層 + 順逆標 + 區域柔光 + 0 基準 + 目前點光暈/引線/氣泡）===
+  function trendSvg(pts: { label: string; sub: string; score: number; cur: boolean }[], _which: string): string {
+    const mobile = window.matchMedia('(max-width:760px)').matches;
+    const W = 680, H = mobile ? 210 : 240, padL = 30, padR = 30, padT = 30, padB = 48;
     const n = pts.length; if (!n) return '';
     const innerW = W - padL - padR, innerH = H - padT - padB;
-    const x = (i: number) => padL + (n === 1 ? innerW / 2 : innerW * i / (n - 1));
-    const y = (s: number) => padT + innerH * (1 - (s + 100) / 200);
-    const zeroY = y(0);
+    const X = (i: number) => padL + (n === 1 ? innerW / 2 : innerW * i / (n - 1));
+    const Y = (s: number) => padT + innerH * (1 - (s + 100) / 200);
+    const zeroY = Y(0), botY = padT + innerH;
+    const co = pts.map((p, i) => ({ x: X(i), y: Y(p.score), label: p.label, sub: p.sub, score: p.score, cur: p.cur }));
     // 柔曲線（Catmull-Rom → 三次貝茲，合品牌調性）
-    const C = pts.map((p, i) => [x(i), y(p.score)] as [number, number]);
-    const T = 0.18;
-    let dPath = C.length ? `M ${C[0][0].toFixed(1)},${C[0][1].toFixed(1)}` : '';
-    for (let i = 0; i < C.length - 1; i++) {
-      const p0 = C[i - 1] || C[i], p1 = C[i], p2 = C[i + 1], p3 = C[i + 2] || p2;
-      dPath += ` C ${(p1[0] + (p2[0] - p0[0]) * T).toFixed(1)},${(p1[1] + (p2[1] - p0[1]) * T).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) * T).toFixed(1)},${(p2[1] - (p3[1] - p1[1]) * T).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+    let line = co.length ? `M${co[0].x.toFixed(1)},${co[0].y.toFixed(1)}` : '';
+    for (let i = 0; i < co.length - 1; i++) {
+      const p0 = co[i - 1] || co[i], p1 = co[i], p2 = co[i + 1], p3 = co[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+      line += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
     }
-    const dots = pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.score).toFixed(1)}" r="${p.cur ? 5 : 3}" fill="${p.cur ? 'var(--accent)' : 'var(--rose-300)'}"${p.cur ? ' stroke="var(--paper)" stroke-width="2"' : ''}/>`).join('');
-    const labels = pts.map((p, i) => {
-      if (!(which === 'decadal' || n <= 10 || i % 2 === 0)) return '';
-      const lab = `<text x="${x(i).toFixed(1)}" y="${H - padB + 16}" text-anchor="middle" font-size="9" fill="${p.cur ? 'var(--accent-press)' : 'var(--text-muted)'}" font-family="var(--font-sans)">${p.label}</text>`;
-      const sub = p.sub ? `<text x="${x(i).toFixed(1)}" y="${H - padB + 28}" text-anchor="middle" font-size="8.5" fill="var(--text-muted)" font-family="var(--font-serif)">${p.sub}</text>` : '';
-      return lab + sub;
+    const area = line ? `${line} L${co[n - 1].x.toFixed(1)},${botY.toFixed(1)} L${co[0].x.toFixed(1)},${botY.toFixed(1)} Z` : '';
+    const cur = co.find((c) => c.cur);
+    const curBlock = cur ? `<g>`
+      + `<line x1="${cur.x.toFixed(1)}" y1="${cur.y.toFixed(1)}" x2="${cur.x.toFixed(1)}" y2="${botY.toFixed(1)}" stroke="var(--rose-300)" stroke-width="1" stroke-dasharray="2 3"/>`
+      + `<circle cx="${cur.x.toFixed(1)}" cy="${cur.y.toFixed(1)}" r="18" fill="url(#trHalo)"/>`
+      + `<g transform="translate(${cur.x.toFixed(1)}, ${(cur.y - 24).toFixed(1)})"><rect x="-19" y="-15" width="38" height="20" rx="10" fill="var(--accent)"/><text x="0" y="-1" text-anchor="middle" style="font-family:var(--font-sans);font-size:11px;font-weight:700;fill:var(--text-on-accent)">${cur.score > 0 ? '+' + cur.score : cur.score}</text></g>`
+      + `</g>` : '';
+    const points = co.map((c) => {
+      const r = c.cur ? 5 : 3;
+      const dot = `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${c.cur ? 'var(--accent)' : 'var(--paper)'}" stroke="var(--accent)" stroke-width="${c.cur ? 2.2 : 1.8}"/>`;
+      const lab = `<text x="${c.x.toFixed(1)}" y="${H - 26}" text-anchor="middle" style="font-family:var(--font-sans);font-size:${mobile ? 9 : 10.5}px;fill:${c.cur ? 'var(--rose-600)' : 'var(--text-muted)'};font-weight:${c.cur ? 700 : 400}">${c.label}</text>`;
+      const sub = c.sub ? `<text x="${c.x.toFixed(1)}" y="${H - 12}" text-anchor="middle" style="font-family:var(--font-sans);font-size:${mobile ? 8 : 9.5}px;fill:var(--text-muted)">${c.sub}</text>` : '';
+      return dot + lab + sub;
     }).join('');
-    return `<svg viewBox="0 0 ${W} ${H}" class="trend-svg" role="img" aria-label="運勢走勢線"><line x1="${padL}" y1="${zeroY.toFixed(1)}" x2="${W - padR}" y2="${zeroY.toFixed(1)}" stroke="var(--rose-200)" stroke-width="1" stroke-dasharray="3 3"/><path d="${dPath}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>${dots}${labels}</svg>`;
+    return `<svg viewBox="0 0 ${W} ${H}" class="trend-svg" role="img" aria-label="運勢走勢線">`
+      + `<defs>`
+      + `<linearGradient id="trArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--rose-400)" stop-opacity="0.22"/><stop offset="100%" stop-color="var(--rose-400)" stop-opacity="0"/></linearGradient>`
+      + `<radialGradient id="trHalo" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="var(--rose-400)" stop-opacity="0.30"/><stop offset="100%" stop-color="var(--rose-400)" stop-opacity="0"/></radialGradient>`
+      + `</defs>`
+      + `<text x="${padL}" y="${padT - 12}" style="font-family:var(--font-sans);font-size:10px;fill:var(--sage-400)">順</text>`
+      + `<text x="${padL}" y="${botY + 14}" style="font-family:var(--font-sans);font-size:10px;fill:var(--text-muted)">逆</text>`
+      + (area ? `<path d="${area}" fill="url(#trArea)"/>` : '')
+      + `<line x1="${padL}" y1="${zeroY.toFixed(1)}" x2="${W - padR}" y2="${zeroY.toFixed(1)}" stroke="var(--rose-200)" stroke-width="1" stroke-dasharray="3 4"/>`
+      + `<text x="${W - padR}" y="${(zeroY - 5).toFixed(1)}" text-anchor="end" style="font-family:var(--font-sans);font-size:9.5px;fill:var(--text-muted)">0</text>`
+      + `<path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
+      + curBlock
+      + points
+      + `</svg>`;
   }
 
-  function renderTrendSection(mount: HTMLElement | null, chart: Chart, trend?: ZiweiTrend | null) {
+  // === Design ZiweiTrend（SectionHeading + toggle + paper Card + info reminder + 走勢總述 paywall）===
+  function renderTrendSection(mount: HTMLElement | null, chart: Chart, trend?: ZiweiTrend | null, paid?: boolean) {
     if (!mount) return;
     if (!trend || !trend.decadal || !trend.decadal.length) { mount.innerHTML = ''; return; }
-    mount.innerHTML = `<section class="trend-section"><h2>運勢走勢</h2>`
-      + `<p class="ai-note">大限為十年一運、流年為單一年；分數由星曜四化推算，為輔助參考</p>`
-      + `<div class="trend-toggle"><button class="ttog is-active" data-t="decadal">大限（一生）</button><button class="ttog" data-t="yearly">流年（本大限）</button></div>`
-      + `<div id="trend-chart"></div>`
-      + `<article class="interp-block" data-palace="trend"><h3>走勢總述</h3><div class="interp-text loading">走勢總述生成中…</div></article></section>`;
+    mount.innerHTML = `<section class="ds-trend" style="margin-top:34px">`
+      + `<div class="ds-heading" style="margin-bottom:18px"><span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-press)"><span style="width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none"></span>紫微斗數 · 進階盤法</span>`
+      + `<h2 style="font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--ink-900);margin:10px 0 0;line-height:1.3">運勢走勢</h2>`
+      + `<p style="font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--text-secondary);margin:8px 0 0;max-width:34em">大限為十年一運、流年為單一年。走勢分數由星曜廟旺與該運四化推算，僅作輔助參考——實際吉凶以星曜四化的命理邏輯為主。</p></div>`
+      + `<div class="ds-trend-toggle" style="display:flex;gap:8px;justify-content:center;margin:18px 0 12px"><button class="ds-tog is-active" data-t="decadal">大限 · 一生</button><button class="ds-tog" data-t="yearly">流年 · 本大限</button></div>`
+      + `<div style="background:var(--paper);border:1px solid var(--rose-100);border-radius:var(--radius-md);padding:16px 10px 8px"><div id="trend-chart"></div></div>`
+      + `<div style="display:flex;align-items:flex-start;gap:8px;margin:12px 2px 0"><span style="flex:none;margin-top:2px;display:inline-flex;color:var(--rose-300)">${ICON_INFO}</span><span style="font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)">分數僅為走勢的輔助呈現，幫你看出起伏的節奏；實際的吉凶與建議，以星曜四化的命理邏輯為主。</span></div>`
+      + `<div style="margin-top:14px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:22px 18px"><h3 style="font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);margin:0 0 14px">走勢總述</h3><div style="position:relative"><div class="interp-text loading" data-palace="trend" style="font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.95;color:var(--ink-800);white-space:pre-wrap;margin:0">走勢總述生成中…</div>${paid ? '' : '<div style="position:absolute;bottom:0;left:0;right:0;height:64px;background:linear-gradient(transparent,var(--surface-card));pointer-events:none"></div>'}</div>${paid ? '' : `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:13px 16px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-md);flex-wrap:wrap;gap:12px"><div style="font-family:var(--font-serif);font-weight:300;font-size:14px;color:var(--text-secondary)">完整走勢總述隨占卜完整解讀一併解鎖。</div><button class="ds-unlock-btn" data-unlock style="cursor:pointer;background:var(--accent);color:var(--text-on-accent);border:1px solid transparent;padding:11px 22px;border-radius:var(--radius-pill);font-family:var(--font-serif);font-weight:500;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow-sm)">${ICON_LOCK_OPEN}<span>隨完整解讀解鎖 · NT$ 360</span></button></div>`}</div>`
+      + `</section>`;
     const box = mount.querySelector('#trend-chart') as HTMLElement;
     const draw = (which: string) => {
       const pts = which === 'yearly'
@@ -512,45 +561,80 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
       box.innerHTML = trendSvg(pts, which);
     };
     draw('decadal');
-    mount.querySelectorAll('.ttog').forEach((b) => b.addEventListener('click', () => {
-      mount.querySelectorAll('.ttog').forEach((x) => x.classList.toggle('is-active', x === b));
+    mount.querySelectorAll('.ds-tog').forEach((b) => b.addEventListener('click', () => {
+      mount.querySelectorAll('.ds-tog').forEach((x) => x.classList.toggle('is-active', x === b));
       draw((b as HTMLElement).dataset.t || 'decadal');
     }));
     const loadNarr = () => fetchPalace(chart, 'trend', 'natal').then((t) => renderPalaceText('trend', t, mount));
     loadNarr();
     mount.addEventListener('click', (ev) => {
+      if ((ev.target as HTMLElement).closest('[data-unlock]')) { window.location.href = '/divination'; return; }
       if (!(ev.target as HTMLElement).closest('.retry-palace')) return;
-      const blk = mount.querySelector('[data-palace="trend"] .interp-text');
-      if (blk) { blk.classList.remove('error'); blk.classList.add('loading'); blk.textContent = '走勢總述生成中…'; }
+      const blk = mount.querySelector('[data-palace="trend"]');
+      if (blk) { blk.className = 'interp-text loading'; (blk as HTMLElement).style.cssText = 'font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.95;color:var(--ink-800);white-space:pre-wrap;margin:0'; blk.setAttribute('data-palace', 'trend'); blk.textContent = '走勢總述生成中…'; }
       loadNarr();
     });
   }
 
-  function renderSihuaSection(mount: HTMLElement | null, chart: Chart, sihua?: ZiweiSihua | null) {
+  // 一顆四化星：MutChip + 星名 + 飛向（自化以記號標示）
+  function sihuaFlyStar(t?: { ty: string; star: string; to: string; self: boolean }): string {
+    if (!t) return '';
+    const c = MUT_COLOR[t.ty] || { bg: 'var(--ink-500)', fg: 'var(--text-on-accent)' };
+    const chip = `<span style="font-family:var(--font-sans);font-size:9.5px;font-weight:700;padding:1px 4px;border-radius:4px;line-height:1.4;background:${c.bg};color:${c.fg}">${t.ty}</span>`;
+    const star = `<span style="font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--ink-900)">${t.star}</span>`;
+    const tail = t.self
+      ? `<span style="display:inline-flex;align-items:center;gap:3px;font-family:var(--font-sans);font-size:12px;font-weight:600;color:var(--critical)"><span style="display:inline-flex;color:var(--critical)">${ICON_SELF_LOOP}</span>自化</span>`
+      : `<span style="display:inline-flex;align-items:center;gap:2px;font-family:var(--font-sans);font-size:12.5px;color:var(--accent-press)"><span style="display:inline-flex;color:var(--accent-press)">${ICON_ARROW_RIGHT}</span>${t.to}</span>`;
+    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:var(--radius-sm);white-space:nowrap;background:${t.self ? 'var(--tint-rose-soft)' : 'var(--surface-sunken)'};border:1px solid ${t.self ? 'var(--rose-200)' : 'transparent'}">${chip}${star}${tail}</span>`;
+  }
+  // 一宮的飛星：宮名 + 天干圓盤 + 四顆化星（命宮列最突出）
+  function sihuaPalaceFlight(f: { from: string; stem: string; ming: boolean; t: { ty: string; star: string; to: string; self: boolean }[] }): string {
+    const hasSelf = f.t.some((t) => t.self);
+    // GlyphDisc 內聯（flex none, radius-md, font-serif 置中）
+    const disc = `<span style="flex:none;width:34px;height:34px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:16px;line-height:1;color:${f.ming ? 'var(--rose-600)' : 'var(--accent-press)'};background:${f.ming ? 'var(--rose-50)' : 'var(--paper)'};border:1px solid ${f.ming ? 'var(--rose-200)' : 'var(--rose-100)'}">${f.stem}</span>`;
+    const head = `<div class="ds-flight-head" style="flex:none;display:flex;align-items:center;gap:10px">${disc}<div><div class="ds-flight-from" style="font-family:var(--font-serif);font-size:16px;font-weight:600;color:${f.ming ? 'var(--rose-600)' : 'var(--ink-900)'}">${f.from}</div><div style="font-family:var(--font-sans);font-size:10.5px;color:var(--text-muted);margin-top:1px">${f.stem}干引動${hasSelf ? ' · 含自化' : ''}</div></div></div>`;
+    const grid = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:1">${MUT_ORDER.map((ty) => sihuaFlyStar(f.t.find((x) => x.ty === ty))).join('')}</div>`;
+    return `<div class="ds-flight${f.ming ? ' is-ming' : ''}" style="display:flex;flex-direction:column;gap:10px;padding:14px 14px;border-radius:var(--radius-md);background:${f.ming ? 'linear-gradient(120deg,var(--rose-50),var(--paper))' : 'var(--surface-card)'};border:1px solid ${f.ming ? 'var(--rose-300)' : 'var(--border-soft)'};box-shadow:${f.ming ? 'var(--shadow-sm)' : 'none'}">${head}${grid}</div>`;
+  }
+  // 圖例 + 自化角落徽記示範
+  function sihuaLegend(): string {
+    const meaning: Record<string, string> = { '祿': '順與得', '權': '力與成', '科': '名與貴', '忌': '執與守' };
+    const items = MUT_ORDER.map((ty) => {
+      const c = MUT_COLOR[ty];
+      return `<span style="display:inline-flex;align-items:center;gap:5px"><span style="font-family:var(--font-sans);font-size:9.5px;font-weight:700;padding:1px 4px;border-radius:4px;background:${c.bg};color:${c.fg}">${ty}</span><span style="font-family:var(--font-sans);font-size:12px;color:var(--text-secondary)">${meaning[ty]}</span></span>`;
+    }).join('');
+    return `<div style="background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-lg);padding:16px 16px;display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;margin-top:4px"><div style="display:flex;gap:12px;flex-wrap:wrap">${items}</div>`
+      + `<div style="display:flex;align-items:center;gap:10px"><div style="position:relative;width:40px;height:40px;border-radius:8px;background:var(--surface-card);border:1px solid var(--border-soft);flex:none"><span style="position:absolute;top:4px;left:5px;font-family:var(--font-serif);font-size:12px;color:var(--ink-700)">天同</span><span style="position:absolute;right:-5px;bottom:-5px;width:17px;height:17px;border-radius:999px;background:var(--critical);color:var(--text-on-accent);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-xs)">${ICON_SELF_LOOP_SM}</span></div><span style="font-family:var(--font-sans);font-size:12px;line-height:1.6;color:var(--text-secondary)">自化＝化星落回本宮<br>命盤格以角落小徽記標示</span></div></div>`;
+  }
+
+  // === Design ZiweiSihua（SectionHeading + legend + per-palace flight cards + info reminder + 四化飛星解讀 paywall）===
+  function renderSihuaSection(mount: HTMLElement | null, chart: Chart, sihua?: ZiweiSihua | null, paid?: boolean) {
     if (!mount) return;
     if (!sihua || !sihua.flies || !sihua.flies.length) { mount.innerHTML = ''; return; }
     const flies = [...sihua.flies].sort((a, b) =>
       (a.fromPalace === '命宮' ? -1 : a.fromIndex) - (b.fromPalace === '命宮' ? -1 : b.fromIndex));
-    const rows = flies.map((f) => {
-      const flows = f.transforms.map((t) => {
-        const c = MUT_VAL[t.type] || { bg: 'var(--ink-500)', fg: '#fff' };
-        return `<span class="sihua-flow ${t.isSelf ? 'self' : ''}"><span class="sihua-tag" style="background:${c.bg};color:${c.fg}">${t.type}</span>${t.star}<span class="to">→${t.isSelf ? '自化' : t.toPalace}</span></span>`;
-      }).join('');
-      return `<div class="sihua-row ${f.fromPalace === '命宮' ? 'is-ming' : ''}"><span class="sihua-from">${f.fromPalace}<span class="stem"> ${f.stem}</span></span><span class="sihua-flows">${flows}</span></div>`;
-    }).join('');
-    const selfSum = sihua.selfTransforms && sihua.selfTransforms.length
-      ? `自化：${sihua.selfTransforms.map((s) => `${s.palace}化${s.type}`).join('、')}（能量回到本宮，多主隨和或外漏）`
-      : '此盤無自化，能量牽引較穩定向外。';
-    mount.innerHTML = `<section class="sihua-section"><h2>四化飛星</h2>`
-      + `<p class="ai-note">每宮天干各自引動祿權科忌飛入他宮，呈現宮與宮之間主動的能量牽引；★標自化</p>`
-      + `<div class="sihua-map">${rows}<p class="sihua-self-sum">${selfSum}</p></div>`
-      + `<article class="interp-block" data-palace="sihua"><h3>四化飛星解讀</h3><div class="interp-text loading">四化飛星解讀生成中…</div></article></section>`;
+    // worker → Design shape
+    const shaped = flies.map((f) => ({
+      from: f.fromPalace, stem: f.stem, ming: f.fromPalace === '命宮',
+      t: f.transforms.map((x) => ({ ty: x.type, star: x.star, to: x.toPalace, self: x.isSelf })),
+    }));
+    const cards = shaped.map(sihuaPalaceFlight).join('');
+    mount.innerHTML = `<section class="ds-sihua" style="margin-top:34px">`
+      + `<div class="ds-heading" style="margin-bottom:18px"><span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-press)"><span style="width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none"></span>紫微斗數 · 進階盤法</span>`
+      + `<h2 style="font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--ink-900);margin:10px 0 0;line-height:1.3">四化飛星</h2>`
+      + `<p style="font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--text-secondary);margin:8px 0 0;max-width:34em">每一宮的天干各自引動祿、權、科、忌，飛入被引動星所在的宮位——呈現宮與宮之間主動的能量牽引；化星落回本宮即為「自化」。</p></div>`
+      + sihuaLegend()
+      + `<div class="ds-flight-list" style="margin-top:14px;display:flex;flex-direction:column;gap:10px">${cards}</div>`
+      + `<div style="display:flex;align-items:flex-start;gap:8px;margin:12px 2px 0"><span style="flex:none;margin-top:2px;display:inline-flex;color:var(--rose-300)">${ICON_INFO}</span><span style="font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)">每宮天干引動祿、權、科、忌飛入他宮，由 worker computeSihua 帶入（十干四化表與盤面生年四化同源）。</span></div>`
+      + `<div style="margin-top:14px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:22px 18px"><h3 style="font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);margin:0 0 14px">四化飛星解讀</h3><div style="position:relative"><div class="interp-text loading" data-palace="sihua" style="font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.95;color:var(--ink-800);white-space:pre-wrap;margin:0">四化飛星解讀生成中…</div>${paid ? '' : '<div style="position:absolute;bottom:0;left:0;right:0;height:64px;background:linear-gradient(transparent,var(--surface-card));pointer-events:none"></div>'}</div>${paid ? '' : `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:13px 16px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-md);flex-wrap:wrap;gap:12px"><div style="font-family:var(--font-serif);font-weight:300;font-size:14px;color:var(--text-secondary)">完整四化飛星解讀隨占卜完整解讀一併解鎖。</div><button class="ds-unlock-btn" data-unlock style="cursor:pointer;background:var(--accent);color:var(--text-on-accent);border:1px solid transparent;padding:11px 22px;border-radius:var(--radius-pill);font-family:var(--font-serif);font-weight:500;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow-sm)">${ICON_LOCK_OPEN}<span>隨完整解讀解鎖 · NT$ 360</span></button></div>`}</div>`
+      + `</section>`;
     const loadNarr = () => fetchPalace(chart, 'sihua', 'natal').then((t) => renderPalaceText('sihua', t, mount));
     loadNarr();
     mount.addEventListener('click', (ev) => {
+      if ((ev.target as HTMLElement).closest('[data-unlock]')) { window.location.href = '/divination'; return; }
       if (!(ev.target as HTMLElement).closest('.retry-palace')) return;
-      const blk = mount.querySelector('[data-palace="sihua"] .interp-text');
-      if (blk) { blk.classList.remove('error'); blk.classList.add('loading'); blk.textContent = '四化飛星解讀生成中…'; }
+      const blk = mount.querySelector('[data-palace="sihua"]');
+      if (blk) { blk.className = 'interp-text loading'; (blk as HTMLElement).style.cssText = 'font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.95;color:var(--ink-800);white-space:pre-wrap;margin:0'; blk.setAttribute('data-palace', 'sihua'); blk.textContent = '四化飛星解讀生成中…'; }
       loadNarr();
     });
   }
@@ -625,8 +709,8 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
 
     renderChartCurrent();
     loadInterpretations('natal');
-    renderTrendSection(document.getElementById('trend-mount'), chartData.chart as Chart, horoscope?.trend);
-    renderSihuaSection(document.getElementById('sihua-mount'), chartData.chart as Chart, horoscope?.sihua);
+    renderTrendSection(document.getElementById('trend-mount'), chartData.chart as Chart, horoscope?.trend, chartData.paid);
+    renderSihuaSection(document.getElementById('sihua-mount'), chartData.chart as Chart, horoscope?.sihua, chartData.paid);
 
     chartToggle.querySelectorAll<HTMLButtonElement>('.toggle-btn').forEach((btn) => {
       btn.onclick = () => {
@@ -1210,7 +1294,6 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
   :global(.sihua-flow .to) { color: var(--accent-press); }
   :global(.sihua-flow.self .to) { color: var(--critical); font-weight: 600; }
   :global(.sihua-self-sum) { font-family: var(--font-sans); font-size: 11.5px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.7; }
-  :global(.cell-self-chip) { font-size: 7.5px; line-height: 1; padding: 1px 3px; border-radius: 2px; color: #fff; font-weight: 700; margin-left: 3px; vertical-align: middle; }
   :global(.trend-toggle) { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
   :global(.ttog) { font-family: var(--font-sans); font-size: 13px; padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--rose-200); background: var(--paper); color: var(--accent-press); cursor: pointer; }
   :global(.ttog.is-active) { background: var(--accent); color: var(--text-on-accent); border-color: transparent; }
