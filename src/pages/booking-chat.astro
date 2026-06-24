@@ -1,0 +1,180 @@
+---
+/*
+ * 對話式預約 /booking-chat — 紫微C Phase 1 粗殼（spike-then-design）。
+ * 視覺複用分靈體 spirit.astro 的 DS 殼（底色/字體/泡泡/輸入列）。
+ * 後端＝api.winds.tw/booking-chat（tool-use 槽位填補迴圈）。
+ * ⚠️ 純文字泡泡：對話內預約泡泡（推薦卡/選時段/付款）留 Phase 3 才回 DS 設計。
+ * 身份：有 winds_google_token 就帶 google_sub + X-Google-Id-Token（後端驗章預填）；
+ *       沒有則訪客模式（機器人會問聯絡資料），一樣能完成預約。
+ */
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>預約老師 · 找風問幸福</title>
+  <meta name="description" content="跟小幫手聊聊，邊聊邊把老師預約約好——推薦對症老師、查真實時段、線上完成。" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+  <script src="/assets/nav-auth.js?v=4" defer></script>
+
+  <style is:global>
+    html,body{height:100%}
+    body{margin:0;overflow:hidden}
+    .sp-app{height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--surface-page);overflow:hidden}
+    /* site nav（對齊 spirit.astro）*/
+    .zf-nav{flex:none;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft)}
+    .zf-nav-row{max-width:var(--container);margin:0 auto;padding:0 32px;height:76px;display:flex;align-items:center;justify-content:space-between}
+    .zf-nav .zf-logo img{height:54px;width:auto;display:block}
+    .zf-nav-links{display:flex;align-items:center;gap:26px}
+    .zf-nav-links > a:not(.zf-btn){font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:.03em;text-decoration:none}
+    .zf-nav-links > a:not(.zf-btn):hover{color:var(--accent-press)}
+    .zf-burger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:transparent;color:var(--ink-700);cursor:pointer}
+    .zf-burger i{font-size:24px;line-height:1}
+    .zf-drawer{display:none;border-top:1px solid var(--border-soft);background:var(--surface-page);padding:8px 20px 18px}
+    .zf-drawer > a:not(.zf-btn){font-family:var(--font-serif);font-size:17px;color:var(--ink-900);padding:12px 4px;border-bottom:1px solid var(--border-soft);text-decoration:none}
+    .zf-account{display:flex;align-items:center}
+    .zf-account-m{margin-top:8px;padding-top:10px;border-top:1px solid var(--border-soft)}
+    @media(max-width:980px){.zf-nav-row{padding:0 20px;height:64px}.zf-nav .zf-logo img{height:42px}.zf-nav-links{display:none}.zf-burger{display:flex}.zf-drawer:not([hidden]){display:flex;flex-direction:column;gap:2px}}
+
+    /* 主容器 + 訊息區（複用 spirit .sp-* 視覺）*/
+    .sp-wrap{flex:1;min-height:0;display:flex;flex-direction:column;max-width:680px;width:100%;margin:0 auto;box-sizing:border-box;padding:14px 24px 0;position:relative;overflow:hidden}
+    @media(max-width:760px){.sp-wrap{padding:10px 14px 0}}
+    .sp-intro{flex:none;padding:14px 18px;margin-bottom:6px;background:linear-gradient(168deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);border-radius:var(--radius-xl)}
+    .sp-intro h1{margin:0;font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900)}
+    .sp-intro p{margin:4px 0 0;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)}
+    .sp-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 0 16px}
+    .sp-bubble{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px}
+    .sp-bubble.user{justify-content:flex-end}
+    .sp-av{flex:none;width:32px;height:32px;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:13px;font-weight:500;color:var(--rose-600)}
+    .sp-bubble-in{max-width:calc(100% - 52px)}
+    .sp-bubble-txt{padding:12px 16px;border-radius:18px 18px 18px 6px;background:var(--surface-card);border:1px solid var(--border-soft);box-shadow:var(--shadow-sm);font-family:var(--font-serif);font-size:16px;font-weight:300;line-height:1.75;color:var(--ink-900);margin:0;white-space:pre-line;word-break:normal;text-wrap:wrap}
+    .sp-bubble-txt a{color:var(--accent-press);font-weight:500;word-break:break-all}
+    .sp-bubble.user .sp-bubble-txt{border-radius:18px 18px 6px 18px;background:var(--accent);border:none;color:var(--text-on-accent);font-weight:400}
+    .sp-typing{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px}
+    .sp-typing .dots{padding:12px 16px;border-radius:18px 18px 18px 6px;background:var(--surface-card);border:1px solid var(--border-soft);display:flex;gap:5px}
+    .sp-typing .dots span{width:7px;height:7px;border-radius:999px;background:var(--rose-300);animation:spBlink 1.2s ease-in-out infinite}
+    .sp-typing .dots span:nth-child(2){animation-delay:.2s}
+    .sp-typing .dots span:nth-child(3){animation-delay:.4s}
+    @keyframes spBlink{0%,100%{opacity:.3}50%{opacity:1}}
+    /* 輸入列 */
+    .sp-input{flex:none;border-top:1px solid var(--border-soft);padding:10px 0 18px;display:flex;gap:10px;align-items:flex-end;background:var(--surface-page)}
+    .sp-input textarea{flex:1;padding:12px 16px;font-family:var(--font-serif);font-size:16px;line-height:1.6;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);outline:none;resize:none;max-height:120px}
+    .sp-input textarea:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring)}
+    .sp-input textarea:disabled{opacity:.5}
+    .sp-send{all:unset;cursor:pointer;width:46px;height:46px;border-radius:var(--radius-md);background:var(--accent);display:flex;align-items:center;justify-content:center;flex:none;transition:background var(--dur-fast) var(--ease-soft)}
+    .sp-send[disabled]{cursor:default;background:var(--rose-100)}
+    .sp-send i{font-size:22px;color:var(--text-on-accent)}
+    .sp-send[disabled] i{color:var(--rose-300)}
+  </style>
+</head>
+<body>
+  <div class="sp-app">
+    <nav class="zf-nav">
+      <div class="zf-nav-row">
+        <a href="/home" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福" /></a>
+        <div class="zf-nav-links">
+          <a href="/home">首頁</a>
+          <a href="/divination">問一件事</a>
+          <a href="/blog">案例專欄</a>
+          <a href="/booking">老師介紹</a>
+          <a href="/shop">法器選物</a>
+          <div id="auth-button" class="zf-account"></div>
+        </div>
+        <button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>
+      </div>
+      <div class="zf-drawer" id="zfDrawer" hidden>
+        <a href="/home">首頁</a>
+        <a href="/divination">問一件事</a>
+        <a href="/blog">案例專欄</a>
+        <a href="/booking">老師介紹</a>
+        <a href="/shop">法器選物</a>
+        <div id="auth-button-m" class="zf-account-m"></div>
+      </div>
+    </nav>
+
+    <div class="sp-wrap">
+      <div class="sp-intro">
+        <h1>預約老師</h1>
+        <p>跟小幫手聊聊你的狀況，我幫你推薦對症的老師、查真實時段、完成預約 ✨</p>
+      </div>
+      <div class="sp-msgs" id="msgs"></div>
+      <div class="sp-input">
+        <textarea id="ta" rows="1" placeholder="例如：我感情上很卡，想找老師聊聊…"></textarea>
+        <button class="sp-send" id="send" aria-label="送出"><i class="ph-fill ph-paper-plane-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    var API = "https://api.winds.tw/booking-chat";
+    var S = { sessionId: null, sending: false };
+
+    // 身份（有就帶，後端驗章預填；沒有＝訪客）
+    function getAuth(){
+      var t=""; try{ t=localStorage.getItem('winds_google_token')||""; }catch(e){}
+      if(!t) return null;
+      try{ var p=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); return {token:t, sub:p.sub}; }catch(e){ return null; }
+    }
+
+    var msgsEl=document.getElementById('msgs'), taEl=document.getElementById('ta'), sendEl=document.getElementById('send');
+
+    function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function linkify(s){ return esc(s).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+
+    function addBubble(role, text){
+      var d=document.createElement('div'); d.className='sp-bubble '+(role==='user'?'user':'bot');
+      var inner = role==='user'
+        ? '<div class="sp-bubble-in"><p class="sp-bubble-txt">'+esc(text)+'</p></div>'
+        : '<span class="sp-av">風</span><div class="sp-bubble-in"><p class="sp-bubble-txt">'+linkify(text)+'</p></div>';
+      d.innerHTML=inner; msgsEl.appendChild(d); msgsEl.scrollTop=msgsEl.scrollHeight;
+    }
+    function showTyping(){
+      var d=document.createElement('div'); d.className='sp-typing'; d.id='typing';
+      d.innerHTML='<span class="sp-av">風</span><div class="dots"><span></span><span></span><span></span></div>';
+      msgsEl.appendChild(d); msgsEl.scrollTop=msgsEl.scrollHeight;
+    }
+    function hideTyping(){ var t=document.getElementById('typing'); if(t)t.remove(); }
+
+    function send(){
+      var msg=(taEl.value||'').trim(); if(!msg||S.sending) return;
+      S.sending=true; sendEl.disabled=true; taEl.value=''; taEl.style.height='auto';
+      addBubble('user', msg); showTyping();
+      var auth=getAuth();
+      var body={ message:msg, channel:'web', sessionId:S.sessionId };
+      if(auth&&auth.sub) body.google_sub=auth.sub;
+      var headers={'Content-Type':'application/json'};
+      if(auth&&auth.token) headers['X-Google-Id-Token']=auth.token;
+      fetch(API,{method:'POST',headers:headers,body:JSON.stringify(body)})
+        .then(function(r){return r.json()})
+        .then(function(d){
+          hideTyping();
+          if(d&&d.session_id) S.sessionId=d.session_id;
+          addBubble('bot', (d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？');
+        })
+        .catch(function(){ hideTyping(); addBubble('bot','連線好像不太順，請稍後再試一次 🙏'); })
+        .finally(function(){ S.sending=false; sendEl.disabled=false; taEl.focus(); });
+    }
+
+    sendEl.addEventListener('click', send);
+    taEl.addEventListener('keydown', function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } });
+    taEl.addEventListener('input', function(){ taEl.style.height='auto'; taEl.style.height=Math.min(taEl.scrollHeight,120)+'px'; });
+
+    // 開場白
+    addBubble('bot','嗨 👋 歡迎來到「找風問幸福」。我可以幫你預約老師諮詢——先跟我說說你最近在意的事，或想處理什麼吧 🌙');
+
+    // 漢堡選單
+    var b=document.getElementById('zfBurger'), dr=document.getElementById('zfDrawer');
+    if(b&&dr) b.addEventListener('click', function(){ dr.hidden=!dr.hidden; });
+  </script>
+</body>
+</html>
