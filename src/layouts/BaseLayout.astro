@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import ConciergeWidget from '../components/ConciergeWidget.astro';
 
 interface Props {
   title: string;
@@ -202,6 +203,9 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
       .zf-footer-cols{gap:36px;}
     }
   </style>
+
+  <!-- 全站常駐預約小幫手（concierge 浮動鈕 + 頁內滑出面板，紫微C #7）-->
+  <ConciergeWidget />
 
   <!-- DS Nav hamburger toggle（無框架、純 attribute）-->
   <script is:inline>

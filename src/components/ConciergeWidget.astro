@@ -1,0 +1,134 @@
+---
+/*
+ * ConciergeWidget — 全站常駐預約小幫手（紫微C 決策 #7）。
+ * 浮動鈕（右下角）→ 點開頁內滑出對話面板，邊聊邊預約老師。
+ * 接 api.winds.tw/booking-chat（tool-use 槽位填補迴圈）。複用分靈體 DS 泡泡視覺。
+ * ⚠️ spike-then-design：純文字泡泡，對話內預約泡泡（推薦卡/選時段/付款）Phase 3 才回 DS。
+ * 掛在 BaseLayout → 所有用 BaseLayout 的頁自動出現。樣式以 wc- 前綴隔離。
+ */
+---
+<div class="wc-root" id="wcRoot">
+  <button class="wc-fab" id="wcFab" aria-label="預約小幫手" aria-expanded="false">
+    <i class="ph-fill ph-chat-circle-dots" id="wcFabIcon"></i>
+    <span class="wc-fab-label">預約老師</span>
+  </button>
+
+  <div class="wc-panel" id="wcPanel" role="dialog" aria-label="預約小幫手" hidden>
+    <div class="wc-head">
+      <div class="wc-head-l">
+        <span class="wc-av">風</span>
+        <div>
+          <div class="wc-title">預約小幫手</div>
+          <div class="wc-sub">邊聊邊幫你約好老師 ✨</div>
+        </div>
+      </div>
+      <button class="wc-close" id="wcClose" aria-label="關閉"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="wc-msgs" id="wcMsgs"></div>
+    <div class="wc-input">
+      <textarea id="wcTa" rows="1" placeholder="說說你在意的事…"></textarea>
+      <button class="wc-send" id="wcSend" aria-label="送出"><i class="ph-fill ph-paper-plane-right"></i></button>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .wc-fab{position:fixed;right:22px;bottom:22px;z-index:90;display:inline-flex;align-items:center;gap:8px;padding:13px 18px;border:none;cursor:pointer;border-radius:var(--radius-pill);background:var(--accent);color:var(--text-on-accent);box-shadow:var(--shadow-lg);font-family:var(--font-serif);font-size:15px;font-weight:500;transition:transform var(--dur-fast) var(--ease-soft),background var(--dur-fast) var(--ease-soft)}
+  .wc-fab:hover{background:var(--accent-hover);transform:translateY(-1px)}
+  .wc-fab i{font-size:22px;line-height:1}
+  .wc-root.open .wc-fab{display:none}
+  @media(max-width:600px){.wc-fab{right:16px;bottom:16px;padding:12px 16px}.wc-fab-label{display:none}}
+
+  .wc-panel{position:fixed;right:22px;bottom:22px;z-index:91;width:380px;max-width:calc(100vw - 32px);height:600px;max-height:calc(100dvh - 44px);display:flex;flex-direction:column;background:var(--surface-page);border:1px solid var(--border-soft);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);overflow:hidden;animation:wcRise var(--dur-mid,.22s) var(--ease-soft)}
+  @keyframes wcRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  @media(max-width:600px){.wc-panel{right:0;bottom:0;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0;border:none}}
+
+  .wc-head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-soft);background:linear-gradient(168deg,var(--surface-tint),var(--paper) 90%)}
+  .wc-head-l{display:flex;align-items:center;gap:10px}
+  .wc-av{flex:none;width:38px;height:38px;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--rose-600)}
+  .wc-title{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
+  .wc-sub{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
+  .wc-close{all:unset;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--ink-500)}
+  .wc-close:hover{background:var(--surface-sunken);color:var(--ink-900)}
+  .wc-close i{font-size:20px}
+
+  .wc-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px}
+  .wc-b{display:flex;align-items:flex-end;gap:8px;margin-bottom:12px}
+  .wc-b.user{justify-content:flex-end}
+  .wc-b-av{flex:none;width:28px;height:28px;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:12px;font-weight:500;color:var(--rose-600)}
+  .wc-b-in{max-width:calc(100% - 44px)}
+  .wc-b-txt{padding:11px 14px;border-radius:16px 16px 16px 5px;background:var(--surface-card);border:1px solid var(--border-soft);box-shadow:var(--shadow-sm);font-family:var(--font-serif);font-size:15px;font-weight:300;line-height:1.72;color:var(--ink-900);margin:0;white-space:pre-line;text-wrap:wrap}
+  .wc-b-txt a{color:var(--accent-press);font-weight:500;word-break:break-all}
+  .wc-b.user .wc-b-txt{border-radius:16px 16px 5px 16px;background:var(--accent);border:none;color:var(--text-on-accent);font-weight:400}
+  .wc-typing{display:flex;align-items:flex-end;gap:8px;margin-bottom:12px}
+  .wc-typing .d{padding:11px 14px;border-radius:16px 16px 16px 5px;background:var(--surface-card);border:1px solid var(--border-soft);display:flex;gap:5px}
+  .wc-typing .d span{width:6px;height:6px;border-radius:999px;background:var(--rose-300);animation:wcBlink 1.2s ease-in-out infinite}
+  .wc-typing .d span:nth-child(2){animation-delay:.2s}
+  .wc-typing .d span:nth-child(3){animation-delay:.4s}
+  @keyframes wcBlink{0%,100%{opacity:.3}50%{opacity:1}}
+
+  .wc-input{flex:none;border-top:1px solid var(--border-soft);padding:10px 12px;display:flex;gap:8px;align-items:flex-end;background:var(--surface-page)}
+  .wc-input textarea{flex:1;padding:10px 14px;font-family:var(--font-serif);font-size:15px;line-height:1.5;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);outline:none;resize:none;max-height:110px}
+  .wc-input textarea:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring)}
+  .wc-send{all:unset;cursor:pointer;width:42px;height:42px;border-radius:var(--radius-md);background:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+  .wc-send[disabled]{cursor:default;background:var(--rose-100)}
+  .wc-send i{font-size:20px;color:var(--text-on-accent)}
+  .wc-send[disabled] i{color:var(--rose-300)}
+</style>
+
+<script is:inline>
+  (function(){
+    var API="https://api.winds.tw/booking-chat";
+    var S={sessionId:null,sending:false,started:false};
+    var root=document.getElementById('wcRoot'), fab=document.getElementById('wcFab'),
+        panel=document.getElementById('wcPanel'), closeBtn=document.getElementById('wcClose'),
+        msgs=document.getElementById('wcMsgs'), ta=document.getElementById('wcTa'), sendBtn=document.getElementById('wcSend');
+    if(!root||!fab||!panel) return;
+
+    function getAuth(){
+      var t=""; try{ t=localStorage.getItem('winds_google_token')||""; }catch(e){}
+      if(!t) return null;
+      try{ var p=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); return {token:t,sub:p.sub}; }catch(e){ return null; }
+    }
+    function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function linkify(s){ return esc(s).replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+    function bubble(role,text){
+      var d=document.createElement('div'); d.className='wc-b '+(role==='user'?'user':'bot');
+      d.innerHTML = role==='user'
+        ? '<div class="wc-b-in"><p class="wc-b-txt">'+esc(text)+'</p></div>'
+        : '<span class="wc-b-av">風</span><div class="wc-b-in"><p class="wc-b-txt">'+linkify(text)+'</p></div>';
+      msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+    }
+    function typing(on){
+      var ex=document.getElementById('wcTyping'); if(ex)ex.remove();
+      if(!on)return;
+      var d=document.createElement('div'); d.className='wc-typing'; d.id='wcTyping';
+      d.innerHTML='<span class="wc-b-av">風</span><div class="d"><span></span><span></span><span></span></div>';
+      msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+    }
+    function open(){
+      root.classList.add('open'); panel.hidden=false; fab.setAttribute('aria-expanded','true');
+      if(!S.started){ S.started=true; bubble('bot','嗨 👋 我是預約小幫手。先跟我說說你最近在意的事，我幫你找對的老師、約好時間 🌙'); }
+      setTimeout(function(){ ta.focus(); },50);
+    }
+    function close(){ root.classList.remove('open'); panel.hidden=true; fab.setAttribute('aria-expanded','false'); }
+    function send(){
+      var msg=(ta.value||'').trim(); if(!msg||S.sending) return;
+      S.sending=true; sendBtn.disabled=true; ta.value=''; ta.style.height='auto';
+      bubble('user',msg); typing(true);
+      var auth=getAuth(); var body={message:msg,channel:'web',sessionId:S.sessionId};
+      if(auth&&auth.sub) body.google_sub=auth.sub;
+      var h={'Content-Type':'application/json'}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
+      fetch(API,{method:'POST',headers:h,body:JSON.stringify(body)})
+        .then(function(r){return r.json()})
+        .then(function(d){ typing(false); if(d&&d.session_id)S.sessionId=d.session_id; bubble('bot',(d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？'); })
+        .catch(function(){ typing(false); bubble('bot','連線好像不太順，請稍後再試 🙏'); })
+        .finally(function(){ S.sending=false; sendBtn.disabled=false; ta.focus(); });
+    }
+    fab.addEventListener('click',open);
+    closeBtn.addEventListener('click',close);
+    sendBtn.addEventListener('click',send);
+    ta.addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } });
+    ta.addEventListener('input',function(){ ta.style.height='auto'; ta.style.height=Math.min(ta.scrollHeight,110)+'px'; });
+  })();
+</script>
