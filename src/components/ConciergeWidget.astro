@@ -69,6 +69,22 @@
   .wc-typing .d span:nth-child(3){animation-delay:.4s}
   @keyframes wcBlink{0%,100%{opacity:.3}50%{opacity:1}}
 
+  /* Phase 3A 對話內泡泡（DS 真值來自 ui_kits/website/booking.jsx）*/
+  .wc-card{margin:2px 0 14px 40px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow-sm)}
+  .wc-card.disabled{opacity:.55;pointer-events:none}
+  .wc-day{font-family:var(--font-sans);font-size:12.5px;font-weight:500;letter-spacing:.04em;color:var(--ink-700);margin:10px 0 8px}
+  .wc-day:first-child{margin-top:0}
+  .wc-slotgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .wc-slot{all:unset;cursor:pointer;text-align:center;padding:11px 6px;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);transition:all var(--dur-fast) var(--ease-soft)}
+  .wc-slot:hover{background:var(--accent);color:var(--text-on-accent);border-color:transparent;box-shadow:var(--shadow-sm)}
+  /* 付款卡 */
+  .wc-pay{margin:2px 0 14px 40px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:18px}
+  .wc-pay-amt{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900);margin-bottom:2px}
+  .wc-pay-amt small{font-family:var(--font-sans);font-size:12px;font-weight:400;color:var(--text-muted)}
+  .wc-pay-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm)}
+  .wc-pay-btn:hover{background:var(--accent-hover)}
+  .wc-pay-note{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);text-align:center;margin-top:10px}
+
   .wc-input{flex:none;border-top:1px solid var(--border-soft);padding:10px 12px;display:flex;gap:8px;align-items:flex-end;background:var(--surface-page)}
   /* font-size 必須 ≥16px：iOS Safari 聚焦 <16px 輸入框會自動放大整頁→固定浮層破格 */
   .wc-input textarea{flex:1;padding:10px 14px;font-family:var(--font-serif);font-size:16px;line-height:1.5;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);outline:none;resize:none;max-height:110px}
@@ -124,18 +140,49 @@
       document.body.classList.remove('wc-open'); document.body.style.top='';
       window.scrollTo(0, S.scrollY||0);
     }
-    function send(){
-      var msg=(ta.value||'').trim(); if(!msg||S.sending) return;
-      S.sending=true; sendBtn.disabled=true; ta.value=''; ta.style.height='auto';
+    // 對話內泡泡（DS 卡）：選時段 / 付款。點時段→回送訊息；付款→開連結。
+    function renderUi(ui){
+      if(!ui) return;
+      if(ui.kind==='slots' && ui.days && ui.days.length){
+        var card=document.createElement('div'); card.className='wc-card';
+        var wd=['日','一','二','三','四','五','六'];
+        ui.days.forEach(function(day){
+          var lbl=document.createElement('div'); lbl.className='wc-day';
+          var dt=new Date(day.date+'T00:00:00'); var w=isNaN(dt)?'':('（'+wd[dt.getDay()]+'）');
+          lbl.textContent=day.date+' '+w; card.appendChild(lbl);
+          var grid=document.createElement('div'); grid.className='wc-slotgrid';
+          day.times.forEach(function(t){
+            var b=document.createElement('button'); b.className='wc-slot'; b.textContent=t;
+            b.addEventListener('click',function(){ card.classList.add('disabled'); sendText('我想約 '+day.date+' '+t); });
+            grid.appendChild(b);
+          });
+          card.appendChild(grid);
+        });
+        msgs.appendChild(card); msgs.scrollTop=msgs.scrollHeight;
+      } else if(ui.kind==='pay' && ui.url){
+        var p=document.createElement('div'); p.className='wc-pay';
+        p.innerHTML='<div class="wc-pay-amt">訂金 NT$ '+(ui.amount||'')+' <small>確認後付款</small></div>'+
+          '<a class="wc-pay-btn" href="'+ui.url+'" target="_blank" rel="noopener">前往付款 →</a>'+
+          '<div class="wc-pay-note">付款完成後預約即正式成立</div>';
+        msgs.appendChild(p); msgs.scrollTop=msgs.scrollHeight;
+      }
+    }
+    function sendText(msg){
+      if(!msg||S.sending) return;
+      S.sending=true; sendBtn.disabled=true;
       bubble('user',msg); typing(true);
       var auth=getAuth(); var body={message:msg,channel:'web',sessionId:S.sessionId};
       if(auth&&auth.sub) body.google_sub=auth.sub;
       var h={'Content-Type':'application/json'}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
       fetch(API,{method:'POST',headers:h,body:JSON.stringify(body)})
         .then(function(r){return r.json()})
-        .then(function(d){ typing(false); if(d&&d.session_id)S.sessionId=d.session_id; bubble('bot',(d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？'); })
+        .then(function(d){ typing(false); if(d&&d.session_id)S.sessionId=d.session_id; bubble('bot',(d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？'); if(d&&d.ui) renderUi(d.ui); })
         .catch(function(){ typing(false); bubble('bot','連線好像不太順，請稍後再試 🙏'); })
         .finally(function(){ S.sending=false; sendBtn.disabled=false; ta.focus(); });
+    }
+    function send(){
+      var msg=(ta.value||'').trim(); if(!msg) return;
+      ta.value=''; ta.style.height='auto'; sendText(msg);
     }
     fab.addEventListener('click',open);
     closeBtn.addEventListener('click',close);
