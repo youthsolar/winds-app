@@ -52,7 +52,9 @@
   .wc-close:hover{background:var(--surface-sunken);color:var(--ink-900)}
   .wc-close i{font-size:20px}
 
-  .wc-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px}
+  .wc-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 14px}
+  /* 面板開啟時鎖住背景（手機防 iOS 橡皮筋捲動把固定浮層頂破格）*/
+  @media(max-width:600px){body.wc-open{overflow:hidden;position:fixed;width:100%}}
   .wc-b{display:flex;align-items:flex-end;gap:8px;margin-bottom:12px}
   .wc-b.user{justify-content:flex-end}
   .wc-b-av{flex:none;width:28px;height:28px;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:12px;font-weight:500;color:var(--rose-600)}
@@ -68,7 +70,8 @@
   @keyframes wcBlink{0%,100%{opacity:.3}50%{opacity:1}}
 
   .wc-input{flex:none;border-top:1px solid var(--border-soft);padding:10px 12px;display:flex;gap:8px;align-items:flex-end;background:var(--surface-page)}
-  .wc-input textarea{flex:1;padding:10px 14px;font-family:var(--font-serif);font-size:15px;line-height:1.5;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);outline:none;resize:none;max-height:110px}
+  /* font-size 必須 ≥16px：iOS Safari 聚焦 <16px 輸入框會自動放大整頁→固定浮層破格 */
+  .wc-input textarea{flex:1;padding:10px 14px;font-family:var(--font-serif);font-size:16px;line-height:1.5;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);outline:none;resize:none;max-height:110px}
   .wc-input textarea:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring)}
   .wc-send{all:unset;cursor:pointer;width:42px;height:42px;border-radius:var(--radius-md);background:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
   .wc-send[disabled]{cursor:default;background:var(--rose-100)}
@@ -108,10 +111,18 @@
     }
     function open(){
       root.classList.add('open'); panel.hidden=false; fab.setAttribute('aria-expanded','true');
+      // 鎖背景捲動（手機）：記住捲動位置，body 固定，避免 iOS 橡皮筋把浮層頂破格
+      S.scrollY=window.scrollY||window.pageYOffset||0;
+      document.body.style.top=(-S.scrollY)+'px';
+      document.body.classList.add('wc-open');
       if(!S.started){ S.started=true; bubble('bot','嗨 👋 我是預約小幫手。先跟我說說你最近在意的事，我幫你找對的老師、約好時間 🌙'); }
       setTimeout(function(){ ta.focus(); },50);
     }
-    function close(){ root.classList.remove('open'); panel.hidden=true; fab.setAttribute('aria-expanded','false'); }
+    function close(){
+      root.classList.remove('open'); panel.hidden=true; fab.setAttribute('aria-expanded','false');
+      document.body.classList.remove('wc-open'); document.body.style.top='';
+      window.scrollTo(0, S.scrollY||0);
+    }
     function send(){
       var msg=(ta.value||'').trim(); if(!msg||S.sending) return;
       S.sending=true; sendBtn.disabled=true; ta.value=''; ta.style.height='auto';
