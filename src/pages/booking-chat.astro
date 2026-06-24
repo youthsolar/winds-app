@@ -129,7 +129,8 @@ import '../styles/global.css';
     var msgsEl=document.getElementById('msgs'), taEl=document.getElementById('ta'), sendEl=document.getElementById('send');
 
     function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function linkify(s){ return esc(s).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+    // 網址 char class 排除結尾雜訊（中文括號/標點），避免把 …blog-192） 的 ）吃進連結→404
+    function linkify(s){ return esc(s).replace(/(https?:\/\/[^\s)）」』，。、！？!?；;]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
 
     function addBubble(role, text){
       var d=document.createElement('div'); d.className='sp-bubble '+(role==='user'?'user':'bot');

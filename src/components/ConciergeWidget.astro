@@ -94,7 +94,8 @@
       try{ var p=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); return {token:t,sub:p.sub}; }catch(e){ return null; }
     }
     function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function linkify(s){ return esc(s).replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+    // 網址 char class 排除結尾雜訊（中文括號/標點），避免把 …blog-192） 的 ）吃進連結→404
+    function linkify(s){ return esc(s).replace(/(https?:\/\/[^\s)）」』，。、！？!?；;]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
     function bubble(role,text){
       var d=document.createElement('div'); d.className='wc-b '+(role==='user'?'user':'bot');
       d.innerHTML = role==='user'
