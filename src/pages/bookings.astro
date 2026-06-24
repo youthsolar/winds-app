@@ -197,7 +197,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               '<div class="hr-rec-mid">' +
                 '<div class="hr-rec-tyrow"><span class="hr-type">' + esc(b.provider || '老師') + '</span>' +
                   (b.service ? '<span class="hr-svc">' + esc(b.service) + '</span>' : '') + '</div>' +
-                '<div class="hr-when"><i class="ph ph-calendar-check"></i>' + esc(formatWhen(b.start)) + '</div>' +
+                '<div class="hr-when"><i class="ph ph-calendar-check"></i>' + esc(formatWhen(b.start)) +
+                  (b.location ? ' <span style="color:var(--text-muted)">·</span> ' + esc(b.location) : '') + '</div>' +
               '</div>' +
               '<span class="hr-badge ' + badge.cls + '"><span class="dot"></span>' + badge.label + '</span>' +
             '</div>' +

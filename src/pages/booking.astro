@@ -3,8 +3,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { PERSONAS } from '../data/booking-teachers';
 
 // 老師卡＝真實 SimplyBook 老師（/sb-providers）+ LLM 生成 persona/介紹/引言（teacher_meta）。
-// 站內 4 步預約精靈（項目→時間→資料→確認→付訂金），吃真實 SB 時段（/sb-slots）+
-// 自家 ECPay 收訂金（/sb-book）。對齊 2026-06-07 拍板 4 步流程（teacher→time→info→confirm）。
+// 站內預約精靈：[地點(實體/遠端，多地點老師才有)]→項目→時間→資料→確認→付訂金。
+// 吃真實 SB 時段（/sb-slots）+ 地點（/sb-providers locations）+ 自家 ECPay 收訂金（/sb-book）。
+// 地點＝SB 兩地（台北實體 12 / 遠端Zoom 15），決定老師可選範圍+SB 落單地點+客戶指示。
 ---
 <BaseLayout
   title="預約老師 · 找風問幸福｜塔羅・紫微・八字・通靈一對一對談"
@@ -183,7 +184,7 @@ import { PERSONAS } from '../data/booking-teachers';
       var descMap = {}; PERSONAS.forEach(function (p) { descMap[p.key] = p.desc; });
       var TONE = { gentle: 'rose', rational: 'clay', energy: 'sage', direct: 'clay' };
       var active = 'all';
-      var teachers = [];
+      var teachers = [], LOCATIONS = [];
       var grid = document.getElementById('bkGrid');
       var descEl = document.getElementById('bkPersonaDesc');
       var empty = document.getElementById('bkEmpty');
@@ -233,11 +234,13 @@ import { PERSONAS } from '../data/booking-teachers';
       var GMAIL = /^[^\s@]+@gmail\.com$/i;
       var mount = document.getElementById('bkWiz');
       var W = {};
+      function sn(base){return W.multiLoc?base+1:base;}   // 有地點步驟時各步 +1
       function pad2(n){return String(n).padStart(2,'0');}
       function ymd(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
       function wizClose(){mount.innerHTML='';document.body.style.overflow='';}
       function shell(step, title, inner, footer){
-        var dots=[1,2,3,4].map(function(n){return '<span class="bw-dot'+(n<=step?' on':'')+'"></span>';}).join('');
+        var nn=W.nSteps||4, arr=[]; for(var i=1;i<=nn;i++)arr.push(i);
+        var dots=arr.map(function(n){return '<span class="bw-dot'+(n<=step?' on':'')+'"></span>';}).join('');
         mount.innerHTML='<div class="bw-scrim" data-wclose></div><div class="bw-panel"><div class="bw-head">'+
           '<button class="bw-x" data-wclose type="button"><i class="ph ph-x"></i></button>'+
           '<div class="bw-prog">'+dots+'</div>'+
@@ -250,7 +253,22 @@ import { PERSONAS } from '../data/booking-teachers';
       function openWiz(id){
         W = { prov: teachers.filter(function(t){return String(t.id)===String(id);})[0] };
         if(!W.prov) return;
-        stepService();
+        var locIds = W.prov.locations || [];
+        W.locOpts = LOCATIONS.filter(function(l){return locIds.indexOf(l.id)>=0;});
+        W.multiLoc = W.locOpts.length>1;
+        W.nSteps = W.multiLoc ? 5 : 4;
+        if(W.multiLoc){ stepLocation(); }
+        else { W.loc = W.locOpts[0] || null; stepService(); }
+      }
+      function stepLocation(){
+        var inner = '<div class="bw-list">'+W.locOpts.map(function(l,i){
+          var ic = l.type==='online' ? 'video-camera' : 'map-pin';
+          return '<button class="bw-opt" data-loc="'+i+'" type="button"><span class="bw-opt-main">'+
+            '<span class="bw-opt-nm"><i class="ph ph-'+ic+'" style="margin-right:7px;color:var(--rose-400)"></i>'+esc(l.name)+'</span>'+
+            (l.note?'<span class="bw-opt-meta">'+esc(l.note)+'</span>':'')+'</span></button>';
+        }).join('')+'</div>';
+        shell(1,'想怎麼見面？',inner);
+        mount.querySelectorAll('[data-loc]').forEach(function(b){b.addEventListener('click',function(){W.loc=W.locOpts[+b.dataset.loc];stepService();});});
       }
       function stepService(){
         var svcs = W.prov.services||[];
@@ -259,26 +277,28 @@ import { PERSONAS } from '../data/booking-teachers';
             (s.duration?'<span class="bw-opt-meta">'+s.duration+' 分鐘</span>':'')+'</span>'+
             '<span class="bw-opt-price">NT$ '+(Number(s.price)||0).toLocaleString('en-US')+(s.deposit?'<span class="bw-opt-dep">訂金 '+s.deposit+'</span>':'')+'</span></button>';
         }).join('')+'</div>';
-        shell(1,'選一個項目',inner);
+        var foot = W.multiLoc ? '<button class="zfbtn md secondary" data-back type="button">上一步</button>' : null;
+        shell(sn(1),'選一個項目',inner,foot);
         mount.querySelectorAll('[data-svc]').forEach(function(b){b.addEventListener('click',function(){W.svc=svcs[+b.dataset.svc];stepTime();});});
+        if(W.multiLoc){var bk=mount.querySelector('[data-back]');if(bk)bk.addEventListener('click',stepLocation);}
       }
       function stepTime(){
-        shell(2,'選時間','<div class="bw-loading"><span class="bw-spin"></span>載入可預約時段…</div>');
+        shell(sn(2),'選時間','<div class="bw-loading"><span class="bw-spin"></span>載入可預約時段…</div>');
         var from=new Date(); var to=new Date(); to.setDate(to.getDate()+30);
         fetch(WORKER_API+'/sb-slots?service='+encodeURIComponent(W.svc.id)+'&provider='+encodeURIComponent(W.prov.id)+'&from='+ymd(from)+'&to='+ymd(to))
           .then(function(r){return r.json();}).then(function(d){
             var slots=(d&&d.slots)||{}; var dates=Object.keys(slots).sort();
-            if(!dates.length){shell(2,'選時間','<p class="bw-none">這位老師近 30 天暫無可預約時段，換個老師或稍後再試。</p>');return;}
+            if(!dates.length){shell(sn(2),'選時間','<p class="bw-none">這位老師近 30 天暫無可預約時段，換個老師或稍後再試。</p>');return;}
             W.date=W.date&&slots[W.date]?W.date:dates[0]; W.time=null;
             renderTime(slots,dates);
-          }).catch(function(){shell(2,'選時間','<p class="bw-none">時段載入失敗，請稍後再試。</p>');});
+          }).catch(function(){shell(sn(2),'選時間','<p class="bw-none">時段載入失敗，請稍後再試。</p>');});
       }
       function renderTime(slots,dates){
         function dlabel(s){var p=s.split('-');return (+p[1])+'/'+(+p[2]);}
         var dchips='<div class="bw-dates">'+dates.map(function(dt){return '<button class="bw-date'+(dt===W.date?' on':'')+'" data-d="'+dt+'" type="button">'+dlabel(dt)+'</button>';}).join('')+'</div>';
         var times='<div class="bw-times">'+(slots[W.date]||[]).map(function(t){return '<button class="bw-time'+(t===W.time?' on':'')+'" data-t="'+t+'" type="button">'+t+'</button>';}).join('')+'</div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary'+(W.time?'':' disabled')+'" data-next type="button">下一步</button>';
-        shell(2,'選時間',dchips+times,foot);
+        shell(sn(2),'選時間',dchips+times,foot);
         mount.querySelectorAll('[data-d]').forEach(function(b){b.addEventListener('click',function(){W.date=b.dataset.d;W.time=null;renderTime(slots,dates);});});
         mount.querySelectorAll('[data-t]').forEach(function(b){b.addEventListener('click',function(){W.time=b.dataset.t;renderTime(slots,dates);});});
         var nx=mount.querySelector('[data-next]'); if(nx)nx.addEventListener('click',function(){if(W.time)stepInfo();});
@@ -292,7 +312,7 @@ import { PERSONAS } from '../data/booking-teachers';
           '<label class="bw-fld"><span>想談的主題（選填）</span><textarea id="wzTopic" rows="3">'+esc(f.topic||'')+'</textarea></label>'+
           '<p class="bw-err" id="wzErr" hidden></p></div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-next type="button">下一步</button>';
-        shell(3,'留下聯絡方式',inner,foot);
+        shell(sn(3),'留下聯絡方式',inner,foot);
         mount.querySelector('[data-back]').addEventListener('click',stepTime);
         mount.querySelector('[data-next]').addEventListener('click',function(){
           var name=val('wzName'),phone=val('wzPhone'),email=val('wzEmail'),topic=val('wzTopic');
@@ -309,20 +329,24 @@ import { PERSONAS } from '../data/booking-teachers';
       function showErr(el,m){el.textContent=m;el.hidden=false;}
       function stepConfirm(){
         var dep=Number(W.svc.deposit)||Number(W.svc.price)||0;
+        var online=W.loc&&W.loc.type==='online';
+        var locNote=W.loc?(online?'遠端諮詢，預約後自動開啟線上會議室連結。':'實體面談：'+(W.loc.note||W.loc.name)+'。'):'';
         var inner='<div class="bw-confirm">'+
-          row('老師',W.prov.name)+row('項目',W.svc.name)+row('時間',W.date+' '+W.time)+
+          row('老師',W.prov.name)+row('項目',W.svc.name)+
+          (W.loc?row('方式',W.loc.name):'')+row('時間',W.date+' '+W.time)+
           row('聯絡',W.fields.name+' · '+W.fields.phone)+
           (W.fields.topic?row('主題',W.fields.topic):'')+
           '<div class="bw-dep"><span>線上付訂金</span><b>NT$ '+dep.toLocaleString('en-US')+'</b></div>'+
-          '<p class="bw-note">付訂金後即為你保留時段，餘額現場結清。僅接受 Gmail，採超商/線上付款。</p>'+
+          '<p class="bw-note">'+(locNote?esc(locNote)+' ':'')+'付訂金後即為你保留時段，餘額'+(online?'依老師指示':'現場')+'結清。僅接受 Gmail，採超商/線上付款。</p>'+
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-go type="button">確認並付訂金</button>';
-        shell(4,'確認預約',inner,foot);
+        shell(sn(4),'確認預約',inner,foot);
         mount.querySelector('[data-back]').addEventListener('click',stepInfo);
         mount.querySelector('[data-go]').addEventListener('click',function(){
           var btn=this; btn.classList.add('disabled'); btn.textContent='建立訂單中…';
           fetch(WORKER_API+'/sb-book',{method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({service:W.svc.id,provider:W.prov.id,datetime:W.date+' '+W.time+':00',
+              location:W.loc?W.loc.id:null,
               name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null})})
            .then(function(r){return r.json();}).then(function(d){
              if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
@@ -336,6 +360,7 @@ import { PERSONAS } from '../data/booking-teachers';
 
       fetch(WORKER_API + '/sb-providers').then(function(r){return r.json();}).then(function(d){
         teachers = (d && d.providers) || [];
+        LOCATIONS = (d && d.locations) || [];
         if (!teachers.length){ grid.innerHTML=''; empty.hidden=false; empty.textContent='老師清單載入中或暫無，稍後再試。'; return; }
         apply();
         var bp = new URLSearchParams(location.search).get('book'); if (bp) openWiz(bp);
