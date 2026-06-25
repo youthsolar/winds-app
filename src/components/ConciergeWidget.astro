@@ -72,6 +72,7 @@
   /* Phase 3A 對話內泡泡（DS 真值來自 ui_kits/website/booking.jsx）*/
   .wc-card{margin:2px 0 14px 40px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow-sm)}
   .wc-card.disabled{opacity:.55;pointer-events:none}
+  .wc-bk-actions{display:flex;gap:8px;margin-top:10px}
   .wc-day{font-family:var(--font-sans);font-size:12.5px;font-weight:500;letter-spacing:.04em;color:var(--ink-700);margin:10px 0 8px}
   .wc-day:first-child{margin-top:0}
   .wc-slotgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
@@ -192,6 +193,21 @@
           '<a class="wc-pay-btn" href="'+ui.url+'" target="_blank" rel="noopener">前往付款 →</a>'+
           '<div class="wc-pay-note">付款完成後預約即正式成立</div>';
         msgs.appendChild(p); msgs.scrollTop=msgs.scrollHeight;
+      } else if(ui.kind==='mybookings' && ui.bookings && ui.bookings.length){
+        ui.bookings.forEach(function(bk){
+          var card=document.createElement('div'); card.className='wc-card';
+          var meta=[bk.provider_name, bk.location_name].filter(Boolean).join(' · ');
+          card.innerHTML='<div class="wc-prov-name">'+esc(bk.service_name||'')+'</div>'+
+            '<div class="wc-prov-meta">'+esc(bk.start_datetime||'')+(meta?' · '+esc(meta):'')+'</div>';
+          var row=document.createElement('div'); row.className='wc-bk-actions';
+          var rb=document.createElement('button'); rb.className='wc-slot'; rb.textContent='改期';
+          rb.addEventListener('click',function(){ sendText('我要改期，單號 '+(bk.trade_no||'')); });
+          var cb=document.createElement('button'); cb.className='wc-slot'; cb.textContent='取消';
+          cb.addEventListener('click',function(){ sendText('我要取消，單號 '+(bk.trade_no||'')); });
+          row.appendChild(rb); row.appendChild(cb); card.appendChild(row);
+          msgs.appendChild(card);
+        });
+        msgs.scrollTop=msgs.scrollHeight;
       }
     }
     function sendText(msg){
