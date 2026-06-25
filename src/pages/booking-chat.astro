@@ -167,7 +167,8 @@ import '../styles/global.css';
     }
 
     sendEl.addEventListener('click', send);
-    taEl.addEventListener('keydown', function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } });
+    // IME 組字中的 Enter（確認選字）不可當送出（否則送出後輸入法把字重塞回輸入框）
+    taEl.addEventListener('keydown', function(e){ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){ e.preventDefault(); send(); } });
     taEl.addEventListener('input', function(){ taEl.style.height='auto'; taEl.style.height=Math.min(taEl.scrollHeight,120)+'px'; });
 
     // 開場白

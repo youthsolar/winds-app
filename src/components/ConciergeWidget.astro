@@ -214,7 +214,8 @@
     fab.addEventListener('click',open);
     closeBtn.addEventListener('click',close);
     sendBtn.addEventListener('click',send);
-    ta.addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } });
+    // ⚠️ IME 組字中的 Enter（確認選字）不可當送出：否則送出後輸入法把字重塞回已清空的框（殘留 bug）
+    ta.addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){ e.preventDefault(); send(); } });
     ta.addEventListener('input',function(){ ta.style.height='auto'; ta.style.height=Math.min(ta.scrollHeight,110)+'px'; });
   })();
 </script>
