@@ -117,7 +117,10 @@ import '../styles/global.css';
 
   <script is:inline>
     var API = "https://api.winds.tw/booking-chat";
+    var HISTORY = API + "/history";
+    var SESS_KEY = "winds_booking_session";   // 對話 token 存 localStorage，重載/離頁回來能接回 D1 對話
     var S = { sessionId: null, sending: false };
+    try{ S.sessionId=localStorage.getItem(SESS_KEY)||null; }catch(e){}
 
     // 身份（有就帶，後端驗章預填；沒有＝訪客）
     function getAuth(){
@@ -159,7 +162,7 @@ import '../styles/global.css';
         .then(function(r){return r.json()})
         .then(function(d){
           hideTyping();
-          if(d&&d.session_id) S.sessionId=d.session_id;
+          if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} }
           addBubble('bot', (d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？');
         })
         .catch(function(){ hideTyping(); addBubble('bot','連線好像不太順，請稍後再試一次 🙏'); })
@@ -171,8 +174,21 @@ import '../styles/global.css';
     taEl.addEventListener('keydown', function(e){ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){ e.preventDefault(); send(); } });
     taEl.addEventListener('input', function(){ taEl.style.height='auto'; taEl.style.height=Math.min(taEl.scrollHeight,120)+'px'; });
 
-    // 開場白
-    addBubble('bot','嗨 👋 歡迎來到「找風問幸福」。我可以幫你預約老師諮詢——先跟我說說你最近在意的事，或想處理什麼吧 🌙');
+    // 開場白 / rehydrate（修「點連結離頁→回來對話消失」：對話存 D1，重載時用 token 撈回整段）
+    function greet(){ addBubble('bot','嗨 👋 歡迎來到「找風問幸福」。我可以幫你預約老師諮詢——先跟我說說你最近在意的事，或想處理什麼吧 🌙'); }
+    (function rehydrateOrGreet(){
+      if(!S.sessionId){ greet(); return; }
+      var auth=getAuth();
+      var url=HISTORY+'?sessionId='+encodeURIComponent(S.sessionId)+(auth&&auth.sub?'&google_sub='+encodeURIComponent(auth.sub):'');
+      var h={}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
+      showTyping();
+      fetch(url,{headers:h}).then(function(r){return r.json()}).then(function(d){
+        hideTyping();
+        var ms=(d&&d.messages)||[];
+        if(ms.length){ ms.forEach(function(m){ addBubble(m.role==='user'?'user':'bot', m.content); }); }
+        else { greet(); }
+      }).catch(function(){ hideTyping(); greet(); });
+    })();
 
     // 漢堡選單
     var b=document.getElementById('zfBurger'), dr=document.getElementById('zfDrawer');

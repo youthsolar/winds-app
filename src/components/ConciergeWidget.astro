@@ -111,7 +111,10 @@
 <script is:inline>
   (function(){
     var API="https://api.winds.tw/booking-chat";
+    var HISTORY=API+"/history";
+    var SESS_KEY="winds_booking_session";   // 對話 token 存 localStorage，跨頁/離頁回來能接回 D1 對話
     var S={sessionId:null,sending:false,started:false};
+    try{ S.sessionId=localStorage.getItem(SESS_KEY)||null; }catch(e){}
     var root=document.getElementById('wcRoot'), fab=document.getElementById('wcFab'),
         panel=document.getElementById('wcPanel'), closeBtn=document.getElementById('wcClose'),
         msgs=document.getElementById('wcMsgs'), ta=document.getElementById('wcTa'), sendBtn=document.getElementById('wcSend');
@@ -139,13 +142,28 @@
       d.innerHTML='<span class="wc-b-av">風</span><div class="d"><span></span><span></span><span></span></div>';
       msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
     }
+    function greet(){ bubble('bot','嗨 👋 我是預約小幫手。先跟我說說你最近在意的事，我幫你找對的老師、約好時間 🌙'); }
+    // 開啟時若有存過的 token → 從 D1 撈回整段對話 rehydrate（修「點連結離頁→回來對話消失」）；無則開場白
+    function rehydrateOrGreet(){
+      if(!S.sessionId){ greet(); return; }
+      var auth=getAuth();
+      var url=HISTORY+'?sessionId='+encodeURIComponent(S.sessionId)+(auth&&auth.sub?'&google_sub='+encodeURIComponent(auth.sub):'');
+      var h={}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
+      typing(true);
+      fetch(url,{headers:h}).then(function(r){return r.json()}).then(function(d){
+        typing(false);
+        var ms=(d&&d.messages)||[];
+        if(ms.length){ ms.forEach(function(m){ bubble(m.role==='user'?'user':'bot', m.content); }); }
+        else { greet(); }
+      }).catch(function(){ typing(false); greet(); });
+    }
     function open(){
       root.classList.add('open'); panel.hidden=false; fab.setAttribute('aria-expanded','true');
       // 鎖背景捲動（手機）：記住捲動位置，body 固定，避免 iOS 橡皮筋把浮層頂破格
       S.scrollY=window.scrollY||window.pageYOffset||0;
       document.body.style.top=(-S.scrollY)+'px';
       document.body.classList.add('wc-open');
-      if(!S.started){ S.started=true; bubble('bot','嗨 👋 我是預約小幫手。先跟我說說你最近在意的事，我幫你找對的老師、約好時間 🌙'); }
+      if(!S.started){ S.started=true; rehydrateOrGreet(); }
       setTimeout(function(){ ta.focus(); },50);
     }
     function close(){
@@ -219,7 +237,7 @@
       var h={'Content-Type':'application/json'}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
       fetch(API,{method:'POST',headers:h,body:JSON.stringify(body)})
         .then(function(r){return r.json()})
-        .then(function(d){ typing(false); if(d&&d.session_id)S.sessionId=d.session_id; bubble('bot',(d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？'); if(d&&d.ui) renderUi(d.ui); })
+        .then(function(d){ typing(false); if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} } bubble('bot',(d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？'); if(d&&d.ui) renderUi(d.ui); })
         .catch(function(){ typing(false); bubble('bot','連線好像不太順，請稍後再試 🙏'); })
         .finally(function(){ S.sending=false; sendBtn.disabled=false; ta.focus(); });
     }
