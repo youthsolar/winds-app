@@ -96,6 +96,7 @@ import '../styles/global.css';
     .wc-prov-card{background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-lg);padding:14px}
     .wc-prov-top{display:flex;align-items:center;gap:12px}
     .wc-prov-av{flex:none;width:44px;height:44px;border-radius:999px;background:var(--rose-200);color:var(--rose-600);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:18px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
+    .wc-offer-img{flex:none;width:48px;height:48px;border-radius:var(--radius-md);object-fit:cover;border:1px solid var(--rose-100)}
     .wc-prov-name{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
     .wc-prov-meta{font-family:var(--font-sans);font-size:12px;color:var(--text-secondary);margin-top:2px}
     .wc-prov-reason{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0}
@@ -197,6 +198,18 @@ import '../styles/global.css';
           card.appendChild(btn); wrap.appendChild(card);
         });
         msgsEl.appendChild(wrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='offerings' && ui.cards && ui.cards.length){
+        // 跨品導購：法器（商品圖）/ 課程（glyph）卡
+        var owrap=document.createElement('div'); owrap.className='wc-prov';
+        ui.cards.forEach(function(c){
+          var card=document.createElement('div'); card.className='wc-prov-card';
+          var media=c.image?'<img class="wc-offer-img" src="'+c.image+'" alt="">':'<span class="wc-prov-av">'+esc(c.glyph||'禮')+'</span>';
+          var meta=c.type==='course'?[c.sessions,(c.price?'NT$ '+c.price:'')].filter(Boolean).join(' · '):(c.price?'NT$ '+c.price:'');
+          card.innerHTML='<div class="wc-prov-top">'+media+'<div><div class="wc-prov-name">'+esc(c.name||'')+'</div><div class="wc-prov-meta">'+esc(meta)+'</div></div></div>'+(c.reason?'<p class="wc-prov-reason">'+esc(c.reason)+'</p>':'');
+          var a=document.createElement('a'); a.className='wc-prov-btn'; a.href=c.url; a.target='_blank'; a.rel='noopener'; a.textContent=(c.type==='course'?'了解課程':'看看這個')+' →';
+          card.appendChild(a); owrap.appendChild(card);
+        });
+        msgsEl.appendChild(owrap); msgsEl.scrollTop=msgsEl.scrollHeight;
       } else if(ui.kind==='slots' && ui.days && ui.days.length){
         var scard=document.createElement('div'); scard.className='wc-card';
         var wd=['日','一','二','三','四','五','六'];
