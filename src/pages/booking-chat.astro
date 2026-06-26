@@ -75,6 +75,36 @@ import '../styles/global.css';
     .sp-send[disabled]{cursor:default;background:var(--rose-100)}
     .sp-send i{font-size:22px;color:var(--text-on-accent)}
     .sp-send[disabled] i{color:var(--rose-300)}
+
+    /* 對話內 DS 卡片（與 widget ConciergeWidget 同一套；DS 真值 booking.jsx / Button.jsx）*/
+    .wc-card{margin:2px 0 14px 40px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow-sm)}
+    .wc-card.disabled{opacity:.55;pointer-events:none}
+    .wc-bk-actions{display:flex;gap:8px;margin-top:10px}
+    .wc-day{font-family:var(--font-sans);font-size:12.5px;font-weight:500;letter-spacing:.04em;color:var(--ink-700);margin:10px 0 8px}
+    .wc-day:first-child{margin-top:0}
+    .wc-slotgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .wc-slot{all:unset;cursor:pointer;text-align:center;padding:11px 6px;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);transition:all var(--dur-fast) var(--ease-soft)}
+    .wc-slot:hover{background:var(--accent);color:var(--text-on-accent);border-color:transparent;box-shadow:var(--shadow-sm)}
+    .wc-pay{margin:2px 0 14px 40px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:18px}
+    .wc-pay-amt{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900);margin-bottom:2px}
+    .wc-pay-amt small{font-family:var(--font-sans);font-size:12px;font-weight:400;color:var(--text-muted)}
+    .wc-pay-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm)}
+    .wc-pay-btn:hover{background:var(--accent-hover)}
+    .wc-pay-note{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);text-align:center;margin-top:10px}
+    .wc-prov{margin:2px 0 14px 40px;display:flex;flex-direction:column;gap:10px}
+    .wc-prov.disabled{opacity:.55;pointer-events:none}
+    .wc-prov-card{background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-lg);padding:14px}
+    .wc-prov-top{display:flex;align-items:center;gap:12px}
+    .wc-prov-av{flex:none;width:44px;height:44px;border-radius:999px;background:var(--rose-200);color:var(--rose-600);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:18px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
+    .wc-prov-name{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
+    .wc-prov-meta{font-family:var(--font-sans);font-size:12px;color:var(--text-secondary);margin-top:2px}
+    .wc-prov-reason{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0}
+    .wc-prov-desc{font-family:var(--font-sans);font-size:12px;line-height:1.6;color:var(--text-muted);margin:6px 0 0}
+    .wc-prov-btn{all:unset;cursor:pointer;display:block;text-align:center;margin-top:12px;padding:10px;font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);box-shadow:var(--shadow-sm)}
+    .wc-prov-btn:hover{background:var(--accent-hover)}
+    .wc-action{margin:2px 0 14px 40px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:16px}
+    .wc-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:var(--w-medium);letter-spacing:.04em;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm);transition:background var(--dur-fast) var(--ease-soft)}
+    .wc-action-btn:hover{background:var(--accent-hover)}
   </style>
 </head>
 <body>
@@ -149,9 +179,73 @@ import '../styles/global.css';
     }
     function hideTyping(){ var t=document.getElementById('typing'); if(t)t.remove(); }
 
-    function send(){
-      var msg=(taEl.value||'').trim(); if(!msg||S.sending) return;
-      S.sending=true; sendEl.disabled=true; taEl.value=''; taEl.style.height='auto';
+    // 對話內 DS 卡片渲染（與 widget ConciergeWidget 同套）。點卡片＝回送一則訊息走原管線。
+    function renderUi(ui){
+      if(!ui) return;
+      if(ui.kind==='providers' && ui.cards && ui.cards.length){
+        var wrap=document.createElement('div'); wrap.className='wc-prov';
+        ui.cards.forEach(function(c){
+          var card=document.createElement('div'); card.className='wc-prov-card';
+          var meta=[c.provider_name, (c.duration?c.duration+'分':''), (c.price?'NT$ '+c.price:'')].filter(Boolean).join(' · ');
+          card.innerHTML='<div class="wc-prov-top"><span class="wc-prov-av">'+esc(c.initial||'風')+'</span>'+
+            '<div><div class="wc-prov-name">'+esc(c.service_name||c.provider_name||'')+'</div>'+
+            '<div class="wc-prov-meta">'+esc(meta)+'</div></div></div>'+
+            (c.reason?'<p class="wc-prov-reason">'+esc(c.reason)+'</p>':'')+
+            (c.desc?'<p class="wc-prov-desc">'+esc(c.desc)+'…</p>':'');
+          var btn=document.createElement('button'); btn.className='wc-prov-btn'; btn.textContent='預約這個 →';
+          btn.addEventListener('click',function(){ wrap.classList.add('disabled'); sendText('我想約 '+(c.provider_name||'')+' 的 '+(c.service_name||'')); });
+          card.appendChild(btn); wrap.appendChild(card);
+        });
+        msgsEl.appendChild(wrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='slots' && ui.days && ui.days.length){
+        var scard=document.createElement('div'); scard.className='wc-card';
+        var wd=['日','一','二','三','四','五','六'];
+        ui.days.forEach(function(day){
+          var lbl=document.createElement('div'); lbl.className='wc-day';
+          var dt=new Date(day.date+'T00:00:00'); var w=isNaN(dt)?'':('（'+wd[dt.getDay()]+'）');
+          lbl.textContent=day.date+' '+w; scard.appendChild(lbl);
+          var grid=document.createElement('div'); grid.className='wc-slotgrid';
+          day.times.forEach(function(t){
+            var bb=document.createElement('button'); bb.className='wc-slot'; bb.textContent=t;
+            bb.addEventListener('click',function(){ scard.classList.add('disabled'); sendText('我想約 '+day.date+' '+t); });
+            grid.appendChild(bb);
+          });
+          scard.appendChild(grid);
+        });
+        msgsEl.appendChild(scard); msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='pay' && ui.url){
+        var p=document.createElement('div'); p.className='wc-pay';
+        p.innerHTML='<div class="wc-pay-amt">訂金 NT$ '+(ui.amount||'')+' <small>確認後付款</small></div>'+
+          '<a class="wc-pay-btn" href="'+ui.url+'" target="_blank" rel="noopener">前往付款 →</a>'+
+          '<div class="wc-pay-note">付款完成後預約即正式成立</div>';
+        msgsEl.appendChild(p); msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='mybookings' && ui.bookings && ui.bookings.length){
+        ui.bookings.forEach(function(bk){
+          var card=document.createElement('div'); card.className='wc-card';
+          var meta=[bk.provider_name, bk.location_name].filter(Boolean).join(' · ');
+          card.innerHTML='<div class="wc-prov-name">'+esc(bk.service_name||'')+'</div>'+
+            '<div class="wc-prov-meta">'+esc(bk.start_datetime||'')+(meta?' · '+esc(meta):'')+'</div>';
+          var row=document.createElement('div'); row.className='wc-bk-actions';
+          var rb=document.createElement('button'); rb.className='wc-slot'; rb.textContent='改期';
+          rb.addEventListener('click',function(){ sendText('我要改期，單號 '+(bk.trade_no||'')); });
+          var cb=document.createElement('button'); cb.className='wc-slot'; cb.textContent='取消';
+          cb.addEventListener('click',function(){ sendText('我要取消，單號 '+(bk.trade_no||'')); });
+          row.appendChild(rb); row.appendChild(cb); card.appendChild(row);
+          msgsEl.appendChild(card);
+        });
+        msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='action' && ui.url){
+        // 繞圈→占卜出口卡（DS：surface-tint 卡 + DS primary 按鈕）
+        var a=document.createElement('div'); a.className='wc-action';
+        var abtn=document.createElement('a'); abtn.className='wc-action-btn'; abtn.href=ui.url;
+        abtn.textContent=(ui.label||'試著占卜看看')+' →';
+        a.appendChild(abtn); msgsEl.appendChild(a); msgsEl.scrollTop=msgsEl.scrollHeight;
+      }
+    }
+
+    function sendText(msg){
+      if(!msg||S.sending) return;
+      S.sending=true; sendEl.disabled=true;
       addBubble('user', msg); showTyping();
       var auth=getAuth();
       var body={ message:msg, channel:'web', sessionId:S.sessionId };
@@ -164,9 +258,14 @@ import '../styles/global.css';
           hideTyping();
           if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} }
           addBubble('bot', (d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？');
+          if(d&&d.ui) renderUi(d.ui);
         })
         .catch(function(){ hideTyping(); addBubble('bot','連線好像不太順，請稍後再試一次 🙏'); })
         .finally(function(){ S.sending=false; sendEl.disabled=false; taEl.focus(); });
+    }
+    function send(){
+      var msg=(taEl.value||'').trim(); if(!msg) return;
+      taEl.value=''; taEl.style.height='auto'; sendText(msg);
     }
 
     sendEl.addEventListener('click', send);
