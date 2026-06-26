@@ -86,6 +86,10 @@
   .wc-pay-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm)}
   .wc-pay-btn:hover{background:var(--accent-hover)}
   .wc-pay-note{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);text-align:center;margin-top:10px}
+  /* 繞圈→占卜出口卡（DS tint 卡 + DS Button primary：components/buttons/Button.jsx 真值）*/
+  .wc-action{margin:2px 0 14px 40px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:16px}
+  .wc-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:var(--w-medium);letter-spacing:.04em;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm);transition:background var(--dur-fast) var(--ease-soft)}
+  .wc-action-btn:hover{background:var(--accent-hover)}
   /* 推薦老師卡（DS booking.jsx 老師頭卡）*/
   .wc-prov{margin:2px 0 14px 40px;display:flex;flex-direction:column;gap:10px}
   .wc-prov.disabled{opacity:.55;pointer-events:none}
@@ -227,6 +231,12 @@
           msgs.appendChild(card);
         });
         msgs.scrollTop=msgs.scrollHeight;
+      } else if(ui.kind==='action' && ui.url){
+        // 繞圈→占卜出口卡（DS：surface-tint 卡 + DS primary 按鈕）
+        var a=document.createElement('div'); a.className='wc-action';
+        var btn=document.createElement('a'); btn.className='wc-action-btn'; btn.href=ui.url;
+        btn.textContent=(ui.label||'試著占卜看看')+' →';
+        a.appendChild(btn); msgs.appendChild(a); msgs.scrollTop=msgs.scrollHeight;
       }
     }
     function sendText(msg){
