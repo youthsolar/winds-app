@@ -25,6 +25,8 @@ import '../styles/global.css';
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+  <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('embed');</script>
+  <style is:inline>html.embed .zf-nav{display:none}/* iframe 嵌入（?embed=1）藏網站 nav；inline 確保隨 HTML 出貨、不被外部 CSS 快取卡住 */</style>
   <script src="/assets/nav-auth.js?v=4" defer></script>
 
   <style is:global>
