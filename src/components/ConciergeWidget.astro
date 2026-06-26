@@ -1,6 +1,6 @@
 ---
 /*
- * ConciergeWidget — 全站常駐預約小幫手（對話式預約機器人 決策 #7）。
+ * ConciergeWidget — 全站常駐風小編（對話式預約機器人 決策 #7）。
  * 浮動鈕（右下角）→ 點開頁內滑出對話面板，邊聊邊預約老師。
  * 接 api.winds.tw/booking-chat（tool-use 槽位填補迴圈）。複用分靈體 DS 泡泡視覺。
  * ⚠️ spike-then-design：純文字泡泡，對話內預約泡泡（推薦卡/選時段/付款）Phase 3 才回 DS。
@@ -8,17 +8,17 @@
  */
 ---
 <div class="wc-root" id="wcRoot">
-  <button class="wc-fab" id="wcFab" aria-label="預約小幫手" aria-expanded="false">
+  <button class="wc-fab" id="wcFab" aria-label="風小編" aria-expanded="false">
     <i class="ph-fill ph-chat-circle-dots" id="wcFabIcon"></i>
     <span class="wc-fab-label">預約老師</span>
   </button>
 
-  <div class="wc-panel" id="wcPanel" role="dialog" aria-label="預約小幫手" hidden>
+  <div class="wc-panel" id="wcPanel" role="dialog" aria-label="風小編" hidden>
     <div class="wc-head">
       <div class="wc-head-l">
         <span class="wc-av">風</span>
         <div>
-          <div class="wc-title">預約小幫手</div>
+          <div class="wc-title">風小編</div>
           <div class="wc-sub">邊聊邊幫你約好老師 ✨</div>
         </div>
       </div>
@@ -45,7 +45,8 @@
 
   .wc-head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-soft);background:linear-gradient(168deg,var(--surface-tint),var(--paper) 90%)}
   .wc-head-l{display:flex;align-items:center;gap:10px}
-  .wc-av{flex:none;width:38px;height:38px;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--rose-600)}
+  /* DS Avatar ring（components/identity/Avatar.jsx 真值）：rose-100 底 + 外圈 box-shadow，非平面 border */
+  .wc-av{flex:none;width:38px;height:38px;border-radius:var(--radius-pill);background:var(--rose-100);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:16px;font-weight:var(--w-medium);color:var(--rose-600);box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
   .wc-title{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
   .wc-sub{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
   .wc-close{all:unset;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--ink-500)}
@@ -142,7 +143,7 @@
       d.innerHTML='<span class="wc-b-av">風</span><div class="d"><span></span><span></span><span></span></div>';
       msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
     }
-    function greet(){ bubble('bot','嗨 👋 我是預約小幫手。先跟我說說你最近在意的事，我幫你找對的老師、約好時間 🌙'); }
+    function greet(){ bubble('bot','嗨 👋 我是風小編。先跟我說說你最近在意的事，我幫你找對的老師、約好時間 🌙'); }
     // 開啟時若有存過的 token → 從 D1 撈回整段對話 rehydrate（修「點連結離頁→回來對話消失」）；無則開場白
     function rehydrateOrGreet(){
       if(!S.sessionId){ greet(); return; }
