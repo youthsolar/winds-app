@@ -26,7 +26,7 @@ import '../styles/global.css';
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('embed');</script>
-  <style is:inline>html.embed .zf-nav,html.embed .sp-intro{display:none}html.embed .sp-app{height:100%}/* iframe 嵌入（?embed=1）：①藏網站 nav + 重複 intro 卡（對齊原生 ConciergeWidget）②.sp-app 改 height:100% 跟隨 iframe 框，不用 100dvh——iframe 內的 dvh 多數瀏覽器（含手機 Chrome）解析成頂層視窗、會把輸入框推出可見區露出底下背景。inline 確保隨 HTML 出貨、不被外部 CSS 快取卡住 */</style>
+  <style is:inline>html.embed .zf-nav,html.embed .sp-intro{display:none}/* iframe 嵌入（?embed=1）：藏網站 nav + 重複 intro 卡（對齊原生 ConciergeWidget）。inline 確保隨 HTML 出貨、不被外部 CSS 快取卡住 */</style>
   <script src="/assets/nav-auth.js?v=4" defer></script>
 
   <style is:global>
