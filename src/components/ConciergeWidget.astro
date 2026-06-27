@@ -151,13 +151,17 @@
     function greet(){ bubble('bot','嗨 👋 我是風小編。先跟我說說你最近在意的事，我幫你找對的老師、約好時間 🌙'); }
     // 開啟時若有存過的 token → 從 D1 撈回整段對話 rehydrate（修「點連結離頁→回來對話消失」）；無則開場白
     function rehydrateOrGreet(){
-      if(!S.sessionId){ greet(); return; }
       var auth=getAuth();
-      var url=HISTORY+'?sessionId='+encodeURIComponent(S.sessionId)+(auth&&auth.sub?'&google_sub='+encodeURIComponent(auth.sub):'');
+      // 無本機 token：訪客→直接開場白；已登入→仍查 history（跨裝置接回最近一段對話）
+      if(!S.sessionId && !(auth&&auth.sub)){ greet(); return; }
+      var qs=[]; if(S.sessionId) qs.push('sessionId='+encodeURIComponent(S.sessionId)); if(auth&&auth.sub) qs.push('google_sub='+encodeURIComponent(auth.sub));
+      var url=HISTORY+'?'+qs.join('&');
       var h={}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
       typing(true);
       fetch(url,{headers:h}).then(function(r){return r.json()}).then(function(d){
         typing(false);
+        // 跨裝置接回：後端回了最近對話的 token → 認領存本機，之後續聊接同一段
+        if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} }
         var ms=(d&&d.messages)||[];
         if(ms.length){ ms.forEach(function(m){ bubble(m.role==='user'?'user':'bot', m.content); }); }
         else { greet(); }
