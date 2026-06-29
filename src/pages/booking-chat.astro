@@ -270,6 +270,12 @@ import '../styles/global.css';
         var abtn=document.createElement('a'); abtn.className='wc-action-btn'; abtn.href=ui.url;
         abtn.textContent=(ui.label||'試著占卜看看')+' →';
         a.appendChild(abtn); msgsEl.appendChild(a); msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='handoff' && ui.url){
+        // 真人 handoff（網頁版）：加入官方 LINE @uneedwind 好友 → 老師在 OA 後台接
+        var ha=document.createElement('div'); ha.className='wc-action';
+        var hbtn=document.createElement('a'); hbtn.className='wc-action-btn'; hbtn.href=ui.url; hbtn.target='_blank'; hbtn.rel='noopener';
+        hbtn.textContent=(ui.label||'加入官方 LINE，真人對談')+' →';
+        ha.appendChild(hbtn); msgsEl.appendChild(ha); msgsEl.scrollTop=msgsEl.scrollHeight;
       }
     }
 

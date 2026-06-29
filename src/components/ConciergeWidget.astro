@@ -254,6 +254,12 @@
         var btn=document.createElement('a'); btn.className='wc-action-btn'; btn.href=ui.url;
         btn.textContent=(ui.label||'試著占卜看看')+' →';
         a.appendChild(btn); msgs.appendChild(a); msgs.scrollTop=msgs.scrollHeight;
+      } else if(ui.kind==='handoff' && ui.url){
+        // 真人 handoff（網頁版）：加入官方 LINE @uneedwind 好友 → 老師在 OA 後台接
+        var ha=document.createElement('div'); ha.className='wc-action';
+        var hbtn=document.createElement('a'); hbtn.className='wc-action-btn'; hbtn.href=ui.url; hbtn.target='_blank'; hbtn.rel='noopener';
+        hbtn.textContent=(ui.label||'加入官方 LINE，真人對談')+' →';
+        ha.appendChild(hbtn); msgs.appendChild(ha); msgs.scrollTop=msgs.scrollHeight;
       }
     }
     function sendText(msg){
