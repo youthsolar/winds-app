@@ -22,7 +22,16 @@
           <div class="wc-sub">邊聊邊幫你約好老師 ✨</div>
         </div>
       </div>
-      <button class="wc-close" id="wcClose" aria-label="關閉"><i class="ph ph-x"></i></button>
+      <div class="wc-head-r">
+        <button class="wc-voicebtn" id="wcVoiceBtn" aria-label="改用語音通話" title="跟風小編講電話"><i class="ph-fill ph-phone"></i></button>
+        <button class="wc-close" id="wcClose" aria-label="關閉"><i class="ph ph-x"></i></button>
+      </div>
+    </div>
+    <!-- 語音通話列：待命時隱藏；連線中/通話中出現在 header 下方（訊息區保留，通話中照樣渲染時段/付款卡） -->
+    <div class="wc-voicebar" id="wcVoiceBar" hidden>
+      <span class="wc-voice-dot" id="wcVoiceDot"></span>
+      <span class="wc-voice-st" id="wcVoiceSt">連線中…</span>
+      <button class="wc-hangup" id="wcHangup">掛斷</button>
     </div>
     <div class="wc-msgs" id="wcMsgs"></div>
     <div class="wc-input">
@@ -49,9 +58,23 @@
   .wc-av{flex:none;width:38px;height:38px;border-radius:var(--radius-pill);background:var(--rose-100);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:16px;font-weight:var(--w-medium);color:var(--rose-600);box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
   .wc-title{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
   .wc-sub{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
+  .wc-head-r{display:flex;align-items:center;gap:4px}
   .wc-close{all:unset;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--ink-500)}
   .wc-close:hover{background:var(--surface-sunken);color:var(--ink-900)}
   .wc-close i{font-size:20px}
+  /* 語音入口（打字/通話雙軌恆存）：header 圓鈕，DS accent */
+  .wc-voicebtn{all:unset;cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-pill);background:var(--accent);color:var(--text-on-accent);box-shadow:var(--shadow-sm);transition:background var(--dur-fast) var(--ease-soft)}
+  .wc-voicebtn:hover{background:var(--accent-hover)}
+  .wc-voicebtn i{font-size:17px}
+  .wc-voicebtn[disabled]{background:var(--rose-100);cursor:default}
+  .wc-voicebtn[disabled] i{color:var(--rose-300)}
+  /* 通話列：DS tint 底 + focus-ring 柔和脈動 */
+  .wc-voicebar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface-tint);border-bottom:1px solid var(--rose-100)}
+  .wc-voice-dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 0 var(--focus-ring);animation:wcPulse 1.6s infinite}
+  @keyframes wcPulse{0%{box-shadow:0 0 0 0 var(--focus-ring)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+  .wc-voice-st{flex:1;font-family:var(--font-serif);font-size:14px;color:var(--ink-700)}
+  .wc-hangup{all:unset;cursor:pointer;padding:7px 16px;border-radius:var(--radius-pill);font-family:var(--font-serif);font-size:13.5px;font-weight:500;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-100);box-shadow:var(--shadow-xs)}
+  .wc-hangup:hover{background:var(--accent);color:var(--text-on-accent);border-color:transparent}
 
   .wc-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 14px}
   /* 面板開啟時鎖住背景（手機防 iOS 橡皮筋捲動把固定浮層頂破格）*/
@@ -279,6 +302,65 @@
       var msg=(ta.value||'').trim(); if(!msg) return;
       ta.value=''; ta.style.height='auto'; sendText(msg);
     }
+    // ============ 語音通話（Grok Voice；打字/通話雙軌恆存） ============
+    var VOICE_BASE='https://api.winds.tw';
+    var vBtn=document.getElementById('wcVoiceBtn'), vBar=document.getElementById('wcVoiceBar'),
+        vSt=document.getElementById('wcVoiceSt'), vHang=document.getElementById('wcHangup');
+    var V={call:null,loading:false};
+    function voiceUi(state){
+      // idle / connecting / live / ended
+      if(state==='connecting'){ vBar.hidden=false; vSt.textContent='連線中…'; vBtn.disabled=true; }
+      else if(state==='live'){ vBar.hidden=false; vSt.textContent='通話中——直接開口說話就可以'; vBtn.disabled=true; bubble('bot','我在聽了 🎙️ 直接跟我說說你在意的事吧。時段和付款卡片會出現在下面，用點的也可以。'); }
+      else { vBar.hidden=true; vBtn.disabled=false; if(state==='ended'&&V.call){ bubble('bot','通話結束了。想繼續的話，打字或再按一次通話都可以 😊'); } V.call=null; }
+    }
+    // LINE 內建瀏覽器降級：拿不到麥克風 → 提示 + 一鍵外開（LINE 支援 openExternalBrowser=1）
+    function voiceDegrade(kind){
+      voiceUi('idle');
+      var here=location.href.replace(/([?&])openExternalBrowser=1/,'$1').replace(/[?&]$/,'');
+      var extUrl=here+(here.indexOf('?')>=0?'&':'?')+'openExternalBrowser=1';
+      bubble('bot', kind==='mic'
+        ? '這個環境好像拿不到麥克風（LINE 內建瀏覽器常有這個限制）🙏 用下面的按鈕在外部瀏覽器開啟，就能跟我通話了。'
+        : '語音連線暫時不太順，可以先用打字的，或稍後再試 🙏');
+      if(kind==='mic'){ renderUi({kind:'action',url:extUrl,label:'在外部瀏覽器開啟'}); }
+    }
+    // 通話中的工具結果 → 複用文字版卡片（時段卡/付款卡），可講可點
+    function voiceToolCard(name,result){
+      if(name==='get_slots'&&result&&result.slots){
+        var days=Object.keys(result.slots).sort().slice(0,5).map(function(d){return {date:d,times:(result.slots[d]||[]).slice(0,9)};}).filter(function(d){return d.times.length});
+        if(days.length) renderUi({kind:'slots',days:days});
+      } else if(name==='create_booking'&&result&&result.ok&&result.payment_url){
+        renderUi({kind:'pay',url:result.payment_url,amount:result.amount});
+      }
+    }
+    function startVoice(){
+      if(V.call||V.loading) return;
+      function boot(){
+        if(window.WindsVoiceCall && WindsVoiceCall.isLikelyBlockedWebview()){ voiceDegrade('mic'); return; }
+        voiceUi('connecting');
+        var call=new WindsVoiceCall({
+          apiBase:VOICE_BASE,
+          onState:function(s){ if(s==='live') voiceUi('live'); else if(s==='ended') voiceUi('ended'); },
+          onToolResult:function(name,result){ voiceToolCard(name,result); },
+          onError:function(kind){ voiceDegrade(kind); }
+        });
+        call.start().then(function(){ V.call=call; }).catch(function(){ /* onError 已處理 */ });
+      }
+      if(window.WindsVoiceCall){ boot(); return; }
+      V.loading=true;
+      var s=document.createElement('script'); s.src=VOICE_BASE+'/voice/client.js';
+      s.onload=function(){ V.loading=false; boot(); };
+      s.onerror=function(){ V.loading=false; voiceDegrade('connect'); };
+      document.head.appendChild(s);
+    }
+    vBtn.addEventListener('click',startVoice);
+    vHang.addEventListener('click',function(){ if(V.call) V.call.stop('user'); else voiceUi('idle'); });
+    // 通話中點時段卡 → 以文字送進語音對話（Grok 會接著講）
+    var _origSendText=sendText;
+    sendText=function(msg){
+      if(V.call){ bubble('user',msg); V.call.sendText(msg); return; }
+      _origSendText(msg);
+    };
+
     fab.addEventListener('click',open);
     closeBtn.addEventListener('click',close);
     sendBtn.addEventListener('click',send);
