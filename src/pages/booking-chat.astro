@@ -82,6 +82,23 @@ import '../styles/global.css';
     .sp-input textarea{flex:1;padding:12px 16px;font-family:var(--font-serif);font-size:16px;line-height:1.6;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);outline:none;resize:none;max-height:120px}
     .sp-input textarea:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring)}
     .sp-input textarea:disabled{opacity:.5}
+    /* 語音入口＋通話列（移植原生 ConciergeWidget wc-voicebtn/wc-voicebar，值逐一對齊：header 34px 圓鈕） */
+    .bc-voicebtn{all:unset;cursor:pointer;width:34px;height:34px;border-radius:var(--radius-pill);background:var(--accent);color:var(--text-on-accent);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:var(--shadow-sm);transition:background var(--dur-fast) var(--ease-soft)}
+    .bc-voicebtn:hover{background:var(--accent-hover)}
+    .bc-voicebtn i{font-size:17px}
+    .bc-voicebtn[disabled]{background:var(--rose-100);cursor:default}
+    .bc-voicebtn[disabled] i{color:var(--rose-300)}
+    .bc-voicebtn-head{margin-left:auto}
+    /* 輸入列那顆只給獨立頁（無 header 可放）；embed=1 由 concierge.js 面板 header 提供、embed=page 由 bc-head 提供 */
+    .bc-voicebtn-input{width:46px;height:46px}
+    .bc-voicebtn-input i{font-size:20px}
+    html.embed .bc-voicebtn-input{display:none}
+    .bc-voicebar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface-tint);border-bottom:1px solid var(--rose-100)}
+    .bc-voice-dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 0 var(--focus-ring);animation:bcPulse 1.6s infinite}
+    @keyframes bcPulse{0%{box-shadow:0 0 0 0 var(--focus-ring)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+    .bc-voice-st{flex:1;font-family:var(--font-serif);font-size:14px;color:var(--ink-700)}
+    .bc-hangup{all:unset;cursor:pointer;padding:7px 16px;border-radius:var(--radius-pill);font-family:var(--font-serif);font-size:13.5px;font-weight:500;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-100);box-shadow:var(--shadow-xs)}
+    .bc-hangup:hover{background:var(--accent);color:var(--text-on-accent);border-color:transparent}
     .sp-send{all:unset;cursor:pointer;width:46px;height:46px;border-radius:var(--radius-md);background:var(--accent);display:flex;align-items:center;justify-content:center;flex:none;transition:background var(--dur-fast) var(--ease-soft)}
     .sp-send[disabled]{cursor:default;background:var(--rose-100)}
     .sp-send i{font-size:22px;color:var(--text-on-accent)}
@@ -148,6 +165,13 @@ import '../styles/global.css';
     <div class="bc-head">
       <span class="bc-av">風</span>
       <div class="bc-htxt"><div class="bc-title">風小編</div><div class="bc-sub">邊聊邊幫你約好老師 ✨</div></div>
+      <button class="bc-voicebtn bc-voicebtn-head" id="bcVoiceBtnHead" aria-label="改用語音通話" title="跟風小編講電話"><i class="ph-fill ph-phone"></i></button>
+    </div>
+    <!-- 語音通話列：待命時隱藏；連線中/通話中出現在 header 下方（位置逐值對齊原生 ConciergeWidget；embed=1 時上方 header 由 concierge.js 面板提供） -->
+    <div class="bc-voicebar" id="bcVoiceBar" hidden>
+      <span class="bc-voice-dot"></span>
+      <span class="bc-voice-st" id="bcVoiceSt">連線中…</span>
+      <button class="bc-hangup" id="bcHangup">掛斷</button>
     </div>
 
     <div class="sp-wrap">
@@ -157,6 +181,7 @@ import '../styles/global.css';
       </div>
       <div class="sp-msgs" id="msgs"></div>
       <div class="sp-input">
+        <button class="bc-voicebtn bc-voicebtn-input" id="bcVoiceBtn" aria-label="改用語音通話" title="跟風小編講電話"><i class="ph-fill ph-phone"></i></button>
         <textarea id="ta" rows="1" placeholder="說說你在意的事…"></textarea>
         <button class="sp-send" id="send" aria-label="送出"><i class="ph-fill ph-paper-plane-right"></i></button>
       </div>
@@ -303,6 +328,73 @@ import '../styles/global.css';
       var msg=(taEl.value||'').trim(); if(!msg) return;
       taEl.value=''; taEl.style.height='auto'; sendText(msg);
     }
+
+    // ============ 語音通話（Grok Voice；打字/通話雙軌恆存；移植原生 ConciergeWidget） ============
+    var VOICE_BASE='https://api.winds.tw';
+    var vBtn=document.getElementById('bcVoiceBtn'), vBtnH=document.getElementById('bcVoiceBtnHead'),
+        vBar=document.getElementById('bcVoiceBar'), vSt=document.getElementById('bcVoiceSt'), vHang=document.getElementById('bcHangup');
+    var V={call:null,loading:false};
+    function setVBtns(dis){ vBtn.disabled=dis; if(vBtnH) vBtnH.disabled=dis; }
+    function voiceUi(state){
+      // idle / connecting / live / ended
+      if(state==='connecting'){ vBar.hidden=false; vSt.textContent='連線中…'; setVBtns(true); }
+      else if(state==='live'){ vBar.hidden=false; vSt.textContent='通話中——直接開口說話就可以'; setVBtns(true); addBubble('bot','我在聽了 🎙️ 直接跟我說說你在意的事吧。時段和付款卡片會出現在下面，用點的也可以。'); }
+      else { vBar.hidden=true; setVBtns(false); if(state==='ended'&&V.call){ addBubble('bot','通話結束了。想繼續的話，打字或再按一次通話都可以 😊'); } V.call=null; }
+    }
+    // LINE 內建瀏覽器降級：拿不到麥克風 → 提示 + 一鍵外開（LINE 支援 openExternalBrowser=1）
+    function voiceDegrade(kind){
+      voiceUi('idle');
+      var here=location.href.replace(/([?&])openExternalBrowser=1/,'$1').replace(/[?&]$/,'');
+      var extUrl=here+(here.indexOf('?')>=0?'&':'?')+'openExternalBrowser=1';
+      addBubble('bot', kind==='mic'
+        ? '這個環境好像拿不到麥克風（LINE 內建瀏覽器常有這個限制）🙏 用下面的按鈕在外部瀏覽器開啟，就能跟我通話了。'
+        : '語音連線暫時不太順，可以先用打字的，或稍後再試 🙏');
+      if(kind==='mic'){ renderUi({kind:'action',url:extUrl,label:'在外部瀏覽器開啟'}); }
+    }
+    // 通話中的工具結果 → 複用文字版卡片（時段卡/付款卡），可講可點
+    function voiceToolCard(name,result){
+      if(name==='get_slots'&&result&&result.slots){
+        var days=Object.keys(result.slots).sort().slice(0,5).map(function(d){return {date:d,times:(result.slots[d]||[]).slice(0,9)};}).filter(function(d){return d.times.length});
+        if(days.length) renderUi({kind:'slots',days:days});
+      } else if(name==='create_booking'&&result&&result.ok&&result.payment_url){
+        renderUi({kind:'pay',url:result.payment_url,amount:result.amount});
+      }
+    }
+    function startVoice(){
+      if(V.call||V.loading) return;
+      function boot(){
+        if(window.WindsVoiceCall && WindsVoiceCall.isLikelyBlockedWebview()){ voiceDegrade('mic'); return; }
+        voiceUi('connecting');
+        var call=new WindsVoiceCall({
+          apiBase:VOICE_BASE,
+          onState:function(s){ if(s==='live') voiceUi('live'); else if(s==='ended') voiceUi('ended'); },
+          onToolResult:function(name,result){ voiceToolCard(name,result); },
+          onError:function(kind){ voiceDegrade(kind); }
+        });
+        call.start().then(function(){ V.call=call; }).catch(function(){ /* onError 已處理 */ });
+      }
+      if(window.WindsVoiceCall){ boot(); return; }
+      V.loading=true;
+      var s=document.createElement('script'); s.src=VOICE_BASE+'/voice/client.js';
+      s.onload=function(){ V.loading=false; boot(); };
+      s.onerror=function(){ V.loading=false; voiceDegrade('connect'); };
+      document.head.appendChild(s);
+    }
+    vBtn.addEventListener('click',startVoice);
+    if(vBtnH) vBtnH.addEventListener('click',startVoice);
+    // embed=1 桌機 iframe：header 在外層 concierge.js 面板 → 通話鈕在外層，postMessage 傳令進來開話
+    // origin 白名單：只認自家頁面，防外站嵌 iframe 白嫖語音分鐘數
+    window.addEventListener('message',function(e){
+      if(['https://booking.winds.tw','https://winds.tw','https://www.winds.tw'].indexOf(e.origin)<0) return;
+      if(e.data&&e.data.type==='winds-voice-start') startVoice();
+    });
+    vHang.addEventListener('click',function(){ if(V.call) V.call.stop('user'); else voiceUi('idle'); });
+    // 通話中點時段卡/打字 → 以文字送進語音對話（Grok 會接著講）
+    var _origSendText=sendText;
+    sendText=function(msg){
+      if(V.call){ addBubble('user',msg); V.call.sendText(msg); return; }
+      _origSendText(msg);
+    };
 
     sendEl.addEventListener('click', send);
     // IME 組字中的 Enter（確認選字）不可當送出（否則送出後輸入法把字重塞回輸入框）
