@@ -6,6 +6,7 @@
  * 全螢幕 funnel，自帶 ProgressHeader，不掛 site Nav/Footer。
  */
 import '../styles/global.css';
+import ConciergeWidget from '../components/ConciergeWidget.astro';
 ---
 
 <!DOCTYPE html>
@@ -13,6 +14,7 @@ import '../styles/global.css';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="format-detection" content="telephone=no,date=no,email=no,address=no" />
   <title>占卜流程 · 找風問幸福</title>
   <meta name="description" content="易經 × 塔羅 × 量能靈符，為你讀一件事。" />
   <meta name="robots" content="noindex" />
@@ -380,10 +382,15 @@ import '../styles/global.css';
     @media(max-width:760px){.cool-btns{flex-direction:column}}
 
     .hidden{display:none!important}
+    a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
+    /* 風小編只在結果頁現身（含回看模式）；漏斗填單過程不打擾 */
+    body:not(.show-concierge) .wc-root{display:none!important}
   </style>
 </head>
 <body>
 <div id="root"></div>
+<!-- 風小編：只在占卜結果頁現身（render() 切 body class），讓用戶看完解讀即時問預約 -->
+<ConciergeWidget />
 
 <script is:inline>
 /* ===== 後端設定（一律以現行 production 為準，原樣搬自 live index.html）===== */
@@ -925,8 +932,7 @@ function recsInner(recs){
         '<div class="b"><h4>'+esc(r.name)+'</h4>'+(r.reason?'<div class="reason">'+ic("quotes","fill")+'<p>'+esc(r.reason)+'</p></div>':'')+
         '<div class="foot"><span class="price">'+price+'</span>'+(url?'<span class="cta">'+(book?'看時間':'看看這個')+' '+ic("arrow-right")+'</span>':'')+'</div></div>';
       return url?'<a class="rec" href="'+esc(url)+'" target="_blank" rel="noopener">'+inner+'</a>':'<div class="rec">'+inner+'</div>';
-    }).join("")+'</div>'+
-    '<p style="text-align:center;font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">'+ic("arrow-bend-down-right")+' 都會留在站內，帶你到預約頁或法器頁，不會跳開。</p>';
+    }).join("")+'</div>';
 }
 
 /* ===== 延伸閱讀（部落格）===== */
@@ -1000,6 +1006,7 @@ function wireSiteChrome(){
 }
 function render(){
   if(interpTimer){interpTimer();interpTimer=null;}
+  document.body.classList.toggle("show-concierge",STATE.step==="result");
   var root=document.getElementById("root");
   // 完整報告模式：以 log_id 回訪、已渲染結果頁 → 套站台 Nav/Footer（取代 funnel 進度條）。
   if(STATE.reportMode&&STATE.step==="result"){
