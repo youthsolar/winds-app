@@ -1004,10 +1004,12 @@ function submitDivination(){
   STATE.userName={surname:info.surname,given:info.given};
   STATE.submitting=true;STATE.logId="";STATE.result=null;STATE.paid=false;
   go("interpreting");
+  var edmTok="";try{edmTok=localStorage.getItem("winds_edm_token")||"";}catch(e){}
   fetch(API.submit,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
     body:JSON.stringify({google_sub:STATE.userId,question:STATE.text,divination_method:"雙占卜",
       date_of_birth:info.dob,last_name:info.surname,first_name:info.given,
-      gender:STATE.gender||((STATE.prefill&&STATE.prefill.gender)||""),phone:phoneE164(info.phone),email:info.email})})
+      gender:STATE.gender||((STATE.prefill&&STATE.prefill.gender)||""),phone:phoneE164(info.phone),email:info.email,
+      edm_token:edmTok||undefined})})
    .then(function(resp){
      if(!resp.ok){return resp.json().catch(function(){return{};}).then(function(d){
        if(resp.status===429||d.blocked){STATE.cooldown={message:d.message,available_at:d.available_at};STATE.submitting=false;go("cooldown");return null;}
@@ -1160,6 +1162,7 @@ function mountGisButton(){
 }
 function boot(){
   var params=new URLSearchParams(location.search);
+  var edmT=params.get("t");if(edmT){try{localStorage.setItem("winds_edm_token",edmT);}catch(e){}}
   var saved="";try{saved=localStorage.getItem("winds_google_token")||"";}catch(e){}
   if(saved&&!adoptGoogleToken(saved)){try{localStorage.removeItem("winds_google_token");}catch(e){}}
   var rid=params.get("log_id"),pending="";try{pending=sessionStorage.getItem("winds_pending_log_id")||"";}catch(e){}
