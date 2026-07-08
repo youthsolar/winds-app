@@ -52,7 +52,7 @@ relatedServices: [20,60]
 
 🔮 **[2026丙午年：通靈水鏡法問事 + 五行補運](https://winds.tw)** — NT$6,000
 
-🏮 **[武財神師尊親傳：五路財神金龍板/ 風易揚老師依個案親撰及開光](https://zijiawangzijia.easy.co/products/dragonball)** — NT$6,800
+🏮 **[武財神師尊親傳：五路財神金龍板/ 風易揚老師依個案親撰及開光](https://shop.winds.tw/products/dragonball)** — NT$6,800
 
 
 

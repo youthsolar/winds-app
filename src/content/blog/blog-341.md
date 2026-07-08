@@ -40,7 +40,7 @@ relatedServices: [64,18]
 
 ## 💫 相關推薦
 
-🏮 **[體質修](https://zijiawangzijia.easy.co/products/body-constitution-repair)** — NT$17,000
+🏮 **[體質修](https://shop.winds.tw/products/body-constitution-repair)** — NT$17,000
 
 🔮 **[通靈水鏡法：查因果](https://winds.tw)** — NT$4,200
 

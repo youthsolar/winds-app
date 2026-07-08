@@ -46,7 +46,7 @@ relatedServices: [18,56]
 
 🔮 **[通靈水鏡法：查因果](https://winds.tw)** — NT$4,200
 
-🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://zijiawangzijia.easy.co/products/lovesaving)** — NT$1,200
+🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://shop.winds.tw/products/lovesaving)** — NT$1,200
 
 
 

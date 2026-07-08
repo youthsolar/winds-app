@@ -74,9 +74,9 @@ relatedServices: [56,63]
 
 ## 💫 相關推薦
 
-🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://zijiawangzijia.easy.co/products/lovesaving)** — NT$1,200
+🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://shop.winds.tw/products/lovesaving)** — NT$1,200
 
-🏮 **[正宗白靈狐仙桃花符令](https://zijiawangzijia.easy.co/products/bailing-fox-romance-talisman)** — NT$2,600
+🏮 **[正宗白靈狐仙桃花符令](https://shop.winds.tw/products/bailing-fox-romance-talisman)** — NT$2,600
 
 
 

@@ -32,7 +32,7 @@ relatedServices: [56,19]
 
 ## 💫 相關推薦
 
-🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://zijiawangzijia.easy.co/products/lovesaving)** — NT$1,200
+🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://shop.winds.tw/products/lovesaving)** — NT$1,200
 
 🔮 **[命書籤詩問事：問事件](https://winds.tw)** — NT$2,000
 

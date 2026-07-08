@@ -44,9 +44,9 @@ Amy穩住了心情，按照風賜靈老師教導的方式持續進行內在調�
 
 ## 💫 相關推薦
 
-🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://zijiawangzijia.easy.co/products/lovesaving)** — NT$1,200
+🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://shop.winds.tw/products/lovesaving)** — NT$1,200
 
-🏮 **[風易揚老師依個案親畫&開光：月老復合鏡](https://zijiawangzijia.easy.co/products/yuelao-mirror)** — NT$14,400
+🏮 **[風易揚老師依個案親畫&開光：月老復合鏡](https://shop.winds.tw/products/yuelao-mirror)** — NT$14,400
 
 
 

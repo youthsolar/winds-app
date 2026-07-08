@@ -52,9 +52,9 @@ K先生後來才驚覺：「爛桃花不是小事，它真的會把一個人拖�
 
 ## 💫 相關推薦
 
-🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://zijiawangzijia.easy.co/products/lovesaving)** — NT$1,200
+🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://shop.winds.tw/products/lovesaving)** — NT$1,200
 
-🏮 **[風易揚老師依個案親畫&開光：七星桃花木八卦劍陣](https://zijiawangzijia.easy.co/products/seven-star-romance-sword-array)** — NT$14,400
+🏮 **[風易揚老師依個案親畫&開光：七星桃花木八卦劍陣](https://shop.winds.tw/products/seven-star-romance-sword-array)** — NT$14,400
 
 
 

@@ -36,7 +36,7 @@ relatedServices: [52,60]
 
 🔮 **[天授通靈塔羅](https://winds.tw)** — NT$2,600
 
-🏮 **[武財神師尊親傳：五路財神金龍板/ 風易揚老師依個案親撰及開光](https://zijiawangzijia.easy.co/products/dragonball)** — NT$6,800
+🏮 **[武財神師尊親傳：五路財神金龍板/ 風易揚老師依個案親撰及開光](https://shop.winds.tw/products/dragonball)** — NT$6,800
 
 
 

@@ -42,7 +42,7 @@ Sandy下班後因為生活太無趣，開始玩起線上遊戲。王先生認為
 
 ## 💫 相關推薦
 
-🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://zijiawangzijia.easy.co/products/lovesaving)** — NT$1,200
+🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://shop.winds.tw/products/lovesaving)** — NT$1,200
 
 🔮 **[斗姆大天尊親傳：靈療術](https://winds.tw)** — NT$9,000
 

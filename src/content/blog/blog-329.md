@@ -36,7 +36,7 @@ relatedServices: [52,56]
 
 🔮 **[天授通靈塔羅](https://winds.tw)** — NT$2,600
 
-🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://zijiawangzijia.easy.co/products/lovesaving)** — NT$1,200
+🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://shop.winds.tw/products/lovesaving)** — NT$1,200
 
 
 

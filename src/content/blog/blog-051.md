@@ -54,7 +54,7 @@ relatedServices: [52,64]
 
 🔮 **[天授通靈塔羅](https://winds.tw)** — NT$2,600
 
-🏮 **[體質修](https://zijiawangzijia.easy.co/products/body-constitution-repair)** — NT$17,000
+🏮 **[體質修](https://shop.winds.tw/products/body-constitution-repair)** — NT$17,000
 
 
 

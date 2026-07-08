@@ -36,7 +36,7 @@ relatedServices: [56,27]
 
 ## 💫 相關推薦
 
-🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://zijiawangzijia.easy.co/products/lovesaving)** — NT$1,200
+🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://shop.winds.tw/products/lovesaving)** — NT$1,200
 
 🔮 **[城隍夫人親傳：元辰閨輪返](https://winds.tw)** — NT$46,000
 

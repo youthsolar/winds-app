@@ -285,7 +285,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <script is:inline>
     (function () {
       var WORKER_API = 'https://api.winds.tw';
-      var STORE = 'https://www.winds.life';      // EasyStore 正式網域（easy.co 會轉址）
+      var STORE = 'https://shop.winds.tw';      // EasyStore 正式網域（winds.life/easy.co 會轉址）
       var CART_KEY = 'zhanbu_es_cart_v1';
       var TILES = [
         'linear-gradient(155deg, var(--rose-100), var(--rose-200) 70%, var(--clay-300))',
@@ -460,7 +460,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           var i2=document.createElement('input');i2.type='hidden';i2.name='quantity[]';i2.value=String(l.qty);f.appendChild(i2);
         });
         document.body.appendChild(f);
-        f.submit();   // 頂層導航到 winds.life；ES 回應建立 sf_session cart cookie
+        f.submit();   // 頂層導航到 shop.winds.tw；ES 回應建立 sf_session cart cookie
       }
 
       /* ---------- 事件接線 ---------- */

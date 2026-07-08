@@ -46,7 +46,7 @@ relatedServices: [60,19]
 
 ## 💫 相關推薦
 
-🏮 **[武財神師尊親傳：五路財神金龍板/ 風易揚老師依個案親撰及開光](https://zijiawangzijia.easy.co/products/dragonball)** — NT$6,800
+🏮 **[武財神師尊親傳：五路財神金龍板/ 風易揚老師依個案親撰及開光](https://shop.winds.tw/products/dragonball)** — NT$6,800
 
 🔮 **[命書籤詩問事：問事件](https://winds.tw)** — NT$2,000
 
