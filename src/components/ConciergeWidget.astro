@@ -69,7 +69,8 @@
   .wc-voicebtn[disabled]{background:var(--rose-100);cursor:default}
   .wc-voicebtn[disabled] i{color:var(--rose-300)}
   /* 通話列：DS tint 底 + focus-ring 柔和脈動 */
-  .wc-voicebar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface-tint);border-bottom:1px solid var(--rose-100)}
+  .wc-voicebar[hidden]{display:none!important}
+    .wc-voicebar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface-tint);border-bottom:1px solid var(--rose-100)}
   .wc-voice-dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 0 var(--focus-ring);animation:wcPulse 1.6s infinite}
   @keyframes wcPulse{0%{box-shadow:0 0 0 0 var(--focus-ring)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
   .wc-voice-st{flex:1;font-family:var(--font-serif);font-size:14px;color:var(--ink-700)}
