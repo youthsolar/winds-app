@@ -684,7 +684,8 @@ function viewResult(){
   h+='<div class="banner"><div style="height:188px;background:linear-gradient(135deg,var(--rose-100),var(--clay-200))"></div><div class="cap"><span>慢慢看，不用急。</span></div></div>';
   h+=block("你的命理檔案","",profileCard(paid));
   h+=block("紫微命盤","",ziweiBlock());
-  h+=block("姓名學分析","",'<div id="nameMount">'+nameCard(paid)+'</div>');
+  /* 姓名學：等真分析回來才現身（PH_NAME 只是示意稿，直接亮會把別人名字掛在用戶頭上） */
+  h+='<div id="nameSection" style="display:none">'+block("姓名學分析","",'<div id="nameMount"></div>')+'</div>';
   h+=block("你的分靈體側寫","",spiritCard(paid));
   if(R.tarot&&R.tarot.length){
     var POS=["過去","現在","未來","建議","結果"];
@@ -1057,6 +1058,8 @@ function finishResult(d,logId){
   if(d.next_action)STATE.talismanName=d.next_action.talisman_name||STATE.talismanName;
   STATE.result=buildResult(d);
   STATE.paid=!!d.purchased;
+  /* 回看模式（會員中心 ?log_id=）沒走表單，userName 用後端回的真名補上，姓名學才有得算 */
+  if(!STATE.userName&&d.client_last_name)STATE.userName={surname:d.client_last_name,given:d.client_first_name||""};
   go("result");
   if(STATE.logId)loadRecs(STATE.logId);
   loadNaming();
@@ -1072,6 +1075,7 @@ function loadNaming(){
      var n=normName(d);if(!n||!STATE.result)return;
      STATE.result.name=n;
      var m=document.getElementById("nameMount");if(m)m.innerHTML=nameCard(STATE.paid||STATE.result.purchased);
+     var s=document.getElementById("nameSection");if(s)s.style.display="";
    }).catch(function(){});
 }
 
