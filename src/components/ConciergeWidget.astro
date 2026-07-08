@@ -310,7 +310,7 @@
     function voiceUi(state){
       // idle / connecting / live / ended
       if(state==='connecting'){ vBar.hidden=false; vSt.textContent='連線中…'; vBtn.disabled=true; }
-      else if(state==='live'){ vBar.hidden=false; vSt.textContent='通話中——直接開口說話就可以'; vBtn.disabled=true; bubble('bot','我在聽了 🎙️ 直接跟我說說你在意的事吧。時段和付款卡片會出現在下面，用點的也可以。'); }
+      else if(state==='live'){ vBar.hidden=false; vSt.textContent='通話中——直接開口說話就可以'; vBtn.disabled=true; bubble('bot','我在聽了 🎙️ 直接跟我說說你在意的事吧。'); }
       else { vBar.hidden=true; vBtn.disabled=false; if(state==='ended'&&V.call){ bubble('bot','通話結束了。想繼續的話，打字或再按一次通話都可以 😊'); } V.call=null; }
     }
     // LINE 內建瀏覽器降級：拿不到麥克風 → 提示 + 一鍵外開（LINE 支援 openExternalBrowser=1）
