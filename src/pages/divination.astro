@@ -995,6 +995,7 @@ function siteHeader(){
     '<div class="zf-drawer" id="zfDrawer" hidden>'+
       '<a href="/">首頁</a><a href="/divination">問一件事</a><a href="/blog">案例專欄</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a>'+
       '<a href="/divination" class="zf-btn primary md full">占卜</a>'+
+      '<button class="zf-theme-btn-m" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;margin-top:12px;padding:0 22px;box-sizing:border-box;border:1px solid var(--border-strong);border-radius:var(--radius-pill);background:var(--surface-card);cursor:pointer;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'"></i><span class="zf-theme-lbl">'+(window.ZFTheme&&ZFTheme.isDark()?'淺色模式':'深色模式')+'</span></button>'+
       '<div id="auth-button-m" class="zf-account-m"></div>'+
     '</div></nav>';
 }
@@ -1252,7 +1253,7 @@ function mountGisButton(){
   el.innerHTML="";
   google.accounts.id.renderButton(el,{theme:(window.ZFTheme&&ZFTheme.isDark())?"filled_black":"outline",size:"large",text:"signin_with",shape:"pill",width:280,locale:"zh-TW"});
 }
-window.addEventListener('zf-theme-change',function(){var d=window.ZFTheme&&ZFTheme.isDark();document.querySelectorAll('.zf-theme-ico').forEach(function(i){i.className='zf-theme-ico ph-thin ph-'+(d?'sun':'moon');});});
+window.addEventListener('zf-theme-change',function(){var d=window.ZFTheme&&ZFTheme.isDark();document.querySelectorAll('.zf-theme-ico').forEach(function(i){i.className='zf-theme-ico ph-thin ph-'+(d?'sun':'moon');});document.querySelectorAll('.zf-theme-lbl').forEach(function(s){s.textContent=d?'淺色模式':'深色模式';});});
 window.addEventListener('zf-theme-change',function(){mountGisButton._redo=true;mountGisButton();});
 function boot(){
   var params=new URLSearchParams(location.search);
