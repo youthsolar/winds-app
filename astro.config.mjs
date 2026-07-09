@@ -43,7 +43,7 @@ function remarkStripTrailingPromo() {
 export default defineConfig({
   site: 'https://winds.tw',
   output: 'static',
-  redirects: { '/': '/home/' },  // apex 首頁＝winds-app /home（有 DS nav/footer）；取代 winds-home 臨時頁（直接帶斜線省一跳）
+  redirects: { '/home': '/' },  // root flip（2026-07-09）：首頁＝winds.tw/，舊 /home 301 回根
   markdown: {
     remarkPlugins: [remarkStripTrailingPromo],
   },

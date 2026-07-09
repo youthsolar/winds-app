@@ -544,7 +544,7 @@ function header(){
     '<button class="ph-back" onclick="back()">'+ic("arrow-left")+'<span>上一步</span></button>'+
     '<div class="ph-steps">'+steps+'</div>'+
     '<span class="ph-mob"><b>'+(idx+1)+'</b> / '+STEPS.length+' · '+STEPS[idx].l+'</span>'+
-    '<button class="ph-exit" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="margin-right:-6px">'+ic("moon","thin")+'</button>'+
+    '<button class="ph-exit" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="margin-right:-6px"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'"></i></button>'+
     '<button class="ph-exit" onclick="exitFlow()">'+ic("x")+'</button>'+
     '</div><div class="ph-bar"><span style="width:'+pct+'%"></span></div></header>';
 }
@@ -983,17 +983,17 @@ function fmtWhen(iso){try{var d=new Date(iso);if(isNaN(d.getTime()))return iso;r
 /* ===== 完整報告模式：站台 Nav/Footer（DS report-page；只在 log_id 回訪時取代 funnel header）===== */
 function siteHeader(){
   return '<nav class="zf-nav"><div class="zf-nav-row">'+
-    '<a href="/home" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福"></a>'+
+    '<a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福"></a>'+
     '<div class="zf-nav-links">'+
-      '<a href="/home">首頁</a><a href="/divination">問一件事</a><a href="/blog">案例專欄</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a>'+
+      '<a href="/">首頁</a><a href="/divination">問一件事</a><a href="/blog">案例專欄</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a>'+
       '<a href="/divination" class="zf-btn ghost sm">占卜</a>'+
-      '<button class="zf-theme-btn" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid var(--border-soft);border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer">'+ic("moon","thin")+'</button>'+
+      '<button class="zf-theme-btn" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid var(--border-soft);border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'"></i></button>'+
       '<div id="auth-button" class="zf-account"></div>'+
     '</div>'+
     '<button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>'+
     '</div>'+
     '<div class="zf-drawer" id="zfDrawer" hidden>'+
-      '<a href="/home">首頁</a><a href="/divination">問一件事</a><a href="/blog">案例專欄</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a>'+
+      '<a href="/">首頁</a><a href="/divination">問一件事</a><a href="/blog">案例專欄</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a>'+
       '<a href="/divination" class="zf-btn primary md full">占卜</a>'+
       '<div id="auth-button-m" class="zf-account-m"></div>'+
     '</div></nav>';
@@ -1001,7 +1001,7 @@ function siteHeader(){
 function siteFooter(){
   return '<footer class="zf-footer"><div class="zf-footer-in">'+
     '<div class="zf-footer-top">'+
-      '<div class="zf-footer-brand"><a href="/home" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福"></a><p>選擇比努力更重要，命理是對自己的溫柔。</p></div>'+
+      '<div class="zf-footer-brand"><a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福"></a><p>選擇比努力更重要，命理是對自己的溫柔。</p></div>'+
       '<div class="zf-footer-cols">'+
         '<div class="zf-fcol"><div class="zf-fh">命理項目</div><a href="/divination">易經</a><a href="/divination">塔羅</a><a href="/ziwei">紫微</a><a href="/spirit">分靈體</a></div>'+
         '<div class="zf-fcol"><div class="zf-fh">探索</div><a href="/blog">案例專欄</a><a href="/services">預約項目</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a><a href="/course">靈修課程</a></div>'+
@@ -1040,7 +1040,7 @@ function render(){
 }
 function go(s){STATE.step=s;render()}
 function back(){var map={info:"topic",result:"info"};if(map[STATE.step])go(map[STATE.step])}
-function exitFlow(){location.href="/home";}
+function exitFlow(){location.href="/";}
 function openOA(){window.open(LINE_OA_URL,"_blank");}
 function askAnother(){STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.logId="";go("topic");}
 function showInfoErr(msg){var e=document.getElementById("infoErr");if(e){e.textContent=msg;e.classList.remove("hidden");e.scrollIntoView({behavior:"smooth",block:"center"});}else{alert(msg);}}
@@ -1251,6 +1251,7 @@ function mountGisButton(){
   if(typeof google==="undefined"||!google.accounts)return;
   google.accounts.id.renderButton(el,{theme:"outline",size:"large",text:"signin_with",shape:"pill",width:280,locale:"zh-TW"});
 }
+window.addEventListener('zf-theme-change',function(){var d=window.ZFTheme&&ZFTheme.isDark();document.querySelectorAll('.zf-theme-ico').forEach(function(i){i.className='zf-theme-ico ph-thin ph-'+(d?'sun':'moon');});});
 function boot(){
   var params=new URLSearchParams(location.search);
   var edmT=params.get("t");if(edmT){try{localStorage.setItem("winds_edm_token",edmT);}catch(e){}}
