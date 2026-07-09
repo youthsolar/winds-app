@@ -166,7 +166,7 @@ const br = (s) => s.split('\n');
             <p>預約實體或線上對談，說說一直卡住的心怎麼了。</p>
             <div class="readers" id="homeReaders"><span class="av rose">林</span><span class="av clay">陳</span><span class="av sage">王</span><span class="rd-note">資深老師線上預約</span></div>
             <div class="talk-foot">
-              <span><span class="meta">單次 60 分鐘</span><span class="price">NT$ 2,000 起</span></span>
+              <span><span class="meta" id="homeBookMeta">單次 30 分鐘起</span><span class="price" id="homeBookPrice">NT$ 2,000 起</span></span>
               <a class="zf-btn primary md" href={BOOK}>預約老師 <i class="ph ph-arrow-right" style="font-size:16px"></i></a>
             </div>
           </div>
@@ -282,6 +282,19 @@ const br = (s) => s.split('\n');
         return '<span style="'+st+'">'+escH(nm.slice(0,1)||'師')+'</span>';
       }).join('');
       box.innerHTML = avs + '<span style="font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted);margin-left:12px;white-space:nowrap">'+ts.length+' 位資深老師．線上預約</span>';
+    }).catch(function(){});
+  })();
+
+  /* 預約對談：接真實 SB 服務（/sb-services），最低價/最短時長覆蓋佔位 */
+  (function(){
+    fetch('https://api.winds.tw/sb-services').then(function(r){return r.json();}).then(function(d){
+      var svs=(d&&(d.services||d.data))||(Array.isArray(d)?d:[]);
+      var priced=svs.filter(function(x){return +x.price>0});if(!priced.length)return;
+      var minP=Math.min.apply(null,priced.map(function(x){return +x.price}));
+      var minD=Math.min.apply(null,priced.map(function(x){return +x.duration||999}));
+      var m=document.getElementById('homeBookMeta'),pr=document.getElementById('homeBookPrice');
+      if(m&&minD<999)m.textContent='單次 '+minD+' 分鐘起';
+      if(pr)pr.textContent='NT$ '+minP.toLocaleString()+' 起';
     }).catch(function(){});
   })();
 
