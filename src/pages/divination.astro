@@ -297,7 +297,6 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     .tframe .glow{position:absolute;inset:0;background:radial-gradient(132% 82% at 50% 41%,var(--tf-glow) 0%,var(--tf-glow) 16%,transparent 70%)}
     .tframe .glow2{position:absolute;inset:0;background:radial-gradient(80% 55% at 50% 40%,var(--tf-glow),transparent 70%);mix-blend-mode:multiply;opacity:.28}
     .tframe .inner-border{position:absolute;inset:8px;border-radius:calc(var(--radius-lg) - 6px);border:1px solid var(--rose-100)}
-    .tframe.big .inner-border{inset:12px}
     .fulu{position:relative;z-index:1;height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:30px 0 20px;color:var(--ink-700)}
     .fulu .chi{font-family:var(--font-sans);font-size:12px;letter-spacing:.42em;color:var(--rose-500);margin-left:.42em}
     .fulu .glyph{font-family:var(--font-serif);font-size:84px;line-height:1;color:var(--accent-press)}
@@ -307,7 +306,7 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     .fulu.sm{padding:18px 0 13px}.fulu.sm .glyph{font-size:50px}.fulu.sm .name{font-size:21px}.fulu.sm .chi{font-size:9.5px}.fulu.sm .bar{height:16px}.fulu.sm .brand{font-size:8.5px}
     .blurred{filter:blur(7px);width:100%;height:100%}
     @media(max-width:760px){.blurred{filter:blur(6px)}}
-    .fog{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:0 18px 20px;background:linear-gradient(180deg,var(--veil-top),var(--veil-bottom) 78%)}
+    .fog{position:absolute;inset:0;z-index:2;border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:0 18px 20px;background:linear-gradient(180deg,var(--veil-top),var(--veil-bottom) 78%)}
     .fog .lk{width:30px;height:30px;border-radius:999px;background:var(--paper);border:1px solid var(--rose-200);display:flex;align-items:center;justify-content:center;margin-bottom:8px;box-shadow:var(--shadow-xs);color:var(--rose-500)}
     .fog .cap{font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.6;color:var(--ink-700)}
     .tal-caption{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
@@ -727,7 +726,7 @@ function viewResult(){
     h+=block("為這題抽的五張牌","",'<div class="tarot-grid">'+R.tarot.map(function(c,i){
       var pol=c.is_reversed?"逆位":"正位";var img=c.image_url||c.image||"";
       var face=img?'<img src="'+esc(img)+'" alt="'+esc(c.card_name)+'" style="width:100%;height:100%;object-fit:contain">':'<span class="nm">'+esc(c.card_name)+'</span>';
-      return '<div><div class="tcard"><span class="tpos-tag zf-tag rose outline">'+(POS[i]||("牌位"+(i+1)))+'</span>'+face+'</div>'+
+      return '<div><div class="tcard"><span class="tpos-tag zf-tag rose">'+(POS[i]||("牌位"+(i+1)))+'</span>'+face+'</div>'+
         '<div class="tline">'+esc(c.card_name)+' · '+pol+'</div></div>';
     }).join("")+'</div>');
   }
@@ -738,7 +737,7 @@ function viewResult(){
       (oc.no?'<div class="qno">'+esc(oc.no)+'</div>':'')+(oc.poem?'<div class="qpoem">'+oc.poem.split(/[，。、；;\s]+/).filter(Boolean).map(function(l){return '<span>'+esc(l)+'</span>'}).join("")+'</div>':'')+
       (paid?'':'<p class="hint" style="margin-top:14px">'+ic("lock-simple")+'完整籤解，解鎖後為你打開。</p>')+'</div>';
     if(km&&km.curHex){var kmLine=km.interp?(paid?km.interp:(km.interp.length>80?km.interp.substring(0,80)+'…':km.interp)):'';
-      qk+='<div class="zf-card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數</span>'+(km.fortuneLevel?'<span class="zf-tag rose outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
+      qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數</span>'+(km.fortuneLevel?'<span class="zf-tag rose outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
         (km.signOrder?'<div class="qno">'+esc(km.signOrder)+'</div>':'')+
         (km.poem?'<p style="font-family:var(--font-serif);font-size:18px;font-weight:500;line-height:1.8;color:var(--ink-900);margin:0">'+esc(km.poem)+'</p>':'')+
         (kmLine?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+esc(kmLine)+(!paid&&km.interp&&km.interp.length>80?' <span style="color:var(--rose-500)">解鎖完整預言 →</span>':'')+'</p>':'')+'</div>';
@@ -846,7 +845,7 @@ function nameCard(paid){
   var R=STATE.result||{};var N=(R&&R.name)?R.name:PH_NAME;var circ=2*Math.PI*30;var dash=(N.score/100)*circ;
   var h='<div class="zf-card sunken">';
   h+='<div class="nm-head"><span class="nm-full">'+N.fullname+'</span>'+
-     '<div class="nm-score"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-100)" stroke-width="5"/><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-400)" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+dash.toFixed(1)+' '+circ.toFixed(1)+'" stroke-dashoffset="'+(circ*0.25).toFixed(1)+'" transform="rotate(-90 36 36)"/><text x="36" y="40" text-anchor="middle" dominant-baseline="middle" style="font-family:var(--font-sans);font-size:19px;font-weight:600;fill:var(--ink-900)">'+N.score+'</text></svg><span class="nm-score-l">綜合分數</span></div></div>';
+     '<div class="nm-score"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-100)" stroke-width="5"/><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-400)" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+dash.toFixed(1)+' '+circ.toFixed(1)+'" stroke-dashoffset="0" transform="rotate(-90 36 36)"/><text x="36" y="40" text-anchor="middle" dominant-baseline="middle" style="font-family:var(--font-sans);font-size:19px;font-weight:600;fill:var(--ink-900)">'+N.score+'</text></svg><span class="nm-score-l">綜合分數</span></div></div>';
   h+='<div class="pf-block"><div class="pf-lbl">逐字分析</div><div class="nm-chars">'+N.chars.map(function(c){return '<div class="nm-char" style="background:'+(EL_BG[c.el]||'var(--surface-card)')+'"><div class="nm-c">'+c.ch+'</div><div class="nm-cs">'+c.s+' 畫</div><div class="nm-ce" style="color:'+(EL_TX[c.el]||'var(--ink-700)')+'">'+c.el+(c.inf?' ⚡':'')+'</div></div>'}).join("")+'</div></div>';
   h+='<div class="pf-block s"><div class="pf-lbl">五格</div><div class="nm-wuge">'+N.wuge.map(function(w){return '<div class="nm-wg"><div class="nm-wk">'+w.k+'</div><div class="nm-ws">'+w.s+'</div><div class="nm-we" style="color:'+(EL_TX[w.el]||'var(--ink-700)')+'">'+w.el+'</div><div class="nm-wl" style="color:'+(LUCK_C[w.luck]||'var(--text-muted)')+'">'+w.luck+'</div></div>'}).join("")+'</div></div>';
   h+='<div class="nm-sancai"><div><div class="pf-lbl" style="margin-bottom:3px">三才配置</div><div class="nm-sc-cfg">'+N.sancai.config+'</div></div><div class="nm-sc-bar"></div><div class="nm-sc-r"><span class="nm-sc-luck">'+N.sancai.luck+'</span><span class="nm-sc-short">'+N.sancai.short+'</span></div></div>';
@@ -864,11 +863,11 @@ function spiritCard(paid){
   var sName=(R.spiritName&&R.spiritName.trim())?R.spiritName.trim():'分靈體';
   var sTraits=(R.spiritTraits&&R.spiritTraits.length)?R.spiritTraits:[];
   var body=R.profile;
-  var paras=body.split(/\n\n+/);
+
   var h='<div class="zf-card tint"><div class="sp-row">'+
     '<div class="sp-av-col"><span class="sp-av">'+esc((sName||'').slice(0,1))+'</span><span class="sp-name">'+esc(sName)+'</span></div>'+
     '<div class="sp-body"><div class="sp-traits">'+sTraits.map(function(t){return '<span class="zf-tag rose" style="font-size:12.5px">'+esc(t)+'</span>'}).join("")+'</div>'+
-    paras.map(function(p,i){return '<p class="sp-p"'+(i?' style="margin-top:12px"':'')+'>'+esc(p)+'</p>'}).join("")+
+    '<p class="sp-p">'+md(body)+'</p>'+
     '<div style="margin-top:18px"><a class="zf-btn primary sm" href="/spirit" style="text-decoration:none">和祂聊聊 '+ic("chat-circle","thin")+'</a></div>'+
     '</div></div></div>';
   return h;
