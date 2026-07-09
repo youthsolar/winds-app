@@ -1247,11 +1247,13 @@ function initGoogleGIS(){
 function mountGisButton(){
   if(STATE.userId)return;
   var el=document.getElementById("googleSignInBtn");
-  if(!el||el.childNodes.length)return;
+  if(!el)return;if(el.childNodes.length&&!mountGisButton._redo)return;mountGisButton._redo=false;
   if(typeof google==="undefined"||!google.accounts)return;
-  google.accounts.id.renderButton(el,{theme:"outline",size:"large",text:"signin_with",shape:"pill",width:280,locale:"zh-TW"});
+  el.innerHTML="";
+  google.accounts.id.renderButton(el,{theme:(window.ZFTheme&&ZFTheme.isDark())?"filled_black":"outline",size:"large",text:"signin_with",shape:"pill",width:280,locale:"zh-TW"});
 }
 window.addEventListener('zf-theme-change',function(){var d=window.ZFTheme&&ZFTheme.isDark();document.querySelectorAll('.zf-theme-ico').forEach(function(i){i.className='zf-theme-ico ph-thin ph-'+(d?'sun':'moon');});});
+window.addEventListener('zf-theme-change',function(){mountGisButton._redo=true;mountGisButton();});
 function boot(){
   var params=new URLSearchParams(location.search);
   var edmT=params.get("t");if(edmT){try{localStorage.setItem("winds_edm_token",edmT);}catch(e){}}

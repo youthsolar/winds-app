@@ -71,12 +71,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential, auto_select: false, context: 'signin' });
         var mount = document.getElementById('lgGoogle');
         if (mount) {
-          google.accounts.id.renderButton(mount, { theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
+          mount.innerHTML='';
+          google.accounts.id.renderButton(mount, { theme: (window.ZFTheme&&ZFTheme.isDark())?'filled_black':'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
         }
         // One Tap 加碼（被 cooldown 抑制也沒關係，上面的官方按鈕一定可點）
         try { google.accounts.id.prompt(); } catch (e) {}
       }
       init();
+      window.addEventListener('zf-theme-change', function () {
+        var mount = document.getElementById('lgGoogle');
+        if (mount && window.google && google.accounts && google.accounts.id) {
+          mount.innerHTML = '';
+          google.accounts.id.renderButton(mount, { theme: (window.ZFTheme&&ZFTheme.isDark())?'filled_black':'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
+        }
+      });
     })();
   </script>
 </BaseLayout>
