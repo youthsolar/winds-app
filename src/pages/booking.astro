@@ -113,6 +113,7 @@ import { PERSONAS } from '../data/booking-teachers';
     .booking-root .bw-spin{display:inline-block;width:18px;height:18px;border-radius:999px;border:2px solid var(--rose-100);border-top-color:var(--rose-400);animation:bkShim 0s,bwSpin .9s linear infinite;vertical-align:middle;margin-right:8px;}
     @keyframes bwSpin{to{transform:rotate(360deg);}}
     .booking-root .bw-form{display:flex;flex-direction:column;gap:14px;}
+    .booking-root .bw-topics{display:flex;gap:8px;flex-wrap:wrap;}
     .booking-root .bw-fld{display:flex;flex-direction:column;gap:6px;}
     .booking-root .bw-fld span{font-family:var(--font-sans);font-size:13px;font-weight:500;color:var(--ink-700);}
     .booking-root .bw-fld input,.booking-root .bw-fld textarea{font-family:var(--font-serif);font-size:16px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);padding:11px 14px;outline:none;resize:vertical;}
@@ -284,7 +285,7 @@ import { PERSONAS } from '../data/booking-teachers';
       }
       function stepTime(){
         shell(sn(2),'選時間','<div class="bw-loading"><span class="bw-spin"></span>載入可預約時段…</div>');
-        var from=new Date(); var to=new Date(); to.setDate(to.getDate()+30);
+        var from=new Date(); from.setDate(from.getDate()+1); var to=new Date(); to.setDate(to.getDate()+28);
         fetch(WORKER_API+'/sb-slots?service='+encodeURIComponent(W.svc.id)+'&provider='+encodeURIComponent(W.prov.id)+'&from='+ymd(from)+'&to='+ymd(to))
           .then(function(r){return r.json();}).then(function(d){
             var slots=(d&&d.slots)||{}; var dates=Object.keys(slots).sort();
@@ -306,21 +307,30 @@ import { PERSONAS } from '../data/booking-teachers';
       }
       function stepInfo(){
         var f=W.fields||{};
+        var TOPICS=['愛情','婚姻','財運','事業','運勢','健康'];
         var inner='<div class="bw-form">'+
           fld('姓名','wzName',f.name||'')+fld('手機','wzPhone',f.phone||'','tel')+
           fld('Email（限 Gmail）','wzEmail',f.email||'','email')+
-          '<label class="bw-fld"><span>想談的主題（選填）</span><textarea id="wzTopic" rows="3">'+esc(f.topic||'')+'</textarea></label>'+
+          '<div class="bw-fld"><span>想聊的主題（選填）</span><div class="bw-topics">'+TOPICS.map(function(tp){
+            return '<button class="bk-chip'+(f.topic===tp?' on':'')+'" data-topic="'+tp+'" type="button">'+tp+'</button>';
+          }).join('')+'</div></div>'+
+          '<label class="bw-fld"><span>想先讓老師知道的事（選填）</span><textarea id="wzNote" rows="3" maxlength="300" placeholder="也可以什麼都不寫，當面聊就好。">'+esc(f.note||'')+'</textarea></label>'+
           '<p class="bw-err" id="wzErr" hidden></p></div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-next type="button">下一步</button>';
         shell(sn(3),'留下聯絡方式',inner,foot);
+        W.topicPick=f.topic||'';
+        mount.querySelectorAll('[data-topic]').forEach(function(b){b.addEventListener('click',function(){
+          W.topicPick=(W.topicPick===b.dataset.topic)?'':b.dataset.topic;
+          mount.querySelectorAll('[data-topic]').forEach(function(c){c.classList.toggle('on',c.dataset.topic===W.topicPick);});
+        });});
         mount.querySelector('[data-back]').addEventListener('click',stepTime);
         mount.querySelector('[data-next]').addEventListener('click',function(){
-          var name=val('wzName'),phone=val('wzPhone'),email=val('wzEmail'),topic=val('wzTopic');
+          var name=val('wzName'),phone=val('wzPhone'),email=val('wzEmail'),note=val('wzNote');
           var err=document.getElementById('wzErr');
           if(!name){return showErr(err,'請輸入姓名。');}
           if(!/^09\d{8}$/.test(phone.replace(/[\s-]/g,''))){return showErr(err,'請輸入正確手機（09xxxxxxxx）。');}
           if(!GMAIL.test(email)){return showErr(err,'Email 目前僅接受 @gmail.com。');}
-          W.fields={name:name,phone:phone.replace(/[\s-]/g,''),email:email,topic:topic};
+          W.fields={name:name,phone:phone.replace(/[\s-]/g,''),email:email,topic:W.topicPick,note:note};
           stepConfirm();
         });
       }
@@ -336,6 +346,7 @@ import { PERSONAS } from '../data/booking-teachers';
           (W.loc?row('方式',W.loc.name):'')+row('時間',W.date+' '+W.time)+
           row('聯絡',W.fields.name+' · '+W.fields.phone)+
           (W.fields.topic?row('主題',W.fields.topic):'')+
+          (W.fields.note?row('備註',W.fields.note):'')+
           '<div class="bw-dep"><span>線上付訂金</span><b>NT$ '+dep.toLocaleString('en-US')+'</b></div>'+
           '<p class="bw-note">'+(locNote?esc(locNote)+' ':'')+'付訂金後即為你保留時段，餘額'+(online?'依老師指示':'現場')+'結清。僅接受 Gmail，採超商/線上付款。</p>'+
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
@@ -347,7 +358,7 @@ import { PERSONAS } from '../data/booking-teachers';
           fetch(WORKER_API+'/sb-book',{method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({service:W.svc.id,provider:W.prov.id,datetime:W.date+' '+W.time+':00',
               location:W.loc?W.loc.id:null,
-              name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null})})
+              name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null,note:W.fields.note||null})})
            .then(function(r){return r.json();}).then(function(d){
              if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
              else{showErr(document.getElementById('wzErr2'),d&&d.message||'建立預約失敗，請稍後再試。');btn.classList.remove('disabled');btn.textContent='確認並付訂金';}
