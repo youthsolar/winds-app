@@ -1198,7 +1198,7 @@ function shareResult(btn){
   fetch(WORKER_API+"/generate-og-image",{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({google_sub:STATE.userId})}).catch(function(){}).then(function(){
     done();
-    var shareUrl="https://app.winds.tw/share?uid="+encodeURIComponent(STATE.userId)+"&t="+Date.now();
+    var shareUrl="https://winds.tw/share?uid="+encodeURIComponent(STATE.userId)+"&t="+Date.now();
     var R=STATE.result||{};
     var snippet=(R.summary||"").replace(/[#*`>]/g,"").replace(/\s+/g," ").trim().slice(0,100);
     var shareText="🌀 找風問幸福 — 我的占卜結果\n\n"+(snippet?snippet+"…\n\n":"")+"你也來試試 ✨\n👉 "+shareUrl;

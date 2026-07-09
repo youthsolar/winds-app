@@ -30,13 +30,13 @@
 - **Consecrated items**: Non-refundable (each item is personally crafted and consecrated).
 
 ## Online Divination
-Free online divination experience at https://app.winds.tw — combines I Ching hexagrams with Tarot five-card spread, AI-assisted analysis, and personalized recommendations. Sign in with Google account.
+Free online divination experience at https://winds.tw — combines I Ching hexagrams with Tarot five-card spread, AI-assisted analysis, and personalized recommendations. Sign in with Google account.
 
 ## Contact
-- Website: https://app.winds.tw
+- Website: https://winds.tw
 - LINE: https://liff.winds.tw
 - Booking: https://winds.tw (SimplyBook)
-- Shop: https://zijiawangzijia.easy.co (EasyStore)
+- Shop: https://shop.winds.tw
 
 ## Currency
 All prices in New Taiwan Dollar (TWD/NT$).

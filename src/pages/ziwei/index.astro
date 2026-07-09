@@ -796,7 +796,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     const shareCopyBtn = document.getElementById('share-copy') as HTMLButtonElement;
     if (chartData.share_token) {
       shareBlock.hidden = false;
-      shareUrlInput.value = `https://app.winds.tw/ziwei/share/${chartData.share_token}`;
+      shareUrlInput.value = `https://winds.tw/ziwei/share/${chartData.share_token}`;
       shareCopyBtn.onclick = async () => {
         try {
           await navigator.clipboard.writeText(shareUrlInput.value);
