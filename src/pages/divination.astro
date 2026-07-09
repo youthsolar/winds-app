@@ -287,7 +287,8 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     .qno{font-family:var(--font-sans);font-size:12.5px;color:var(--rose-500);letter-spacing:.06em;margin-bottom:10px}
     .qpoem{display:grid;grid-template-columns:max-content max-content;justify-content:start;gap:6px 1em}
     .qpoem span{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900)}
-    @media(max-width:760px){.qpoem{gap:6px 0.8em}.qpoem span{font-size:16.5px}}
+    .kpoem{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900);margin:0}
+    @media(max-width:760px){.qpoem{gap:6px 0.8em}.qpoem span{font-size:16.5px}.kpoem{font-size:16.5px}}
 
     /* talisman */
     .tal-hero{display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center}
@@ -744,7 +745,7 @@ function viewResult(){
     if(km&&km.curHex){var kmLine=km.interp?(paid?km.interp:(km.interp.length>80?km.interp.substring(0,80)+'…':km.interp)):'';
       qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數</span>'+(km.fortuneLevel?'<span class="zf-tag rose outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
         (km.signOrder?'<div class="qno">'+esc(km.signOrder)+'</div>':'')+
-        (km.poem?'<p style="font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900);margin:0">'+esc(km.poem)+'</p>':'')+
+        (km.poem?'<p class="kpoem">'+esc(km.poem)+'</p>':'')+
         (kmLine?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+esc(kmLine)+(!paid&&km.interp&&km.interp.length>80?' <span style="color:var(--rose-500)">解鎖完整預言 →</span>':'')+'</p>':'')+'</div>';
     }
     qk+='</div>';
