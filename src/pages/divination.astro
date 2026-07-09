@@ -548,8 +548,8 @@ function header(){
     '<button class="ph-back" onclick="back()">'+ic("arrow-left")+'<span>上一步</span></button>'+
     '<div class="ph-steps">'+steps+'</div>'+
     '<span class="ph-mob"><b>'+(idx+1)+'</b> / '+STEPS.length+' · '+STEPS[idx].l+'</span>'+
-    '<button class="ph-exit" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="margin-right:-6px"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'"></i></button>'+
-    '<button class="ph-exit" onclick="exitFlow()">'+ic("x")+'</button>'+
+    '<div style="display:flex;align-items:center;gap:10px"><button class="ph-exit" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'"></i></button>'+
+    '<button class="ph-exit" onclick="exitFlow()">'+ic("x")+'</button></div>'+
     '</div><div class="ph-bar"><span style="width:'+pct+'%"></span></div></header>';
 }
 
