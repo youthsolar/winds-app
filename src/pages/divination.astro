@@ -718,7 +718,7 @@ function viewResult(){
   h+='</div>';
   h+='<div class="banner"><div style="height:188px;background:linear-gradient(135deg,var(--rose-100),var(--clay-200))"></div><div class="cap"><span>慢慢看，不用急。</span></div></div>';
   h+=block("你的命理檔案","",profileCard(paid));
-  h+=block("紫微命盤","",ziweiBlock());
+  /* 紫微命盤：ziweiBlock 全是寫死示意（火六局/丑宮…人人相同）——待 /ziwei-chart 真後端才開（佔位資料清理 2026-07-09） */
   /* 姓名學：等真分析回來才現身（PH_NAME 只是示意稿，直接亮會把別人名字掛在用戶頭上） */
   h+='<div id="nameSection" style="display:none">'+block("姓名學分析","",'<div id="nameMount"></div>')+'</div>';
   h+=block("你的分靈體側寫","",spiritCard(paid));
@@ -760,36 +760,46 @@ function fact(l,v,s){return '<div class="fact"><div class="l">'+l+'</div><div cl
 /* ===== 完整命理檔案（逐值對齊 DS step4-result.jsx ProfileCard；real 有則用、缺則示意待後端）===== */
 var EL_BG={'木':'var(--el-wood-bg)','火':'var(--el-fire-bg)','土':'var(--el-earth-bg)','金':'var(--el-metal-bg)','水':'var(--el-water-bg)'};
 var EL_TX={'木':'var(--el-wood-tx)','火':'var(--el-fire-tx)','土':'var(--el-earth-tx)','金':'var(--el-metal-tx)','水':'var(--el-water-tx)'};
-var PH_PROFILE={lunar:'辛未年 十月初九',star:'天蠍座',starSub:'水象',zodiac:'馬',zodiacSub:'午馬',xingsu:{name:'危宿',group:'玄武七宿'},taisui:'與太歲相合',mingling:'文曲星君',liuyear:'武曲星君',bazi:['庚午','丁亥','甲子','辛未'],nayin:[{pos:'年柱',value:'路旁土'},{pos:'月柱',value:'屋上土'},{pos:'日柱',value:'海中金'},{pos:'時柱',value:'路旁土'}],mmtarot:[{name:'女祭司',glyph:'祭',el:'火',line:'直覺敏銳，感知到別人察覺不到的細節。'},{name:'星星',glyph:'星',el:'木',line:'底色是溫柔的希望，即使受傷也不輕易放棄。'},{name:'節制',glyph:'節',el:'土',line:'習慣在混亂裡找平衡，這是智慧。'},{name:'命運之輪',glyph:'輪',el:'火',line:'時機比努力更重要，你懂得等對的浪。'}],note:'木氣偏旺，火稍弱——你想得多，行動前容易先消耗自己。',seasonNote:'前段平穩、略有起色；穀雨後一路走高，夏至前後是這半年最順的一段。'};
 function ftile2(l,v,s){return '<div class="ftile"><div class="ftile-l">'+l+'</div><div class="ftile-v">'+v+'</div>'+(s?'<div class="ftile-s">'+s+'</div>':'')+'</div>'}
+/* 真值映射（取代 PH_PROFILE 寫死副標；缺資料一律隱藏不造假，同姓名學卡原則） */
+var STAR_XIANG={'牡羊':'火象','獅子':'火象','射手':'火象','金牛':'土象','處女':'土象','摩羯':'土象','雙子':'風象','天秤':'風象','水瓶':'風象','巨蟹':'水象','天蠍':'水象','雙魚':'水象'};
+function starSub(s){s=String(s||'');for(var k in STAR_XIANG){if(s.indexOf(k)>=0)return STAR_XIANG[k];}return'';}
+var ZODIAC_BRANCH={'鼠':'子鼠','牛':'丑牛','虎':'寅虎','兔':'卯兔','龍':'辰龍','蛇':'巳蛇','馬':'午馬','羊':'未羊','猴':'申猴','雞':'酉雞','狗':'戌狗','豬':'亥豬'};
+var XIU_GROUP={'角':'蒼龍七宿','亢':'蒼龍七宿','氐':'蒼龍七宿','房':'蒼龍七宿','心':'蒼龍七宿','尾':'蒼龍七宿','箕':'蒼龍七宿','斗':'玄武七宿','牛':'玄武七宿','女':'玄武七宿','虛':'玄武七宿','危':'玄武七宿','室':'玄武七宿','壁':'玄武七宿','奎':'白虎七宿','婁':'白虎七宿','胃':'白虎七宿','昴':'白虎七宿','畢':'白虎七宿','觜':'白虎七宿','參':'白虎七宿','井':'朱雀七宿','鬼':'朱雀七宿','柳':'朱雀七宿','星':'朱雀七宿','張':'朱雀七宿','翼':'朱雀七宿','軫':'朱雀七宿'};
+function xiuGroup(m){m=String(m||'');var x=(m.match(/（(.)宿）/)||[])[1]||m.charAt(0);return XIU_GROUP[x]||'';}
 function profileCard(paid){
-  var R=STATE.result||{};var P=PH_PROFILE;
-  var bazi4=(R.bazi&&String(R.bazi).trim())?String(R.bazi).trim().split(/\s+/):P.bazi;
-  var lp=(R.lunar||P.lunar).split(/\s+/);
+  var R=STATE.result||{};
   var h='<div class="zf-card sunken">';
-  h+='<div class="pf-grid4">'+
-     ftile2('農曆','<span style="display:block">'+esc(lp[0]||'')+'</span>'+(lp.slice(1).join(' ')?'<span style="display:block">'+esc(lp.slice(1).join(' '))+'</span>':''))+
-     ftile2('星座',esc(R.star||P.star),P.starSub)+
-     ftile2('生肖',esc(R.zodiac||P.zodiac),P.zodiacSub)+
-     ftile2('星宿（28宿）',esc(R.mansion||P.xingsu.name),P.xingsu.group)+'</div>';
-  h+='<div class="pf-grid3">'+
-     ftile2('本命星君',esc(R.deityBirth||P.mingling))+ftile2('流年星君',esc(R.deityYear||P.liuyear))+ftile2('太歲',esc(R.taisui||'相合'),R.taisui?'':P.taisui)+'</div>';
-  h+='<div class="pf-block"><div class="pf-lbl">八字四柱</div><div class="bazi-grid">'+
+  var tiles=[];
+  if(R.lunar){var lp=R.lunar.split(/\s+/);tiles.push(ftile2('農曆','<span style="display:block">'+esc(lp[0]||'')+'</span>'+(lp.slice(1).join(' ')?'<span style="display:block">'+esc(lp.slice(1).join(' '))+'</span>':'')));}
+  if(R.star)tiles.push(ftile2('星座',esc(R.star),starSub(R.star)));
+  if(R.zodiac)tiles.push(ftile2('生肖',esc(R.zodiac),ZODIAC_BRANCH[R.zodiac]||''));
+  if(R.mansion)tiles.push(ftile2('星宿（28宿）',esc(R.mansion),xiuGroup(R.mansion)));
+  if(tiles.length)h+='<div class="pf-grid4">'+tiles.join("")+'</div>';
+  var tiles3=[];
+  if(R.deityBirth)tiles3.push(ftile2('本命星君',esc(R.deityBirth)));
+  if(R.deityYear)tiles3.push(ftile2('流年星君',esc(R.deityYear)));
+  if(R.taisui)tiles3.push(ftile2('太歲',esc(R.taisui)));
+  if(tiles3.length)h+='<div class="pf-grid3">'+tiles3.join("")+'</div>';
+  var bazi4=(R.bazi&&String(R.bazi).trim())?String(R.bazi).trim().split(/\s+/):null;
+  if(bazi4&&bazi4.length>=4)h+='<div class="pf-block"><div class="pf-lbl">八字四柱</div><div class="bazi-grid">'+
      ['年柱','月柱','日柱','時柱'].map(function(pos,i){var bz=bazi4[i]||'--';return '<div class="bz-cell"><div class="bz-pos">'+pos+'</div><div class="bz-ch">'+esc(bz[0]||'')+'</div><div class="bz-bar"></div><div class="bz-ch b">'+esc(bz[1]||'')+'</div></div>'}).join("")+'</div></div>';
   var ny=(R.naiyin&&R.naiyin.length===4&&R.naiyin.every(function(x){return x&&String(x).trim()}))
-    ?[{pos:'年柱',value:R.naiyin[0]},{pos:'月柱',value:R.naiyin[1]},{pos:'日柱',value:R.naiyin[2]},{pos:'時柱',value:R.naiyin[3]}]:P.nayin;
-  h+='<div class="pf-block s"><div class="pf-lbl">納音</div><div class="nayin-grid">'+
+    ?[{pos:'年柱',value:R.naiyin[0]},{pos:'月柱',value:R.naiyin[1]},{pos:'日柱',value:R.naiyin[2]},{pos:'時柱',value:R.naiyin[3]}]:null;
+  if(ny)h+='<div class="pf-block s"><div class="pf-lbl">納音</div><div class="nayin-grid">'+
      ny.map(function(n){return '<div class="ny-cell"><div class="ny-pos">'+n.pos+'</div><div class="ny-val">'+esc(n.value)+'</div></div>'}).join("")+'</div></div>';
   var MMP=['本命','功課','業力','天緣'];
-  var mmt=(R.mmtarot&&R.mmtarot.length)?R.mmtarot:P.mmtarot;
-  h+='<div class="pf-block"><div class="pf-lbl">本命塔羅牌組</div><div class="mmt-grid">'+
+  var mmt=(R.mmtarot&&R.mmtarot.length)?R.mmtarot:null;
+  if(mmt)h+='<div class="pf-block"><div class="pf-lbl">本命塔羅牌組</div><div class="mmt-grid">'+
      mmt.map(function(t,i){var bg=EL_BG[t.el]||'var(--rose-100)',tx=EL_TX[t.el]||'var(--rose-500)';
        return '<div class="mmt-card" style="background:linear-gradient(165deg,var(--paper),'+bg+')"><span style="position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 38%,'+bg+',transparent 68%);opacity:.9"></span>'+
          '<span class="mmt-tag zf-tag rose outline">'+esc(t.pos||MMP[i])+'</span><span class="mmt-disc" style="color:'+tx+'">'+esc(t.glyph)+'</span>'+
          '<div class="mmt-name">'+esc(t.name)+'</div><div class="mmt-rule"></div>'+(t.line?'<div class="mmt-line">'+esc(t.line)+'</div>':'')+'</div>'}).join("")+'</div></div>';
   var radar=radarSVG(188),season=seasonSVG(paid),lower='';
-  if(radar)lower+='<div class="mini-panel" style="align-items:center"><div style="align-self:flex-start;font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px">五行分布</div>'+radar+'<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);text-align:center;margin-top:4px">'+P.note+'</div></div>';
-  if(season)lower+='<div class="mini-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted)">節氣運勢 · 未來半年</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:11px;color:var(--rose-500)">'+ic("lock-simple")+' 後段付費</span>')+'</div>'+season+'<div style="display:flex;justify-content:space-between;font-family:var(--font-sans);font-size:11px;color:var(--text-muted);margin-top:6px"><span>立春</span><span>穀雨</span><span>夏至</span></div><div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);margin-top:8px">'+P.seasonNote+'</div></div>';
+  if(radar){var mx=(R.wuxing||[]).slice().sort(function(a,b){return b.v-a.v});var topEl=mx[0]?mx[0].k:'',lowEl=mx.length?mx[mx.length-1].k:'';
+    lower+='<div class="mini-panel" style="align-items:center"><div style="align-self:flex-start;font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px">五行分布</div>'+radar+(topEl?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);text-align:center;margin-top:4px">'+topEl+'氣最旺、'+lowEl+'氣最弱</div>':'')+'</div>';}
+  if(season){var fl=R.fortuneLine||[];var ax=fl.length>=3?[fl[0],fl[Math.floor((fl.length-1)/2)],fl[fl.length-1]].map(function(p){return esc(p.name)}):null;
+    lower+='<div class="mini-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted)">節氣運勢 · 未來六節氣</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:11px;color:var(--rose-500)">'+ic("lock-simple")+' 後段付費</span>')+'</div>'+season+(ax?'<div style="display:flex;justify-content:space-between;font-family:var(--font-sans);font-size:11px;color:var(--text-muted);margin-top:6px"><span>'+ax[0]+'</span><span>'+ax[1]+'</span><span>'+ax[2]+'</span></div>':'')+'</div>';}
   if(lower)h+='<div class="profile-lower" style="margin-top:14px">'+lower+'</div>';
   return h+'</div>';
 }
@@ -845,12 +855,15 @@ function nameCard(paid){
   return h+'</div>';
 }
 /* ===== 分靈體側寫（逐值對齊 DS SpiritCard；body 用 real profile、名/特質示意待 Zoho）===== */
-var PH_SPIRIT={name:'夜合',trait:['念舊','心軟','想得深'],body:'你是那種把話都放在心裡、反覆想很久的人。表面上很穩，其實對在乎的人特別容易動搖。這不是壞事，只是別讓自己一直扛著。\n\n你的能量場偏陰柔，對環境的氣場很敏感——某些地方或某些人，會讓你莫名地累。這是感知力，不是脆弱。\n\n分靈體「夜合」，代表的是在深夜開花的溫柔。你在安靜裡最有力量，給自己一些獨處的時間，你才能真正充電。'};
 function spiritCard(paid){
-  var R=STATE.result||{};var S=PH_SPIRIT;
-  var sName=(R.spiritName&&R.spiritName.trim())?R.spiritName.trim():S.name;
-  var sTraits=(R.spiritTraits&&R.spiritTraits.length)?R.spiritTraits:S.trait;
-  var body=(R.profile&&R.profile.trim())?R.profile:S.body;
+  var R=STATE.result||{};
+  /* 缺真側寫不給假人設（PH_SPIRIT「夜合」是示意稿）——誠實告知狀態 */
+  if(!(R.profile&&R.profile.trim())){
+    return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">'+(R.profileGenerating?'你的分靈體側寫正在生成…稍後回來這頁就能看到。':'分靈體已接通…下次占卜時會顯示完整側寫。')+'</p></div>';
+  }
+  var sName=(R.spiritName&&R.spiritName.trim())?R.spiritName.trim():'分靈體';
+  var sTraits=(R.spiritTraits&&R.spiritTraits.length)?R.spiritTraits:[];
+  var body=R.profile;
   var paras=body.split(/\n\n+/);
   var h='<div class="zf-card tint"><div class="sp-row">'+
     '<div class="sp-av-col"><span class="sp-av">'+esc((sName||'').slice(0,1))+'</span><span class="sp-name">'+esc(sName)+'</span></div>'+
