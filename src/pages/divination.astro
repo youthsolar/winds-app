@@ -382,6 +382,8 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     .cool-btns{display:flex;gap:12px;justify-content:center}
     @media(max-width:760px){.cool-btns{flex-direction:column}}
 
+    .sum-body{font-family:var(--font-serif);font-weight:300;font-size:17px;line-height:1.9;color:var(--ink-700);margin:18px 0 0}
+    @media(max-width:760px){.sum-body{font-size:15.5px}}
     .hidden{display:none!important}
     a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
     /* 風小編只在結果頁現身（含回看模式）；漏斗填單過程不打擾 */
@@ -716,7 +718,7 @@ function viewResult(){
   var R=STATE.result||{};var paid=STATE.paid||R.purchased;var q=STATE.text||"";
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span>';
   if(q)h+='<p style="font-family:var(--font-serif);font-size:15px;color:var(--text-muted);margin:14px 0 6px">你問的是——</p><h1 class="q">「'+esc(q)+'」</h1>';
-  if(R.summary)h+='<div style="font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.95;color:var(--ink-700);margin:18px 0 0">'+md(R.summary)+'</div>';
+  if(R.summary)h+='<div class="sum-body">'+md(R.summary)+'</div>';
   h+='</div>';
   h+='<div class="banner"><div class="bimg" style="background-image:url(/assets/flow-banner-top.jpg),linear-gradient(135deg,var(--rose-100),var(--clay-200))"></div><div class="cap"><span>慢慢看，不用急。</span></div></div>';
   h+=block("你的命理檔案","",profileCard(paid));
@@ -742,7 +744,7 @@ function viewResult(){
     if(km&&km.curHex){var kmLine=km.interp?(paid?km.interp:(km.interp.length>80?km.interp.substring(0,80)+'…':km.interp)):'';
       qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數</span>'+(km.fortuneLevel?'<span class="zf-tag rose outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
         (km.signOrder?'<div class="qno">'+esc(km.signOrder)+'</div>':'')+
-        (km.poem?'<p style="font-family:var(--font-serif);font-size:18px;font-weight:500;line-height:1.8;color:var(--ink-900);margin:0">'+esc(km.poem)+'</p>':'')+
+        (km.poem?'<p style="font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900);margin:0">'+esc(km.poem)+'</p>':'')+
         (kmLine?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+esc(kmLine)+(!paid&&km.interp&&km.interp.length>80?' <span style="color:var(--rose-500)">解鎖完整預言 →</span>':'')+'</p>':'')+'</div>';
     }
     qk+='</div>';
