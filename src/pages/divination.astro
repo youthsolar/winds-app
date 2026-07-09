@@ -293,10 +293,10 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     @media(max-width:760px){.tal-hero{grid-template-columns:1fr;gap:18px}}
     .tal-wrap{width:196px;position:relative}
     @media(max-width:760px){.tal-wrap{width:168px;margin:0 auto}}
-    .tframe{position:relative;width:100%;aspect-ratio:9/16;border-radius:var(--radius-lg);background:var(--paper);border:1px solid var(--rose-200);box-shadow:var(--shadow-md);overflow:hidden;display:flex;align-items:center;justify-content:center;--tf-glow:var(--rose-100)}
-    .tframe .glow{position:absolute;inset:0;background:radial-gradient(132% 82% at 50% 41%,var(--tf-glow) 0%,var(--tf-glow) 16%,transparent 70%)}
-    .tframe .glow2{position:absolute;inset:0;background:radial-gradient(80% 55% at 50% 40%,var(--tf-glow),transparent 70%);mix-blend-mode:multiply;opacity:.28}
-    .tframe .inner-border{position:absolute;inset:8px;border-radius:calc(var(--radius-lg) - 6px);border:1px solid var(--rose-100)}
+    .tframe{position:relative;width:100%;aspect-ratio:9/16;border-radius:var(--radius-lg);background:var(--paper);border:1px solid var(--rose-200);box-shadow:var(--shadow-md);overflow:hidden;display:flex;align-items:center;justify-content:center;--tf-glow:var(--rose-100);-webkit-mask-image:-webkit-radial-gradient(white,black)}
+    .tframe .glow{position:absolute;inset:0;z-index:1;background:radial-gradient(132% 82% at 50% 41%,var(--tf-glow) 0%,var(--tf-glow) 16%,transparent 70%)}
+    .tframe .glow2{position:absolute;inset:0;z-index:1;background:radial-gradient(80% 55% at 50% 40%,var(--tf-glow),transparent 70%);mix-blend-mode:multiply;opacity:.28}
+    .tframe .inner-border{position:absolute;z-index:1;inset:8px;border-radius:calc(var(--radius-lg) - 6px);border:1px solid var(--rose-100)}
     .fulu{position:relative;z-index:1;height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:30px 0 20px;color:var(--ink-700)}
     .fulu .chi{font-family:var(--font-sans);font-size:12px;letter-spacing:.42em;color:var(--rose-500);margin-left:.42em}
     .fulu .glyph{font-family:var(--font-serif);font-size:84px;line-height:1;color:var(--accent-press)}
@@ -361,10 +361,11 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
 
     /* banner */
     .banner{position:relative;border-radius:var(--radius-xl);overflow:hidden;margin:30px 0;box-shadow:var(--shadow-sm);border:1px solid var(--rose-100)}
-    .banner img{display:block;width:100%;height:188px;object-fit:cover}
+    .banner .bimg{height:188px;background-position:center;background-size:cover;background-repeat:no-repeat}
+    .banner.tall .bimg{height:250px}
     .banner .cap{position:absolute;left:0;right:0;bottom:0;padding:34px 26px 20px;background:linear-gradient(transparent,var(--photo-scrim));pointer-events:none}
     .banner .cap span{font-family:var(--font-serif);font-size:19px;color:var(--ink-on-photo);text-shadow:0 1px 8px var(--photo-scrim-shadow,rgba(46,40,35,.3))}
-    @media(max-width:760px){.banner img{height:132px}.banner .cap span{font-size:16px}}
+    @media(max-width:760px){.banner .bimg{height:132px}.banner.tall .bimg{height:170px}.banner .cap span{font-size:16px}}
 
     /* cooldown */
     .cool{min-height:calc(100vh - 72px);display:flex;align-items:center;justify-content:center;padding:60px 32px;position:relative;overflow:hidden}
@@ -715,7 +716,7 @@ function viewResult(){
   if(q)h+='<p style="font-family:var(--font-serif);font-size:15px;color:var(--text-muted);margin:14px 0 6px">你問的是——</p><h1 class="q">「'+esc(q)+'」</h1>';
   if(R.summary)h+='<div style="font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.95;color:var(--ink-700);margin:18px 0 0">'+md(R.summary)+'</div>';
   h+='</div>';
-  h+='<div class="banner"><div style="height:188px;background:linear-gradient(135deg,var(--rose-100),var(--clay-200))"></div><div class="cap"><span>慢慢看，不用急。</span></div></div>';
+  h+='<div class="banner"><div class="bimg" style="background-image:url(/assets/flow-banner-top.png),linear-gradient(135deg,var(--rose-100),var(--clay-200))"></div><div class="cap"><span>慢慢看，不用急。</span></div></div>';
   h+=block("你的命理檔案","",profileCard(paid));
   /* 紫微命盤：ziweiBlock 全是寫死示意（火六局/丑宮…人人相同）——待 /ziwei-chart 真後端才開（佔位資料清理 2026-07-09） */
   /* 姓名學：等真分析回來才現身（PH_NAME 只是示意稿，直接亮會把別人名字掛在用戶頭上） */
@@ -745,7 +746,7 @@ function viewResult(){
     qk+='</div>';
     h+=block("籤詩與神數","",qk);
   }
-  h+='<div class="banner"><div style="height:188px;background:linear-gradient(135deg,var(--clay-200),var(--rose-100))"></div><div class="cap"><span>要不要改變，你決定。</span></div></div>';
+  h+='<div class="banner tall"><div class="bimg" style="background-image:url(/assets/talk-space-banner.jpg),linear-gradient(135deg,var(--clay-200),var(--rose-100))"></div><div class="cap"><span>要不要改變，你決定。</span></div></div>';
   if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("完整解讀與你的靈符","完整解讀，得到答案；解開靈符，舒緩問題。",hexTalismans(paid)+'<div style="margin-top:20px">'+paywall(paid)+'</div>',true);
   else h+=block("完整解讀","",paywall(paid));
   h+=recsSection();
