@@ -282,8 +282,8 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     @media(max-width:760px){.qk-grid{grid-template-columns:1fr}}
     .vqian{display:flex;flex-direction:column;gap:10px}
     .vqian .no{font-family:var(--font-serif);font-size:16px;color:var(--rose-600);letter-spacing:.1em;border-bottom:1px solid var(--rose-100);padding-bottom:8px}
-    .vqian .poem{display:flex;flex-direction:column;gap:6px}
-    .vqian .poem span{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900);letter-spacing:.08em}
+    .vqian .poem{display:grid;grid-template-columns:max-content max-content;justify-content:start;gap:6px 1em}
+    .vqian .poem span{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900)}
     .vqian .poem span.dim{color:var(--ink-300)}
     .qno{font-family:var(--font-sans);font-size:12.5px;color:var(--rose-500);letter-spacing:.06em;margin-bottom:10px}
     .qpoem{display:grid;grid-template-columns:max-content max-content;justify-content:start;gap:6px 1em}
@@ -640,7 +640,7 @@ function viewInfo(){
   h+='<label class="fw" style="display:block"><span class="f-label">出生地 <span style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);font-weight:400">選填</span></span><input id="inLocation" class="f-input" type="text" placeholder="例：出生的城市" value="'+esc(pf.location||"")+'"><span class="hint" style="margin-top:6px">填寫有助於更準確的時辰校正</span></label>';
   h+=field("inPhone","手機","0912 345 678","tel",pfPhone)+field("inEmail","電子郵件","you@gmail.com","email",pf.email||STATE.gEmail);
   h+='</div>';
-  h+='<p class="hint" style="margin-top:18px">'+ic("lock-simple")+'手機與 email 只用來給你結果與聯繫，不會公開。Email 目前僅接受 @gmail.com。</p>';
+  h+='<p class="hint" style="margin-top:18px">'+ic("lock-simple")+'Email 目前僅接受 @gmail.com。</p>';
   h+='<div id="infoErr" class="hidden" style="margin-top:14px;font-family:var(--font-sans);font-size:13.5px;color:var(--critical);background:var(--rose-50);border:1px solid var(--rose-100);border-radius:var(--radius-md);padding:11px 14px"></div>';
   /* 分靈體 teaser（保留 live 真實 prefetch）*/
   h+='<div class="zf-card tint" style="margin-top:32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">'+
