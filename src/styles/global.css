@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./ds.css";
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* Winds Portfolio Unified Design Tokens (v2.0 — 2026-06-10 占卜站 handoff) */
 @layer base {
