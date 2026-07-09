@@ -32,6 +32,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script is:inline src="/assets/theme-init.js"></script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
@@ -105,6 +106,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
         <a href="/booking">老師介紹</a>
         <a href="/shop">法器選物</a>
         <a href="/divination" class="zf-btn ghost sm">占卜</a>
+        <button class="zf-theme-btn" id="zfThemeBtn" aria-label="切換深淺色"><i class="ph-thin ph-moon"></i></button>
         <div id="auth-button" class="zf-account"></div>
       </div>
       <button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>
@@ -116,6 +118,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
       <a href="/booking">老師介紹</a>
       <a href="/shop">法器選物</a>
       <a href="/divination" class="zf-btn primary md full">占卜</a>
+      <button class="zf-theme-btn m" id="zfThemeBtnM" aria-label="切換深淺色"><i class="ph-thin ph-moon"></i><span>深色模式</span></button>
       <div id="auth-button-m" class="zf-account-m"></div>
     </div>
   </nav>
@@ -154,6 +157,10 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
     .zf-nav-links > a:not(.zf-btn){font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:0.03em;text-decoration:none;}
     .zf-nav-links > a:not(.zf-btn):hover{color:var(--accent-press);text-decoration:none;}
     .zf-burger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:transparent;color:var(--ink-700);cursor:pointer;}
+    .zf-theme-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:36px;height:36px;border:1px solid var(--border-soft);border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer;transition:background var(--dur-fast) var(--ease-soft);}
+    .zf-theme-btn:hover{background:var(--surface-sunken);}
+    .zf-theme-btn i{font-size:18px;line-height:1;}
+    .zf-theme-btn.m{width:auto;padding:10px 4px;border:none;justify-content:flex-start;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);}
     .zf-burger i{font-size:24px;line-height:1;}
     .zf-drawer{display:none;border-top:1px solid var(--border-soft);background:var(--surface-page);padding:8px 20px 18px;}
     .zf-drawer > a:not(.zf-btn){font-family:var(--font-serif);font-size:17px;color:var(--ink-900);padding:12px 4px;border-bottom:1px solid var(--border-soft);text-decoration:none;}
@@ -211,12 +218,26 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
   <script is:inline>
     (function () {
       var b = document.getElementById('zfBurger'), d = document.getElementById('zfDrawer');
-      if (!b || !d) return;
-      b.addEventListener('click', function () {
+      if (b && d) b.addEventListener('click', function () {
         var icon = b.querySelector('i');
         if (d.hasAttribute('hidden')) { d.removeAttribute('hidden'); if (icon) icon.className = 'ph-thin ph-x'; }
         else { d.setAttribute('hidden', ''); if (icon) icon.className = 'ph-thin ph-list'; }
       });
+      /* 深淺色切換鈕（theme-init.js 提供 ZFTheme） */
+      function paint() {
+        var dark = window.ZFTheme && ZFTheme.isDark();
+        ['zfThemeBtn', 'zfThemeBtnM'].forEach(function (id) {
+          var el = document.getElementById(id); if (!el) return;
+          var i = el.querySelector('i'); if (i) i.className = dark ? 'ph-thin ph-sun' : 'ph-thin ph-moon';
+          var s = el.querySelector('span'); if (s) s.textContent = dark ? '淺色模式' : '深色模式';
+        });
+      }
+      ['zfThemeBtn', 'zfThemeBtnM'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('click', function () { if (window.ZFTheme) ZFTheme.toggle(); });
+      });
+      window.addEventListener('zf-theme-change', paint);
+      paint();
     })();
   </script>
 

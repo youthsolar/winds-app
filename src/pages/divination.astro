@@ -27,6 +27,7 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+  <script is:inline src="/assets/theme-init.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="/assets/nav-auth.js?v=4" defer></script>
 
@@ -209,7 +210,7 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     .mmt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
     .mmt-card{position:relative;aspect-ratio:.62;border-radius:var(--radius-md);border:1px solid var(--rose-200);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 8px;text-align:center;overflow:hidden}
     .mmt-tag{position:absolute;top:7px;right:7px;z-index:2}
-    .mmt-disc{position:relative;display:inline-flex;width:52px;height:52px;border-radius:999px;background:var(--disc-frost-soft);border:1px solid rgba(255,253,248,0.8);align-items:center;justify-content:center;font-family:var(--font-serif);font-size:26px;line-height:1;margin-bottom:8px;flex-shrink:0}
+    .mmt-disc{position:relative;display:inline-flex;width:52px;height:52px;border-radius:999px;background:var(--disc-frost-soft);border:1px solid var(--disc-frost-hair);align-items:center;justify-content:center;font-family:var(--font-serif);font-size:26px;line-height:1;margin-bottom:8px;flex-shrink:0}
     .mmt-name{position:relative;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
     .mmt-rule{position:relative;width:18px;height:1px;background:var(--rose-200);margin:5px auto}
     .mmt-line{position:relative;font-family:var(--font-serif);font-weight:300;font-size:12px;line-height:1.6;color:var(--text-secondary);padding:0 4px}
@@ -543,6 +544,7 @@ function header(){
     '<button class="ph-back" onclick="back()">'+ic("arrow-left")+'<span>上一步</span></button>'+
     '<div class="ph-steps">'+steps+'</div>'+
     '<span class="ph-mob"><b>'+(idx+1)+'</b> / '+STEPS.length+' · '+STEPS[idx].l+'</span>'+
+    '<button class="ph-exit" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="margin-right:-6px">'+ic("moon","thin")+'</button>'+
     '<button class="ph-exit" onclick="exitFlow()">'+ic("x")+'</button>'+
     '</div><div class="ph-bar"><span style="width:'+pct+'%"></span></div></header>';
 }
@@ -985,6 +987,7 @@ function siteHeader(){
     '<div class="zf-nav-links">'+
       '<a href="/home">首頁</a><a href="/divination">問一件事</a><a href="/blog">案例專欄</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a>'+
       '<a href="/divination" class="zf-btn ghost sm">占卜</a>'+
+      '<button class="zf-theme-btn" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid var(--border-soft);border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer">'+ic("moon","thin")+'</button>'+
       '<div id="auth-button" class="zf-account"></div>'+
     '</div>'+
     '<button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>'+
