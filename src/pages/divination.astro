@@ -296,6 +296,9 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     .tframe{position:relative;width:100%;aspect-ratio:9/16;border-radius:var(--radius-lg);background:var(--paper);border:1px solid var(--rose-200);box-shadow:var(--shadow-md);overflow:hidden;display:flex;align-items:center;justify-content:center;--tf-glow:var(--rose-100)}
     .tframe .glow{position:absolute;inset:0;background:radial-gradient(132% 82% at 50% 41%,var(--tf-glow) 0%,var(--tf-glow) 16%,transparent 70%)}
     .tframe .glow2{position:absolute;inset:0;background:radial-gradient(80% 55% at 50% 40%,var(--tf-glow),transparent 70%);mix-blend-mode:multiply;opacity:.28}
+    /* 真符令圖卡：glow 是 absolute、img 是 static，光暈會畫在圖上——改用 LIFF 同款柔和淡暈，關掉 glow2，別把真圖洗白 */
+    .tframe.has-img .glow{background:radial-gradient(120% 70% at 50% 40%,var(--rose-100),transparent 62%)}
+    .tframe.has-img .glow2{display:none}
     .tframe .inner-border{position:absolute;inset:8px;border-radius:calc(var(--radius-lg) - 6px);border:1px solid var(--rose-100)}
     .tframe.big .inner-border{inset:12px}
     .fulu{position:relative;z-index:1;height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:30px 0 20px;color:var(--ink-700)}
@@ -307,7 +310,7 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     .fulu.sm{padding:18px 0 13px}.fulu.sm .glyph{font-size:50px}.fulu.sm .name{font-size:21px}.fulu.sm .chi{font-size:9.5px}.fulu.sm .bar{height:16px}.fulu.sm .brand{font-size:8.5px}
     .blurred{filter:blur(7px);width:100%;height:100%}
     @media(max-width:760px){.blurred{filter:blur(6px)}}
-    .fog{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:0 18px 20px;background:linear-gradient(180deg,var(--veil-top),var(--veil-bottom) 78%)}
+    .fog{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:0 18px 20px;background:linear-gradient(180deg,rgba(251,248,243,.18),rgba(251,248,243,.62) 78%)}
     .fog .lk{width:30px;height:30px;border-radius:999px;background:var(--paper);border:1px solid var(--rose-200);display:flex;align-items:center;justify-content:center;margin-bottom:8px;box-shadow:var(--shadow-xs);color:var(--rose-500)}
     .fog .cap{font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.6;color:var(--ink-700)}
     .tal-caption{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
@@ -707,7 +710,7 @@ function fulu(glyph,name,big){
     '<span class="brand">找風問幸福</span></div>';
 }
 var EL_GLOW={'木':'var(--tint-sage-hi)','火':'var(--rose-100)','土':'var(--tint-clay-hi)','金':'var(--el-metal-bg)','水':'var(--el-water-bg)'};
-function tframe(inner,big,glow){return '<div class="tframe'+(big?' big':'')+'"'+(glow?' style="--tf-glow:'+glow+'"':'')+'><span class="glow"></span><span class="glow2"></span><span class="inner-border"></span>'+inner+'</div>'}
+function tframe(inner,big,glow,hasImg){return '<div class="tframe'+(big?' big':'')+(hasImg?' has-img':'')+'"'+(glow?' style="--tf-glow:'+glow+'"':'')+'><span class="glow"></span><span class="glow2"></span><span class="inner-border"></span>'+inner+'</div>'}
 
 /* ===== Step 4 result ===== */
 function viewResult(){
@@ -870,7 +873,7 @@ function hexTalismans(paid){
     : '<div class="'+(paid?'':'blurred')+'" style="width:100%;height:100%">'+fulu('䷀',R.hexName||'靈符',true)+'</div>';
   var guaSym=(GUA_UNI[R.upperGua]||'')+(GUA_UNI[R.lowerGua]||'');
   var h='<div class="zf-card sunken" style="margin-bottom:20px"><div class="tal-hero">'+
-    '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
+    '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true,null,!!R.talismanImg)+
     (paid?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這是為你而生的靈符——解鎖後就會清晰</span></div>')+
     '</div>'+
     '<div class="tal-caption">'+ic("device-mobile")+(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16')+'</div></div>'+
@@ -892,7 +895,7 @@ function hexTalismans(paid){
       var inner=showReal
         ? '<img src="'+esc(c.blur_url)+'" loading="lazy" decoding="async" draggable="false" oncontextmenu="return false;" style="width:100%;height:100%;object-fit:cover">'
         : '<div class="'+(paid?'':'blurred')+'" style="width:100%;height:100%">'+fulu(String(el).slice(0,1),el)+'</div>';
-      return '<div class="tal5"><div style="position:relative">'+tframe(inner,false,EL_GLOW[String(el).slice(0,1)])+
+      return '<div class="tal5"><div style="position:relative">'+tframe(inner,false,EL_GLOW[String(el).slice(0,1)],showReal)+
         (paid?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span></div>')+'</div>'+
         '<div class="nm">'+(SOLAR.seq[i]||SOLAR.next)+' · '+esc(el)+'</div></div>';
     }).join("")+'</div>';
