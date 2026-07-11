@@ -34,7 +34,7 @@ relatedServices: [60,64]
 
 🏮 **[武財神師尊親傳：五路財神金龍板/ 風易揚老師依個案親撰及開光](https://shop.winds.tw/products/dragonball)** — NT$6,800
 
-🏮 **[體質修](https://shop.winds.tw/products/body-constitution-repair)** — NT$17,000
+🏮 **[體質修](https://winds.tw/shop)** — NT$17,000
 
 
 

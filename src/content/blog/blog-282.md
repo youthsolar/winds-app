@@ -72,7 +72,7 @@ relatedServices: [52,77]
 
 🔮 **[天授通靈塔羅](https://winds.tw)** — NT$2,600
 
-🏮 **[風賜靈老師依個案親畫&開光：六芒星陣命書（3~6個月氣場開運）](https://shop.winds.tw/products/hexagram-destiny-book)** — NT$14,400
+🏮 **[風賜靈老師依個案親畫&開光：六芒星陣命書（3~6個月氣場開運）](https://winds.tw/shop)** — NT$14,400
 
 
 

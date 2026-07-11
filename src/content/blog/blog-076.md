@@ -36,7 +36,7 @@ relatedServices: [65,17]
 
 ## 💫 相關推薦
 
-🏮 **[風易揚老師依個案親畫&開光：月老復合鏡](https://shop.winds.tw/products/yuelao-mirror)** — NT$14,400
+🏮 **[風易揚老師依個案親畫&開光：月老復合鏡](https://winds.tw/shop)** — NT$14,400
 
 🔮 **[元辰宮代觀：知運勢](https://winds.tw)** — NT$7,600
 

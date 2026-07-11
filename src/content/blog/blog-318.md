@@ -52,7 +52,7 @@ relatedServices: [56,77]
 
 🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://shop.winds.tw/products/lovesaving)** — NT$1,200
 
-🏮 **[風賜靈老師依個案親畫&開光：六芒星陣命書（3~6個月氣場開運）](https://shop.winds.tw/products/hexagram-destiny-book)** — NT$14,400
+🏮 **[風賜靈老師依個案親畫&開光：六芒星陣命書（3~6個月氣場開運）](https://winds.tw/shop)** — NT$14,400
 
 
 

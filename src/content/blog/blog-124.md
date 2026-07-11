@@ -46,7 +46,7 @@ relatedServices: [64]
 
 ## 💫 相關推薦
 
-🏮 **[體質修](https://shop.winds.tw/products/body-constitution-repair)** — NT$17,000
+🏮 **[體質修](https://winds.tw/shop)** — NT$17,000
 
 
 

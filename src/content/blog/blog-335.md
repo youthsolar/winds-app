@@ -42,9 +42,9 @@ relatedServices: [77,68]
 
 ## 💫 相關推薦
 
-🏮 **[風賜靈老師依個案親畫&開光：六芒星陣命書（3~6個月氣場開運）](https://shop.winds.tw/products/hexagram-destiny-book)** — NT$14,400
+🏮 **[風賜靈老師依個案親畫&開光：六芒星陣命書（3~6個月氣場開運）](https://winds.tw/shop)** — NT$14,400
 
-🏮 **[風易揚老師依個案親畫&開光：九轉七星人生兵書（3~6個月因果避劫）](https://shop.winds.tw/products/nine-star-life-guidebook)** — NT$14,400
+🏮 **[風易揚老師依個案親畫&開光：九轉七星人生兵書（3~6個月因果避劫）](https://winds.tw/shop)** — NT$14,400
 
 
 

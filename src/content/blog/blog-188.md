@@ -86,7 +86,7 @@ A：平均2～4週見初步效果，有些甚至7~10天內就有感應。但這�
 
 🏮 **[愛情復合與捍衛符令/ 依個案親撰及開光](https://shop.winds.tw/products/lovesaving)** — NT$1,200
 
-🏮 **[風易揚老師依個案親畫&開光：月老復合鏡](https://shop.winds.tw/products/yuelao-mirror)** — NT$14,400
+🏮 **[風易揚老師依個案親畫&開光：月老復合鏡](https://winds.tw/shop)** — NT$14,400
 
 
 

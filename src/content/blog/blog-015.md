@@ -58,7 +58,7 @@ relatedServices: [52,65]
 
 🔮 **[天授通靈塔羅](https://winds.tw)** — NT$2,600
 
-🏮 **[風易揚老師依個案親畫&開光：月老復合鏡](https://shop.winds.tw/products/yuelao-mirror)** — NT$14,400
+🏮 **[風易揚老師依個案親畫&開光：月老復合鏡](https://winds.tw/shop)** — NT$14,400
 
 
 
