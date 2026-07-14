@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "./ds.css";
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* Phosphor icon 全站一律 flex 置中：消除 <i> display 不一致與 glyph baseline 偏移（2026-07-14）*/
+i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-content:center;line-height:1}
 
 /* Winds Portfolio Unified Design Tokens (v2.0 — 2026-06-10 占卜站 handoff) */
 @layer base {
