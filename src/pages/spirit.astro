@@ -3,9 +3,9 @@
  * 分靈體對話 /spirit — 純 Astro + vanilla（不用 React）。
  * 視覺＝DS 權威 spirit-chat-page.jsx（415a282e）逐值對齊。
  * 聊天/金流邏輯原樣保留自 live public/spirit.html：
- *   端點 /config /spirit-status /spirit-chat /spirit-order；token winds_google_token；
+ *   端點 /config /spirit-status /spirit-chat；token winds_google_token；
  *   模式 self/target；錯誤路 no_profile/daily_limit/target_locked/ai_failed/needSubscribe。
- * ⚠️ DS paywall 寫 NT$360 併單模型；後端目前仍 NT$99/7天 訂閱（金流併單未做）→ 暫用真實 NT$99。
+ * paywall＝NT$360 併單模型：付費完整占卜報告即開通分靈體 7 天、每天 30 句（2026-07-14）。
  */
 import '../styles/global.css';
 ---
@@ -180,7 +180,7 @@ import '../styles/global.css';
     var API={status:WORKER_API+"/spirit-status",chat:WORKER_API+"/spirit-chat"};
 
     var S={mode:"self",userId:"",idToken:"",sessionId:null,sending:false,
-      subscribed:false,lockedBirthday:null,freeRemaining:null,profileExpanded:false,astro:null,
+      subscribed:false,lockedBirthday:null,freeRemaining:null,roundsSelf:null,roundsTarget:null,dailyRounds:30,profileExpanded:false,astro:null,
       spiritName:"",spiritTraits:null,
       targetDate:"",targetTime:"",targetConfirmed:false,hasMsg:false};
 
@@ -287,11 +287,18 @@ import '../styles/global.css';
     /* ===== count row ===== */
     function renderCount(){
       var el=document.getElementById("spCount");if(!el)return;
-      if(S.subscribed){el.innerHTML='<span class="unl">'+ic("infinity","bold")+'無限對話中</span>';return}
+      if(S.subscribed){
+        var cap=S.dailyRounds||30;
+        var rr=(S.mode==="target")?S.roundsTarget:S.roundsSelf;
+        if(rr==null)rr=cap;
+        el.innerHTML='<span class="muted">今日還可聊</span>'+
+          '<span class="num'+(rr===0?" zero":"")+'">'+ic("chat-circle")+rr+' 句</span>';
+        return;
+      }
       var n=(S.freeRemaining==null)?"—":S.freeRemaining;
       el.innerHTML='<span class="muted">今日剩餘</span>'+
         '<span class="num'+(S.freeRemaining===0?" zero":"")+'">'+ic("chat-circle")+n+' 次</span>'+
-        '<button class="unlock" onclick="openPaywall()">解鎖無限</button>';
+        '<button class="unlock" onclick="openPaywall()">解鎖對話</button>';
     }
 
     /* ===== input ===== */
@@ -354,6 +361,8 @@ import '../styles/global.css';
          if(d.locked_birthday&&S.mode==="target"){S.lockedBirthday=d.locked_birthday;renderTarget()}
          if(d.has_subscription){S.subscribed=true}
          if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;
+         if(d.remaining_rounds!=null){if(S.mode==="target")S.roundsTarget=d.remaining_rounds;else S.roundsSelf=d.remaining_rounds;}
+         if(d.daily_rounds!=null)S.dailyRounds=d.daily_rounds;
          renderCount();
          if(d.spirit_name)S.spiritName=d.spirit_name;
          if(d.spirit_traits&&d.spirit_traits.length)S.spiritTraits=d.spirit_traits;
@@ -365,15 +374,15 @@ import '../styles/global.css';
        .finally(function(){S.sending=false;var b=document.getElementById("spSend");if(b)b.removeAttribute("disabled")});
     }
 
-    /* ===== paywall（DS 視覺；後端目前 NT$99/7天 訂閱）===== */
+    /* ===== paywall（DS 視覺；金流併單＝隨 NT$360 完整報告解鎖，7 天每天 30 句）===== */
     function renderPaywall(){
       var el=document.getElementById("spPaywall");if(!el)return;
       var isTarget=S.mode==="target";
       el.innerHTML='<div class="sp-paywall-in">'+
         '<span class="sp-pw-disc">'+ic(isTarget?"sparkle":"chat-circle-dots","fill")+'</span>'+
-        '<div class="sp-pw-h">解鎖分靈體無限對話</div>'+
-        '<p class="sp-pw-p">'+(isTarget?"隨完整占卜報告一起解鎖，7 天內隨時感應他（可隨時更換對象）。":"自己，就是最好的老師。隨完整占卜報告一起解鎖，7 天內讓這面鏡子隨時陪你。")+'</p>'+
-        '<div class="sp-pw-tags">'+(isTarget?["感應對象狀態","可隨時換對象","無限次問"]:["深夜說說話","陪你把話說清楚","無限次問"]).map(function(t){return '<span>'+t+'</span>'}).join("")+'</div>'+
+        '<div class="sp-pw-h">解鎖分靈體對話</div>'+
+        '<p class="sp-pw-p">'+(isTarget?"隨完整占卜報告一起解鎖，7 天內每天 30 句，隨時感應他（可隨時更換對象）。":"自己，就是最好的老師。隨完整占卜報告一起解鎖，7 天內每天 30 句，讓這面鏡子隨時陪你。")+'</p>'+
+        '<div class="sp-pw-tags">'+(isTarget?["感應對象狀態","可隨時換對象","每天 30 句"]:["深夜說說話","陪你把話說清楚","每天 30 句"]).map(function(t){return '<span>'+t+'</span>'}).join("")+'</div>'+
         '<a class="zf-btn primary lg" href="/divination">'+ic("sparkle")+'解鎖完整報告 · NT$360</a>'+
         '<button class="sp-pw-close" onclick="closePaywall()">先用今天的次數</button></div>';
     }
@@ -384,7 +393,10 @@ import '../styles/global.css';
     function fetchStatus(){
       if(!S.userId)return Promise.resolve();
       return fetch(API.status+"?userId="+encodeURIComponent(S.userId)).then(function(r){return r.ok?r.json():null}).then(function(d){
-        if(d){S.subscribed=!!d.subscribed;S.lockedBirthday=d.locked_birthday||null}
+        if(d){S.subscribed=!!d.subscribed;S.lockedBirthday=d.locked_birthday||null;
+          if(d.daily_rounds!=null)S.dailyRounds=d.daily_rounds;
+          if(d.remaining_rounds!=null)S.roundsSelf=d.remaining_rounds;
+          if(d.remaining_rounds_target!=null)S.roundsTarget=d.remaining_rounds_target;}
       }).catch(function(){});
     }
     /* self 模式：尚未對話前不打 LLM；命理檔案於首次回應 d.astro 帶入。此處保留接口（暫不額外打）。*/
