@@ -387,6 +387,27 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
 
     .sum-body{font-family:var(--font-serif);font-weight:300;font-size:17px;line-height:1.9;color:var(--ink-700);margin:18px 0 0}
     @media(max-width:760px){.sum-body{font-size:15.5px}}
+
+    /* 社群追蹤 CTA（結果頁尾；把看完占卜的人接進社群陪伴）*/
+    .social-cta{margin-top:56px;background:linear-gradient(160deg,var(--surface-tint),var(--surface-card) 62%);border:1px solid var(--border-accent);border-radius:var(--radius-xl);padding:44px 34px 40px;box-shadow:var(--shadow-md);text-align:center}
+    .social-cta .sc-eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-sans);font-size:12.5px;font-weight:500;letter-spacing:.14em;color:var(--rose-500);margin-bottom:16px}
+    .social-cta .sc-eyebrow i{font-size:15px}
+    .social-cta h3{font-family:var(--font-serif);font-weight:500;font-size:25px;line-height:1.4;color:var(--ink-900);margin:0 0 14px}
+    .social-cta .sc-lead{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--ink-700);max-width:24em;margin:0 auto 30px}
+    .social-cta .sc-lead em{font-style:normal;color:var(--rose-600);font-weight:400}
+    .sc-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+    .sc-link{display:flex;flex-direction:column;align-items:center;gap:9px;width:150px;padding:20px 12px 16px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);text-decoration:none;color:inherit;transition:all var(--dur-fast) var(--ease-soft)}
+    .sc-link:hover{transform:translateY(-3px);border-color:var(--border-accent);box-shadow:var(--shadow-sm)}
+    .sc-ic{width:46px;height:46px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff}
+    .sc-ic.threads{background:linear-gradient(140deg,#3A322B,#111)}
+    .sc-ic.ig{background:linear-gradient(140deg,#F58529,#DD2A7B 55%,#8134AF)}
+    .sc-ic.fb{background:linear-gradient(140deg,#4A6FD0,#1877F2)}
+    [data-theme="dark"] .sc-ic.threads{background:linear-gradient(140deg,#5A4F46,#2A2420)}
+    .sc-name{font-family:var(--font-serif);font-weight:500;font-size:16px;color:var(--ink-900);line-height:1.3}
+    .sc-sub{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);letter-spacing:.02em}
+    .sc-handle{font-family:var(--font-sans);font-size:11px;color:var(--rose-500);letter-spacing:.03em}
+    @media(max-width:560px){.sc-link{width:calc(50% - 7px)}.social-cta{padding:36px 20px 32px}.social-cta h3{font-size:22px}}
+
     .hidden{display:none!important}
     a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
     /* 風小編只在結果頁現身（含回看模式）；漏斗填單過程不打擾 */
@@ -758,6 +779,7 @@ function viewResult(){
   else h+=block("完整解讀","",paywall(paid));
   h+=recsSection();
   h+=blogSection();
+  h+=socialCta();
   h+='<div style="display:flex;flex-direction:column;align-items:center;gap:22px;margin-top:54px">'+
     '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
     '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
@@ -970,6 +992,26 @@ function blogSection(){
         '<div class="top"><span class="rec-ic book">'+ic("book-open-text","thin")+'</span><span class="zf-tag rose outline">專欄文章</span></div>'+
         '<div class="b"><h4>'+b[0]+'</h4><div class="reason">'+ic("quotes","fill")+'<p>'+b[1]+'</p></div>'+
         '<div class="foot"><span class="price"></span><span class="cta">看文章 '+ic("arrow-right")+'</span></div></div></a>';
+    }).join("")+'</div></section>';
+}
+
+/* ===== 社群追蹤 CTA（把看完占卜的暖流量接進社群陪伴）===== */
+function socialCta(){
+  var links=[
+    ['threads','threads-logo','Threads','最常聊天的地方','@uneedwind','https://www.threads.net/@uneedwind'],
+    ['ig','instagram-logo','Instagram','每日語錄卡','@uneedwind','https://www.instagram.com/uneedwind'],
+    ['fb','facebook-logo','Facebook','案例與公告','風易揚老師','https://www.facebook.com/1056598467870017']
+  ];
+  return '<section class="social-cta">'+
+    '<span class="sc-eyebrow">'+ic("heart-straight","fill")+'把這份陪伴，帶回每一天</span>'+
+    '<h3>我們每天在社群，留一句話給你</h3>'+
+    '<p class="sc-lead">節氣的提醒、這週的運勢，還有一點<em>想對你說的話</em>。追蹤我們，讓陪伴不只在你來問的時候。</p>'+
+    '<div class="sc-row">'+links.map(function(l){
+      return '<a class="sc-link" href="'+l[5]+'" target="_blank" rel="noopener">'+
+        '<span class="sc-ic '+l[0]+'">'+ic(l[1])+'</span>'+
+        '<span class="sc-name">'+l[2]+'</span>'+
+        '<span class="sc-sub">'+l[3]+'</span>'+
+        '<span class="sc-handle">'+l[4]+'</span></a>';
     }).join("")+'</div></section>';
 }
 
