@@ -325,10 +325,12 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     .tal5 .nm{font-family:var(--font-serif);font-size:14.5px;font-weight:500;color:var(--ink-900);text-align:center;margin-top:9px}
     .tal5 .ln{font-family:var(--font-serif);font-weight:300;font-size:12.5px;line-height:1.55;color:var(--text-secondary);text-align:center;margin-top:2px}
 
-    /* 浮動付款 CTA：捲過第一屏浮出、付費牆可見即退場 */
-    .fab-cta{position:fixed;left:50%;bottom:16px;z-index:80;transform:translateX(-50%) translateY(8px);opacity:0;pointer-events:none;padding:13px 20px;font-size:15px;box-shadow:0 6px 16px rgba(70,52,40,.06),0 18px 48px rgba(70,52,40,.10);transition:opacity .25s var(--ease-soft),transform .25s var(--ease-soft)}
+    /* 浮動付款 CTA：捲過第一屏浮出、付費牆可見即退場；樣式鏡射風小編 .wc-fab（同 padding/陰影/字級/圖示） */
+    .fab-cta{position:fixed;left:50%;bottom:22px;z-index:80;transform:translateX(-50%) translateY(8px);opacity:0;pointer-events:none;gap:8px;padding:13px 18px;font-size:15px;letter-spacing:.01em;box-shadow:var(--shadow-lg);transition:opacity .25s var(--ease-soft),transform .25s var(--ease-soft)}
+    .fab-cta i{font-size:22px;line-height:1}
     .fab-cta.show{opacity:1;transform:translateX(-50%);pointer-events:auto}
     .fab-cta:hover{transform:translateX(-50%) translateY(-1px)}
+    @media(max-width:600px){.fab-cta{bottom:16px}}
     /* paywall */
     .paywall{position:relative;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--rose-100);background:var(--surface-card)}
     .paywall .behind{position:absolute;inset:0;z-index:0;filter:blur(7px);opacity:.55;padding:30px 32px;pointer-events:none;user-select:none;background:var(--surface-card)}
@@ -1108,7 +1110,7 @@ function updateFabCta(){
   if(STATE.step!=="result"||paid||!pw){if(old)old.remove();return;}
   if(!old){
     var b=document.createElement("button");b.id="fabCta";b.className="zf-btn primary fab-cta";
-    b.innerHTML=ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE;
+    b.innerHTML=ic("sparkle")+'解鎖完整解讀';
     b.onclick=function(){var p=document.querySelector(".paywall");if(p)p.scrollIntoView({behavior:"smooth",block:"center"});};
     document.body.appendChild(b);
   }
