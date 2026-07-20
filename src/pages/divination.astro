@@ -1043,7 +1043,8 @@ function viewRepeatWall(){
   var buyBtn=w.last_log_id?'<button class="zf-btn '+(w.escalate?'secondary':'primary')+' md" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE+'</button>':'';
   if(w.escalate){
     return head+'<h1>這件事，值得跟老師好好談一次。</h1>'+body+
-      '<div class="cool-btns" style="margin-top:24px"><button class="zf-btn primary md" onclick="location.href=\'/booking\'">'+ic("calendar-heart")+'預約老師談一次</button>'+buyBtn+'</div>'+note;
+      '<div class="cool-btns" style="margin-top:24px"><button class="zf-btn primary md" onclick="location.href=\'/booking\'">'+ic("calendar-heart")+'預約老師談一次</button>'+buyBtn+'</div>'+
+      '<p style="margin-top:14px"><a href="/" style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted);text-decoration:underline">回首頁</a></p>'+note;
   }
   return head+'<h1>這一題，接下來交給深度解讀。</h1>'+body+
     '<div class="feat" style="margin-top:18px"><span>'+ic("check","bold")+'完整解讀·行動方案與時機</span><span>'+ic("check","bold")+'五張靈符·舒緩問題</span><span>'+ic("check","bold")+'分靈體 7 天深度陪伴</span></div>'+
