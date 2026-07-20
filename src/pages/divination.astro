@@ -509,7 +509,7 @@ var READING_LINES=["正在為你翻開這張牌……","對齊你的命盤與節
 var STATE={step:"topic",paid:false,dir:null,sub:null,q:null,text:"",gender:"",service:"",
  lineUserId:"",logId:"",talismanName:"量能靈符",
  submitting:false,ordering:false,soulConfirmed:false,reportMode:false,
- prefill:null,cooldown:null,result:null,error:""};
+ prefill:null,cooldown:null,repeatWall:null,result:null,error:""};
 var STEPS=[{k:"topic",l:"選題"},{k:"info",l:"資料"},{k:"interpreting",l:"解讀"},{k:"result",l:"結果"}];
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function ic(n,w){return '<i class="ph'+(w?'-'+w:'')+' ph-'+n+'"></i>'}
@@ -1033,6 +1033,23 @@ function viewCooldown(){
 }
 function fmtWhen(iso){try{var d=new Date(iso);if(isNaN(d.getTime()))return iso;return (d.getMonth()+1)+'/'+d.getDate()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes());}catch(e){return iso;}}
 
+/* ===== Repeat wall（同題重複付費牆 2026-07-21；⚠️ 文案佔位，Jeffery 親寫）===== */
+function viewRepeatWall(){
+  var w=STATE.repeatWall||{};
+  var msg=esc(w.message||'這個方向，你已經拿到過完整的答案，也回來複查過了。再往下走，需要的是更深的陪伴，不是再一次占卜。');
+  var head='<div class="cool"><div class="glow"></div><div class="zf-card"><span class="moon">'+ic("moon-stars","thin")+'</span>';
+  var body='<p style="font-family:var(--font-serif);font-weight:300;font-size:17.5px;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+msg+'</p>';
+  var note='<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">每個方向都有免費的完整答案與一次複查，這不是限制，是想陪你把答案接住。</p></div></div>';
+  var buyBtn=w.last_log_id?'<button class="zf-btn '+(w.escalate?'secondary':'primary')+' md" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE+'</button>':'';
+  if(w.escalate){
+    return head+'<h1>這件事，值得跟老師好好談一次。</h1>'+body+
+      '<div class="cool-btns" style="margin-top:24px"><button class="zf-btn primary md" onclick="location.href=\'/booking\'">'+ic("calendar-heart")+'預約老師談一次</button>'+buyBtn+'</div>'+note;
+  }
+  return head+'<h1>這一題，接下來交給深度解讀。</h1>'+body+
+    '<div class="feat" style="margin-top:18px"><span>'+ic("check","bold")+'完整解讀·行動方案與時機</span><span>'+ic("check","bold")+'五張靈符·舒緩問題</span><span>'+ic("check","bold")+'分靈體 7 天深度陪伴</span></div>'+
+    '<div class="cool-btns">'+buyBtn+'<button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+note;
+}
+
 /* ===== router ===== */
 /* ===== 完整報告模式：站台 Nav/Footer（DS report-page；只在 log_id 回訪時取代 funnel header）===== */
 function siteHeader(){
@@ -1087,8 +1104,8 @@ function render(){
     updateFabCta();
     return;
   }
-  var showHdr=STATE.step!=="cooldown"&&STATE.step!=="interpreting";
-  var fn={topic:viewTopic,info:viewInfo,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown}[STATE.step]||viewTopic;
+  var showHdr=STATE.step!=="cooldown"&&STATE.step!=="interpreting"&&STATE.step!=="repeatwall";
+  var fn={topic:viewTopic,info:viewInfo,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown,repeatwall:viewRepeatWall}[STATE.step]||viewTopic;
   root.innerHTML=(showHdr?header():"")+fn();
   if(STATE.step==="info"&&!STATE.userId)mountGisButton();
   window.scrollTo(0,0);
@@ -1124,7 +1141,7 @@ function go(s){STATE.step=s;render()}
 function back(){var map={info:"topic",result:"info"};if(map[STATE.step])go(map[STATE.step])}
 function exitFlow(){location.href="/";}
 function openOA(){window.open(LINE_OA_URL,"_blank");}
-function askAnother(){STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.logId="";go("topic");}
+function askAnother(){STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.logId="";STATE.repeatWall=null;go("topic");}
 function showInfoErr(msg){var e=document.getElementById("infoErr");if(e){e.textContent=msg;e.classList.remove("hidden");e.scrollIntoView({behavior:"smooth",block:"center"});}else{alert(msg);}}
 
 /* ===== Google SSO auth ===== */
@@ -1182,6 +1199,7 @@ function submitDivination(){
       edm_token:edmTok||undefined})})
    .then(function(resp){
      if(!resp.ok){return resp.json().catch(function(){return{};}).then(function(d){
+       if(d.repeat_wall){STATE.repeatWall=d;STATE.logId=d.last_log_id||"";STATE.submitting=false;go("repeatwall");return null;}
        if(resp.status===429||d.blocked){STATE.cooldown={message:d.message,available_at:d.available_at};STATE.submitting=false;go("cooldown");return null;}
        if(d.error==="phone_duplicate"||d.error==="email_duplicate"){STATE.submitting=false;go("info");setTimeout(function(){showInfoErr(d.message||"此聯絡資料已被使用。");},60);return null;}
        throw new Error(d.message||("HTTP "+resp.status));
