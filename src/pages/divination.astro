@@ -1082,6 +1082,7 @@ function render(){
     root.innerHTML=siteHeader()+viewResult()+siteFooter();
     wireSiteChrome();
     window.scrollTo(0,0);
+    updateFabCta();
     return;
   }
   var showHdr=STATE.step!=="cooldown"&&STATE.step!=="interpreting";
