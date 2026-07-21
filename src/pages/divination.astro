@@ -1154,6 +1154,19 @@ function authHeaders(extra){var h={"X-Google-Id-Token":getIdToken()};if(extra)fo
 
 /* ===== validators ===== */
 function validGmail(e){return /^[^\s@]+@gmail\.com$/i.test(e||"");}
+/* Email 無感驗證（worker /verify-email → MillionVerifier）：blur 觸發；只有 bad（查無此信箱/拋棄式）才擋 */
+var EMAILV={email:"",verdict:""};
+function checkEmailLive(email){
+  if(!validGmail(email)||EMAILV.email===email)return;
+  EMAILV={email:email,verdict:""};
+  fetch(WORKER_API+"/verify-email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email})})
+    .then(function(r){return r.json();}).then(function(d){
+      if(EMAILV.email!==email)return;
+      EMAILV.verdict=d.verdict||"";
+      if(d.verdict==="bad")showInfoErr("這個 Email 好像有誤（查無此信箱），請再確認一次。");
+    }).catch(function(){});
+}
+document.addEventListener("focusout",function(ev){var t=ev.target;if(t&&t.id==="inEmail")checkEmailLive(t.value.trim());});
 function validPhoneTW(p){return /^09\d{8}$/.test((p||"").replace(/[\s-]/g,""));}
 function phoneE164(p){p=(p||"").replace(/[\s-]/g,"");return p.indexOf("0")===0?"+886"+p.slice(1):p;}
 
@@ -1168,6 +1181,7 @@ function gatherInfo(){
   if(!t)return{err:"請選擇出生時間（不確定可勾選午時）。"};
   if(!validPhoneTW(phone))return{err:"請輸入正確的手機號碼（例如 0912345678）。"};
   if(!validGmail(email))return{err:"Email 目前僅接受 @gmail.com 信箱。"};
+  if(EMAILV.email===email&&EMAILV.verdict==="bad")return{err:"這個 Email 好像有誤（查無此信箱），請再確認一次。"};
   return{surname:surname,given:given,phone:phone,email:email,dob:y+"-"+pad2(m)+"-"+pad2(d)+" "+t};
 }
 
