@@ -432,7 +432,6 @@ var TALISMAN_PRICE=360;
 var LINE_OA_URL="https://lin.ee/tQHsgWB";
 
 /* ===== 前端漏斗內容（TOPICS 48 題＝新設計 shared-fortune-data.jsx 權威版；含 service 軟性提示）===== */
-var DIVINATION_PRAYER="（占卜前請靜心默想一位神尊或天使做主，再繼續補充你想占卜的問題）";
 var TOPICS=[
  {key:"love",mark:"緣",title:"感情與婚姻",tone:"rose",sub:"關於感情、婚姻、那個人的事——想看清彼此真實的想法與走向。",
   subs:[
@@ -608,10 +607,11 @@ function viewTopic(){
       }).join("")+'</div>';
     if(STATE.q){
       h+='<div class="fade"><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">'+
-        '<span style="font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--ink-700)">把括號裡的提示，換成你想問的。</span>'+
+        '<span style="font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--ink-700)">接著補上實際情況，愈具體愈準。</span>'+
         '<span style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted)">'+STATE.text.length+' / 300</span></div>'+
         '<textarea class="f-textarea" maxlength="300" rows="'+Math.max(4,Math.min(10,Math.ceil(STATE.text.length/22)+1))+'" oninput="STATE.text=this.value;this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'" style="font-size:18px">'+esc(STATE.text)+'</textarea>'+
-        '<p class="hint" style="margin-top:8px">'+ic("heart")+'一次問一件事，解讀會更清楚也更貼近你。</p>'+
+        '<p class="hint" style="margin-top:8px">'+ic("sparkle")+'占卜前，靜心默想一位神尊或天使做主。</p>'+
+        '<p class="hint" style="margin-top:4px">'+ic("heart")+'一次問一件事，解讀會更清楚也更貼近你。</p>'+
         '<div style="margin-top:28px"><button class="zf-btn primary lg" onclick="go(\'info\')">就問這個 '+ic("arrow-right")+'</button></div></div>';
     }
     h+='</div>';
@@ -626,7 +626,7 @@ function pickQ(el,qt){
   var s=(d.subs||[]).find(function(x){return x.key===STATE.sub})||{};
   var qo=(s.qs||[]).find(function(x){return x.q===qt})||{};
   STATE.service=qo.service||"";
-  STATE.text="我目前最想處理的問題是「"+(d.title||"")+" - "+(s.name||"")+"」，狀況比較接近「"+qt+"」："+(qo.desc||"")+"　實際情況是："+DIVINATION_PRAYER;
+  STATE.text="我目前最想處理的問題是「"+(d.title||"")+" - "+(s.name||"")+"」，狀況比較接近「"+qt+"」："+(qo.desc||"")+"　實際情況是：";
   render();
 }
 
@@ -662,9 +662,13 @@ function viewInfo(){
   /* 性別（依新設計）*/
   h+='<div class="fw"><div class="f-label">性別</div><div style="display:flex;gap:10px;margin-top:2px">'+
      ['女','男','不指定'].map(function(g){return '<button type="button" class="gbtn'+(gNow===g?' on':'')+'" data-g="'+g+'" onclick="pickGender(\''+g+'\')">'+g+'</button>'}).join("")+'</div></div>';
-  /* 出生地（選填，依新設計；目前不送後端）*/
-  h+='<label class="fw" style="display:block"><span class="f-label">出生地 <span style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);font-weight:400">選填</span></span><input id="inLocation" class="f-input" type="text" placeholder="例：出生的城市" value="'+esc(pf.location||"")+'"><span class="hint" style="margin-top:6px">填寫有助於更準確的時辰校正</span></label>';
-  h+=field("inPhone","手機","0912 345 678","tel",pfPhone)+field("inEmail","電子郵件","you@gmail.com","email",pf.email||STATE.gEmail);
+  /* 進階選填摺疊（2026-07-24 摩擦點拍板：手機/出生地 降級選填收摺）*/
+  h+='<details class="fw" style="margin-top:2px"><summary style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted);cursor:pointer;padding:6px 0">進階選填（手機・出生地）</summary>'+
+     '<div style="display:grid;gap:14px;padding-top:10px">'+
+     field("inPhone","手機（選填）","0912 345 678","tel",pfPhone,true)+
+     '<label class="fw" style="display:block"><span class="f-label">出生地 <span style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);font-weight:400">選填</span></span><input id="inLocation" class="f-input" type="text" placeholder="例：出生的城市" value="'+esc(pf.location||"")+'"><span class="hint" style="margin-top:6px">填寫有助於更準確的時辰校正</span></label>'+
+     '</div></details>';
+  h+=field("inEmail","電子郵件","you@gmail.com","email",pf.email||STATE.gEmail,true);
   h+='</div>';
   h+='<p class="hint" style="margin-top:18px">'+ic("lock-simple")+'Email 目前僅接受 @gmail.com。</p>';
   h+='<div id="infoErr" class="hidden" style="margin-top:14px;font-family:var(--font-sans);font-size:13.5px;color:var(--critical);background:var(--rose-50);border:1px solid var(--rose-100);border-radius:var(--radius-md);padding:11px 14px"></div>';
@@ -962,7 +966,7 @@ function paywall(paid){
   return '<div class="paywall"><div class="behind"><p>完整解讀、整年的節氣運勢圖，還有為你量身的數位量能靈符，都在解鎖後為你打開。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>'+
     '<div class="veil"><span class="lk">'+ic("lock-simple","thin")+'</span><h3>完整解讀與靈符，一起解鎖</h3>'+
     '<p>一次解鎖兩件事：<strong style="font-weight:500;color:var(--ink-900)">完整解讀</strong>，讓你得到答案；<strong style="font-weight:500;color:var(--ink-900)">五張靈符</strong>，陪你舒緩這個問題。</p>'+
-    '<div class="feat"><span>'+ic("check","bold")+'完整解讀·得到答案</span><span>'+ic("check","bold")+'五張靈符·舒緩問題</span><span>'+ic("check","bold")+'紫微七段解讀</span><span>'+ic("check","bold")+'完整節氣運勢圖</span></div>'+
+    '<div class="feat"><span>'+ic("check","bold")+'完整解讀·得到答案</span><span>'+ic("check","bold")+'五張靈符·依次舒緩問題</span><span>'+ic("check","bold")+'紫微七段解讀</span><span>'+ic("check","bold")+'完整節氣運勢圖</span></div>'+
     '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE+'</button></div></div>';
 }
 function recsSection(){
@@ -1038,18 +1042,29 @@ function fmtWhen(iso){try{var d=new Date(iso);if(isNaN(d.getTime()))return iso;r
 /* ===== Repeat wall（同題重複付費牆 2026-07-21；⚠️ 文案佔位，Jeffery 親寫）===== */
 function viewRepeatWall(){
   var w=STATE.repeatWall||{};
-  var msg=esc(w.message||'這個方向，你已經拿到過完整的答案，也回來複查過了。再往下走，需要的是更深的陪伴，不是再一次占卜。');
+  var msg=esc(w.message||'這個方向，你已經拿過完整的答案，也重複問過了。接下來你需要的是更深的解說，不是再一次占卜。');
   var head='<div class="cool"><div class="glow"></div><div class="zf-card"><span class="moon">'+ic("moon-stars","thin")+'</span>';
   var body='<p style="font-family:var(--font-serif);font-weight:300;font-size:17.5px;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+msg+'</p>';
-  var note='<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">每個方向都有免費的完整答案與一次複查，這不是限制，是想陪你把答案接住。</p></div></div>';
+  /* 問題相似度＋上次同類占卜（2026-07-22：讓用戶知道牆是比對哪一筆） */
+  if(w.last_question){
+    var sim=Math.max(0,Math.min(100,Number(w.similarity)||60));
+    var circ=2*Math.PI*30,dash=circ*sim/100;
+    body+='<div style="display:flex;align-items:center;gap:18px;justify-content:flex-start;margin:22px auto 0;max-width:26em;text-align:left;background:var(--surface-sunken,rgba(0,0,0,.03));border:1px solid var(--rose-100);border-radius:14px;padding:14px 16px">'+
+      '<div class="nm-score" style="flex:none"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-100)" stroke-width="5"/><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-400)" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+dash.toFixed(1)+' '+circ.toFixed(1)+'" transform="rotate(-90 36 36)"/><text x="36" y="36" text-anchor="middle" dominant-baseline="central" style="font-family:var(--font-sans);font-size:16px;font-weight:600;fill:var(--ink-900)">'+sim+'%</text></svg><span class="nm-score-l">問題相似度</span></div>'+
+      '<div style="min-width:0"><div style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted)">比對的是你上次問的'+(w.last_at?'（'+fmtWhen(w.last_at)+'）':'')+'</div>'+
+      '<p style="font-family:var(--font-serif);font-size:14.5px;line-height:1.8;color:var(--ink-700);margin:4px 0 0">「'+esc(w.last_question)+'」</p>'+
+      (w.last_delivery_url?'<a href="'+esc(w.last_delivery_url)+'" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:13px;color:var(--rose-600);text-decoration:underline;margin-top:8px">'+ic("arrow-square-out")+'回顧上次的完整解讀</a>':'')+
+      '</div></div>';
+  }
+  var note='<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">每個方向都有過一次免費的回答，這不是限制，是想陪你把答案看清楚。</p></div></div>';
   var buyBtn=w.last_log_id?'<button class="zf-btn '+(w.escalate?'secondary':'primary')+' md" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE+'</button>':'';
   if(w.escalate){
-    return head+'<h1>這件事，值得跟老師好好談一次。</h1>'+body+
+    return head+'<h1>這件事，值得跟老師好好談一談。</h1>'+body+
       '<div class="cool-btns" style="margin-top:24px"><button class="zf-btn primary md" onclick="location.href=\'/booking\'">'+ic("calendar-heart")+'預約老師談一次</button>'+buyBtn+'</div>'+
       '<p style="margin-top:14px"><a href="/" style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted);text-decoration:underline">回首頁</a></p>'+note;
   }
-  return head+'<h1>這一題，接下來交給深度解讀。</h1>'+body+
-    '<div class="feat" style="margin-top:18px"><span>'+ic("check","bold")+'完整解讀·行動方案與時機</span><span>'+ic("check","bold")+'五張靈符·舒緩問題</span><span>'+ic("check","bold")+'分靈體 7 天深度陪伴</span></div>'+
+  return head+'<h1>這一題，建議交給深度解讀。</h1>'+body+
+    '<div class="feat" style="margin-top:18px"><span>'+ic("check","bold")+'完整解讀·行動方案與時機</span><span>'+ic("check","bold")+'五張靈符·依次舒緩問題</span><span>'+ic("check","bold")+'分靈體 7 天深度陪伴</span></div>'+
     '<div class="cool-btns">'+buyBtn+'<button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+note;
 }
 
@@ -1179,7 +1194,7 @@ function gatherInfo(){
   if(!given)return{err:"請先輸入名字。"};
   if(!y||!m||!d)return{err:"請先選擇你的出生日期。"};
   if(!t)return{err:"請選擇出生時間（不確定可勾選午時）。"};
-  if(!validPhoneTW(phone))return{err:"請輸入正確的手機號碼（例如 0912345678）。"};
+  if(phone&&!validPhoneTW(phone))return{err:"請輸入正確的手機號碼（例如 0912345678）。"};
   if(!validGmail(email))return{err:"Email 目前僅接受 @gmail.com 信箱。"};
   if(EMAILV.email===email&&EMAILV.verdict==="bad")return{err:"這個 Email 好像有誤（查無此信箱），請再確認一次。"};
   return{surname:surname,given:given,phone:phone,email:email,dob:y+"-"+pad2(m)+"-"+pad2(d)+" "+t};
