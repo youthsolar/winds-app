@@ -243,6 +243,22 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
     })();
   </script>
 
+  <!-- 帶 utm 進站記點（社群量測閉環第二層）：sendBeacon → api.winds.tw/hit → D1 link_hits -->
+  <script is:inline>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var c = q.get('utm_content');
+      if (!c) return;
+      try {
+        navigator.sendBeacon('https://api.winds.tw/hit', JSON.stringify({
+          path: location.pathname,
+          utm_source: q.get('utm_source') || '',
+          utm_content: c,
+        }));
+      } catch (e) {}
+    })();
+  </script>
+
   <!-- Google SSO callback handler (placeholder) -->
   {GOOGLE_CLIENT_ID && (
     <script is:inline>
