@@ -191,6 +191,32 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     sihua?: ZiweiSihua | null;
   };
 
+  // === eDM 第 2 關旁路（2026-07-28）===
+  // 從 eDM 來的人身份早就知道（token → edm_identities.email），不該再要他 Google 登入。
+  // 帶 ?t=<token> 進來時：跳過登入閘、走 /edm/ziwei-chart、**不載入任何解讀**
+  //（Jeffery 拍板：排盤零邊際成本所以免費給，解讀燒 API 且正是要賣的東西）。
+  // 沒帶 t 的一般訪客完全不受影響，仍走原本的登入流程。
+  const EDM_TOKEN = new URLSearchParams(location.search).get('t') || '';
+
+  // eDM 旁路的文案修正：這條路不落庫（可重算、沒有終身一張的限制）、也完全不打解讀 API
+  // （沒有試讀可言）→ 原頁三處文案在這裡都是錯的，會誤導。
+  // ⚠️ 以下為占位文案，等 Jeffery 親寫（他是文案；見 feedback_design_copy_no_override）
+  // ⚠️ 不要包 DOMContentLoaded：Astro 的 <script> 是 module（defer），執行時該事件早已觸發完，
+  // 監聽器永遠不會跑。此處 DOM 已就緒，直接執行。
+  if (EDM_TOKEN) {
+    {
+      const warn = document.querySelector('.form-warning');
+      if (warn) warn.textContent = '⚠️ 生日與時辰會直接影響整張命盤，送出前請確認。這裡可以重算，不限次數。';
+      const note = document.querySelector('.form-note');
+      if (note) note.textContent = '命盤免費。要讀懂每一宮在說你哪一塊人生，完整解讀包含在「完整占卜報告 NT$360」中。';
+      const cta = document.getElementById('unlock-cta');
+      const h = cta?.querySelector('h3');
+      const p0 = cta?.querySelector('p');
+      if (h) h.textContent = '命盤看完了，那它在說什麼？';
+      if (p0) p0.textContent = '這張盤是免費的。要讀懂它——每一宮在講你哪一塊人生、今年走到哪裡——完整解讀包含在「完整占卜報告（NT$360）」裡：';
+    }
+  }
+
   const form = document.getElementById('ziwei-form') as HTMLFormElement;
   const authGate = document.getElementById('auth-gate') as HTMLElement;
   const loadingSection = document.getElementById('loading-section') as HTMLElement;
@@ -747,9 +773,18 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     };
 
     renderChartCurrent();
-    loadInterpretations('natal');
-    renderTrendSection(document.getElementById('trend-mount'), chartData.chart as Chart, horoscope?.trend, chartData.paid);
-    renderSihuaSection(document.getElementById('sihua-mount'), chartData.chart as Chart, horoscope?.sihua, chartData.paid);
+    if (EDM_TOKEN) {
+      // 命盤到此為止：解讀／流年走勢／四化都要打 Anthropic，成本高且正是付費品
+      interpMount.hidden = true;
+      const trendMount = document.getElementById('trend-mount');
+      const sihuaMount = document.getElementById('sihua-mount');
+      if (trendMount) trendMount.hidden = true;
+      if (sihuaMount) sihuaMount.hidden = true;
+    } else {
+      loadInterpretations('natal');
+      renderTrendSection(document.getElementById('trend-mount'), chartData.chart as Chart, horoscope?.trend, chartData.paid);
+      renderSihuaSection(document.getElementById('sihua-mount'), chartData.chart as Chart, horoscope?.sihua, chartData.paid);
+    }
 
     chartToggle.querySelectorAll<HTMLButtonElement>('.toggle-btn').forEach((btn) => {
       btn.onclick = () => {
@@ -758,7 +793,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
         currentMode = mode;
         chartToggle.querySelectorAll('.toggle-btn').forEach((b) => b.classList.toggle('is-active', b === btn));
         renderChartCurrent();
-        loadInterpretations(mode);
+        if (!EDM_TOKEN) loadInterpretations(mode);
       };
     });
 
@@ -831,9 +866,10 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
 
     let chartData: any;
     try {
-      const r = await fetch(`${WORKER_API}/ziwei-chart`, {
+      if (EDM_TOKEN) payload.t = EDM_TOKEN;
+      const r = await fetch(`${WORKER_API}${EDM_TOKEN ? '/edm/ziwei-chart' : '/ziwei-chart'}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json', ...(EDM_TOKEN ? {} : authHeaders()) },
         body: JSON.stringify(payload),
       });
       chartData = await r.json();
@@ -881,6 +917,11 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
 
   // === 進站偵測：有 token + 有命盤 → 直接顯示結果 ===
   async function bootstrap() {
+    if (EDM_TOKEN) {                 // eDM 旁路：直接給表單，不查既有命盤、不要求登入
+      hideAllSections();
+      formSection.hidden = false;
+      return;
+    }
     const token = getGoogleToken();
     if (!token) {
       hideAllSections();
