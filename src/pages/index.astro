@@ -57,8 +57,39 @@ const BOOK = '/booking';     // 預約老師（真 SB 老師 + 預約精靈）
 const SHOP = '/shop';        // 法器選物（真 ES 商品）
 const pageDesc = '先聽聽現在的自己。輕輕抽一張牌，看看今天的提醒；或只用 6 個基本資料、30 秒得到完整占卜解讀。找風問幸福，陪你把心裡的事慢慢說完。';
 const br = (s) => s.split('\n');
+
+// GEO：品牌實體錨點（Organization + WebSite）。AI 引擎靠這個認識「找風問幸福是誰」；
+// 文章頁的 Article schema 已各自帶，這裡只放站級兩型。
+const homeJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': 'https://winds.tw/#org',
+      name: '找風問幸福',
+      alternateName: 'Uneedwind',
+      url: 'https://winds.tw',
+      logo: 'https://winds.tw/assets/logo.png',
+      description: '台北的靈學命理陪伴品牌：AI 占卜、通靈問事、元辰宮、風水與手繪符令。',
+      areaServed: 'TW',
+      sameAs: [
+        'https://www.facebook.com/1056598467870017',
+        'https://www.instagram.com/uneedwind',
+        'https://www.threads.net/@uneedwind',
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://winds.tw/#website',
+      url: 'https://winds.tw',
+      name: '找風問幸福',
+      publisher: { '@id': 'https://winds.tw/#org' },
+      inLanguage: 'zh-Hant',
+    },
+  ],
+};
 ---
-<BaseLayout title="找風問幸福｜先聽聽現在的自己" description={pageDesc} ogType="website">
+<BaseLayout title="找風問幸福｜先聽聽現在的自己" description={pageDesc} ogType="website" jsonLd={homeJsonLd}>
   <main class="home" data-scenarios={JSON.stringify(SCENARIOS)} data-deck={JSON.stringify(DECK)} data-default={DEFAULT}>
     <!-- Hero -->
     <header class="hero">

@@ -200,20 +200,20 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
 
   // eDM 旁路的文案修正：這條路不落庫（可重算、沒有終身一張的限制）、也完全不打解讀 API
   // （沒有試讀可言）→ 原頁三處文案在這裡都是錯的，會誤導。
-  // ⚠️ 以下為占位文案，等 Jeffery 親寫（他是文案；見 feedback_design_copy_no_override）
+  // 文案＝Jeffery 親寫定稿（2026-08-01；見 feedback_design_copy_no_override）
   // ⚠️ 不要包 DOMContentLoaded：Astro 的 <script> 是 module（defer），執行時該事件早已觸發完，
   // 監聽器永遠不會跑。此處 DOM 已就緒，直接執行。
   if (EDM_TOKEN) {
     {
       const warn = document.querySelector('.form-warning');
-      if (warn) warn.textContent = '⚠️ 生日與時辰會直接影響整張命盤，送出前請確認。這裡可以重算，不限次數。';
-      const note = document.querySelector('.form-note');
-      if (note) note.textContent = '命盤免費。要讀懂每一宮在說你哪一塊人生，完整解讀包含在「完整占卜報告 NT$360」中。';
+      if (warn) warn.textContent = '⚠️ 生日與時辰會直接影響整張命盤，送出前請確認。';
+      const note = document.querySelector('.form-note') as HTMLElement | null;
+      if (note) note.style.display = 'none';
       const cta = document.getElementById('unlock-cta');
       const h = cta?.querySelector('h3');
       const p0 = cta?.querySelector('p');
       if (h) h.textContent = '命盤看完了，那它在說什麼？';
-      if (p0) p0.textContent = '這張盤是免費的。要讀懂它——每一宮在講你哪一塊人生、今年走到哪裡——完整解讀包含在「完整占卜報告（NT$360）」裡：';
+      if (p0) p0.textContent = '每一宮在講你哪一塊人生、今年走到哪裡——完整解讀包含在：';
     }
   }
 
