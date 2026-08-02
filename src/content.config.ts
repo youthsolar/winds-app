@@ -18,6 +18,8 @@ const blogCollection = defineCollection({
     // Content Alchemy 擴充欄位
     category: z.string().optional(),
     relatedServices: z.array(z.number()).default([]),
+    // GEO/AEO：常見問題（答案必須來自內文，不可瞎編）
+    faq: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
   }),
 });
 

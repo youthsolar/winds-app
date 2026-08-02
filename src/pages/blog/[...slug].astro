@@ -49,7 +49,7 @@ const related = allPosts
 
 const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
 
-const jsonLd = {
+const articleLd = {
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": post.data.seoTitle || post.data.title,
@@ -63,6 +63,21 @@ const jsonLd = {
   },
   "inLanguage": "zh-TW"
 };
+
+// GEO/AEO：FAQPage schema（僅在 frontmatter 有 faq 時輸出，內容與頁面可見 FAQ 區塊一致）
+const faqs = post.data.faq || [];
+const jsonLd = faqs.length > 0
+  ? [articleLd, {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f: any) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a }
+      })),
+      "inLanguage": "zh-TW"
+    }]
+  : articleLd;
 ---
 
 <BaseLayout
@@ -111,6 +126,20 @@ const jsonLd = {
     )}
 
     <div class="article-body"><Content /></div>
+
+    {faqs.length > 0 && (
+      <section class="panel paper faq">
+        <h2>常見問題</h2>
+        <div class="faq-list">
+          {faqs.map((f: any) => (
+            <div class="faq-item">
+              <h3 class="faq-q cjk-title">{f.q}</h3>
+              <p class="faq-a">{f.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
 
     <div class="end-cta">
       <section class="reading-cta">
@@ -245,6 +274,12 @@ const jsonLd = {
   .panel h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--accent-press); margin: 0 0 8px; }
   @media (max-width: 760px) { .panel h2 { font-size: 20px; } }
   .panel-sub { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin: 0 0 14px; }
+
+  .faq-list { display: flex; flex-direction: column; }
+  .faq-item { padding: 14px 0; }
+  .faq-item + .faq-item { border-top: 1px solid var(--border-soft); }
+  .faq-q { font-family: var(--font-serif); font-size: 17px; font-weight: 500; color: var(--text-primary); margin: 0 0 6px; }
+  .faq-a { font-size: 15px; line-height: 1.9; color: var(--text-secondary); margin: 0; }
 
   .related-list { display: flex; flex-direction: column; }
   .related-item { display: block; padding: 16px 0; text-decoration: none; }
