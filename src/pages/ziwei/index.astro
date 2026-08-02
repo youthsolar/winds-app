@@ -7,6 +7,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const pageTitle = '紫微斗數命盤 — 人生藍圖｜找風問幸福';
 const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（海外華人準確）。 12 宮主星副星完整、深度命理解讀，作為你的人生藍圖參考。';
+
+// 生日改三欄下拉（2026-08-02 Jeffery 指示：與占卜站正流程一致；原生 input[type=date] 手機體驗差）
+// 範圍與 divination.astro 相同（2026→1940）
+const YEARS = Array.from({ length: 2026 - 1940 + 1 }, (_, i) => 2026 - i);
+const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
+const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 ---
 
 <BaseLayout title={pageTitle} description={pageDesc} ogType="website">
@@ -42,53 +48,84 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
         </div>
 
         <div class="row">
-          <label for="solarDate">西元生日（陽曆）</label>
-          <input type="date" id="solarDate" name="solarDate" required min="1900-01-01" max="2100-12-31" />
+          <label for="solarYear">西元生日（陽曆）</label>
+          <div class="date-row">
+            <div class="select-wrap" style="flex:1.5">
+              <select id="solarYear" name="solarYear" required>
+                <option value="" disabled selected>年</option>
+                {YEARS.map((y) => <option value={y}>{y} 年</option>)}
+              </select>
+              <i class="ph-bold ph-caret-down caret"></i>
+            </div>
+            <div class="select-wrap">
+              <select id="solarMonth" name="solarMonth" required>
+                <option value="" disabled selected>月</option>
+                {MONTHS.map((m) => <option value={m}>{m} 月</option>)}
+              </select>
+              <i class="ph-bold ph-caret-down caret"></i>
+            </div>
+            <div class="select-wrap">
+              <select id="solarDay" name="solarDay" required>
+                <option value="" disabled selected>日</option>
+                {DAYS.map((d) => <option value={d}>{d} 日</option>)}
+              </select>
+              <i class="ph-bold ph-caret-down caret"></i>
+            </div>
+          </div>
         </div>
 
         <div class="row two-col">
           <div>
             <label for="hour">出生時辰</label>
-            <select id="hour" name="hour">
-              <option value="">— 不確定（用午時 12:00）—</option>
-              <option value="0">早子時（23-00 / 00-01）</option>
-              <option value="1">丑時（01-03）</option>
-              <option value="3">寅時（03-05）</option>
-              <option value="5">卯時（05-07）</option>
-              <option value="7">辰時（07-09）</option>
-              <option value="9">巳時（09-11）</option>
-              <option value="11">午時（11-13）</option>
-              <option value="13">未時（13-15）</option>
-              <option value="15">申時（15-17）</option>
-              <option value="17">酉時（17-19）</option>
-              <option value="19">戌時（19-21）</option>
-              <option value="21">亥時（21-23）</option>
-            </select>
+            <div class="select-wrap">
+              <select id="hour" name="hour">
+                <option value="">— 不確定（用午時 12:00）—</option>
+                <option value="0">早子時（23-00 / 00-01）</option>
+                <option value="1">丑時（01-03）</option>
+                <option value="3">寅時（03-05）</option>
+                <option value="5">卯時（05-07）</option>
+                <option value="7">辰時（07-09）</option>
+                <option value="9">巳時（09-11）</option>
+                <option value="11">午時（11-13）</option>
+                <option value="13">未時（13-15）</option>
+                <option value="15">申時（15-17）</option>
+                <option value="17">酉時（17-19）</option>
+                <option value="19">戌時（19-21）</option>
+                <option value="21">亥時（21-23）</option>
+              </select>
+              <i class="ph-bold ph-caret-down caret"></i>
+            </div>
           </div>
           <div>
             <label for="gender">性別</label>
-            <select id="gender" name="gender" required>
-              <option value="女">女</option>
-              <option value="男">男</option>
-            </select>
+            <div class="select-wrap">
+              <select id="gender" name="gender" required>
+                <option value="女">女</option>
+                <option value="男">男</option>
+              </select>
+              <i class="ph-bold ph-caret-down caret"></i>
+            </div>
           </div>
         </div>
 
         <div class="row">
           <label for="longitude">出生地經度（選填，海外華人建議填）</label>
-          <select id="longitude" name="longitude">
-            <option value="">— 不校正（適合台灣出生）—</option>
-            <option value="121.5">台北 121.5°E</option>
-            <option value="116.4">北京 116.4°E（-14 min）</option>
-            <option value="114.1">香港 114.1°E（-24 min）</option>
-            <option value="139.7">東京 139.7°E（+19 min）</option>
-            <option value="103.8">新加坡 103.8°E（+15 min, MYT/SGT 為 120°E zone）</option>
-            <option value="-122.4">舊金山 -122.4°E（-10 min）</option>
-            <option value="-123.1">溫哥華 -123.1°E（-12 min）</option>
-            <option value="-118.2">洛杉磯 -118.2°E（+7 min）</option>
-            <option value="-73.9">紐約 -73.9°E（+4 min）</option>
-            <option value="-0.1">倫敦 -0.1°E（-0.4 min）</option>
-          </select>
+          <div class="select-wrap">
+            <select id="longitude" name="longitude">
+              <option value="">— 不校正（適合台灣出生）—</option>
+              <option value="121.5">台北 121.5°E</option>
+              <option value="116.4">北京 116.4°E（-14 min）</option>
+              <option value="114.1">香港 114.1°E（-24 min）</option>
+              <option value="139.7">東京 139.7°E（+19 min）</option>
+              <option value="103.8">新加坡 103.8°E（+15 min, MYT/SGT 為 120°E zone）</option>
+              <option value="-122.4">舊金山 -122.4°E（-10 min）</option>
+              <option value="-123.1">溫哥華 -123.1°E（-12 min）</option>
+              <option value="-118.2">洛杉磯 -118.2°E（+7 min）</option>
+              <option value="-73.9">紐約 -73.9°E（+4 min）</option>
+              <option value="-0.1">倫敦 -0.1°E（-0.4 min）</option>
+            </select>
+            <i class="ph-bold ph-caret-down caret"></i>
+          </div>
         </div>
 
         <button type="submit" class="submit-btn">
@@ -853,9 +890,12 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     errorSection.hidden = true;
 
     const fd = new FormData(form);
+    // 生日三欄組回 YYYY-MM-DD（API 介面不變）
+    const pad2 = (v: string) => v.padStart(2, '0');
+    const solarDate = `${fd.get('solarYear')}-${pad2(String(fd.get('solarMonth')))}-${pad2(String(fd.get('solarDay')))}`;
     const payload: Record<string, unknown> = {
       name: String(fd.get('name') || '').trim(),
-      solarDate: fd.get('solarDate'),
+      solarDate,
       gender: fd.get('gender'),
       withHoroscope: true,
     };
@@ -1062,6 +1102,7 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     width: 100%;
     box-sizing: border-box;
     max-width: 100%;
+    min-height: 48px;
     padding: 12px 16px;
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-md);
@@ -1071,6 +1112,28 @@ const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（�
     color: var(--ink-900);
     text-overflow: ellipsis;
   }
+  /* 對齊占卜站 .f-select 配方（divination.astro:62-68）：appearance:none＋Phosphor caret＋shadow-xs */
+  .ziwei-form select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 34px;
+    box-shadow: var(--shadow-xs);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .ziwei-form input { box-shadow: var(--shadow-xs); transition: border-color .15s, box-shadow .15s; }
+  .ziwei-form .select-wrap { position: relative; flex: 1 1 0; min-width: 0; }
+  .ziwei-form .select-wrap .caret {
+    position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+    pointer-events: none; color: var(--rose-400);
+  }
+  /* 手機收單欄：時辰選項文字長，半欄必截字＋破格 */
+  @media (max-width: 480px) {
+    .ziwei-form .row.two-col { grid-template-columns: 1fr; }
+  }
+  /* 生日三欄（占卜站同款：年寬 1.5、月日等寬）；窄欄右距收小 */
+  .ziwei-form .date-row { display: flex; gap: 8px; }
+  .ziwei-form .date-row select { padding-left: 12px; padding-right: 30px; }
+  .ziwei-form .date-row .select-wrap .caret { right: 10px; }
   .ziwei-form input:focus,
   .ziwei-form select:focus {
     outline: none;
