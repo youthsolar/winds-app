@@ -40,6 +40,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     </section>
 
     <section class="form-section" id="form-section" hidden>
+      <p class="edm-welcome" id="edm-welcome" hidden></p>
       <p class="form-warning">⚠️ 紫微命盤每位使用者終身只能算一次。請仔細確認生日、時辰、性別、出生地，送出後無法修改。</p>
       <form id="ziwei-form" class="ziwei-form">
         <div class="row">
@@ -252,6 +253,39 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       if (h) h.textContent = '命盤看完了，那它在說什麼？';
       if (p0) p0.textContent = '每一宮在講你哪一塊人生、今年走到哪裡——完整解讀包含在：';
     }
+
+    // 承接語（Jeffery 2026-08-02 定稿）＋姓名/性別預填（token 即身份的最後一哩）：
+    // 信件主旨說「已經排好了」，落地不能像陌生人一樣叫他從頭填——名單覆蓋 name 99%/稱謂 61%。
+    {
+      const welcome = document.getElementById('edm-welcome') as HTMLElement | null;
+      if (welcome) {
+        welcome.textContent = '你的命盤已為你保留——確認生日後立即開啟。';
+        welcome.hidden = false;
+      }
+      fetch(`${WORKER_API}/edm/ziwei-prefill?t=${encodeURIComponent(EDM_TOKEN)}`)
+        .then((r) => r.json())
+        .then((d: any) => {
+          if (!d || !d.ok) return;
+          if (welcome && d.name) welcome.textContent = `${d.name}，你的命盤已為你保留——確認生日後立即開啟。`;
+          const nameInput = document.getElementById('name') as HTMLInputElement | null;
+          if (d.name && nameInput && !nameInput.value) nameInput.value = d.name;
+          const g = document.getElementById('gender') as HTMLSelectElement | null;
+          if (d.gender && g) g.value = d.gender;
+        })
+        .catch(() => {});
+    }
+
+    // 落地到達 beacon（延遲 2 秒；掃描器不跑 JS——與 /gua 同手法）
+    setTimeout(() => {
+      try {
+        fetch(`${WORKER_API}/edm/ziwei-seen`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ t: EDM_TOKEN }),
+          keepalive: true,
+        });
+      } catch (e) {}
+    }, 2000);
   }
 
   const form = document.getElementById('ziwei-form') as HTMLFormElement;
@@ -1130,6 +1164,20 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
   @media (max-width: 480px) {
     .ziwei-form .row.two-col { grid-template-columns: 1fr; }
   }
+  /* eDM 承接語（信件承諾的落地承接；只在 ?t= 路徑顯示） */
+  .edm-welcome {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.8;
+    color: var(--ink-900);
+    background: var(--accent-quiet, var(--rose-50));
+    border: 1px solid var(--rose-200);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin: 0 0 14px;
+  }
+
   /* 生日三欄（占卜站同款：年寬 1.5、月日等寬）；窄欄右距收小 */
   .ziwei-form .date-row { display: flex; gap: 8px; }
   .ziwei-form .date-row select { padding-left: 12px; padding-right: 30px; }
