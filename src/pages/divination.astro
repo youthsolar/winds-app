@@ -31,6 +31,28 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="/assets/nav-auth.js?v=4" defer></script>
 
+  <!-- 量測層（2026-08-15）：此頁不走 BaseLayout，底座另裝一份（GA4 ＋ Meta Pixel）-->
+  <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-2E65WJ8M93"></script>
+  <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-2E65WJ8M93');
+  </script>
+  <script is:inline>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1460549484341275');
+    fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1460549484341275&ev=PageView&noscript=1"/></noscript>
+
   <style is:global>
     #root{min-height:100vh}
     .shell{max-width:var(--container);margin:0 auto;padding:48px 28px 88px}
@@ -616,7 +638,10 @@ function viewTopic(){
     }
     h+='</div>';
   }
-  return '<main class="shell narrow">'+h+'</main>';
+  // 選方向那一步是三欄卡片，塞進 680px narrow 只剩每行 9 個中文字（實測 137px／15px），
+  // 「那個人」「收入」「壓力」都被拆行、末行還空掉 78% 的寬度。只有這一步放寬到 1120px
+  // （每行 ~19 字）；後面的問題清單與補述框仍走 narrow——那是閱讀／填寫欄，680px 才對。
+  return '<main class="shell'+(dir?' narrow':'')+'">'+h+'</main>';
 }
 function pickDir(k){STATE.dir=k;STATE.sub=null;STATE.q=null;STATE.text="";render()}
 function pickSub(k){STATE.sub=k;STATE.q=null;STATE.text="";render()}
@@ -1302,6 +1327,8 @@ function createOrder(){
   if(STATE.ordering)return;
   var btn=document.getElementById("unlockBtn");
   if(!STATE.logId){alert("找不到占卜記錄，請重新占卜。");return;}
+  /* 量測：InitiateCheckout＝按下解鎖鈕（Purchase 由 worker 走 CAPI，event_id=訂單號） */
+  try{var _v=Number(TALISMAN_PRICE)||360;if(window.fbq)fbq('track','InitiateCheckout',{currency:'TWD',value:_v});if(window.gtag)gtag('event','begin_checkout',{currency:'TWD',value:_v});}catch(e){}
   STATE.ordering=true;
   if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'建立訂單中…';}
   fetch(API.order,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
@@ -1365,8 +1392,11 @@ function adoptGoogleToken(tok){
 }
 function handleGoogleCredential(resp){
   if(!resp||!resp.credential)return;
+  var firstLogin=false;try{firstLogin=!localStorage.getItem("winds_google_token");}catch(e){}
   if(!adoptGoogleToken(resp.credential))return;
   try{localStorage.setItem("winds_google_token",resp.credential);}catch(e){}
+  /* 量測：Lead＝此瀏覽器第一次登入/綁定（重複登入不重送） */
+  if(firstLogin){try{if(window.fbq)fbq('track','Lead');if(window.gtag)gtag('event','sign_up',{method:'google'});}catch(e){}}
   doPrefill();
   if(STATE.step==="info")render();
 }
@@ -1387,6 +1417,8 @@ function mountGisButton(){
 window.addEventListener('zf-theme-change',function(){var d=window.ZFTheme&&ZFTheme.isDark();document.querySelectorAll('.zf-theme-ico').forEach(function(i){i.className='zf-theme-ico ph-thin ph-'+(d?'sun':'moon');});document.querySelectorAll('.zf-theme-lbl').forEach(function(s){s.textContent=d?'淺色模式':'深色模式';});});
 window.addEventListener('zf-theme-change',function(){mountGisButton._redo=true;mountGisButton();});
 function boot(){
+  /* 量測：ViewContent＝進到占卜漏斗（/divination） */
+  try{if(window.fbq)fbq('track','ViewContent',{content_name:'divination'});if(window.gtag)gtag('event','view_item',{item_name:'divination'});}catch(e){}
   var params=new URLSearchParams(location.search);
   var edmT=params.get("t");if(edmT){try{localStorage.setItem("winds_edm_token",edmT);}catch(e){}}
   var saved="";try{saved=localStorage.getItem("winds_google_token")||"";}catch(e){}

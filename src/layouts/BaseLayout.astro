@@ -65,6 +65,28 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   )}
 
+  <!-- 量測層（2026-08-15）：GA4 ＋ Meta Pixel 底座 → 全站 PageView；轉換事件掛在各頁 -->
+  <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-2E65WJ8M93"></script>
+  <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-2E65WJ8M93');
+  </script>
+  <script is:inline>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1460549484341275');
+    fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1460549484341275&ev=PageView&noscript=1"/></noscript>
+
   <!-- Brand Font（占卜站設計：Serif 標題/內文含 weight 300、Sans UI/數字/標籤）-->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
