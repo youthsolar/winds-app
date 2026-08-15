@@ -366,6 +366,13 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     .feat{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:14px 0 20px}
     .feat span{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:12.5px;color:var(--rose-600);background:var(--rose-50);border-radius:var(--radius-pill);padding:5px 12px}
     .paid-card{background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-lg);overflow:hidden}
+    /* 頁內完整解讀（付款後） */
+    .fi-body{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:2;color:var(--text-secondary)}
+    .fi-body p{margin:0 0 1.1em}
+    .fi-body strong{font-weight:500;color:var(--ink-900)}
+    .fi-h1{font-family:var(--font-serif);font-weight:500;font-size:19px;color:var(--ink-900);margin:26px 0 12px}
+    .fi-h2{font-family:var(--font-serif);font-weight:500;font-size:16.5px;color:var(--rose-600);margin:20px 0 10px}
+    .fi-hr{border:0;border-top:1px solid var(--rose-100);margin:22px 0}
     .paid-card .topbar{height:4px;background:linear-gradient(90deg,var(--rose-300),var(--clay-400))}
     .paid-card .body{padding:30px 34px}
     .paid-card .body p{font-family:var(--font-serif);font-weight:300;font-size:17px;line-height:2;color:var(--ink-700);margin:0 0 16px}
@@ -964,17 +971,48 @@ function hexTalismans(paid){
     h+='<div class="tal5-grid">'+list.map(function(c,i){
       var el=c.element;
       /* 未付款＋該位次已上傳真圖 → 顯示真模糊符令；否則退回符號佔位（同樣鎖住外觀） */
+      var showClear=(paid&&c.available&&c.clear_url);
       var showReal=(!paid&&c.available&&c.blur_url);
-      var inner=showReal
+      var inner=showClear
+        ? '<img src="'+esc(c.clear_url)+'" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" onclick="window.open(this.src,\'_blank\')">'
+        : showReal
         ? '<img src="'+esc(c.blur_url)+'" loading="lazy" decoding="async" draggable="false" oncontextmenu="return false;" style="width:100%;height:100%;object-fit:cover">'
         : '<div class="'+(paid?'':'blurred')+'" style="width:100%;height:100%">'+fulu(String(el).slice(0,1),el)+'</div>';
       return '<div class="tal5"><div style="position:relative">'+tframe(inner,false,EL_GLOW[String(el).slice(0,1)])+
         (paid?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span></div>')+'</div>'+
         '<div class="nm">'+(SOLAR.seq[i]||SOLAR.next)+' · '+esc(el)+'</div></div>';
     }).join("")+'</div>';
-    if(paid&&R.deliveryUrl)h+='<div style="text-align:center;margin-top:16px"><a class="zf-btn ghost md" href="'+esc(R.deliveryUrl)+'" target="_blank" rel="noopener">'+ic("download-simple")+'下載你的 '+els.length+' 張靈符</a></div>';
+    if(paid)h+='<div style="text-align:center;margin-top:16px;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)">'+ic("download-simple")+'點靈符可開大圖，長按或右鍵即可儲存</div>';
   }
   return h;
+}
+/* 付款後完整解讀：網頁版直接在頁內載入呈現（LINE LIFF 仍走 delivery 頁，兩面依登入介面分開） */
+function mdFull(t){
+  if(!t)return"";
+  var out=[],buf=[];
+  function flush(){if(buf.length){out.push('<p>'+buf.join('<br>')+'</p>');buf=[];}}
+  esc(t).split('\n').forEach(function(line){
+    var l=line.trim(),m;
+    if(!l){flush();return;}
+    if(m=l.match(/^#{1,2}\s*(.+)$/)){flush();out.push('<div class="fi-h1">'+m[1]+'</div>');return;}
+    if(m=l.match(/^#{3,6}\s*(.+)$/)){flush();out.push('<div class="fi-h2">'+m[1]+'</div>');return;}
+    if(/^-{3,}$/.test(l)){flush();out.push('<hr class="fi-hr">');return;}
+    buf.push(l.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'$1'));
+  });
+  flush();
+  return out.join('');
+}
+function loadFullContent(retry){
+  var R=STATE.result||{};
+  if(!R.purchased||STATE.full||(STATE.fullLoading&&!retry))return;
+  var m=(R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/);
+  if(!m)return;
+  STATE.fullLoading=true;STATE.fullError=false;
+  fetch(WORKER_API+"/delivery-content?token="+m[1]).then(function(r){return r.json();}).then(function(d){
+    STATE.fullLoading=false;
+    if(d&&d.ok&&d.hexagram_content){STATE.full=d;}else{STATE.fullError=true;}
+    if(STATE.step==="result")render();
+  }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result")render();});
 }
 function paywall(paid){
   var R=STATE.result||{};
@@ -985,7 +1023,11 @@ function paywall(paid){
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">'+ic("check-circle","fill")+'<span style="font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)">完整解讀已為你打開</span></div>'+
       (body?'<div>'+body+'</div>':'<p style="font-family:var(--font-serif);font-weight:300;color:var(--text-secondary)">完整節氣運勢圖與量能靈符已於上方為你解鎖。</p>')+
       (els.length?'<div style="border-top:1px solid var(--rose-100);margin-top:22px;padding-top:18px"><div style="font-family:var(--font-sans);font-size:12px;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px">已解鎖 · 為你量身的 '+els.length+' 張數位量能靈符</div><div style="display:flex;gap:10px;flex-wrap:wrap">'+els.map(function(e){return '<span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:13.5px;color:var(--rose-600);background:var(--rose-50);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:6px 14px">'+ic("seal","thin")+esc(e)+'</span>'}).join("")+'</div></div>':'')+
-      (R.deliveryUrl?'<div style="margin-top:20px"><a class="zf-btn primary md" href="'+esc(R.deliveryUrl)+'" target="_blank" rel="noopener">'+ic("arrow-right")+'查看完整解讀</a></div>':'')+
+      (STATE.full&&STATE.full.hexagram_content
+        ?'<div class="fi-body" style="border-top:1px solid var(--rose-100);margin-top:22px;padding-top:18px">'+mdFull(STATE.full.hexagram_content)+'</div>'
+        :'<div style="margin-top:20px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+(STATE.fullError
+          ?'<button class="zf-btn ghost sm" onclick="loadFullContent(true)">完整解讀載入失敗，點我重試</button>'
+          :ic("circle-notch")+'完整解讀載入中…')+'</div>')+
       '</div></div>';
   }
   return '<div class="paywall"><div class="behind"><p>完整解讀、整年的節氣運勢圖，還有為你量身的數位量能靈符，都在解鎖後為你打開。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>'+
@@ -1078,7 +1120,7 @@ function viewRepeatWall(){
       '<div class="nm-score" style="flex:none"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-100)" stroke-width="5"/><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-400)" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+dash.toFixed(1)+' '+circ.toFixed(1)+'" transform="rotate(-90 36 36)"/><text x="36" y="36" text-anchor="middle" dominant-baseline="central" style="font-family:var(--font-sans);font-size:16px;font-weight:600;fill:var(--ink-900)">'+sim+'%</text></svg><span class="nm-score-l">問題相似度</span></div>'+
       '<div style="min-width:0"><div style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted)">比對的是你上次問的'+(w.last_at?'（'+fmtWhen(w.last_at)+'）':'')+'</div>'+
       '<p style="font-family:var(--font-serif);font-size:14.5px;line-height:1.8;color:var(--ink-700);margin:4px 0 0">「'+esc(w.last_question)+'」</p>'+
-      (w.last_delivery_url?'<a href="'+esc(w.last_delivery_url)+'" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:13px;color:var(--rose-600);text-decoration:underline;margin-top:8px">'+ic("arrow-square-out")+'回顧上次的完整解讀</a>':'')+
+      (w.last_delivery_url&&w.last_log_id?'<a href="/divination/?log_id='+encodeURIComponent(w.last_log_id)+'" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:13px;color:var(--rose-600);text-decoration:underline;margin-top:8px">'+ic("arrow-square-out")+'回顧上次的完整解讀</a>':'')+
       '</div></div>';
   }
   var note='<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">每個方向都有過一次免費的回答，這不是限制，是想陪你把答案看清楚。</p></div></div>';
@@ -1184,7 +1226,7 @@ function go(s){STATE.step=s;render()}
 function back(){var map={info:"topic",result:"info"};if(map[STATE.step])go(map[STATE.step])}
 function exitFlow(){location.href="/";}
 function openOA(){window.open(LINE_OA_URL,"_blank");}
-function askAnother(){STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.logId="";STATE.repeatWall=null;go("topic");}
+function askAnother(){STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;STATE.logId="";STATE.repeatWall=null;go("topic");}
 function showInfoErr(msg){var e=document.getElementById("infoErr");if(e){e.textContent=msg;e.classList.remove("hidden");e.scrollIntoView({behavior:"smooth",block:"center"});}else{alert(msg);}}
 
 /* ===== Google SSO auth ===== */
@@ -1246,7 +1288,7 @@ function submitDivination(){
   if(!STATE.text){showInfoErr("請先回到上一步，選一句想問的話。");return;}
   var info=gatherInfo();if(info.err){showInfoErr(info.err);return;}
   STATE.userName={surname:info.surname,given:info.given};
-  STATE.submitting=true;STATE.logId="";STATE.result=null;STATE.paid=false;
+  STATE.submitting=true;STATE.logId="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;
   go("interpreting");
   var edmTok="";try{edmTok=localStorage.getItem("winds_edm_token")||"";}catch(e){}
   fetch(API.submit,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
@@ -1294,6 +1336,7 @@ function finishResult(d,logId){
   /* 回看模式（會員中心 ?log_id=）沒走表單，userName 用後端回的真名補上，姓名學才有得算 */
   if(!STATE.userName&&d.client_last_name)STATE.userName={surname:d.client_last_name,given:d.client_first_name||""};
   go("result");
+  if(STATE.paid)loadFullContent();
   if(STATE.logId)loadRecs(STATE.logId);
   loadNaming();
 }
@@ -1439,7 +1482,7 @@ function boot(){
 /* 對外（onclick handlers 需 global）*/
 window.pickDir=pickDir;window.pickSub=pickSub;window.pickQ=pickQ;window.toggleNoon=toggleNoon;window.pickGender=pickGender;
 window.go=go;window.back=back;window.exitFlow=exitFlow;window.openOA=openOA;window.askAnother=askAnother;
-window.submitDivination=submitDivination;window.soulPrefetch=soulPrefetch;window.createOrder=createOrder;window.shareResult=shareResult;
+window.submitDivination=submitDivination;window.soulPrefetch=soulPrefetch;window.createOrder=createOrder;window.shareResult=shareResult;window.loadFullContent=loadFullContent;
 window.STATE=STATE;
 
 boot();
