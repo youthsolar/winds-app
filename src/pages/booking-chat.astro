@@ -1,0 +1,430 @@
+---
+/*
+ * 對話式預約 /booking-chat — 對話式預約機器人 Phase 1 粗殼（spike-then-design）。
+ * 視覺複用分靈體 spirit.astro 的 DS 殼（底色/字體/泡泡/輸入列）。
+ * 後端＝api.winds.tw/booking-chat（tool-use 槽位填補迴圈）。
+ * ⚠️ 純文字泡泡：對話內預約泡泡（推薦卡/選時段/付款）留 Phase 3 才回 DS 設計。
+ * 身份：有 winds_google_token 就帶 google_sub + X-Google-Id-Token（後端驗章預填）；
+ *       沒有則訪客模式（機器人會問聯絡資料），一樣能完成預約。
+ */
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <title>預約老師 · 找風問幸福</title>
+  <meta name="description" content="跟小幫手聊聊，邊聊邊把老師預約約好——推薦對症老師、查真實時段、線上完成。" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+  <script>var _e=new URLSearchParams(location.search).get('embed');if(_e){var _d=document.documentElement;_d.classList.add('embed');if(_e==='page')_d.classList.add('embed-page');}</script>
+  <style is:inline>
+    /* embed 兩模式皆藏網站 nav+sp-intro；embed=page（手機全螢幕）改顯示風小編 header（取代 sp-intro，與原生 ConciergeWidget .wc-head 逐值對齊）。inline 確保隨 HTML 出貨、不被外部 CSS 快取卡住 */
+    html.embed .zf-nav,html.embed .sp-intro{display:none}
+    .bc-head{display:none;flex:none;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border-soft);background:linear-gradient(168deg,var(--surface-tint),var(--paper) 90%)}
+    html.embed-page .bc-head{display:flex}
+    .bc-av{flex:none;width:38px;height:38px;border-radius:var(--radius-pill);background:var(--rose-100);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--rose-600);box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
+    .bc-htxt{display:flex;flex-direction:column}
+    .bc-title{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);line-height:1.25}
+    .bc-sub{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
+  </style>
+  <script src="/assets/nav-auth.js?v=4" defer></script>
+
+  <style is:global>
+    html,body{height:100%}
+    body{margin:0;overflow:hidden}
+    .sp-app{height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--surface-page);overflow:hidden}
+    /* site nav（對齊 spirit.astro）*/
+    .zf-nav{flex:none;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft)}
+    .zf-nav-row{max-width:var(--container);margin:0 auto;padding:0 32px;height:76px;display:flex;align-items:center;justify-content:space-between}
+    .zf-nav .zf-logo img{height:54px;width:auto;display:block}
+    .zf-nav-links{display:flex;align-items:center;gap:26px}
+    .zf-nav-links > a:not(.zf-btn){font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:.03em;text-decoration:none}
+    .zf-nav-links > a:not(.zf-btn):hover{color:var(--accent-press)}
+    .zf-burger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:transparent;color:var(--ink-700);cursor:pointer}
+    .zf-burger i{font-size:24px;line-height:1}
+    .zf-drawer{display:none;border-top:1px solid var(--border-soft);background:var(--surface-page);padding:8px 20px 18px}
+    .zf-drawer > a:not(.zf-btn){font-family:var(--font-serif);font-size:17px;color:var(--ink-900);padding:12px 4px;border-bottom:1px solid var(--border-soft);text-decoration:none}
+    .zf-account{display:flex;align-items:center}
+    .zf-account-m{margin-top:8px;padding-top:10px;border-top:1px solid var(--border-soft)}
+    @media(max-width:980px){.zf-nav-row{padding:0 20px;height:64px}.zf-nav .zf-logo img{height:42px}.zf-nav-links{display:none}.zf-burger{display:flex}.zf-drawer:not([hidden]){display:flex;flex-direction:column;gap:2px}}
+
+    /* 主容器 + 訊息區（複用 spirit .sp-* 視覺）*/
+    .sp-wrap{flex:1;min-height:0;display:flex;flex-direction:column;max-width:680px;width:100%;margin:0 auto;box-sizing:border-box;padding:14px 24px 0;position:relative;overflow:hidden}
+    @media(max-width:760px){.sp-wrap{padding:10px 14px 0}}
+    .sp-intro{flex:none;padding:14px 18px;margin-bottom:6px;background:linear-gradient(168deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);border-radius:var(--radius-xl)}
+    .sp-intro h1{margin:0;font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900)}
+    .sp-intro p{margin:4px 0 0;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)}
+    .sp-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 0 16px}
+    .sp-bubble{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px}
+    .sp-bubble.user{justify-content:flex-end}
+    .sp-av{flex:none;width:32px;height:32px;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:13px;font-weight:500;color:var(--rose-600)}
+    .sp-bubble-in{max-width:calc(100% - 52px)}
+    .sp-bubble-txt{padding:12px 16px;border-radius:18px 18px 18px 6px;background:var(--surface-card);border:1px solid var(--border-soft);box-shadow:var(--shadow-sm);font-family:var(--font-serif);font-size:16px;font-weight:300;line-height:1.75;color:var(--ink-900);margin:0;white-space:pre-line;word-break:normal;text-wrap:wrap}
+    .sp-bubble-txt a{color:var(--accent-press);font-weight:500;word-break:break-all}
+    .sp-bubble.user .sp-bubble-txt{border-radius:18px 18px 6px 18px;background:var(--accent);border:none;color:var(--text-on-accent);font-weight:400}
+    .sp-typing{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px}
+    .sp-typing .dots{padding:12px 16px;border-radius:18px 18px 18px 6px;background:var(--surface-card);border:1px solid var(--border-soft);display:flex;gap:5px}
+    .sp-typing .dots span{width:7px;height:7px;border-radius:999px;background:var(--rose-300);animation:spBlink 1.2s ease-in-out infinite}
+    .sp-typing .dots span:nth-child(2){animation-delay:.2s}
+    .sp-typing .dots span:nth-child(3){animation-delay:.4s}
+    @keyframes spBlink{0%,100%{opacity:.3}50%{opacity:1}}
+    /* 輸入列 */
+    .sp-input{flex:none;border-top:1px solid var(--border-soft);padding:10px 0 18px;display:flex;gap:10px;align-items:center;background:var(--surface-page)}
+    .sp-input textarea{flex:1;padding:12px 16px;font-family:var(--font-serif);font-size:16px;line-height:1.6;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);outline:none;resize:none;max-height:120px}
+    .sp-input textarea:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring)}
+    .sp-input textarea:disabled{opacity:.5}
+    /* 語音入口＋通話列（移植原生 ConciergeWidget wc-voicebtn/wc-voicebar，值逐一對齊：header 34px 圓鈕） */
+    .bc-voicebtn{all:unset;cursor:pointer;width:34px;height:34px;border-radius:var(--radius-pill);background:var(--accent);color:var(--text-on-accent);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:var(--shadow-sm);transition:background var(--dur-fast) var(--ease-soft)}
+    .bc-voicebtn:hover{background:var(--accent-hover)}
+    .bc-voicebtn i{font-size:17px}
+    .bc-voicebtn[disabled]{background:var(--rose-100);cursor:default}
+    .bc-voicebtn[disabled] i{color:var(--rose-300)}
+    .bc-voicebtn-head{margin-left:auto}
+    /* 輸入列那顆只給獨立頁（無 header 可放）；embed=1 由 concierge.js 面板 header 提供、embed=page 由 bc-head 提供 */
+    .bc-voicebtn-input{width:46px;height:46px}
+    .bc-voicebtn-input i{font-size:20px}
+    html.embed .bc-voicebtn-input{display:none}
+    .bc-voicebar[hidden]{display:none!important}
+    .bc-voicebar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface-tint);border-bottom:1px solid var(--rose-100)}
+    .bc-voice-dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 0 var(--focus-ring);animation:bcPulse 1.6s infinite}
+    @keyframes bcPulse{0%{box-shadow:0 0 0 0 var(--focus-ring)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+    .bc-voice-st{flex:1;font-family:var(--font-serif);font-size:14px;color:var(--ink-700)}
+    .bc-hangup{all:unset;cursor:pointer;padding:7px 16px;border-radius:var(--radius-pill);font-family:var(--font-serif);font-size:13.5px;font-weight:500;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-100);box-shadow:var(--shadow-xs)}
+    .bc-hangup:hover{background:var(--accent);color:var(--text-on-accent);border-color:transparent}
+    .sp-send{all:unset;cursor:pointer;width:46px;height:46px;border-radius:var(--radius-md);background:var(--accent);display:flex;align-items:center;justify-content:center;flex:none;transition:background var(--dur-fast) var(--ease-soft)}
+    .sp-send[disabled]{cursor:default;background:var(--rose-100)}
+    .sp-send i{font-size:22px;color:var(--text-on-accent)}
+    .sp-send[disabled] i{color:var(--rose-300)}
+
+    /* 對話內 DS 卡片（與 widget ConciergeWidget 同一套；DS 真值 booking.jsx / Button.jsx）*/
+    .wc-card{margin:2px 0 14px 40px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow-sm)}
+    .wc-card.disabled{opacity:.55;pointer-events:none}
+    .wc-bk-actions{display:flex;gap:8px;margin-top:10px}
+    .wc-day{font-family:var(--font-sans);font-size:12.5px;font-weight:500;letter-spacing:.04em;color:var(--ink-700);margin:10px 0 8px}
+    .wc-day:first-child{margin-top:0}
+    .wc-slotgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .wc-slot{all:unset;cursor:pointer;text-align:center;padding:11px 6px;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);transition:all var(--dur-fast) var(--ease-soft)}
+    .wc-slot:hover{background:var(--accent);color:var(--text-on-accent);border-color:transparent;box-shadow:var(--shadow-sm)}
+    .wc-pay{margin:2px 0 14px 40px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:18px}
+    .wc-pay-amt{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900);margin-bottom:2px}
+    .wc-pay-amt small{font-family:var(--font-sans);font-size:12px;font-weight:400;color:var(--text-muted)}
+    .wc-pay-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm)}
+    .wc-pay-btn:hover{background:var(--accent-hover)}
+    .wc-pay-note{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);text-align:center;margin-top:10px}
+    .wc-prov{margin:2px 0 14px 40px;display:flex;flex-direction:column;gap:10px}
+    .wc-prov.disabled{opacity:.55;pointer-events:none}
+    .wc-prov-card{background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-lg);padding:14px}
+    .wc-prov-top{display:flex;align-items:center;gap:12px}
+    .wc-prov-av{flex:none;width:44px;height:44px;border-radius:999px;background:var(--rose-200);color:var(--rose-600);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:18px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
+    .wc-offer-img{flex:none;width:48px;height:48px;border-radius:var(--radius-md);object-fit:cover;border:1px solid var(--rose-100)}
+    .wc-prov-name{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
+    .wc-prov-meta{font-family:var(--font-sans);font-size:12px;color:var(--text-secondary);margin-top:2px}
+    .wc-prov-reason{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0}
+    .wc-prov-desc{font-family:var(--font-sans);font-size:12px;line-height:1.6;color:var(--text-muted);margin:6px 0 0}
+    .wc-prov-btn{all:unset;cursor:pointer;display:block;text-align:center;margin-top:12px;padding:10px;font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);box-shadow:var(--shadow-sm)}
+    .wc-prov-btn:hover{background:var(--accent-hover)}
+    .wc-action{margin:2px 0 14px 40px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:16px}
+    .wc-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:var(--w-medium);letter-spacing:.04em;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm);transition:background var(--dur-fast) var(--ease-soft)}
+    .wc-action-btn:hover{background:var(--accent-hover)}
+  </style>
+</head>
+<body>
+  <div class="sp-app">
+    <nav class="zf-nav">
+      <div class="zf-nav-row">
+        <a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福" /></a>
+        <div class="zf-nav-links">
+          <a href="/">首頁</a>
+          <a href="/divination">問一件事</a>
+          <a href="/blog">案例專欄</a>
+          <a href="/booking">老師介紹</a>
+          <a href="/shop">法器選物</a>
+          <div id="auth-button" class="zf-account"></div>
+        </div>
+        <button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>
+      </div>
+      <div class="zf-drawer" id="zfDrawer" hidden>
+        <a href="/">首頁</a>
+        <a href="/divination">問一件事</a>
+        <a href="/blog">案例專欄</a>
+        <a href="/booking">老師介紹</a>
+        <a href="/shop">法器選物</a>
+        <div id="auth-button-m" class="zf-account-m"></div>
+      </div>
+    </nav>
+
+    <!-- 風小編 header（只在 embed=page 手機全螢幕顯示，取代 sp-intro，逐值對齊原生 ConciergeWidget .wc-head）-->
+    <div class="bc-head">
+      <span class="bc-av">風</span>
+      <div class="bc-htxt"><div class="bc-title">風小編</div><div class="bc-sub">邊聊邊幫你約好老師 ✨</div></div>
+      <button class="bc-voicebtn bc-voicebtn-head" id="bcVoiceBtnHead" aria-label="改用語音通話" title="跟風小編講電話"><i class="ph-fill ph-phone"></i></button>
+    </div>
+    <!-- 語音通話列：待命時隱藏；連線中/通話中出現在 header 下方（位置逐值對齊原生 ConciergeWidget；embed=1 時上方 header 由 concierge.js 面板提供） -->
+    <div class="bc-voicebar" id="bcVoiceBar" hidden>
+      <span class="bc-voice-dot"></span>
+      <span class="bc-voice-st" id="bcVoiceSt">連線中…</span>
+      <button class="bc-hangup" id="bcHangup">掛斷</button>
+    </div>
+
+    <div class="sp-wrap">
+      <div class="sp-intro">
+        <h1>預約老師</h1>
+        <p>跟小幫手聊聊你的狀況，我幫你推薦對症的老師、查真實時段、完成預約 ✨</p>
+      </div>
+      <div class="sp-msgs" id="msgs"></div>
+      <div class="sp-input">
+        <button class="bc-voicebtn bc-voicebtn-input" id="bcVoiceBtn" aria-label="改用語音通話" title="跟風小編講電話"><i class="ph-fill ph-phone"></i></button>
+        <textarea id="ta" rows="1" placeholder="說說你在意的事…"></textarea>
+        <button class="sp-send" id="send" aria-label="送出"><i class="ph-fill ph-paper-plane-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    var API = "https://api.winds.tw/booking-chat";
+    var HISTORY = API + "/history";
+    var SESS_KEY = "winds_booking_session";   // 對話 token 存 localStorage，重載/離頁回來能接回 D1 對話
+    var S = { sessionId: null, sending: false };
+    try{ S.sessionId=localStorage.getItem(SESS_KEY)||null; }catch(e){}
+
+    // 身份（有就帶，後端驗章預填；沒有＝訪客）
+    function getAuth(){
+      var t=""; try{ t=localStorage.getItem('winds_google_token')||""; }catch(e){}
+      if(!t) return null;
+      try{ var p=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); return {token:t, sub:p.sub}; }catch(e){ return null; }
+    }
+
+    var msgsEl=document.getElementById('msgs'), taEl=document.getElementById('ta'), sendEl=document.getElementById('send');
+
+    function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    // 網址 char class 排除結尾雜訊（中文括號/標點），避免把 …blog-192） 的 ）吃進連結→404
+    function linkify(s){ return esc(s).replace(/(https?:\/\/[^\s)）」』，。、！？!?；;]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+
+    function addBubble(role, text){
+      var d=document.createElement('div'); d.className='sp-bubble '+(role==='user'?'user':'bot');
+      var inner = role==='user'
+        ? '<div class="sp-bubble-in"><p class="sp-bubble-txt">'+esc(text)+'</p></div>'
+        : '<span class="sp-av">風</span><div class="sp-bubble-in"><p class="sp-bubble-txt">'+linkify(text)+'</p></div>';
+      d.innerHTML=inner; msgsEl.appendChild(d); msgsEl.scrollTop=msgsEl.scrollHeight;
+    }
+    function showTyping(){
+      var d=document.createElement('div'); d.className='sp-typing'; d.id='typing';
+      d.innerHTML='<span class="sp-av">風</span><div class="dots"><span></span><span></span><span></span></div>';
+      msgsEl.appendChild(d); msgsEl.scrollTop=msgsEl.scrollHeight;
+    }
+    function hideTyping(){ var t=document.getElementById('typing'); if(t)t.remove(); }
+
+    // 對話內 DS 卡片渲染（與 widget ConciergeWidget 同套）。點卡片＝回送一則訊息走原管線。
+    function renderUi(ui){
+      if(!ui) return;
+      if(ui.kind==='providers' && ui.cards && ui.cards.length){
+        var wrap=document.createElement('div'); wrap.className='wc-prov';
+        ui.cards.forEach(function(c){
+          var card=document.createElement('div'); card.className='wc-prov-card';
+          var meta=[c.provider_name, (c.duration?c.duration+'分':''), (c.price?'NT$ '+c.price:'')].filter(Boolean).join(' · ');
+          card.innerHTML='<div class="wc-prov-top"><span class="wc-prov-av">'+esc(c.initial||'風')+'</span>'+
+            '<div><div class="wc-prov-name">'+esc(c.service_name||c.provider_name||'')+'</div>'+
+            '<div class="wc-prov-meta">'+esc(meta)+'</div></div></div>'+
+            (c.reason?'<p class="wc-prov-reason">'+esc(c.reason)+'</p>':'')+
+            (c.desc?'<p class="wc-prov-desc">'+esc(c.desc)+'…</p>':'');
+          var btn=document.createElement('button'); btn.className='wc-prov-btn'; btn.textContent='預約這個 →';
+          btn.addEventListener('click',function(){ wrap.classList.add('disabled'); sendText('我想約 '+(c.provider_name||'')+' 的 '+(c.service_name||'')); });
+          card.appendChild(btn); wrap.appendChild(card);
+        });
+        msgsEl.appendChild(wrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='offerings' && ui.cards && ui.cards.length){
+        // 跨品導購：法器（商品圖）/ 課程（glyph）卡
+        var owrap=document.createElement('div'); owrap.className='wc-prov';
+        ui.cards.forEach(function(c){
+          var card=document.createElement('div'); card.className='wc-prov-card';
+          var media=c.image?'<img class="wc-offer-img" src="'+c.image+'" alt="">':'<span class="wc-prov-av">'+esc(c.glyph||'禮')+'</span>';
+          var meta=c.type==='course'?[c.sessions,(c.price?'NT$ '+c.price:'')].filter(Boolean).join(' · '):(c.price?'NT$ '+c.price:'');
+          card.innerHTML='<div class="wc-prov-top">'+media+'<div><div class="wc-prov-name">'+esc(c.name||'')+'</div><div class="wc-prov-meta">'+esc(meta)+'</div></div></div>'+(c.reason?'<p class="wc-prov-reason">'+esc(c.reason)+'</p>':'');
+          var a=document.createElement('a'); a.className='wc-prov-btn'; a.href=c.url; a.target='_blank'; a.rel='noopener'; a.textContent=(c.type==='course'?'了解課程':'看看這個')+' →';
+          card.appendChild(a); owrap.appendChild(card);
+        });
+        msgsEl.appendChild(owrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='slots' && ui.days && ui.days.length){
+        var scard=document.createElement('div'); scard.className='wc-card';
+        var wd=['日','一','二','三','四','五','六'];
+        ui.days.forEach(function(day){
+          var lbl=document.createElement('div'); lbl.className='wc-day';
+          var dt=new Date(day.date+'T00:00:00'); var w=isNaN(dt)?'':('（'+wd[dt.getDay()]+'）');
+          lbl.textContent=day.date+' '+w; scard.appendChild(lbl);
+          var grid=document.createElement('div'); grid.className='wc-slotgrid';
+          day.times.forEach(function(t){
+            var bb=document.createElement('button'); bb.className='wc-slot'; bb.textContent=t;
+            bb.addEventListener('click',function(){ scard.classList.add('disabled'); sendText('我想約 '+day.date+' '+t); });
+            grid.appendChild(bb);
+          });
+          scard.appendChild(grid);
+        });
+        msgsEl.appendChild(scard); msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='pay' && ui.url){
+        var p=document.createElement('div'); p.className='wc-pay';
+        p.innerHTML='<div class="wc-pay-amt">訂金 NT$ '+(ui.amount||'')+' <small>確認後付款</small></div>'+
+          '<a class="wc-pay-btn" href="'+ui.url+'" target="_blank" rel="noopener">前往付款 →</a>'+
+          '<div class="wc-pay-note">付款完成後預約即正式成立</div>';
+        msgsEl.appendChild(p); msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='mybookings' && ui.bookings && ui.bookings.length){
+        ui.bookings.forEach(function(bk){
+          var card=document.createElement('div'); card.className='wc-card';
+          var meta=[bk.provider_name, bk.location_name].filter(Boolean).join(' · ');
+          card.innerHTML='<div class="wc-prov-name">'+esc(bk.service_name||'')+'</div>'+
+            '<div class="wc-prov-meta">'+esc(bk.start_datetime||'')+(meta?' · '+esc(meta):'')+'</div>';
+          var row=document.createElement('div'); row.className='wc-bk-actions';
+          var rb=document.createElement('button'); rb.className='wc-slot'; rb.textContent='改期';
+          rb.addEventListener('click',function(){ sendText('我要改期，單號 '+(bk.trade_no||'')); });
+          var cb=document.createElement('button'); cb.className='wc-slot'; cb.textContent='取消';
+          cb.addEventListener('click',function(){ sendText('我要取消，單號 '+(bk.trade_no||'')); });
+          row.appendChild(rb); row.appendChild(cb); card.appendChild(row);
+          msgsEl.appendChild(card);
+        });
+        msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='action' && ui.url){
+        // 繞圈→占卜出口卡（DS：surface-tint 卡 + DS primary 按鈕）
+        var a=document.createElement('div'); a.className='wc-action';
+        var abtn=document.createElement('a'); abtn.className='wc-action-btn'; abtn.href=ui.url;
+        abtn.textContent=(ui.label||'試著占卜看看')+' →';
+        a.appendChild(abtn); msgsEl.appendChild(a); msgsEl.scrollTop=msgsEl.scrollHeight;
+      } else if(ui.kind==='handoff' && ui.url){
+        // 真人 handoff（網頁版）：加入官方 LINE @uneedwind 好友 → 老師在 OA 後台接
+        var ha=document.createElement('div'); ha.className='wc-action';
+        var hbtn=document.createElement('a'); hbtn.className='wc-action-btn'; hbtn.href=ui.url; hbtn.target='_blank'; hbtn.rel='noopener';
+        hbtn.textContent=(ui.label||'加入官方 LINE，真人對談')+' →';
+        ha.appendChild(hbtn); msgsEl.appendChild(ha); msgsEl.scrollTop=msgsEl.scrollHeight;
+      }
+    }
+
+    function sendText(msg){
+      if(!msg||S.sending) return;
+      S.sending=true; sendEl.disabled=true;
+      addBubble('user', msg); showTyping();
+      var auth=getAuth();
+      var body={ message:msg, channel:'web', sessionId:S.sessionId };
+      if(auth&&auth.sub) body.google_sub=auth.sub;
+      var headers={'Content-Type':'application/json'};
+      if(auth&&auth.token) headers['X-Google-Id-Token']=auth.token;
+      fetch(API,{method:'POST',headers:headers,body:JSON.stringify(body)})
+        .then(function(r){return r.json()})
+        .then(function(d){
+          hideTyping();
+          if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} }
+          addBubble('bot', (d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？');
+          if(d&&d.ui) renderUi(d.ui);
+        })
+        .catch(function(){ hideTyping(); addBubble('bot','連線好像不太順，請稍後再試一次 🙏'); })
+        .finally(function(){ S.sending=false; sendEl.disabled=false; taEl.focus(); });
+    }
+    function send(){
+      var msg=(taEl.value||'').trim(); if(!msg) return;
+      taEl.value=''; taEl.style.height='auto'; sendText(msg);
+    }
+
+    // ============ 語音通話（Grok Voice；打字/通話雙軌恆存；移植原生 ConciergeWidget） ============
+    var VOICE_BASE='https://api.winds.tw';
+    var vBtn=document.getElementById('bcVoiceBtn'), vBtnH=document.getElementById('bcVoiceBtnHead'),
+        vBar=document.getElementById('bcVoiceBar'), vSt=document.getElementById('bcVoiceSt'), vHang=document.getElementById('bcHangup');
+    var V={call:null,loading:false};
+    function setVBtns(dis){ vBtn.disabled=dis; if(vBtnH) vBtnH.disabled=dis; }
+    function voiceUi(state){
+      // idle / connecting / live / ended
+      if(state==='connecting'){ vBar.hidden=false; vSt.textContent='連線中…'; setVBtns(true); }
+      else if(state==='live'){ vBar.hidden=false; vSt.textContent='通話中——直接開口說話就可以'; setVBtns(true); addBubble('bot','我在聽了 🎙️ 直接跟我說說你在意的事吧。'); }
+      else { vBar.hidden=true; setVBtns(false); if(state==='ended'&&V.call){ addBubble('bot','通話結束了。想繼續的話，打字或再按一次通話都可以 😊'); } V.call=null; }
+    }
+    // LINE 內建瀏覽器降級：拿不到麥克風 → 提示 + 一鍵外開（LINE 支援 openExternalBrowser=1）
+    function voiceDegrade(kind){
+      voiceUi('idle');
+      var here=location.href.replace(/([?&])openExternalBrowser=1/,'$1').replace(/[?&]$/,'');
+      var extUrl=here+(here.indexOf('?')>=0?'&':'?')+'openExternalBrowser=1';
+      addBubble('bot', kind==='mic'
+        ? '這個環境好像拿不到麥克風（LINE 內建瀏覽器常有這個限制）🙏 用下面的按鈕在外部瀏覽器開啟，就能跟我通話了。'
+        : '語音連線暫時不太順，可以先用打字的，或稍後再試 🙏');
+      if(kind==='mic'){ renderUi({kind:'action',url:extUrl,label:'在外部瀏覽器開啟'}); }
+    }
+    // 通話中的工具結果 → 複用文字版卡片（時段卡/付款卡），可講可點
+    function voiceToolCard(name,result){
+      if(name==='get_slots'&&result&&result.slots){
+        var days=Object.keys(result.slots).sort().slice(0,5).map(function(d){return {date:d,times:(result.slots[d]||[]).slice(0,9)};}).filter(function(d){return d.times.length});
+        if(days.length) renderUi({kind:'slots',days:days});
+      } else if(name==='create_booking'&&result&&result.ok&&result.payment_url){
+        renderUi({kind:'pay',url:result.payment_url,amount:result.amount});
+      }
+    }
+    function startVoice(){
+      if(V.call||V.loading) return;
+      function boot(){
+        if(window.WindsVoiceCall && WindsVoiceCall.isLikelyBlockedWebview()){ voiceDegrade('mic'); return; }
+        voiceUi('connecting');
+        var call=new WindsVoiceCall({
+          apiBase:VOICE_BASE,
+          onState:function(s){ if(s==='live') voiceUi('live'); else if(s==='ended') voiceUi('ended'); },
+          onToolResult:function(name,result){ voiceToolCard(name,result); },
+          onError:function(kind){ voiceDegrade(kind); }
+        });
+        call.start().then(function(){ V.call=call; }).catch(function(){ /* onError 已處理 */ });
+      }
+      if(window.WindsVoiceCall){ boot(); return; }
+      V.loading=true;
+      var s=document.createElement('script'); s.src=VOICE_BASE+'/voice/client.js';
+      s.onload=function(){ V.loading=false; boot(); };
+      s.onerror=function(){ V.loading=false; voiceDegrade('connect'); };
+      document.head.appendChild(s);
+    }
+    vBtn.addEventListener('click',startVoice);
+    if(vBtnH) vBtnH.addEventListener('click',startVoice);
+    // embed=1 桌機 iframe：header 在外層 concierge.js 面板 → 通話鈕在外層，postMessage 傳令進來開話
+    // origin 白名單：只認自家頁面，防外站嵌 iframe 白嫖語音分鐘數
+    window.addEventListener('message',function(e){
+      if(['https://booking.winds.tw','https://winds.tw','https://www.winds.tw'].indexOf(e.origin)<0) return;
+      if(e.data&&e.data.type==='winds-voice-start') startVoice();
+    });
+    vHang.addEventListener('click',function(){ if(V.call) V.call.stop('user'); else voiceUi('idle'); });
+    // 通話中點時段卡/打字 → 以文字送進語音對話（Grok 會接著講）
+    var _origSendText=sendText;
+    sendText=function(msg){
+      if(V.call){ addBubble('user',msg); V.call.sendText(msg); return; }
+      _origSendText(msg);
+    };
+
+    sendEl.addEventListener('click', send);
+    // IME 組字中的 Enter（確認選字）不可當送出（否則送出後輸入法把字重塞回輸入框）
+    taEl.addEventListener('keydown', function(e){ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){ e.preventDefault(); send(); } });
+    taEl.addEventListener('input', function(){ taEl.style.height='auto'; taEl.style.height=Math.min(taEl.scrollHeight,120)+'px'; });
+
+    // 開場白 / rehydrate（修「點連結離頁→回來對話消失」：對話存 D1，重載時用 token 撈回整段）
+    function greet(){ addBubble('bot','嗨 👋 歡迎來到「找風問幸福」。我可以幫你預約老師諮詢——先跟我說說你最近在意的事，或想處理什麼吧 🌙'); }
+    (function rehydrateOrGreet(){
+      var auth=getAuth();
+      // 無本機 token：訪客→直接開場白；已登入→仍查 history（跨裝置接回最近一段對話）
+      if(!S.sessionId && !(auth&&auth.sub)){ greet(); return; }
+      var qs=[]; if(S.sessionId) qs.push('sessionId='+encodeURIComponent(S.sessionId)); if(auth&&auth.sub) qs.push('google_sub='+encodeURIComponent(auth.sub));
+      var url=HISTORY+'?'+qs.join('&');
+      var h={}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
+      showTyping();
+      fetch(url,{headers:h}).then(function(r){return r.json()}).then(function(d){
+        hideTyping();
+        // 跨裝置接回：後端回了最近對話的 token → 認領存本機，之後續聊接同一段
+        if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} }
+        var ms=(d&&d.messages)||[];
+        if(ms.length){ ms.forEach(function(m){ addBubble(m.role==='user'?'user':'bot', m.content); }); }
+        else { greet(); }
+      }).catch(function(){ hideTyping(); greet(); });
+    })();
+
+    // 漢堡選單
+    var b=document.getElementById('zfBurger'), dr=document.getElementById('zfDrawer');
+    if(b&&dr) b.addEventListener('click', function(){ dr.hidden=!dr.hidden; });
+  </script>
+</body>
+</html>
