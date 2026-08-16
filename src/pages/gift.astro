@@ -1,0 +1,245 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="七夕，老師請你占一卦 · 找風問幸福"
+  description="七夕限定：風易揚老師請你完整占一卦。用 Google 帳號登入即可免費領取一次完整解讀，含手繪靈符。"
+>
+  <div class="gf-wrap">
+    <div class="gf-inner">
+      <!-- 抬頭 -->
+      <div class="gf-head">
+        <div class="gf-eyebrow">七夕限定・老師請客</div>
+        <h1 class="gf-h1">七夕，老師請你占一卦</h1>
+        <p class="gf-lead">有些事放在心上很久了——感情、工作，或一個說不出口的決定。這個七夕，風易揚老師請你完整占一卦，把心裡那件事問清楚。</p>
+      </div>
+
+      <!-- 一般態 -->
+      <div id="gfOpen" hidden>
+        <div class="gf-card gf-card-hero">
+          <div id="gfGmount" class="gf-gmount" aria-label="使用 Google 領取"></div>
+          <button id="gfClaimBtn" class="gf-gbtn" hidden>
+            <span class="gf-gbtn-label">用 Google 帳戶領取</span>
+          </button>
+          <p class="gf-hint" id="gfHint" hidden><span class="gf-spinner"></span>正在為你準備…</p>
+          <div class="gf-note">免費領取・每個帳號限一次</div>
+          <div class="gf-tagline"><span class="gf-tag">今天名額有限，領完為止</span></div>
+        </div>
+
+        <div class="gf-card">
+          <div class="gf-kicker">這次請客的內容</div>
+          <div class="gf-row">
+            <span class="gf-seat"><i class="ph-thin ph-scroll"></i></span>
+            <div class="gf-rowtext"><div class="gf-rowtitle">完整卦象解讀</div><div class="gf-rowline">老師針對你問的事，逐段把卦講給你聽。</div></div>
+          </div>
+          <div class="gf-row">
+            <span class="gf-seat"><i class="ph-thin ph-yin-yang"></i></span>
+            <div class="gf-rowtext"><div class="gf-rowtitle">五行量能分佈</div><div class="gf-rowline">看見自己此刻的狀態，知道勁該往哪使。</div></div>
+          </div>
+          <div class="gf-row">
+            <span class="gf-seat"><i class="ph-thin ph-flower-lotus"></i></span>
+            <div class="gf-rowtext"><div class="gf-rowtitle">專屬量能靈符</div><div class="gf-rowline">依你的卦客製，陪你度過這段日子。</div></div>
+          </div>
+          <div class="gf-price">完整解讀價值 <b>NT$360</b>，這一卦由老師請客。</div>
+        </div>
+
+        <div class="gf-card gf-card-last">
+          <div class="gf-kicker">怎麼領</div>
+          <div class="gf-row">
+            <span class="gf-seat gf-seat-num">1</span>
+            <div class="gf-rowtext"><div class="gf-rowtitle">登入領取</div><div class="gf-rowline">用 Google 帳號登入，領取這次的請客。</div></div>
+          </div>
+          <div class="gf-row">
+            <span class="gf-seat gf-seat-num">2</span>
+            <div class="gf-rowtext"><div class="gf-rowtitle">選題起卦</div><div class="gf-rowline">挑一件放在心上的事，填六個基本資料。</div></div>
+          </div>
+          <div class="gf-row">
+            <span class="gf-seat gf-seat-num">3</span>
+            <div class="gf-rowtext"><div class="gf-rowtitle">展開解讀</div><div class="gf-rowline">稍候片刻，老師的完整解讀隨即展開。</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 領取成功態 -->
+      <div id="gfDone" hidden>
+        <div class="gf-card gf-card-hero">
+          <span class="gf-seat gf-seat-big"><i class="ph-thin ph-hands-praying"></i></span>
+          <div class="gf-fulltitle">領好了，這一卦請你</div>
+          <p class="gf-fulllead">權益已綁定你的 Google 帳號。接下來挑一件放在心上的事，起卦之後，完整解讀由老師請客。</p>
+          <a id="gfGoBtn" class="gf-cta" href="/divination/">開始占卦</a>
+          <div class="gf-note">看完整解讀時，用同一個 Google 帳號登入即可</div>
+        </div>
+      </div>
+
+      <!-- 額滿態 -->
+      <div id="gfFull" hidden>
+        <div class="gf-card gf-card-hero">
+          <span class="gf-seat gf-seat-big"><i class="ph-thin ph-moon-stars"></i></span>
+          <div class="gf-fulltitle">今天的名額被領完了</div>
+          <p class="gf-fulllead">老師每天準備的名額有限。留下 email，明天的名額幫你保留一個。</p>
+          <form id="gfWaitForm">
+            <input id="gfWaitEmail" class="gf-field" type="email" required placeholder="你的 email" autocomplete="email" />
+            <button type="submit" class="gf-cta gf-cta-btn"><i class="ph-thin ph-envelope-simple"></i>幫我保留明天的名額</button>
+          </form>
+          <div class="gf-note" id="gfWaitNote">只寄這一封領取信，不會拿你的 email 做其他用途。</div>
+        </div>
+      </div>
+
+      <!-- 細則 -->
+      <p class="gf-terms">
+        活動期間限定・每個 Google 帳號限領一次・靈符依節氣逐張解鎖<br />
+        登入即表示你同意我們的<a href="/terms">使用條款</a>與<a href="/privacy">隱私權政策</a>。
+      </p>
+
+      <!-- 品牌 -->
+      <div class="gf-brand">
+        <a href="/"><img src="/assets/logo.png" alt="找風問幸福" /></a>
+        <p>選擇比努力更重要，命理是對自己的溫柔。</p>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .gf-wrap{padding:28px 18px 56px;background:var(--surface-page);}
+    .gf-inner{max-width:440px;margin:0 auto;}
+    .gf-head{margin-bottom:24px;}
+    .gf-eyebrow{font-family:var(--font-sans);font-size:12px;letter-spacing:0.02em;color:var(--accent-press);margin-bottom:8px;}
+    .gf-h1{margin:0 0 12px;font-family:var(--font-serif);font-size:25px;font-weight:500;color:var(--ink-900);letter-spacing:0.02em;line-height:1.4;}
+    .gf-lead{font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.9;color:var(--text-secondary);margin:0;}
+    .gf-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:24px 22px;margin-bottom:14px;}
+    .gf-card-hero{padding:30px 24px 28px;box-shadow:var(--shadow-md);}
+    .gf-card-last{margin-bottom:20px;}
+    .gf-kicker{font-family:var(--font-sans);font-size:11.5px;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:6px;}
+    .gf-row{display:flex;align-items:center;gap:16px;padding:13px 0;border-top:1px solid var(--border-soft);}
+    .gf-kicker + .gf-row{border-top:none;}
+    .gf-seat{flex:none;width:48px;height:48px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);display:flex;align-items:center;justify-content:center;}
+    .gf-seat i{font-size:24px;color:var(--rose-500);}
+    .gf-seat-num{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--rose-500);}
+    .gf-seat-big{width:56px;height:56px;margin-bottom:14px;}
+    .gf-seat-big i{font-size:28px;}
+    .gf-rowtext{flex:1;min-width:0;}
+    .gf-rowtitle{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);}
+    .gf-rowline{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);}
+    .gf-price{margin-top:6px;padding-top:16px;border-top:1px solid var(--border-soft);font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);}
+    .gf-price b{color:var(--rose-500);font-weight:500;}
+    .gf-gmount{display:flex;justify-content:center;min-height:44px;}
+    .gf-gmount[hidden]{display:none;}
+    .gf-gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap;padding:14px 20px;min-height:54px;cursor:pointer;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
+    .gf-gbtn:hover{background:var(--rice-100);}
+    .gf-gbtn[disabled]{opacity:0.7;cursor:default;}
+    .gf-hint{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px 0 0;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
+    .gf-spinner{display:inline-block;flex:none;width:18px;height:18px;border-radius:999px;border:2px solid var(--rose-200);border-top-color:var(--rose-500);animation:gfSpin 1.1s linear infinite;box-sizing:border-box;}
+    @keyframes gfSpin{to{transform:rotate(360deg)}}
+    .gf-note{font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);margin-top:12px;}
+    .gf-tagline{margin-top:12px;}
+    .gf-tag{display:inline-block;font-family:var(--font-sans);font-size:12px;color:var(--rose-500);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:3px 12px;}
+    .gf-fulltitle{font-family:var(--font-serif);font-size:21px;font-weight:500;color:var(--ink-900);letter-spacing:0.02em;margin-bottom:8px;}
+    .gf-fulllead{font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.85;color:var(--text-secondary);margin:0 0 20px;}
+    .gf-field{width:100%;box-sizing:border-box;padding:14px 18px;min-height:50px;margin-bottom:10px;font-family:var(--font-sans);font-size:15px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);outline:none;}
+    .gf-field:focus{border-color:var(--rose-500);}
+    .gf-cta{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;min-height:52px;font-family:var(--font-serif);font-size:17px;font-weight:500;color:#fff;background:var(--rose-500);border:none;border-radius:var(--radius-pill);cursor:pointer;text-decoration:none;transition:background var(--dur-fast) var(--ease-soft);}
+    .gf-cta:hover{background:var(--rose-600,var(--rose-500));}
+    .gf-cta i{font-size:18px;}
+    .gf-terms{margin:0 0 28px;font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);}
+    .gf-terms a{color:var(--rose-500);text-decoration:none;}
+    .gf-terms a:hover{text-decoration:underline;}
+    .gf-brand{text-align:center;border-top:1px solid var(--border-soft);padding-top:20px;}
+    .gf-brand img{height:50px;width:auto;opacity:0.8;}
+    .gf-brand p{font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-muted);margin:8px 0 0;}
+  </style>
+
+  <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
+  <script is:inline>
+    (function () {
+      var WORKER_API = 'https://api.winds.tw';
+      var CLIENT_ID = '35219881811-2rnl87e0qmb9vsuhuqnfooo0a0af5ggd.apps.googleusercontent.com';
+      var openEl = document.getElementById('gfOpen');
+      var doneEl = document.getElementById('gfDone');
+      var fullEl = document.getElementById('gfFull');
+      var hint = document.getElementById('gfHint');
+      var claimBtn = document.getElementById('gfClaimBtn');
+      var gmount = document.getElementById('gfGmount');
+
+      function show(state) {
+        openEl.hidden = state !== 'open';
+        doneEl.hidden = state !== 'done';
+        fullEl.hidden = state !== 'full';
+      }
+
+      function storedToken() {
+        try {
+          var t = localStorage.getItem('winds_google_token');
+          if (!t) return null;
+          var p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          if (p.exp && p.exp * 1000 > Date.now() + 60000) return t;
+        } catch (e) {}
+        return null;
+      }
+
+      function claim(idToken) {
+        hint.hidden = false;
+        claimBtn.disabled = true;
+        fetch(WORKER_API + '/gift/claim', { method: 'POST', headers: { 'X-Google-Id-Token': idToken } })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            hint.hidden = true;
+            if (d && d.full) { show('full'); return; }
+            if (d && d.ok && d.url) {
+              document.getElementById('gfGoBtn').href = d.url;
+              show('done');
+              return;
+            }
+            claimBtn.disabled = false;
+            alert((d && d.error) || '暫時領取不到，請稍後再試');
+          })
+          .catch(function () { hint.hidden = true; claimBtn.disabled = false; alert('連線失敗，請稍後再試'); });
+      }
+
+      function onCredential(resp) {
+        if (!resp || !resp.credential) return;
+        try { localStorage.setItem('winds_google_token', resp.credential); } catch (e) {}
+        claim(resp.credential);
+      }
+
+      function initGsi() {
+        if (!(window.google && google.accounts && google.accounts.id)) { setTimeout(initGsi, 150); return; }
+        google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential, auto_select: false, context: 'signin' });
+        gmount.innerHTML = '';
+        google.accounts.id.renderButton(gmount, { theme: (window.ZFTheme && ZFTheme.isDark()) ? 'filled_black' : 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
+      }
+
+      // 已登入 → 自家 DS 按鈕直領；未登入 → 官方 GIS 按鈕
+      var tk = storedToken();
+      if (tk) {
+        gmount.hidden = true;
+        claimBtn.hidden = false;
+        claimBtn.addEventListener('click', function () { claim(tk); });
+      } else {
+        initGsi();
+        window.addEventListener('zf-theme-change', function () { if (!storedToken()) initGsi(); });
+      }
+
+      // 每日閥門：問後端今天還開不開
+      fetch(WORKER_API + '/gift/status')
+        .then(function (r) { return r.json(); })
+        .then(function (d) { show(d && d.open === false ? 'full' : 'open'); })
+        .catch(function () { show('open'); });
+
+      // waitlist
+      document.getElementById('gfWaitForm').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var email = document.getElementById('gfWaitEmail').value.trim();
+        if (!email) return;
+        fetch(WORKER_API + '/gift/waitlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email }) })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (d && d.ok) {
+              document.getElementById('gfWaitForm').hidden = true;
+              document.getElementById('gfWaitNote').textContent = '保留好了！明天名額開放時會寄信通知你。';
+            } else { alert((d && d.error) || '登記失敗，請確認 email'); }
+          })
+          .catch(function () { alert('連線失敗，請稍後再試'); });
+      });
+    })();
+  </script>
+</BaseLayout>
