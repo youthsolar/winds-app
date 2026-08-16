@@ -1047,7 +1047,7 @@ function hexTalismans(paid){
       var canUnlock=(paid&&F&&step>ustep&&days===0);
       var showReal=(!paid&&c.available&&c.blur_url);
       var inner=showClear
-        ? '<img src="'+esc(WORKER_API+"/card-image/"+tok+"/"+step)+'" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" onclick="window.open(this.src,\'_blank\')">'
+        ? '<img src="'+esc(WORKER_API+"/card-image/"+tok+"/"+step)+'?v='+Date.now()+'" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" onclick="window.open(this.src,\'_blank\')">'
         : showReal
         ? '<img src="'+esc(c.blur_url)+'" loading="lazy" decoding="async" draggable="false" oncontextmenu="return false;" style="width:100%;height:100%;object-fit:cover">'
         : '<div class="blurred" style="width:100%;height:100%">'+fulu(String(el).slice(0,1),el)+'</div>';
