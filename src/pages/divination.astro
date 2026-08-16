@@ -323,6 +323,7 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     .tframe .glow{position:absolute;inset:0;z-index:1;background:radial-gradient(132% 82% at 50% 41%,var(--tf-glow) 0%,var(--tf-glow) 16%,transparent 70%)}
     .tframe .glow2{position:absolute;inset:0;z-index:1;background:radial-gradient(80% 55% at 50% 40%,var(--tf-glow),transparent 70%);mix-blend-mode:multiply;opacity:.28}
     .tframe .inner-border{position:absolute;z-index:1;inset:8px;border-radius:calc(var(--radius-lg) - 6px);border:1px solid var(--rose-100)}
+    .tframe>img{position:relative;z-index:2}  /* 符令實圖浮於光暈層上——暗色主題 glow2 multiply 會在圖中央壓出黑暈（2026-08-16 遮罩事故三號） */
     .fulu{position:relative;z-index:1;height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:30px 0 20px;color:var(--ink-700)}
     .fulu .chi{font-family:var(--font-sans);font-size:12px;letter-spacing:.42em;color:var(--rose-500);margin-left:.42em}
     .fulu .glyph{font-family:var(--font-serif);font-size:84px;line-height:1;color:var(--accent-press)}
