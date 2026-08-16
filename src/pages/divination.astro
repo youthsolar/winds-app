@@ -832,7 +832,7 @@ function viewReportPaid(R,q){
   h+=block("你的命理檔案","",profileCard(true));
   h+=tarotBlockFull(R);
   h+=qianBlockFull(R);
-  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("你的量能靈符","每週解鎖一張，依序設成手機桌布。",hexTalismans(true),true);
+  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("你的量能靈符","每逢節氣解鎖一張，依序設成手機桌布。",hexTalismans(true),true);
   h+=recsSection();
   h+='<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:54px">'+
     '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
@@ -1038,7 +1038,7 @@ function hexTalismans(paid){
     h+='<div class="tal5-grid">'+list.map(function(c,i){
       var el=c.element;
       /* 未付款＋該位次已上傳真圖 → 顯示真模糊符令；否則退回符號佔位（同樣鎖住外觀） */
-      /* 付費後照 delivery 頁同一套逐週解鎖：step<=unlock_step 才給真圖（token 閘控），其餘鎖住可加購 */
+      /* 付費後照 delivery 頁同一套逐節氣解鎖：step<=unlock_step 才給真圖（token 閘控），其餘鎖住可加購 */
       var F=STATE.full,tok=STATE.fullToken;
       var step=i+1;
       var ustep=(paid&&F)?Math.max(1,Number(F.unlock_step)||1):0;
@@ -1059,9 +1059,9 @@ function hexTalismans(paid){
           :(days!=null?'<span class="fu-wait">'+days+' 天後可解鎖</span>':''))+'</div>';
       return '<div class="tal5"><div style="position:relative">'+tframe(inner,false,EL_GLOW[String(el).slice(0,1)])+fog+'</div>'+
         '<div class="nm">'+(SOLAR.seq[i]||SOLAR.next)+' · '+esc(el)+'</div>'+
-        (paid?'<div class="nm" style="margin-top:2px;color:var(--text-muted)">'+(showClear?'✓ 已解鎖':'第 '+step+' 週解鎖')+'</div>':'')+'</div>';
+        (paid?'<div class="nm" style="margin-top:2px;color:var(--text-muted)">'+(showClear?'✓ 已解鎖':'第 '+step+' 個節氣解鎖')+'</div>':'')+'</div>';
     }).join("")+'</div>';
-    if(paid)h+='<div style="text-align:center;margin-top:16px;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)">'+ic("download-simple")+'每週解鎖一張，依序設成手機桌布——點已解鎖的靈符可開大圖儲存</div>';
+    if(paid)h+='<div style="text-align:center;margin-top:16px;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)">'+ic("download-simple")+'每逢節氣解鎖一張，依序設成手機桌布——點已解鎖的靈符可開大圖儲存</div>';
   }
   return h;
 }
@@ -1094,10 +1094,10 @@ function loadFullContent(retry){
     if(STATE.step==="result")render();
   }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result")render();});
 }
-/* 量能靈符逐週解鎖（FI-SYNC：機制與 liff/delivery.html 一致——每週一張、逾期可 NT$100 解鎖） */
+/* 量能靈符逐節氣解鎖（FI-SYNC：機制與 liff/delivery.html 一致——每 14 天（節氣）一張、到期可 NT$100 解鎖；2026-08-16 拍板 14 天制，與後端 payment.ts 對齊） */
 function daysUntilUnlock(paidAt,step){
   var base=new Date(paidAt);
-  var unlockDate=new Date(base.getTime()+(step-1)*7*24*60*60*1000);
+  var unlockDate=new Date(base.getTime()+(step-1)*14*24*60*60*1000);
   var diff=Math.ceil((unlockDate-new Date())/(1000*60*60*24));
   return diff>0?diff:0;
 }
