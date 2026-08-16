@@ -1466,10 +1466,17 @@ function createOrder(){
   try{var _v=Number(TALISMAN_PRICE)||360;if(window.fbq)fbq('track','InitiateCheckout',{currency:'TWD',value:_v});if(window.gtag)gtag('event','begin_checkout',{currency:'TWD',value:_v});}catch(e){}
   STATE.ordering=true;
   if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'建立訂單中…';}
+  var _pressToken="";try{_pressToken=localStorage.getItem("winds_press_token")||"";}catch(e){}
   fetch(API.order,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
-    body:JSON.stringify({google_sub:STATE.userId,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName})})
+    body:JSON.stringify({google_sub:STATE.userId,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken})})
    .then(function(r){return r.json();}).then(function(d){
      STATE.ordering=false;
+     if(d.success&&d.free_unlock){
+       /* 媒體 token 核銷成功：免付費，直接重載進完整解讀 */
+       try{localStorage.removeItem("winds_press_token");}catch(e){}
+       try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);}catch(e){}
+       location.href=location.pathname+"?log_id="+STATE.logId;return;
+     }
      if(d.success&&d.pay_url){
        try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);}catch(e){}
        var w=window.open(d.pay_url,"_blank");if(!w){location.href=d.pay_url;return;}
@@ -1556,6 +1563,8 @@ function boot(){
   try{if(window.fbq)fbq('track','ViewContent',{content_name:'divination'});if(window.gtag)gtag('event','view_item',{item_name:'divination'});}catch(e){}
   var params=new URLSearchParams(location.search);
   var edmT=params.get("t");if(edmT){try{localStorage.setItem("winds_edm_token",edmT);}catch(e){}}
+  /* 媒體專屬 token（?pt=）：認持有、單次核銷——存起來，解鎖時帶給後端 */
+  var pressT=params.get("pt");if(pressT){try{localStorage.setItem("winds_press_token",pressT);}catch(e){}}
   var saved="";try{saved=localStorage.getItem("winds_google_token")||"";}catch(e){}
   if(saved&&!adoptGoogleToken(saved)){try{localStorage.removeItem("winds_google_token");}catch(e){}}
   var rid=params.get("log_id"),pending="";try{pending=sessionStorage.getItem("winds_pending_log_id")||"";}catch(e){}
