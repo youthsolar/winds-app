@@ -217,4 +217,4 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
 }
 
 /* gsi-iframe-fix：頁面 color-scheme:dark 時跨域 GIS iframe 會被塗白底 → 指回 light 恢復透明 */
-#lgGoogle iframe,#googleSignInBtn iframe{color-scheme:light}
+#lgGoogle iframe,#googleSignInBtn iframe,#gfGmount iframe{color-scheme:light}
