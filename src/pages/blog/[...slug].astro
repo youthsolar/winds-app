@@ -56,7 +56,10 @@ const articleLd = {
   "description": post.data.llmDescription || post.data.description,
   "datePublished": post.data.pubDate.toISOString(),
   "dateModified": (post.data.updatedDate || post.data.pubDate).toISOString(),
-  "author": { "@type": "Organization", "name": "找風問幸福", "url": "https://winds.tw" },
+  // 署名為真人時輸出 Person（作者權威訊號）；沿用舊組織署名的文章維持 Organization
+  "author": post.data.author === "風易揚老師"
+    ? { "@type": "Person", "name": "風易揚老師", "url": "https://winds.tw/about/" }
+    : { "@type": "Organization", "name": "找風問幸福", "url": "https://winds.tw" },
   "publisher": {
     "@type": "Organization", "name": "找風問幸福", "url": "https://winds.tw",
     "logo": { "@type": "ImageObject", "url": "https://winds.tw/assets/logo.png" }
