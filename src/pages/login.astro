@@ -33,6 +33,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .lg-gbtn-default,.lg-gbtn-loading{display:inline-flex;align-items:center;gap:12px;}
     .lg-spinner{display:inline-block;flex:none;width:18px;height:18px;border-radius:999px;border:2px solid var(--rose-200);border-top-color:var(--rose-500);animation:lgSpin 1.1s linear infinite;box-sizing:border-box;}
     @keyframes lgSpin{to{transform:rotate(360deg)}}
+    /* GSI 渲染不出來時的外開引導（Threads/IG/FB 內建瀏覽器常見） */
+    .lg-fb{text-align:center;}
+    .lg-fb-t{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);}
+    .lg-fb-d{margin:8px auto 14px;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.75;color:var(--text-secondary);}
+    .lg-fb-btn{display:inline-block;margin:0 4px;padding:11px 20px;cursor:pointer;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);text-decoration:none;}
     .lg-terms{text-align:center;margin:20px auto 0;font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);}
     .lg-terms a{color:var(--rose-500);text-decoration:none;}
     .lg-terms a:hover{text-decoration:underline;}
@@ -72,12 +77,51 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         var mount = document.getElementById('lgGoogle');
         if (mount) {
           mount.innerHTML='';
+          mount.removeAttribute('data-fb');
           google.accounts.id.renderButton(mount, { theme: (window.ZFTheme&&ZFTheme.isDark())?'filled_black':'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
         }
-        // One Tap 加碼（被 cooldown 抑制也沒關係，上面的官方按鈕一定可點）
+        // One Tap 加碼（被 cooldown 抑制也沒關係）
         try { google.accounts.id.prompt(); } catch (e) {}
       }
+      // GSI 在 App 內建瀏覽器（Threads/IG/FB）常常一顆按鈕都渲染不出來，
+      // 而 init() 是無限重試、沒有逾時，畫面就永遠停在空卡片、使用者無從得知。
+      // 這裡不猜根因，只看結果：時間到還是空的就換成外開引導。
+      function fallback() {
+        var mount = document.getElementById('lgGoogle');
+        if (!mount || mount.childNodes.length) return;
+        mount.setAttribute('data-fb', '1');
+        mount.innerHTML =
+          '<div class="lg-fb">' +
+            '<p class="lg-fb-t">這個瀏覽器不支援 Google 登入</p>' +
+            '<p class="lg-fb-d">請點右上角「⋯」選「在瀏覽器開啟」，用 Safari 或 Chrome 進來就可以登入了。</p>' +
+            '<button type="button" class="lg-fb-btn" id="lgCopy">複製網址</button>' +
+            (/Android/i.test(navigator.userAgent)
+              ? '<a class="lg-fb-btn" href="intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end">用 Chrome 開啟</a>'
+              : '') +
+          '</div>';
+        var b = document.getElementById('lgCopy');
+        if (b) b.addEventListener('click', function () { copyUrl(b); });
+      }
+      function copyUrl(btn) {
+        var u = location.href;
+        function done() { btn.textContent = '已複製 ✓'; }
+        function legacy() {
+          try {
+            var t = document.createElement('textarea');
+            t.value = u; t.style.position = 'fixed'; t.style.opacity = '0';
+            document.body.appendChild(t); t.select(); document.execCommand('copy');
+            document.body.removeChild(t); done();
+          } catch (e) {}
+        }
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(u).then(done, legacy); return;
+          }
+        } catch (e) {}
+        legacy();
+      }
       init();
+      setTimeout(fallback, 3500);
       window.addEventListener('zf-theme-change', function () {
         var mount = document.getElementById('lgGoogle');
         if (mount && window.google && google.accounts && google.accounts.id) {
