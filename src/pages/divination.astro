@@ -1566,6 +1566,8 @@ function gsiFallback(){
   if(!el||el.childNodes.length)return;
   var bs='display:inline-block;margin:0 4px;padding:11px 20px;cursor:pointer;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);text-decoration:none';
   el.setAttribute("data-fb","1");
+  /* 藏掉同卡片裡的「先用 Google 登入」標題與副標，否則會跟提示自相矛盾 */
+  for(var s=el.previousElementSibling;s;s=s.previousElementSibling){s.style.display="none";}
   el.innerHTML='<div style="text-align:center">'+
     '<div style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">這個瀏覽器不支援 Google 登入</div>'+
     '<div style="margin:8px auto 14px;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.75;color:var(--text-secondary)">請點右上角「⋯」選「在瀏覽器開啟」，用 Safari 或 Chrome 進來就可以登入了。</div>'+
