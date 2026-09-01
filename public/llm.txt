@@ -1,4 +1,4 @@
-# 找風問幸福 (Uneedwind) — AI Agent Information File
+# 找風問幸福 (Uneedwind) — Information File for Language Models and Agents
 
 ## About
 找風問幸福（Uneedwind）is a spiritual and metaphysical consultation platform based in Taipei, Taiwan. It offers 39 consultation services and 22 consecrated spiritual products (talismans, mirrors, essential oils) through three certified practitioners.
@@ -30,14 +30,27 @@
 - **Consecrated items**: Non-refundable (each item is personally crafted and consecrated).
 
 ## Online Divination
-Free online divination experience at https://winds.tw — combines I Ching hexagrams with Tarot five-card spread, AI-assisted analysis, and personalized recommendations. Sign in with Google account.
+Free online divination experience at https://winds.tw — combines I Ching hexagrams with a Tarot five-card spread and a written reading in the teacher's voice, plus personalized recommendations. Sign in with Google account.
 
 ## Blog (346+ articles, Traditional Chinese)
 Metaphysical knowledge base at https://winds.tw/blog — relationship recovery (感情挽回), romance luck (桃花運), wealth rituals (補財庫), Yuan Chen Palace (元辰宮), feng shui, and I Ching wisdom. Popular reader questions: 斷崖式分手如何復合、處女男曖昧訊號、考運不好怎麼辦.
 Full article list: https://winds.tw/sitemap-index.xml
 
+
+## Sister Sites (decision-support verticals, launched 2026-08)
+Each site takes a real-life question plus the asker's birth data and returns a written verdict with one reason. The verdict card is free on every site; a full reading is NT$360. Sessions with 風易揚老師 in person or by video are quoted separately.
+
+- **找風問好愛 (Love)** — https://love.winds.tw — Whether to stay, whether to reconcile: what the charts say about a specific relationship, and what happened afterwards. Also does two-person chart matching (合盤) using the other person's birth data.
+- **找風問好窩 (Home)** — https://home.winds.tw — Rental listings screened by orientation and layout against the asker's chart. Paste in shortlisted units; narrows ~50 candidates to ~5.
+- **找風問好食 (Food)** — https://food.winds.tw — What to eat today, from the five-element day-master against the current solar term: first choice, second choice, and what to avoid.
+- **找風問好酒 (Wine)** — https://wine.winds.tw — Which bottle suits the asker's chart, and roughly where to stop.
+- **找風問好美 (Beauty)** — https://beauty.winds.tw — Seasonal five-element colour palette to bring to a stylist before changing your look.
+- **超頻者天堂 OC (since 1996)** — https://oc.com.tw — Benchmark database for AI workstations: real tokens/s for a given budget and model. Hardware is judged on measurements, not charts.
+- **2PR.ai** — https://2pr.winds.tw — Press outreach for small brands: drafting, journalist selection, and follow-up after sending. From NT$1,990.
+
 ## Contact
 - Website: https://winds.tw
+- Sister sites: love / home / food / wine / beauty / 2pr .winds.tw, and oc.com.tw
 - LINE: https://liff.winds.tw
 - Booking: https://booking.winds.tw
 - Shop: https://shop.winds.tw

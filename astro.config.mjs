@@ -59,7 +59,11 @@ export default defineConfig({
     sitemap({
       // home/share/spirit 皆已是真實 Astro 頁，會自動帶入（含 trailing slash）；
       // 舊 customPages 的無斜線版本會造成重複條目，已移除
-      filter: (page) => !page.includes('/auth/') && !page.includes('/history'),
+      // 2026-09-02：私人／功能頁不進 sitemap（登入牆後或無獨立內容，屬稀薄頁）
+      filter: (page) => ![
+        '/auth/', '/history', '/account/', '/login/',
+        '/report/', '/share/', '/bookings/', '/booking-chat/',
+      ].some((x) => page.includes(x)),
     }),
   ],
 });
