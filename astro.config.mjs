@@ -63,6 +63,8 @@ export default defineConfig({
       filter: (page) => ![
         '/auth/', '/history', '/account/', '/login/',
         '/report/', '/share/', '/bookings/', '/booking-chat/',
+        // 這兩頁掛 noindex（JS 殼、可爬內容不足），留在 sitemap 等於自己跟自己打架
+        '/divination/', '/spirit/', '/teacher-ziwei/',
       ].some((x) => page.includes(x)),
     }),
   ],
