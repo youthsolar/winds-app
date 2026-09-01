@@ -270,12 +270,15 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
     (function () {
       var q = new URLSearchParams(location.search);
       var c = q.get('utm_content');
-      if (!c) return;
+      var s = q.get('utm_source');
+      // 2026-09-02：原本 `if (!utm_content) return` 讓「有 utm_source 但沒 utm_content」的連結
+      // 完全不記點——社群回覆裡的裸連結進站因此全部看不到，儀表長期是瞎的。改成兩者有一個就記。
+      if (!c && !s) return;
       try {
         navigator.sendBeacon('https://api.winds.tw/hit', JSON.stringify({
           path: location.pathname,
-          utm_source: q.get('utm_source') || '',
-          utm_content: c,
+          utm_source: s || '',
+          utm_content: c || '',
         }));
       } catch (e) {}
     })();
