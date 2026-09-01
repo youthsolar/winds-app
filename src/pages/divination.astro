@@ -1087,11 +1087,18 @@ function loadFullContent(retry){
   if(!R.purchased||STATE.full||(STATE.fullLoading&&!retry))return;
   var m=(R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/);
   if(!m)return;
-  STATE.fullLoading=true;STATE.fullError=false;STATE.fullToken=m[1];
+  STATE.fullLoading=true;STATE.fullError=false;STATE.fullGenerating=false;STATE.fullToken=m[1];
   fetch(WORKER_API+"/config").then(function(r){return r.json();}).then(function(c){if(c&&c.unlock_price)STATE.unlockPrice=Number(c.unlock_price)||100;}).catch(function(){});
   fetch(WORKER_API+"/delivery-content?token="+m[1],{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
     STATE.fullLoading=false;
-    if(d&&d.ok&&d.hexagram_content){STATE.full=d;}else{STATE.fullError=true;}
+    if(d&&d.ok&&d.hexagram_content){STATE.full=d;STATE.fullGenerating=false;}
+    else if(d&&d.ok&&!d.summary_mode){
+      /* Paid 但解讀還在生成（press/gift 免費解鎖＝fulfillPaidOrder 背景履約，LLM 要幾十秒）→ 輪詢等它寫完，不是失敗 */
+      STATE.fullPolls=(STATE.fullPolls||0)+1;
+      if(STATE.fullPolls<=20){STATE.fullGenerating=true;setTimeout(function(){STATE.fullLoading=false;loadFullContent(true);},6000);}
+      else{STATE.fullError=true;}
+    }
+    else{STATE.fullError=true;}
     if(STATE.step==="result")render();
   }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result")render();});
 }
@@ -1119,7 +1126,9 @@ function paywall(paid){
       (STATE.full&&STATE.full.hexagram_content
         ?'<div class="fi-body">'+mdFull(STATE.full.hexagram_content)+'</div>'
         :'<div style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+(STATE.fullError
-          ?'<button class="zf-btn ghost sm" onclick="loadFullContent(true)">完整解讀載入失敗，點我重試</button>'
+          ?'<button class="zf-btn ghost sm" onclick="STATE.fullPolls=0;loadFullContent(true)">完整解讀載入失敗，點我重試</button>'
+          :STATE.fullGenerating
+          ?ic("circle-notch")+'老師的完整解讀正在為你寫，一會兒就好…（這頁會自己更新）'
           :ic("circle-notch")+'完整解讀載入中…')+'</div>')+
       '</div></div>';
   }
