@@ -1,0 +1,182 @@
+---
+// 每個預約項目／法器一個可索引網址（2026-09-02）
+//
+// 為什麼要有這頁：原本 43 個項目共用 /services/?id=NN 一個網址，而且每個明細的
+// canonical 都指向 /services/ ——等於自己宣告「別收錄我」。39 個項目名稱能拿到的
+// 自然流量，架構上是 0。
+//
+// 網址用 id（/services/sb-38/）不用中文名：Jeffery 會改文案，名字變了網址就斷；
+// id 永遠不變，而且跟既有的 ?id=sb-38 一對一，轉址無歧義。
+//
+// 資料在 build 時抓（維持 output:'static'）。項目異動要重建——用每日排程重建即可，
+// 目錄本來就很少變。
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const API = 'https://api.winds.tw';
+const strip = (h: string) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+export async function getStaticPaths() {
+  const API = 'https://api.winds.tw';
+  const strip = (h: string) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const j = async (p: string) => {
+    try {
+      const r = await fetch(API + p);
+      const d = await r.json();
+      return Array.isArray(d) ? d : (d.services || d.products || d.items || d.data || []);
+    } catch {
+      return [];
+    }
+  };
+  const [sb, es] = await Promise.all([j('/sb-services'), j('/shop-products')]);
+  const items = [
+    ...sb.map((s: any) => ({
+      source: 'sb', slug: `sb-${s.id}`, name: s.name, seoTitle: s.seo_title || '',
+      price: Number(s.price) || 0, duration: s.duration || null, image: s.image || '',
+      desc: strip(s.desc), llm: strip(s.llm), category: s.category || '', url: '',
+    })),
+    ...es.map((p: any) => ({
+      source: 'es', slug: `es-${p.id}`, name: p.name, seoTitle: p.seo_title || '',
+      price: Number(p.price) || 0, duration: null, image: p.image || '',
+      desc: strip(p.desc), llm: strip(p.llm), category: p.category || '', url: p.url || '',
+    })),
+  ];
+  return items
+    .filter((i) => i.slug && i.name)
+    .map((item) => ({ params: { slug: item.slug }, props: { item, siblings: items } }));
+}
+
+const { item, siblings } = Astro.props;
+const isSB = item.source === 'sb';
+const canonical = `https://winds.tw/services/${item.slug}/`;
+const priceTxt = item.price ? `NT$ ${item.price.toLocaleString('en-US')}` : '';
+const durTxt = item.duration ? `${item.duration} 分鐘` : '';
+const lede = item.llm || item.desc;
+const body = item.desc && item.desc !== lede ? item.desc : '';
+const title = item.seoTitle ? `${item.seoTitle}｜找風問幸福` : `${item.name}｜找風問幸福`;
+const description = (lede || item.name).slice(0, 155);
+
+// 同類推薦：同 category 優先，不足則補同來源
+const related = [
+  ...siblings.filter((s: any) => s.slug !== item.slug && s.category && s.category === item.category),
+  ...siblings.filter((s: any) => s.slug !== item.slug && s.source === item.source),
+].filter((v: any, i: number, a: any[]) => a.findIndex((x) => x.slug === v.slug) === i).slice(0, 4);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': isSB ? 'Service' : 'Product',
+    name: item.name,
+    description: lede,
+    ...(item.image ? { image: item.image } : {}),
+    url: canonical,
+    ...(isSB
+      ? { serviceType: item.category || '靈性諮詢', areaServed: 'TW',
+          provider: { '@type': 'Organization', name: '找風問幸福', url: 'https://winds.tw' } }
+      : { brand: { '@type': 'Brand', name: '找風問幸福' } }),
+    ...(item.price
+      ? { offers: { '@type': 'Offer', price: item.price, priceCurrency: 'TWD',
+                    availability: 'https://schema.org/InStock', url: canonical } }
+      : {}),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '首頁', item: 'https://winds.tw/' },
+      { '@type': 'ListItem', position: 2, name: '預約項目', item: 'https://winds.tw/services/' },
+      { '@type': 'ListItem', position: 3, name: item.name, item: canonical },
+    ],
+  },
+];
+---
+
+<BaseLayout title={title} description={description} ogImage={item.image || '/og-default.jpg'} jsonLd={jsonLd}>
+  <div class="svc-detail">
+    <nav class="sd-crumb" aria-label="麵包屑">
+      <a href="/">首頁</a><span>›</span><a href="/services/">預約項目</a><span>›</span>
+      <span class="cur">{item.name}</span>
+    </nav>
+
+    <article class="sd-main">
+      <header class="sd-head">
+        <div class="sd-tags">
+          <span class="sd-badge">{isSB ? '靈性諮詢' : '開光法器'}</span>
+          {durTxt && <span class="sd-tag">{durTxt}</span>}
+        </div>
+        <h1>{item.name}</h1>
+        {lede && <p class="sd-lede">{lede}</p>}
+        <div class="sd-meta">
+          {priceTxt && <span class="sd-price">{priceTxt}</span>}
+          {durTxt && <><span class="sd-dot">·</span><span>{durTxt}</span></>}
+        </div>
+      </header>
+
+      {body && (
+        <section class="sd-section">
+          <h2>項目說明</h2>
+          <p>{body}</p>
+        </section>
+      )}
+
+      <section class="sd-book">
+        <span class="sd-book-label">{isSB ? '預約這個項目' : '請這件法器'}</span>
+        {priceTxt && <div class="sd-book-price">{priceTxt}</div>}
+        <a class="sd-btn" href={isSB ? '/booking' : (item.url || '/booking')}
+           {...(isSB ? {} : { target: '_blank', rel: 'noopener' })}>
+          {isSB ? '預約老師' : '前往購買'}
+        </a>
+        <p class="sd-book-note">{isSB ? '報名與付款將前往安全頁完成' : '超商店到店 · 7 天內 · 台灣限定'}</p>
+      </section>
+
+      {related.length > 0 && (
+        <section class="sd-section">
+          <h2>其他相關項目</h2>
+          <ul class="sd-rel">
+            {related.map((r: any) => (
+              <li><a href={`/services/${r.slug}/`}>{r.name}</a>{r.price ? <span> · NT$ {r.price.toLocaleString('en-US')}</span> : null}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <a class="sd-back" href="/services/">← 回項目列表</a>
+    </article>
+  </div>
+
+  <style>
+    .svc-detail { max-width: 760px; margin: 0 auto; padding: 28px 22px 72px; }
+    .sd-crumb { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 26px; }
+    .sd-crumb a { color: var(--text-muted); text-decoration: none; }
+    .sd-crumb a:hover { color: var(--accent-press); }
+    .sd-crumb .cur { color: var(--ink-900); }
+    .sd-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .sd-badge, .sd-tag { font-family: var(--font-sans); font-size: 11.5px; border-radius: var(--radius-pill); padding: 3px 11px; border: 1px solid var(--border-soft); color: var(--text-secondary); }
+    .sd-badge { background: var(--accent-quiet); border-color: var(--accent-tint); color: var(--accent-press); }
+    .sd-head h1 { font-family: var(--font-serif); font-size: 34px; font-weight: 500; line-height: 1.35; color: var(--ink-900); margin: 0; word-break: normal; overflow-wrap: anywhere; }
+    .sd-lede { font-family: var(--font-serif); font-weight: 300; font-size: 16px; line-height: 1.9; color: var(--text-secondary); margin: 16px 0 0; }
+    .sd-meta { display: flex; align-items: baseline; gap: 9px; margin-top: 18px; font-family: var(--font-sans); font-size: 14px; color: var(--text-secondary); }
+    .sd-price { font-size: 21px; font-weight: 600; color: var(--accent-press); }
+    .sd-dot { color: var(--text-muted); }
+    .sd-section { margin-top: 40px; }
+    .sd-section h2 { font-family: var(--font-serif); font-size: 19px; font-weight: 500; color: var(--ink-900); margin: 0 0 12px; }
+    .sd-section p { font-family: var(--font-serif); font-weight: 300; font-size: 15.5px; line-height: 1.95; color: var(--ink-700); margin: 0; }
+    .sd-book { margin-top: 40px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 24px; background: var(--surface-sunken); }
+    .sd-book-label { font-family: var(--font-sans); font-size: 12px; letter-spacing: .08em; color: var(--text-muted); }
+    .sd-book-price { font-family: var(--font-serif); font-size: 27px; font-weight: 600; color: var(--accent-press); margin: 6px 0 16px; }
+    .sd-btn { display: block; text-align: center; background: var(--accent); color: #fff; font-family: var(--font-sans); font-size: 15px; font-weight: 500; padding: 13px 20px; border-radius: var(--radius-pill); text-decoration: none; }
+    .sd-btn:hover { background: var(--accent-hover); }
+    .sd-book-note { font-family: var(--font-sans); font-size: 12px; color: var(--text-muted); margin: 11px 0 0; text-align: center; }
+    .sd-rel { list-style: none; padding: 0; margin: 0; }
+    .sd-rel li { padding: 9px 0; border-bottom: 1px solid var(--border-soft); font-family: var(--font-serif); font-size: 15px; }
+    .sd-rel a { color: var(--ink-900); text-decoration: none; }
+    .sd-rel a:hover { color: var(--accent-press); }
+    .sd-rel span { color: var(--text-muted); font-size: 13.5px; }
+    .sd-back { display: inline-block; margin-top: 36px; font-family: var(--font-sans); font-size: 13.5px; color: var(--text-muted); text-decoration: none; }
+    .sd-back:hover { color: var(--accent-press); }
+    @media (max-width: 760px) {
+      .svc-detail { padding: 20px 18px 56px; }
+      .sd-head h1 { font-size: 26px; }
+      .sd-book-price { font-size: 23px; }
+    }
+  </style>
+</BaseLayout>

@@ -2,7 +2,8 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 // 預約項目清單／詳情＝即時 worker /sb-services（SB 同步）＋ /shop-products（ES 法器）。
-// 整頁 client 渲染：無 ?id= → 列表；?id={source}-{id} → 詳情。項目異動免重建。
+// 列表為 client 渲染（項目異動免重建）；明細已改成 build 時產生的獨立頁
+// src/pages/services/[slug].astro，本頁只保留列表與舊 ?id= 的轉送。
 const pageTitle = '找風問幸福｜預約項目・通靈問事・元辰宮代觀・開光法器';
 const pageDesc =
   '找風問幸福完整目錄：靈性諮詢（通靈水鏡法、元辰宮代觀、塔羅占卜等）＋ 開光法器（符令、手環、供奉套組）。不確定怎麼選？先占卜，再決定。';
@@ -190,7 +191,7 @@ const pageDesc =
         }).join('');
 
         var featuredHtml = featured ? (
-          '<a class="featured zf-card tint interactive" href="/services?id=' + esc(featured.source) + '-' + esc(featured.id) + '" data-featured>' +
+          '<a class="featured zf-card tint interactive" href="/services/' + esc(featured.source) + '-' + esc(featured.id) + '/" data-featured>' +
             '<span class="ft-glyph">' + esc(glyphOf(featured.name)) + '</span>' +
             '<div class="ft-body">' +
               '<span class="zf-badge rose"><span class="zf-badge-dot"></span>' + esc(srcLabel(featured.source)) + '</span>' +
@@ -207,7 +208,7 @@ const pageDesc =
 
         var cells = items.map(function (it) {
           return '<li class="svc-cell" data-source="' + esc(it.source) + '">' +
-            '<a class="svc-card zf-card interactive" href="/services?id=' + esc(it.source) + '-' + esc(it.id) + '">' +
+            '<a class="svc-card zf-card interactive" href="/services/' + esc(it.source) + '-' + esc(it.id) + '/">' +
               '<div class="sc-top"><span class="sc-glyph">' + esc(glyphOf(it.name)) + '</span>' +
                 '<span class="zf-badge rose"><span class="zf-badge-dot"></span>' + esc(srcLabel(it.source)) + '</span></div>' +
               '<h3 class="sc-name cjk-title">' + esc(it.name) + '</h3>' +
@@ -259,94 +260,20 @@ const pageDesc =
       }
 
       /* ── 詳情 view ── */
-      function renderDetail(it, all) {
-        var isSB = it.source === 'sb';
-        var sourceLabel = srcLabel(it.source);
-        var descBody = stripTags(it.desc);
-        var intro = it.llm || descBody;
-        var priceTxt = priceLabel(it);
-        var durTxt = (isSB && it.duration) ? it.duration + ' 分鐘' : '';
-
-        var includes = isSB
-          ? ['一對一即時對談（線上或實體）', '老師親自為你解讀與建議', '可預約你方便的時段']
-          : ['開光法器，老師親手處理', '超商店到店 · 7 天內出貨', '台灣限定寄送'];
-        var includesHtml = includes.map(function (x) {
-          return '<li><i class="ph-fill ph-check-circle"></i><span>' + esc(x) + '</span></li>';
-        }).join('');
-
-        // 信任元素（DS ServiceDetail 三欄）— 只放對服務模式為真的訊號
-        var trust = isSB
-          ? [{ i: 'user-circle-check', h: '真人一對一', s: '老師親自與你對談，不是罐頭回覆。' },
-             { i: 'calendar-check', h: '預約保留時段', s: '付訂金後，這個時段就是你的。' },
-             { i: 'lock-simple', h: '安心保密', s: '你說的事，只留在你和老師之間。' }]
-          : [{ i: 'hand-heart', h: '親手開光', s: '每一件都由老師依個案親撰處理。' },
-             { i: 'package', h: '超商店到店', s: '付款後 7 天內出貨，就近取貨。' },
-             { i: 'shield-check', h: '台灣現貨寄送', s: '台灣限定，安心收件。' }];
-        var trustHtml = '<section class="dt-section"><div class="dt-trust">' + trust.map(function (t) {
-          return '<div class="dt-trust-card"><i class="ph ph-' + t.i + '"></i>' +
-            '<div class="dt-trust-h">' + esc(t.h) + '</div><div class="dt-trust-s">' + esc(t.s) + '</div></div>';
-        }).join('') + '</div></section>';
-
-        var related = all.filter(function (x) { return x.source === it.source && !(x.id === it.id && x.source === it.source); }).slice(0, 3);
-        var relatedHtml = related.length ? (
-          '<section class="dt-section"><h2>相關項目</h2><div class="related-list">' +
-          related.map(function (r) {
-            return '<a class="zf-card interactive related-item" href="/services?id=' + esc(r.source) + '-' + esc(r.id) + '">' +
-              '<span class="ri-glyph">' + esc(glyphOf(r.name)) + '</span>' +
-              '<span class="ri-text"><span class="ri-title cjk-title">' + esc(r.name) + '</span>' +
-              (excerptOf(r) ? '<span class="ri-desc">' + esc(excerptOf(r)) + '</span>' : '') + '</span></a>';
-          }).join('') + '</div></section>'
-        ) : '';
-
-        var primaryHref = isSB ? '/booking' : (it.url || '/booking');
-        var primaryLabel = isSB ? '預約老師' : '前往購買';
-        var reassurance = isSB ? '報名與付款將前往安全頁完成' : '超商店到店 · 7天內 · 台灣限定';
-        var primaryBtn = isSB
-          ? '<a class="zf-btn primary lg full" href="' + esc(primaryHref) + '">' + esc(primaryLabel) + '</a>'
-          : '<a class="zf-btn primary lg full" href="' + esc(primaryHref) + '" target="_blank" rel="noopener">' + esc(primaryLabel) + '</a>';
-
-        shell.innerHTML =
-          '<nav class="breadcrumb" aria-label="麵包屑"><a href="/">首頁</a><i class="ph ph-caret-right"></i>' +
-            '<a href="/services">' + esc(sourceLabel) + '</a><i class="ph ph-caret-right"></i>' +
-            '<span class="current cjk-title">' + esc(it.name) + '</span></nav>' +
-          '<div class="layout"><article class="main">' +
-            '<header class="dt-head"><div class="dt-tags">' +
-              '<span class="zf-badge rose"><span class="zf-badge-dot"></span>' + esc(sourceLabel) + '</span>' +
-              (durTxt ? '<span class="zf-tag rose">' + esc(durTxt) + '</span>' : '') + '</div>' +
-              '<h2 class="cjk-title">' + esc(it.name) + '</h2>' +
-              (intro ? '<p class="dt-intro">' + esc(intro) + '</p>' : '') +
-              '<div class="dt-meta">' +
-                (priceTxt ? '<span class="dt-price">' + priceTxt + '</span>' : '') +
-                (durTxt ? '<span class="dot">·</span><span>' + esc(durTxt) + '</span>' : '') +
-              '</div></header>' +
-            (descBody ? '<section class="dt-section"><h2>項目說明</h2><p class="dt-body">' + esc(descBody) + '</p></section>' : '') +
-            '<section class="dt-section"><h2>' + (isSB ? '這項諮詢包含' : '這件法器') + '</h2><ul class="includes">' + includesHtml + '</ul></section>' +
-            trustHtml +
-            relatedHtml +
-            '<a class="back-link" href="/services"><i class="ph ph-arrow-left"></i>回項目列表</a>' +
-          '</article>' +
-          '<aside class="aside"><div class="book-card zf-card">' +
-            '<span class="bc-label">' + (isSB ? '預約這個項目' : '請這件法器') + '</span>' +
-            (priceTxt ? '<div class="bc-price-row"><span class="bc-price">' + priceTxt + '</span>' +
-              (isSB && durTxt ? '<span class="bc-dur">/ ' + esc(it.duration) + ' 分鐘</span>' : '') + '</div>' : '') +
-            primaryBtn +
-            '<p class="bc-note">' + esc(reassurance) + '</p></div>' +
-            '<section class="reading-cta compact"><p class="rc-line cjk-title">不確定適合哪個項目？</p>' +
-            '<a class="rc-btn" href="/">立即占卜</a></section>' +
-          '</aside></div>';
-      }
+      // 註：原本的 renderDetail（client 端組明細畫面）已於 2026-09-02 移除——
+      // 明細改由 build 時產生的獨立頁 src/pages/services/[slug].astro 提供，
+      // 本頁只負責列表與把舊 ?id= 連結轉送過去。
 
       function route(items) {
         var params = new URLSearchParams(window.location.search);
         var rid = params.get('id');
         if (skel) skel.hidden = true;
-        if (rid) {
-          var m = rid.match(/^(sb|es)-(.+)$/);
-          if (m) {
-            var src = m[1], id = m[2];
-            var it = items.find(function (x) { return x.source === src && String(x.id) === String(id); });
-            if (it) { document.title = (it.seo_title || it.name) + '｜找風問幸福'; renderDetail(it, items); return; }
-          }
+        // 2026-09-02：明細改成各自獨立的可索引網址 /services/{id}/（原本 43 個項目
+        // 共用 ?id= 一個網址，且 canonical 全指向 /services/＝自己宣告別收錄）。
+        // 舊的 ?id= 連結（外部連結、書籤、EasyStore 承接轉址）一律送到新網址。
+        if (rid && /^(sb|es)-.+$/.test(rid)) {
+          window.location.replace('/services/' + rid + '/');
+          return;
         }
         renderList(items);
       }
