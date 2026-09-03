@@ -46,7 +46,10 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
       </div>
 
       <div class="crm-layout">
-        <div class="crm-list" id="crm-list"></div>
+        <div>
+          <div class="crm-list" id="crm-list"></div>
+          <nav class="crm-pager" id="crm-pager" hidden></nav>
+        </div>
         <aside class="crm-detail" id="crm-detail" hidden></aside>
       </div>
     </section>
@@ -75,7 +78,8 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
   const STATUS: Record<string, string> = { Pending: '未付款', pending: '未付款', Failed: '付款失敗', canceled: '已取消', unpaid: '未付款' };
 
   type P = { key: string; name: string; email: string; phone: string; birth: string; sources: string[]; tier: string; spend: number; paid_count: number; event_count: number; last_activity: string; alive_at: string; last_sent_at: string; last_click_at: string; tags: string[]; note: string };
-  let people: P[] = [], tier = '', query = '', current = '';
+  let people: P[] = [], tier = '', query = '', current = '', page = 1;
+  const PAGE_SIZE = 20;
 
   async function load() {
     hideAll(); loading.hidden = false;
@@ -99,7 +103,10 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
   }
 
   function renderList() {
-    const rows = filtered();
+    const all = filtered();
+    const pages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+    if (page > pages) page = pages;
+    const rows = all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     $('crm-list').innerHTML = rows.length ? rows.map((p) => `
       <button class="crm-row${p.key === current ? ' on' : ''}" data-key="${esc(p.key)}" type="button">
         <div class="crm-row-main">
@@ -113,6 +120,12 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
         </div>
       </button>`).join('') : '<p class="crm-empty">這個條件下沒有人。</p>';
     $('crm-list').querySelectorAll<HTMLButtonElement>('.crm-row').forEach((b) => b.addEventListener('click', () => openPerson(b.dataset.key || '')));
+    const pg = $('crm-pager');
+    if (all.length <= PAGE_SIZE) { pg.hidden = true; return; }
+    pg.hidden = false;
+    const from = (page - 1) * PAGE_SIZE + 1, to = Math.min(page * PAGE_SIZE, all.length);
+    pg.innerHTML = `<button class="zf-btn secondary sm" type="button" data-go="-1" ${page <= 1 ? 'disabled' : ''}>上一頁</button><span class="crm-pager-info">第 ${page} / ${pages} 頁<em>${from}–${to}，共 ${all.length} 人</em></span><button class="zf-btn secondary sm" type="button" data-go="1" ${page >= pages ? 'disabled' : ''}>下一頁</button>`;
+    pg.querySelectorAll<HTMLButtonElement>('[data-go]').forEach((b) => b.addEventListener('click', () => { page += Number(b.dataset.go); renderList(); $('crm-list').scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
   }
 
   async function openPerson(key: string) {
@@ -164,9 +177,9 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
   }
 
   $('tier-tabs').querySelectorAll<HTMLButtonElement>('.zf-tab').forEach((b) => b.addEventListener('click', () => {
-    $('tier-tabs').querySelectorAll('.zf-tab').forEach((x) => x.classList.toggle('on', x === b)); tier = b.dataset.tier || ''; renderList();
+    $('tier-tabs').querySelectorAll('.zf-tab').forEach((x) => x.classList.toggle('on', x === b)); tier = b.dataset.tier || ''; page = 1; renderList();
   }));
-  ($('crm-search') as HTMLInputElement).addEventListener('input', (e) => { query = (e.target as HTMLInputElement).value; renderList(); });
+  ($('crm-search') as HTMLInputElement).addEventListener('input', (e) => { query = (e.target as HTMLInputElement).value; page = 1; renderList(); });
   $('retry-btn').addEventListener('click', load);
 
   const pwdForm = $('pwd-form') as HTMLFormElement, pwdInput = $('pwd-input') as HTMLInputElement, pwdError = $('pwd-error');
@@ -220,6 +233,10 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
   .crm-row-side b { font-family: var(--font-serif); font-size: 15.5px; font-weight: 500; color: var(--ink-900); }
   .crm-row-side span { font-family: var(--font-sans); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
   .crm-empty { font-family: var(--font-serif); color: var(--text-muted); padding: 24px 8px; margin: 0; }
+  .crm-list { scroll-margin-top: 90px; }
+  .crm-pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
+  .crm-pager-info { font-family: var(--font-sans); font-size: 13px; color: var(--ink-700); text-align: center; }
+  .crm-pager-info em { display: block; font-style: normal; font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
   .crm-detail { position: sticky; top: 88px; scroll-margin-top: 84px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 24px;   /* 不用 --space-6：global.css 沒定義這顆 token，會變 0 */ box-shadow: var(--shadow-sm); max-height: calc(100vh - 110px); overflow: auto; }
   .crm-detail-loading { display: flex; justify-content: center; padding: 40px; }
