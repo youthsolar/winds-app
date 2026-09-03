@@ -62,6 +62,12 @@
 .zf-input:disabled,.zf-textarea:disabled,.zf-select:disabled{background:var(--rice-100);cursor:not-allowed}
 .zf-field.invalid .zf-input,.zf-field.invalid .zf-textarea,.zf-field.invalid .zf-select,.zf-input.invalid,.zf-textarea.invalid,.zf-select.invalid{border-color:var(--critical)}
 .zf-field-hint{display:block;margin-top:7px;font-family:var(--font-sans);font-size:var(--t-caption);color:var(--text-muted)}
+/* 下拉選單＝占卜頁 .f-select / .f-select-wrap / .caret 逐值（2026-09-03 對齊；年月日列 gap 8、年欄 flex 1.5 同占卜頁） */
+.zf-select{padding-right:34px;appearance:none;-webkit-appearance:none}
+.zf-select-wrap{position:relative;flex:1 1 0;min-width:0}
+.zf-select-wrap .caret{position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--rose-400)}
+.zf-select-row{display:flex;gap:8px}
+.zf-select-row .zf-select-wrap:first-child{flex:1.5}
 .zf-field.invalid .zf-field-hint{color:var(--critical)}
 
 /* ===== Avatar（ui-kit 版，ring 3/4.5 rose-300）===== */

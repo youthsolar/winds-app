@@ -28,6 +28,9 @@ const jsonLd = prod ? [{
 }] : undefined;
 
 const HOURS = ['子時 23–01', '丑時 01–03', '寅時 03–05', '卯時 05–07', '辰時 07–09', '巳時 09–11', '午時 11–13', '未時 13–15', '申時 15–17', '酉時 17–19', '戌時 19–21', '亥時 21–23'];
+const YEARS = Array.from({ length: 2026 - 1940 + 1 }, (_, i) => 2026 - i);   // 同占卜頁 2026→1940
+const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
+const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 ---
 
 <BaseLayout title={title} description={description} ogImage={prod?.image || '/og-default.jpg'} ogType="product" jsonLd={jsonLd} noindex={true}>
@@ -147,9 +150,15 @@ const HOURS = ['子時 23–01', '丑時 01–03', '寅時 03–05', '卯時 05�
               <div class="lp-form">
                 <label class="zf-field"><span class="zf-field-label">本人姓名</span><input class="zf-input" name="name" type="text" autocomplete="name" required /></label>
                 <label class="zf-field"><span class="zf-field-label">手機</span><input class="zf-input" name="phone" type="tel" inputmode="numeric" placeholder="09xxxxxxxx" required /></label>
-                <label class="zf-field"><span class="zf-field-label">國曆生日</span><input class="zf-input" name="bdate" type="date" required /></label>
+                <label class="zf-field"><span class="zf-field-label">國曆生日</span>
+                  <div class="zf-select-row">
+                    <div class="zf-select-wrap"><select class="zf-select" name="byear" required><option value="" disabled selected>年</option>{YEARS.map((y) => <option value={y}>{y} 年</option>)}</select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></div>
+                    <div class="zf-select-wrap"><select class="zf-select" name="bmonth" required><option value="" disabled selected>月</option>{MONTHS.map((m) => <option value={m}>{m} 月</option>)}</select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></div>
+                    <div class="zf-select-wrap"><select class="zf-select" name="bday" required><option value="" disabled selected>日</option>{DAYS.map((d) => <option value={d}>{d} 日</option>)}</select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></div>
+                  </div>
+                </label>
                 <label class="zf-field"><span class="zf-field-label">出生時辰</span>
-                  <select class="zf-select" name="bhour"><option value="不確定">不確定</option>{HOURS.map((h) => <option value={h}>{h}</option>)}</select>
+                  <div class="zf-select-wrap"><select class="zf-select" name="bhour"><option value="不確定">不確定</option>{HOURS.map((h) => <option value={h}>{h}</option>)}</select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></div>
                 </label>
                 <label class="zf-field wide"><span class="zf-field-label">Email</span><input class="zf-input" name="email" type="email" autocomplete="email" required /><span class="zf-field-hint">出貨通知與門市取貨提醒會寄到這裡。</span></label>
 
@@ -296,15 +305,17 @@ const HOURS = ['子時 23–01', '丑時 01–03', '寅時 03–05', '卯時 05�
       var store = null; // {type,id,name,addr}
       function ntd(n) { return 'NT$ ' + (Number(n) || 0).toLocaleString('en-US'); }
       function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+      function ymd(y, m, d) { return (y && m && d) ? y + '-' + ('0' + m).slice(-2) + '-' + ('0' + d).slice(-2) : ''; }
+      function validYmd(s) { var t = new Date(s + 'T12:00:00'); return !isNaN(t) && t.toISOString().slice(0, 10) === s; }
       function fail(m) { err.textContent = m; err.hidden = false; err.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       function fields() {
         var f = form.elements;
-        return { variant: (form.querySelector('[name=variant]:checked') || {}).value || '', name: f.name.value.trim(), phone: f.phone.value.replace(/[\s-]/g, ''), bdate: f.bdate.value, bhour: f.bhour.value, email: f.email.value.trim(), note: f.note.value.trim() };
+        return { variant: (form.querySelector('[name=variant]:checked') || {}).value || '', name: f.name.value.trim(), phone: f.phone.value.replace(/[\s-]/g, ''), bdate: ymd(f.byear.value, f.bmonth.value, f.bday.value), bhour: f.bhour.value, email: f.email.value.trim(), note: f.note.value.trim() };
       }
       function restore() {
         try {
           var s = JSON.parse(sessionStorage.getItem(KEY) || 'null'); if (!s) return;
-          var f = form.elements; f.name.value = s.name || ''; f.phone.value = s.phone || ''; f.bdate.value = s.bdate || ''; f.bhour.value = s.bhour || '不確定'; f.email.value = s.email || ''; f.note.value = s.note || '';
+          var f = form.elements; f.name.value = s.name || ''; f.phone.value = s.phone || ''; var b = String(s.bdate || '').split('-'); f.byear.value = b[0] ? String(+b[0]) : ''; f.bmonth.value = b[1] ? String(+b[1]) : ''; f.bday.value = b[2] ? String(+b[2]) : ''; f.bhour.value = s.bhour || '不確定'; f.email.value = s.email || ''; f.note.value = s.note || '';
           var r = form.querySelector('[name=variant][value="' + (s.variant || '').replace(/"/g, '') + '"]'); if (r) r.checked = true;
           if (s.store) showStore(s.store);
         } catch (e) {}
@@ -353,7 +364,8 @@ const HOURS = ['子時 23–01', '丑時 01–03', '寅時 03–05', '卯時 05�
         if (!f.variant) return fail('請選擇款式。');
         if (!f.name) return fail('請輸入本人姓名。');
         if (!/^09\d{8}$/.test(f.phone)) return fail('請輸入正確手機（09xxxxxxxx）。');
-        if (!f.bdate) return fail('請輸入國曆生日。');
+        if (!f.bdate) return fail('請選擇國曆生日。');
+        if (!validYmd(f.bdate)) return fail('這一天不存在，請再確認生日。');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return fail('請輸入正確 Email。');
         if (!store) return fail('請先選取貨門市。');
         var btn = document.getElementById('payBtn'); btn.disabled = true; btn.textContent = '建立訂單中…';
