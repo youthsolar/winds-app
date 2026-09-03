@@ -1,6 +1,6 @@
 ---
 // 簡易 CRM（內部）— 2026-09-03 第一版，之後照 Jeffery 回饋改。
-// 入口：/crm；密碼閘同 /teacher-ziwei（localStorage winds_teacher_secret，請求帶 X-Teacher-Secret）
+// 入口：/crm；密碼閘＝CRM 專用密碼（localStorage winds_crm_secret，請求帶 X-Crm-Secret）——刻意不用老師共用密碼，老師不該看得到全名單
 // 資料：api.winds.tw/admin/crm/people（合併名單）／person（時間軸）／note（備註＋標籤）
 // 視覺：殼照 teacher-ziwei（page-header／auth-gate），元件用 ds.css zf-*；列表列、時間軸為本頁專屬，值走 DS token。
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -17,10 +17,10 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
 
     <section class="auth-gate" id="auth-gate" hidden>
       <div class="auth-card">
-        <h2>請輸入老師密碼</h2>
-        <p class="auth-desc">此頁含客戶個資，需要密碼才能進入。</p>
+        <h2>請輸入 CRM 密碼</h2>
+        <p class="auth-desc">此頁含客戶個資，只有負責人可進，密碼與老師排盤工具不同。</p>
         <form id="pwd-form" style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
-          <input class="zf-input" type="password" id="pwd-input" autocomplete="off" placeholder="老師密碼" style="text-align:center" />
+          <input class="zf-input" type="password" id="pwd-input" autocomplete="off" placeholder="CRM 密碼" style="text-align:center" />
           <button type="submit" class="zf-btn primary md full">進入名單</button>
           <p id="pwd-error" class="auth-note" style="color:var(--critical);min-height:1.2em" hidden>密碼錯誤，請再試一次</p>
         </form>
@@ -63,10 +63,10 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
   const $ = (id: string) => document.getElementById(id) as HTMLElement;
   const authGate = $('auth-gate'), loading = $('loading-section'), crmSection = $('crm-section'), errorSection = $('error-section');
 
-  function getSecret() { try { return localStorage.getItem('winds_teacher_secret') || ''; } catch { return ''; } }
-  function setSecret(s: string) { try { localStorage.setItem('winds_teacher_secret', s); } catch {} }
-  function clearSecret() { try { localStorage.removeItem('winds_teacher_secret'); } catch {} }
-  function headers(extra: Record<string, string> = {}) { return { 'X-Teacher-Secret': getSecret(), ...extra }; }
+  function getSecret() { try { return localStorage.getItem('winds_crm_secret') || ''; } catch { return ''; } }
+  function setSecret(s: string) { try { localStorage.setItem('winds_crm_secret', s); } catch {} }
+  function clearSecret() { try { localStorage.removeItem('winds_crm_secret'); } catch {} }
+  function headers(extra: Record<string, string> = {}) { return { 'X-Crm-Secret': getSecret(), ...extra }; }
   function hideAll() { authGate.hidden = loading.hidden = crmSection.hidden = errorSection.hidden = true; }
   const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
   const ntd = (n: number) => 'NT$ ' + Number(n || 0).toLocaleString('en-US');
@@ -171,7 +171,7 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
   const pwdForm = $('pwd-form') as HTMLFormElement, pwdInput = $('pwd-input') as HTMLInputElement, pwdError = $('pwd-error');
   pwdForm.addEventListener('submit', async (e) => {
     e.preventDefault(); const val = pwdInput.value.trim(); if (!val) return; pwdError.hidden = true;
-    const r = await fetch(WORKER_API + '/admin/crm/people', { headers: { 'X-Teacher-Secret': val } }).catch(() => null);
+    const r = await fetch(WORKER_API + '/admin/crm/people', { headers: { 'X-Crm-Secret': val } }).catch(() => null);
     if (!r || r.status === 401) { pwdError.hidden = false; return; }
     setSecret(val); load();
   });
