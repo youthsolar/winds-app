@@ -65,6 +65,8 @@ export default defineConfig({
         '/report/', '/share/', '/bookings/', '/booking-chat/',
         // 這兩頁掛 noindex（JS 殼、可爬內容不足），留在 sitemap 等於自己跟自己打架
         '/divination/', '/spirit/', '/teacher-ziwei/',
+        // 一頁式 dev 預覽（2026-09-03），noindex
+        '/lp/',
       ].some((x) => page.includes(x)),
     }),
   ],
