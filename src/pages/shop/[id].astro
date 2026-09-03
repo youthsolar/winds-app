@@ -1,0 +1,341 @@
+---
+// 法器自售頁（取代 EasyStore 商品頁，2026-09-03）：一頁講完一件法器 → 頁尾選門市付款。
+// 目錄／內文／圖片 build 時從 worker /shop-products（D1 service_catalog）抓；內文＝ES 搬來的 page_html。
+// 訂單走 api.winds.tw /shop-order → 綠界收銀台（*.workers.dev 自動走綠界測試商店）；門市走綠界電子地圖。
+// 表單與流程沿用 /lp/yuanchen-wealth.astro（那頁是手寫版樣板，之後可退役）。
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  let products: any[] = [];
+  try { products = (await (await fetch('https://api.winds.tw/shop-products')).json()).products || []; } catch { /* build 抓不到＝沒有商品頁 */ }
+  return products.map((p) => ({ params: { id: String(p.id) }, props: { prod: p } }));
+}
+const { prod } = Astro.props as { prod: any };
+const PRODUCT_ID = String(prod.id);
+
+const ntd = (n: number) => 'NT$ ' + Number(n).toLocaleString('en-US');
+const [rawName, rawSub = ''] = String(prod.name).split('/');
+const name = rawName.replace(/[【】]/g, '').trim();
+const sub = rawSub.trim();
+const isTalisman = /符令|符/.test(name);
+const variants: { title: string; price: number }[] = (prod.variants || []).filter((v: any) => v && v.id);
+const multi = variants.length > 1;
+const prices = variants.length ? variants.map((v) => Number(v.price)) : [Number(prod.price)];
+const minPrice = Math.min(...prices), maxPrice = Math.max(...prices);
+const images: string[] = prod.images && prod.images.length ? prod.images : [prod.image];
+
+// page_html：<h2>標題 — 一句話</h2><p>副標</p><p>🏮 五行… ｜ ⏳ … ｜ ✨ …</p><hr>…各節
+const html: string = prod.page_html || '';
+const tagline = (/<h2>.*?—\s*(.*?)<\/h2>/s.exec(html) || [])[1] || '';
+const ps = [...html.matchAll(/<p>(.*?)<\/p>/gs)].map((m) => m[1]);
+const lede = (ps[0] || '').replace(/<[^>]+>/g, '');
+const chips = (ps[1] || '').split('｜').map((s) => s.replace(/^[^\u4e00-\u9fff0-9A-Za-z]+/, '').trim()).filter(Boolean);   // 去掉開頭 emoji，數字要留（「7 天內寄出」）
+const body = html.includes('<hr>') ? html.slice(html.indexOf('<hr>') + 4) : html;
+
+const canonical = `https://winds.tw/shop/${PRODUCT_ID}/`;
+const title = `${name}｜${isTalisman ? '風易揚老師親繪開光' : '找風問幸福'}｜法器選物`;
+const description = `${lede}${tagline ? '。' + tagline : ''}。全台超商店到店，7 天內送達。`;
+const jsonLd = [{
+  '@context': 'https://schema.org', '@type': 'Product', name, image: images, description, url: canonical,
+  brand: { '@type': 'Brand', name: '找風問幸福' },
+  offers: (variants.length ? variants : [{ title: '', price: prod.price }]).map((v) => ({ '@type': 'Offer', name: v.title || name, price: v.price, priceCurrency: 'TWD', availability: 'https://schema.org/InStock', url: canonical + '#order', areaServed: 'TW' })),
+}];
+
+const HOURS = ['子時 23–01', '丑時 01–03', '寅時 03–05', '卯時 05–07', '辰時 07–09', '巳時 09–11', '午時 11–13', '未時 13–15', '申時 15–17', '酉時 17–19', '戌時 19–21', '亥時 21–23'];
+---
+
+<BaseLayout title={title} description={description} ogImage={images[0]} ogType="product" jsonLd={jsonLd}>
+  <div class="lp">
+    <!-- ① 是什麼 -->
+    <section class="lp-hero">
+      <div class="lp-hero-glow"></div>
+      <div class="lp-wrap lp-hero-grid">
+        <figure class="lp-hero-img">
+          <img id="heroImg" src={images[0]} alt={name} width="640" height="640" loading="eager" />
+          {images.length > 1 && (
+            <div class="lp-thumbs">{images.map((u, i) => <button type="button" data-thumb={u} class={i === 0 ? 'on' : ''}><img src={u} alt="" loading="lazy" /></button>)}</div>
+          )}
+        </figure>
+        <div class="lp-hero-text">
+          <span class="zf-ph-eyebrow">{isTalisman ? '開光符令 · 風易揚老師親繪' : `找風問幸福 · ${sub || '風易揚老師'}`}</span>
+          <h1 class="lp-h1">{name}</h1>
+          {lede && <p class="lp-lede">{lede}</p>}
+          <div class="lp-chips">
+            {chips.map((c) => <span class="zf-tag clay">{c}</span>)}
+            {sub && <span class="zf-tag neutral outline">{sub}</span>}
+          </div>
+          <div class="lp-price"><b>{minPrice === maxPrice ? ntd(minPrice) : ntd(minPrice) + ' 起'}</b><span>{multi ? `${variants.length} 款` : ''}{isTalisman ? ' · 含開光' : ''}</span></div>
+          <div class="lp-cta">
+            <a class="zf-btn primary lg" href="#order">請這件<i class="ph ph-arrow-down"></i></a>
+            <a class="zf-btn secondary lg" href="#about">先看說明</a>
+          </div>
+          <p class="lp-meta"><i class="ph ph-storefront"></i> 全台超商店到店 · 7 天內送達 · 台灣限定</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ② 說明（ES 搬來的內文）-->
+    <section id="about" class="lp-wrap lp-block">
+      <div class="zf-section-heading">
+        <span class="zf-sh-eyebrow">關於這件</span>
+        <h2 class="zf-sh-title">{tagline || name}</h2>
+      </div>
+      <div class="lp-body" set:html={body} />
+    </section>
+
+    <!-- ③ 訂購 -->
+    <section id="order" class="lp-wrap lp-block">
+      <div class="zf-section-heading">
+        <span class="zf-sh-eyebrow">訂購</span>
+        <h2 class="zf-sh-title">就在這裡，選門市、付款，完成</h2>
+      </div>
+      <div class="zf-card lp-order" id="orderCard">
+        <div id="paidBox" hidden></div>
+        <form id="orderForm" novalidate>
+          {multi ? (
+            <fieldset class="lp-fs">
+              <legend class="zf-field-label">款式</legend>
+              <div class="lp-radios">
+                {variants.map((v, i) => (
+                  <label class="lp-radio"><input type="radio" name="variant" value={v.title} checked={i === 0} /><span>{v.title}</span><em>{ntd(v.price)}</em></label>
+                ))}
+              </div>
+            </fieldset>
+          ) : (
+            <input type="hidden" name="variant" value={variants[0]?.title ?? ''} />
+          )}
+              <div class="lp-form">
+                <label class="zf-field"><span class="zf-field-label">本人姓名</span><input class="zf-input" name="name" type="text" autocomplete="name" required /></label>
+                <label class="zf-field"><span class="zf-field-label">手機</span><input class="zf-input" name="phone" type="tel" inputmode="numeric" placeholder="09xxxxxxxx" required /></label>
+                <label class="zf-field"><span class="zf-field-label">國曆生日</span><input class="zf-input" name="bdate" type="date" required /></label>
+                <label class="zf-field"><span class="zf-field-label">出生時辰</span>
+                  <select class="zf-select" name="bhour"><option value="不確定">不確定</option>{HOURS.map((h) => <option value={h}>{h}</option>)}</select>
+                </label>
+                <label class="zf-field wide"><span class="zf-field-label">Email</span><input class="zf-input" name="email" type="email" autocomplete="email" required /><span class="zf-field-hint">出貨通知與門市取貨提醒會寄到這裡。</span></label>
+
+                <div class="zf-field wide">
+                  <span class="zf-field-label">取貨門市</span>
+                  <div class="lp-cvs" id="cvsPick">
+                    <button class="zf-btn secondary md" type="button" data-cvs="UNIMARTC2C">7-ELEVEN</button>
+                    <button class="zf-btn secondary md" type="button" data-cvs="FAMIC2C">全家</button>
+                    <button class="zf-btn secondary md" type="button" data-cvs="HILIFEC2C">萊爾富</button>
+                  </div>
+                  <div class="lp-store" id="storeBox" hidden>
+                    <i class="ph ph-storefront"></i>
+                    <div><b id="storeName"></b><span id="storeAddr"></span></div>
+                    <button class="zf-btn ghost sm" type="button" id="storeChange">更換</button>
+                  </div>
+                  <span class="zf-field-hint">點品牌會開啟綠界門市地圖，選好會自動回到這裡。</span>
+                </div>
+
+                <label class="zf-field wide"><span class="zf-field-label">想讓老師知道的狀況（選填）</span><textarea class="zf-textarea" name="note" rows="3" maxlength="300" placeholder="例如：最近半年換了兩次工作、存款一直存不到十萬…"></textarea></label>
+                <p class="lp-err" id="orderErr" hidden></p>
+              </div>
+
+              <div class="lp-total"><span>總計（含開光，運費 0）</span><b id="totalTxt">{ntd(variants[0]?.price ?? prod.price)}</b></div>
+              <button class="zf-btn primary lg full" type="submit" id="payBtn">確認並付款<i class="ph ph-lock-key"></i></button>
+              <p class="lp-paynote">付款由綠界 ECPay 處理，支援信用卡、Apple Pay、LINE Pay、台灣 Pay。本頁不會保存你的卡號。</p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ④ 常見問題 -->
+    <section class="lp-wrap lp-block lp-faq">
+      <div class="zf-section-heading">
+        <span class="zf-sh-eyebrow">常見問題</span>
+        <h2 class="zf-sh-title">下單前想知道的</h2>
+      </div>
+      <details><summary>多久會收到？</summary><p>老師依你提供的資料親製後出貨，全台超商店到店，通常 7 天內到店。到店會收到取貨通知。</p></details>
+      <details><summary>可以寄海外嗎？</summary><p>目前台灣限定，僅提供超商店到店。</p></details>
+      <details><summary>生辰不確定時辰怎麼辦？</summary><p>時辰選「不確定」即可，老師會另行處理；有時辰的話效果更貼合。</p></details>
+      <details><summary>可以退換嗎？</summary><p>每一份都依個案親製，售出後不接受退換，下單前請確認姓名與生辰無誤。</p></details>
+    </section>
+  </div>
+
+  <script type="application/json" id="lpData" set:html={JSON.stringify({ id: PRODUCT_ID, name, variants })} />
+
+  <style>
+    .lp { --lp-max: 1040px; }
+    .lp-wrap { max-width: var(--lp-max); margin: 0 auto; padding: 0 28px; box-sizing: border-box; }
+    .lp-block { padding-top: 64px; padding-bottom: 8px; }
+    .lp-empty { text-align: center; padding: 80px 20px; font-family: var(--font-serif); color: var(--text-muted); }
+
+    .lp-hero { position: relative; overflow: hidden; padding: 48px 0 64px; }
+    .lp-hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(640px 460px at 12% 20%, var(--clay-100), transparent 62%), radial-gradient(520px 420px at 92% 80%, var(--tint-glow), transparent 58%); }
+    .lp-hero-grid { position: relative; display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
+    .lp-hero-img { margin: 0; }
+    .lp-hero-img img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); border: 1px solid var(--border-soft); background: var(--surface-card); }
+    .lp-h1 { font-family: var(--font-serif); font-size: 46px; font-weight: var(--w-medium); line-height: 1.2; letter-spacing: var(--ls-heading); color: var(--ink-900); margin: 14px 0 0; }
+    .lp-lede { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 20px; line-height: 1.7; color: var(--text-secondary); margin: 14px 0 0; }
+    .lp-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+    .lp-price { display: flex; align-items: baseline; gap: 12px; margin-top: 24px; }
+    .lp-price b { font-family: var(--font-serif); font-size: 34px; font-weight: var(--w-semibold); color: var(--accent-press); }
+    .lp-price span { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); }
+    .lp-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+    .lp-meta { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin: 14px 0 0; display: flex; align-items: center; gap: 6px; }
+
+    .lp-two { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; margin-top: 28px; align-items: start; }
+    .lp-fit { padding: 20px 22px; }
+    .lp-fit ul { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+    .lp-fit li { display: flex; gap: 10px; align-items: flex-start; font-family: var(--font-serif); font-size: 15.5px; line-height: 1.7; color: var(--ink-900); }
+    .lp-fit li i { color: var(--positive); margin-top: 4px; }
+
+    .lp-variants { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 28px; }
+    .lp-vcard { padding: 20px 22px; }
+    .lp-vcard h3 { font-family: var(--font-serif); font-size: 19px; font-weight: var(--w-medium); color: var(--ink-900); margin: 0 0 8px; }
+    .lp-vcard p { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin: 0; }
+    .lp-hint { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin: 14px 0 0; }
+
+    .lp-steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .lp-steps li { display: flex; gap: 12px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px; }
+    .lp-step-n { flex: none; width: 32px; height: 32px; border-radius: 999px; background: var(--clay-100); color: var(--clay-500); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-weight: var(--w-medium); }
+    .lp-steps b { display: block; font-family: var(--font-serif); font-size: 16px; font-weight: var(--w-medium); color: var(--ink-900); margin-bottom: 5px; }
+    .lp-steps p { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 14px; line-height: 1.7; color: var(--text-secondary); margin: 0; }
+
+    .lp-notes { list-style: none; margin: 24px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .lp-notes li { display: flex; gap: 12px; align-items: flex-start; font-family: var(--font-serif); font-weight: var(--w-light); font-size: 15px; line-height: 1.75; color: var(--ink-700); padding: 14px 16px; background: var(--surface-sunken); border-radius: var(--radius-md); }
+    .lp-notes li i { color: var(--clay-500); font-size: 18px; margin-top: 3px; flex: none; }
+
+    .lp-order { margin-top: 24px; padding: 26px 28px 24px; }
+    @media (max-width: 860px) { .lp-order { padding: 20px 16px; } }
+    .lp-fs { border: 0; margin: 0 0 20px; padding: 0; }
+    .lp-radios { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 8px; }
+    .lp-radio { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); cursor: pointer; background: var(--surface-card); transition: all var(--dur-fast); }
+    .lp-radio input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+    .lp-radio span { font-family: var(--font-serif); font-size: 16px; color: var(--ink-900); }
+    .lp-radio em { font-style: normal; font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); }
+    .lp-radio:has(input:checked) { border-color: var(--rose-300); background: var(--rose-50); }
+    .lp-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .lp-form .wide { grid-column: 1 / -1; }
+    .lp-cvs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+    .lp-store { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 12px 14px; border: 1px solid var(--sage-300); background: var(--tint-sage-disc); border-radius: var(--radius-md); }
+    .lp-store i { font-size: 22px; color: var(--sage-500); }
+    .lp-store div { flex: 1; min-width: 0; }
+    .lp-store b { display: block; font-family: var(--font-serif); font-size: 15px; color: var(--ink-900); }
+    .lp-store span { display: block; font-family: var(--font-sans); font-size: 12.5px; color: var(--text-secondary); }
+    .lp-err { grid-column: 1 / -1; font-family: var(--font-sans); font-size: 13px; color: var(--critical); margin: 0; }
+    .lp-total { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 0 14px; padding: 14px 16px; background: var(--surface-tint); border-radius: var(--radius-md); font-family: var(--font-serif); }
+    .lp-total b { font-size: 24px; color: var(--accent-press); }
+    .lp-paynote { font-family: var(--font-sans); font-size: 12px; line-height: 1.7; color: var(--text-muted); text-align: center; margin: 12px 0 0; }
+    .lp-paid { text-align: center; padding: 20px 0; font-family: var(--font-serif); color: var(--ink-900); }
+    .lp-paid i { font-size: 40px; color: var(--positive); }
+    .lp-paid h3 { font-size: 24px; font-weight: var(--w-medium); margin: 10px 0 8px; }
+    .lp-paid p { font-weight: var(--w-light); color: var(--text-secondary); line-height: 1.8; margin: 0; }
+    .lp-paid code { font-family: ui-monospace, monospace; font-size: 13px; color: var(--ink-700); }
+
+    .lp-faq { padding-bottom: 72px; }
+    .lp-faq details { border-bottom: 1px solid var(--border-soft); }
+    .lp-faq summary { cursor: pointer; list-style: none; padding: 16px 0; font-family: var(--font-serif); font-size: 16.5px; color: var(--ink-900); display: flex; justify-content: space-between; }
+    .lp-faq summary::-webkit-details-marker { display: none; }
+    .lp-faq summary::after { content: '+'; color: var(--text-muted); }
+    .lp-faq details[open] summary::after { content: '−'; }
+    .lp-faq p { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 15px; line-height: 1.85; color: var(--text-secondary); margin: 0 0 16px; }
+    .lp-faq .zf-section-heading { margin-bottom: 12px; }
+
+    @media (max-width: 860px) {
+      .lp-hero-grid { grid-template-columns: 1fr; gap: 24px; }
+      .lp-hero-img { max-width: 480px; margin: 0 auto; }
+      .lp-h1 { font-size: 34px; }
+      .lp-two, .lp-variants, .lp-notes, .lp-radios, .lp-form { grid-template-columns: 1fr; }
+      .lp-steps { grid-template-columns: 1fr 1fr; }
+      .lp-wrap { padding: 0 18px; }
+      .lp-block { padding-top: 48px; }
+    }
+    .lp-thumbs { display: flex; gap: 8px; margin-top: 10px; }
+    .lp-thumbs button { all: unset; cursor: pointer; width: 64px; height: 64px; border-radius: var(--radius-md); overflow: hidden; border: 2px solid transparent; opacity: .75; }
+    .lp-thumbs button.on, .lp-thumbs button:hover { border-color: var(--rose-300); opacity: 1; }
+    .lp-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .lp-body { max-width: 720px; }
+    .lp-body :global(h3) { font-family: var(--font-serif); font-size: 21px; font-weight: var(--w-medium); color: var(--ink-900); margin: 36px 0 10px; }
+    .lp-body :global(p), .lp-body :global(li) { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 16px; line-height: 1.85; color: var(--ink-700); }
+    .lp-body :global(p) { margin: 0 0 12px; }
+    .lp-body :global(ul), .lp-body :global(ol) { padding-left: 22px; margin: 0; }
+    .lp-body :global(li) { margin: 0 0 6px; }
+    .lp-body :global(strong) { font-weight: var(--w-medium); color: var(--ink-900); }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var D = JSON.parse(document.getElementById('lpData').textContent || '{}');
+      var form = document.getElementById('orderForm'); if (!form) return;
+      var API = 'https://api.winds.tw';
+      var KEY = 'shop-order-draft-' + D.id;
+      var pageUrl = location.origin + location.pathname;
+      var err = document.getElementById('orderErr');
+      var store = null; // {type,id,name,addr}
+      function ntd(n) { return 'NT$ ' + (Number(n) || 0).toLocaleString('en-US'); }
+      function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+      function fail(m) { err.textContent = m; err.hidden = false; err.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      function fields() {
+        var f = form.elements;
+        return { variant: (form.querySelector('[name=variant]:checked') || form.querySelector('input[type=hidden][name=variant]') || {}).value || '', name: f.name.value.trim(), phone: f.phone.value.replace(/[\s-]/g, ''), bdate: f.bdate.value, bhour: f.bhour.value, email: f.email.value.trim(), note: f.note.value.trim() };
+      }
+      function restore() {
+        try {
+          var s = JSON.parse(sessionStorage.getItem(KEY) || 'null'); if (!s) return;
+          var f = form.elements; f.name.value = s.name || ''; f.phone.value = s.phone || ''; f.bdate.value = s.bdate || ''; f.bhour.value = s.bhour || '不確定'; f.email.value = s.email || ''; f.note.value = s.note || '';
+          var r = form.querySelector('[name=variant][value="' + (s.variant || '').replace(/"/g, '') + '"]'); if (r) r.checked = true;
+          if (s.store) showStore(s.store);
+        } catch (e) {}
+      }
+      function save() { try { var o = fields(); o.store = store; sessionStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
+      function showStore(s) {
+        store = s;
+        var box = document.getElementById('storeBox'); box.hidden = !s;
+        document.getElementById('cvsPick').hidden = !!s;
+        if (s) { document.getElementById('storeName').textContent = ({ UNIMARTC2C: '7-ELEVEN', FAMIC2C: '全家', HILIFEC2C: '萊爾富' }[s.type] || '') + ' ' + s.name; document.getElementById('storeAddr').textContent = s.addr || ''; }
+      }
+      // 選門市：存草稿 → 去綠界地圖 → 回來帶 cvs_* 參數
+      document.querySelectorAll('[data-cvs]').forEach(function (b) {
+        b.addEventListener('click', function () { save(); location.href = API + '/shop-cvs-map?type=' + b.dataset.cvs + '&back=' + encodeURIComponent(pageUrl); });
+      });
+      document.getElementById('storeChange').addEventListener('click', function () { showStore(null); save(); });
+      form.addEventListener('change', function () {
+        var v = form.querySelector('[name=variant]:checked'); var vv = (D.variants || []).filter(function (x) { return x.title === (v && v.value); })[0];
+        document.getElementById('totalTxt').textContent = ntd(vv ? vv.price : 0);
+      });
+
+      document.querySelectorAll('[data-thumb]').forEach(function (t) {
+        t.addEventListener('click', function () { document.getElementById('heroImg').src = t.dataset.thumb; document.querySelectorAll('[data-thumb]').forEach(function (x) { x.classList.toggle('on', x === t); }); });
+      });
+      var qs = new URLSearchParams(location.search);
+      restore();
+      if (qs.get('cvs_store_id')) {
+        showStore({ type: qs.get('cvs_type') || '', id: qs.get('cvs_store_id'), name: qs.get('cvs_store_name') || '', addr: qs.get('cvs_address') || '' }); save();
+        history.replaceState(null, '', pageUrl + '#order');
+      }
+      // 付完款回來
+      if (qs.get('paid')) {
+        var no = qs.get('paid');
+        fetch(API + '/shop-order/' + encodeURIComponent(no)).then(function (r) { return r.json(); }).then(function (d) {
+          var box = document.getElementById('paidBox'); box.hidden = false; form.hidden = true;
+          if (d && d.ok && d.status === 'Paid') {
+            box.innerHTML = '<div class="lp-paid"><i class="ph ph-check-circle"></i><h3>已收到你的訂單</h3><p>' + esc(d.product_name) + '（' + esc(d.variant) + '）· ' + ntd(d.amount) + '<br>老師會依你的生辰親繪開光後，寄到 ' + esc(d.cvs_store_name || '你選的門市') + '。<br>到店會另行通知。訂單編號 <code>' + esc(no) + '</code>' + (d.sandbox ? '<br><span style="color:var(--text-muted)">（測試訂單，未實際扣款）</span>' : '') + '</p></div>';
+            try { sessionStorage.removeItem(KEY); } catch (e) {}
+          } else {
+            box.innerHTML = '<div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>付款尚未完成</h3><p>訂單 <code>' + esc(no) + '</code> 狀態：' + esc((d && d.status) || '未知') + '。若你已完成付款，稍等一下再重新整理；仍有問題請聯絡我們。</p></div>';
+          }
+        });
+        return;
+      }
+
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault(); err.hidden = true;
+        var f = fields();
+        if (!f.variant && D.variants.length > 1) return fail('請選擇款式。');
+        if (!f.name) return fail('請輸入本人姓名。');
+        if (!/^09\d{8}$/.test(f.phone)) return fail('請輸入正確手機（09xxxxxxxx）。');
+        if (!f.bdate) return fail('請輸入國曆生日。');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return fail('請輸入正確 Email。');
+        if (!store) return fail('請先選取貨門市。');
+        var btn = document.getElementById('payBtn'); btn.disabled = true; btn.textContent = '建立訂單中…';
+        fetch(API + '/shop-order', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product_id: D.id, variant: f.variant, name: f.name, birth: f.bdate + ' ' + f.bhour, phone: f.phone, email: f.email, cvs_type: store.type, cvs_store_id: store.id, cvs_store_name: store.name, cvs_address: store.addr, note: f.note, back_url: pageUrl }) })
+          .then(function (r) { return r.json(); }).then(function (d) {
+            if (d && d.ok && d.payment_url) { save(); location.href = d.payment_url; return; }
+            fail((d && (d.message || d.error)) || '建立訂單失敗，請稍後再試。'); btn.disabled = false; btn.innerHTML = '確認並付款<i class="ph ph-lock-key"></i>';
+          }).catch(function () { fail('網路錯誤，請稍後再試。'); btn.disabled = false; btn.innerHTML = '確認並付款<i class="ph ph-lock-key"></i>'; });
+      });
+    })();
+  </script>
+</BaseLayout>
