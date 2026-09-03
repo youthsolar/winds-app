@@ -1,0 +1,47 @@
+---
+// EasyStore 搬來的整頁內容（老師介紹／項目說明）：標題＋更新日＋內文，內文樣式對齊部落格 article-body
+import { render } from 'astro:content';
+
+const { entry, crumb } = Astro.props;
+const { Content } = await render(entry);
+const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+<article class="es-page">
+  <nav class="crumbs" aria-label="路徑">
+    <a href="/">首頁</a>
+    <i class="ph ph-caret-right"></i>
+    <a href={crumb.href}>{crumb.label}</a>
+  </nav>
+  <header class="art-head">
+    <h1 class="cjk-title">{entry.data.title}</h1>
+    <div class="byline"><time datetime={entry.data.updatedDate.toISOString()}>{fmtDate(entry.data.updatedDate)} 更新</time></div>
+  </header>
+  <div class="article-body"><Content /></div>
+</article>
+
+<style>
+  .es-page { max-width: var(--container); margin: 0 auto; padding: 32px 20px 72px; }
+  .crumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-500); }
+  .crumbs a { color: var(--ink-500); text-decoration: none; }
+  .crumbs a:hover { color: var(--rose-600); }
+  .art-head { max-width: var(--measure-prose); margin: 28px auto 0; }
+  .art-head h1 { font-family: var(--font-serif); font-size: 32px; font-weight: 500; line-height: 1.4; color: var(--ink-900); margin: 0 0 12px; }
+  .byline { font-size: 14px; color: var(--ink-500); }
+  @media (max-width: 760px) { .art-head h1 { font-size: 25px; } }
+  .article-body { max-width: var(--measure-prose); margin: 40px auto 0; }
+  @media (max-width: 760px) { .article-body { max-width: none; margin-top: 28px; } }
+  .article-body :global(h2) { font-family: var(--font-serif); font-size: 24px; font-weight: 500; line-height: 1.5; letter-spacing: 0.01em; color: var(--ink-900); margin: 1.8em 0 0.7em; }
+  .article-body :global(h2:first-child) { margin-top: 0; }
+  .article-body :global(h3) { font-family: var(--font-serif); font-size: 19px; font-weight: 500; color: var(--ink-900); margin: 1.4em 0 0.5em; }
+  .article-body :global(p) { font-family: var(--font-serif); font-weight: 300; font-size: 18px; line-height: 1.95; color: var(--ink-700); margin: 0 0 1.5em; overflow-wrap: anywhere; }
+  @media (max-width: 760px) { .article-body :global(h2) { font-size: 21px; } .article-body :global(p) { font-size: 16.5px; } }
+  .article-body :global(a) { color: var(--rose-600); text-decoration: underline; text-decoration-color: var(--rose-300); text-underline-offset: 3px; }
+  .article-body :global(strong) { color: var(--ink-900); font-weight: 600; }
+  .article-body :global(ul), .article-body :global(ol) { margin: 0 0 1.5em; padding-left: 1.4em; display: flex; flex-direction: column; gap: 8px; }
+  .article-body :global(li) { font-family: var(--font-serif); font-weight: 300; font-size: 18px; line-height: 1.9; color: var(--ink-700); }
+  .article-body :global(li::marker) { color: var(--rose-400); }
+  .article-body :global(img) { max-width: 100%; height: auto; border-radius: var(--radius-lg); margin: 1.2em 0; }
+  .article-body :global(table) { width: 100%; border-collapse: collapse; margin: 0 0 1.5em; font-size: 16px; }
+  .article-body :global(td), .article-body :global(th) { border: 1px solid var(--border-soft); padding: 8px 10px; vertical-align: top; }
+  .article-body :global(hr) { border: none; border-top: 1px solid var(--border-soft); margin: 2em 0; }
+</style>

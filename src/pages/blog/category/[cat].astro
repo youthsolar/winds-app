@@ -7,7 +7,7 @@ const PER_PAGE = 12;
 const catOrder = ['感情挽回','桃花運','斬桃花','元辰宮','財運','塔羅','星座','命理','兩性關係','感情和合','開運招財','命理占卜','其他'];
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
+  const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
   const byCat: Record<string, typeof posts> = {};
   for (const p of posts) {
     const c = p.data.category || '其他';

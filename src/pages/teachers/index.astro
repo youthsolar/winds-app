@@ -1,0 +1,11 @@
+---
+// 老師總覽（EasyStore /pages/masters 搬來）
+import { getEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EsPage from '../../components/EsPage.astro';
+
+const entry = await getEntry('espages', 'masters');
+---
+<BaseLayout title={entry.data.seoTitle || `${entry.data.title}｜找風問幸福`} description={entry.data.description} ogType="website">
+  <EsPage entry={entry} crumb={{ href: '/teachers/', label: '老師介紹' }} />
+</BaseLayout>

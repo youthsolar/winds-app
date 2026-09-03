@@ -1,0 +1,15 @@
+---
+// 項目說明頁（預約方式／元辰宮／法術／通靈／問事／占卜；2026-09-03 從 EasyStore /pages/<handle> 搬來）
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EsPage from '../../components/EsPage.astro';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('espages');
+  return pages.filter((p) => p.data.kind === 'guide').map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+---
+<BaseLayout title={entry.data.seoTitle || `${entry.data.title}｜找風問幸福`} description={entry.data.description} ogType="article">
+  <EsPage entry={entry} crumb={{ href: '/services/', label: '預約項目' }} />
+</BaseLayout>

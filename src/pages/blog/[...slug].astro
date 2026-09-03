@@ -4,7 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { pickRecs } from '../../data/recommend';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
+  const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
   const TEACHERS = ['風易揚', '芊蘭', '風賜靈', '伊紫蓮', '玄奇', '竹韻'];
   const teachers: Record<string, string | null> = {};
   for (const p of posts) {

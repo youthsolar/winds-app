@@ -1,0 +1,15 @@
+---
+// 老師介紹頁（2026-09-03 從 EasyStore /pages/<handle> 搬來；內容在 src/content/espages/）
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EsPage from '../../components/EsPage.astro';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('espages');
+  return pages.filter((p) => p.data.kind === 'teacher' && p.id !== 'masters').map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+---
+<BaseLayout title={entry.data.seoTitle || `${entry.data.title}｜找風問幸福`} description={entry.data.description} ogType="article">
+  <EsPage entry={entry} crumb={{ href: '/teachers/', label: '老師介紹' }} />
+</BaseLayout>
