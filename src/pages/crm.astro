@@ -12,7 +12,7 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
     <header class="page-header">
       <span class="eyebrow"><span class="dot"></span>內部 · 客戶名單</span>
       <h1>客戶名單</h1>
-      <p class="lede">把預約、法器、占卜、eDM 的人合併成一張名單。點過信裡連結的人會隨每次寄信自動加進來。</p>
+      <p class="lede">把預約、法器、占卜、eDM 的人合併成一張名單。有互動＝點過信裡的連結、占過卜或解鎖過；每次寄信有人點就會自動加進來。</p>
     </header>
 
     <section class="auth-gate" id="auth-gate" hidden>
@@ -39,7 +39,7 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
           <button class="zf-tab on" data-tier="">全部</button>
           <button class="zf-tab" data-tier="paid">付過錢</button>
           <button class="zf-tab" data-tier="booked">預約過</button>
-          <button class="zf-tab" data-tier="alive">點過信</button>
+          <button class="zf-tab" data-tier="engaged">有互動</button>
           <button class="zf-tab" data-tier="lead">只有名單</button>
         </div>
         <input class="zf-input crm-search" id="crm-search" type="search" placeholder="搜姓名、email、電話、標籤" autocomplete="off" />
@@ -71,7 +71,8 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
   const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
   const ntd = (n: number) => 'NT$ ' + Number(n || 0).toLocaleString('en-US');
   const day = (ts: string) => (ts || '').replace('T', ' ').slice(0, 10);
-  const TIER: Record<string, [string, string]> = { paid: ['付過錢', 'rose'], booked: ['預約過', 'clay'], alive: ['點過信', 'sage'], lead: ['只有名單', 'neutral'] };
+  const TIER: Record<string, [string, string]> = { paid: ['付過錢', 'rose'], booked: ['預約過', 'clay'], engaged: ['有互動', 'sage'], lead: ['只有名單', 'neutral'] };
+  const STATUS: Record<string, string> = { Pending: '未付款', pending: '未付款', Failed: '付款失敗', canceled: '已取消', unpaid: '未付款' };
 
   type P = { key: string; name: string; email: string; phone: string; birth: string; sources: string[]; tier: string; spend: number; paid_count: number; event_count: number; last_activity: string; alive_at: string; last_sent_at: string; last_click_at: string; tags: string[]; note: string };
   let people: P[] = [], tier = '', query = '', current = '';
@@ -88,7 +89,7 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
   }
 
   function renderStats(c: Record<string, number>) {
-    $('crm-stats').innerHTML = [['total', '總人數'], ['paid', '付過錢'], ['booked', '預約過'], ['alive', '點過信'], ['lead', '只有名單']]
+    $('crm-stats').innerHTML = [['total', '總人數'], ['paid', '付過錢'], ['booked', '預約過'], ['engaged', '有互動'], ['lead', '只有名單']]
       .map(([k, l]) => `<div class="crm-stat"><b>${c[k] ?? 0}</b><span>${l}</span></div>`).join('');
   }
 
@@ -107,7 +108,7 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
           <div class="crm-row-tags">${p.sources.map((s) => `<span class="zf-tag neutral outline">${esc(s)}</span>`).join('')}${(p.tags || []).map((t) => `<span class="zf-tag rose">${esc(t)}</span>`).join('')}</div>
         </div>
         <div class="crm-row-side">
-          ${p.spend ? `<b>${ntd(p.spend)}</b>` : '<b class="muted">—</b>'}
+          ${p.spend ? `<b>${ntd(p.spend)}</b>` : ''}
           <span>${p.last_activity ? '最近 ' + day(p.last_activity) : '沒有互動'}</span>
         </div>
       </button>`).join('') : '<p class="crm-empty">這個條件下沒有人。</p>';
@@ -147,7 +148,7 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
       <ol class="crm-tl">${evs.map((e) => `
         <li class="crm-tl-item k-${esc(e.kind)}">
           <time>${day(e.ts)}</time>
-          <div><span class="crm-tl-kind">${KIND[e.kind] || esc(e.kind)}</span>${esc(e.title)}${e.amount ? `<b>${ntd(e.amount)}</b>` : ''}${e.status && !/^(Paid|paid|confirmed)$/.test(e.status) ? `<em>${esc(e.status)}</em>` : ''}${e.note ? `<small>${esc(e.note)}</small>` : ''}</div>
+          <div><span class="crm-tl-kind">${KIND[e.kind] || esc(e.kind)}</span>${esc(e.title)}${e.amount ? `<b>${ntd(e.amount)}</b>` : ''}${e.status && !/^(Paid|paid|confirmed)$/.test(e.status) ? `<em>${esc(STATUS[e.status] || e.status)}</em>` : ''}${e.note ? `<small>${esc(e.note)}</small>` : ''}</div>
         </li>`).join('') || '<li class="crm-empty">還沒有互動紀錄。</li>'}</ol>`;
     $('detail-close').addEventListener('click', () => { box.hidden = true; current = ''; renderList(); });
     ($('note-form') as HTMLFormElement).addEventListener('submit', async (ev) => {
@@ -159,7 +160,7 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
       if (d2.ok) { st.textContent = '已存'; const me = people.find((x) => x.key === key); if (me) { me.tags = tags; me.note = f.note.value; } renderList(); }
       else st.textContent = '沒存成：' + (d2.error || d2.message || '');
     });
-    if (window.innerWidth < 900) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (window.innerWidth < 900) window.scrollTo({ top: box.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' });   // 手機：留 90px 給固定導覽列（scrollIntoView 不一定吃 scroll-margin）
   }
 
   $('tier-tabs').querySelectorAll<HTMLButtonElement>('.zf-tab').forEach((b) => b.addEventListener('click', () => {
@@ -217,11 +218,10 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
   .crm-row-tags .zf-tag { padding: 2px 9px; font-size: var(--t-micro); }
   .crm-row-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
   .crm-row-side b { font-family: var(--font-serif); font-size: 15.5px; font-weight: 500; color: var(--ink-900); }
-  .crm-row-side b.muted { color: var(--ink-400); }
   .crm-row-side span { font-family: var(--font-sans); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
   .crm-empty { font-family: var(--font-serif); color: var(--text-muted); padding: 24px 8px; margin: 0; }
 
-  .crm-detail { position: sticky; top: 88px; scroll-margin-top: 84px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm); max-height: calc(100vh - 110px); overflow: auto; }
+  .crm-detail { position: sticky; top: 88px; scroll-margin-top: 84px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 24px;   /* 不用 --space-6：global.css 沒定義這顆 token，會變 0 */ box-shadow: var(--shadow-sm); max-height: calc(100vh - 110px); overflow: auto; }
   .crm-detail-loading { display: flex; justify-content: center; padding: 40px; }
   .crm-detail-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
   .crm-detail-name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--ink-900); }
@@ -253,7 +253,7 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
     .page-header .lede { font-size: 15.5px; }
     .crm-stats { grid-template-columns: repeat(2, 1fr); }
     .crm-layout { grid-template-columns: 1fr; }
-    .crm-detail { position: static; max-height: none; }
+    .crm-detail { position: static; max-height: none; padding: 18px; }
     .crm-kpis { grid-template-columns: repeat(2, 1fr); }
     .crm-tl-item { grid-template-columns: 1fr; gap: 2px; }
     .crm-search { max-width: none; width: 100%; }
