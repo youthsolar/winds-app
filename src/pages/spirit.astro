@@ -100,7 +100,7 @@ import '../styles/global.css';
     /* 對象生日輸入 */
     .sp-target{flex:none;margin-bottom:10px;padding:14px 16px;background:var(--surface-sunken);border:1px solid var(--border-soft);border-radius:var(--radius-lg);display:flex;flex-direction:column;gap:12px}
     .sp-target.locked{background:var(--surface-tint);border-color:var(--rose-100);flex-direction:row;align-items:center;gap:10px;padding:10px 14px}
-    .sp-target .f-label{display:block;margin-bottom:6px;font-family:var(--font-sans);font-size:13px;font-weight:500;color:var(--ink-700)}
+    .sp-target .f-label{display:block;margin-bottom:8px;font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--ink-700);letter-spacing:.02em}
     .sp-target input{width:100%;box-sizing:border-box;padding:11px 14px;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);outline:none}
     .sp-target input:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring)}
 
@@ -289,14 +289,32 @@ import '../styles/global.css';
       }
       el.innerHTML='<div class="sp-target">'+
         '<div style="display:flex;align-items:center;gap:7px"><span style="color:var(--rose-400);font-size:15px">'+ic("sparkle","fill")+'</span><span style="font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--ink-900)">輸入對象的生日，我就能感應到他</span></div>'+
-        '<label><span class="f-label">對象國曆生日</span><input type="date" id="tgDate" value="'+esc(S.targetDate)+'" min="1920-01-01" max="2026-12-31"></label>'+
-        '<label><span class="f-label">出生時間（不確定可留空＝午時）</span><input type="time" id="tgTime" value="'+esc(S.targetTime)+'"></label>'+
+        tgBirthFields()+
         '<button class="zf-btn primary md full" style="margin-top:2px" onclick="confirmTarget()">開始感應 '+ic("arrow-right")+'</button></div>';
     }
+    // 對象生日＝占卜頁同款「年／月／日」三下拉＋時辰下拉（2026-09-03 對齊；原生 date/time 欄樣式不受控）
+    var TG_SC=[["子時 23–01","00:00"],["丑時 01–03","02:00"],["寅時 03–05","04:00"],["卯時 05–07","06:00"],["辰時 07–09","08:00"],["巳時 09–11","10:00"],["午時 11–13","12:00"],["未時 13–15","14:00"],["申時 15–17","16:00"],["酉時 17–19","18:00"],["戌時 19–21","20:00"],["亥時 21–23","22:00"]];
+    function tgBirthFields(){
+      var ymd=String(S.targetDate||"").split("-"),pY=+ymd[0]||"",pM=+ymd[1]||"",pD=+ymd[2]||"";
+      var pT="";if(S.targetTime){var hh=parseInt(S.targetTime.split(":")[0],10);if(!isNaN(hh))pT=TG_SC[Math.floor(((hh+1)%24)/2)][1];}
+      function selA(v,cur){return (cur!==""&&v==cur)?" selected":""}
+      var years="";for(var y=2026;y>=1920;y--)years+='<option value="'+y+'"'+selA(y,pY)+'>'+y+' 年</option>';
+      var months="";for(var m=1;m<=12;m++)months+='<option value="'+m+'"'+selA(m,pM)+'>'+m+' 月</option>';
+      var days="";for(var d=1;d<=31;d++)days+='<option value="'+d+'"'+selA(d,pD)+'>'+d+' 日</option>';
+      var sco=TG_SC.map(function(x){return '<option value="'+x[1]+'"'+selA(x[1],pT)+'>'+x[0]+'</option>'}).join("");
+      var caret='<span class="caret">'+ic("caret-down","bold")+'</span>';
+      return '<label style="display:block"><span class="f-label">對象國曆生日</span><div class="zf-select-row">'+
+        '<div class="zf-select-wrap"><select id="tgYear" class="zf-select"><option value="" disabled'+(pY?"":" selected")+'>年</option>'+years+'</select>'+caret+'</div>'+
+        '<div class="zf-select-wrap"><select id="tgMonth" class="zf-select"><option value="" disabled'+(pM?"":" selected")+'>月</option>'+months+'</select>'+caret+'</div>'+
+        '<div class="zf-select-wrap"><select id="tgDay" class="zf-select"><option value="" disabled'+(pD?"":" selected")+'>日</option>'+days+'</select>'+caret+'</div></div></label>'+
+        '<label style="display:block"><span class="f-label">出生時間（不確定就用午時）</span><div class="zf-select-wrap"><select id="tgTime" class="zf-select"><option value=""'+(pT?"":" selected")+'>不確定（用午時）</option>'+sco+'</select>'+caret+'</div></label>';
+    }
     function confirmTarget(){
-      var d=document.getElementById("tgDate"),t=document.getElementById("tgTime");
-      if(!d||!d.value){toast("請先選對象生日");return}
-      S.targetDate=d.value;S.targetTime=(t&&t.value)||"";S.targetConfirmed=true;renderTarget();
+      var y=document.getElementById("tgYear"),m=document.getElementById("tgMonth"),d=document.getElementById("tgDay"),t=document.getElementById("tgTime");
+      if(!y||!y.value||!m.value||!d.value){toast("請先選對象生日");return}
+      var v=y.value+"-"+("0"+m.value).slice(-2)+"-"+("0"+d.value).slice(-2);
+      var chk=new Date(v+"T12:00:00");if(isNaN(chk)||chk.toISOString().slice(0,10)!==v){toast("這一天不存在，請再確認");return}
+      S.targetDate=v;S.targetTime=(t&&t.value)||"";S.targetConfirmed=true;renderTarget();
     }
     function editTarget(){S.targetConfirmed=false;renderTarget()}
 

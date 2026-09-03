@@ -1144,6 +1144,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     font-family: var(--font-serif);
     font-size: 16px;
     color: var(--ink-900);
+    line-height: 1.4;   /* 同 ds.css .zf-select（高 48），2026-09-03 */
     text-overflow: ellipsis;
   }
   /* 對齊占卜站 .f-select 配方（divination.astro:62-68）：appearance:none＋Phosphor caret＋shadow-xs */
@@ -1178,10 +1179,8 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     margin: 0 0 14px;
   }
 
-  /* 生日三欄（占卜站同款：年寬 1.5、月日等寬）；窄欄右距收小 */
+  /* 生日三欄（占卜站同款：年寬 1.5、月日等寬、gap 8）；2026-09-03 拿掉窄欄收距，逐值同 .f-select（padding 12 16／右 34／caret 右 13） */
   .ziwei-form .date-row { display: flex; gap: 8px; }
-  .ziwei-form .date-row select { padding-left: 12px; padding-right: 30px; }
-  .ziwei-form .date-row .select-wrap .caret { right: 10px; }
   .ziwei-form input:focus,
   .ziwei-form select:focus {
     outline: none;

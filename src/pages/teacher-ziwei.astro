@@ -53,26 +53,36 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
         <div class="row">
           <label>西元生日（陽曆）</label>
-          <div class="date-selects">
-            <select id="birthYear" name="birthYear" required aria-label="出生年">
-              <option value="" disabled selected>年</option>
-              {years.map((y) => <option value={y}>{y} 年</option>)}
-            </select>
-            <select id="birthMonth" name="birthMonth" required aria-label="出生月">
-              <option value="" disabled selected>月</option>
-              {months.map((m) => <option value={m}>{m} 月</option>)}
-            </select>
-            <select id="birthDay" name="birthDay" required aria-label="出生日">
-              <option value="" disabled selected>日</option>
-              {days.map((d) => <option value={d}>{d} 日</option>)}
-            </select>
+          <div class="date-row">
+            <div class="select-wrap" style="flex:1.5">
+              <select id="birthYear" name="birthYear" required aria-label="出生年">
+                <option value="" disabled selected>年</option>
+                {years.map((y) => <option value={y}>{y} 年</option>)}
+              </select>
+              <i class="ph-bold ph-caret-down caret"></i>
+            </div>
+            <div class="select-wrap">
+              <select id="birthMonth" name="birthMonth" required aria-label="出生月">
+                <option value="" disabled selected>月</option>
+                {months.map((m) => <option value={m}>{m} 月</option>)}
+              </select>
+              <i class="ph-bold ph-caret-down caret"></i>
+            </div>
+            <div class="select-wrap">
+              <select id="birthDay" name="birthDay" required aria-label="出生日">
+                <option value="" disabled selected>日</option>
+                {days.map((d) => <option value={d}>{d} 日</option>)}
+              </select>
+              <i class="ph-bold ph-caret-down caret"></i>
+            </div>
           </div>
         </div>
 
         <div class="row two-col">
           <div>
             <label for="hour">出生時辰</label>
-            <select id="hour" name="hour">
+            <div class="select-wrap">
+              <select id="hour" name="hour">
               <option value="">— 不確定（用午時 12:00）—</option>
               <option value="0">早子時（23-00 / 00-01）</option>
               <option value="1">丑時（01-03）</option>
@@ -86,20 +96,26 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
               <option value="17">酉時（17-19）</option>
               <option value="19">戌時（19-21）</option>
               <option value="21">亥時（21-23）</option>
-            </select>
+              </select>
+              <i class="ph-bold ph-caret-down caret"></i>
+            </div>
           </div>
           <div>
             <label for="gender">性別</label>
-            <select id="gender" name="gender" required>
+            <div class="select-wrap">
+              <select id="gender" name="gender" required>
               <option value="女">女</option>
               <option value="男">男</option>
-            </select>
+              </select>
+              <i class="ph-bold ph-caret-down caret"></i>
+            </div>
           </div>
         </div>
 
         <div class="row">
           <label for="longitude">出生地經度（選填，海外華人建議填）</label>
-          <select id="longitude" name="longitude">
+          <div class="select-wrap">
+            <select id="longitude" name="longitude">
             <option value="">— 不校正（適合台灣出生）—</option>
             <option value="121.5">台北 121.5°E</option>
             <option value="116.4">北京 116.4°E（-14 min）</option>
@@ -111,7 +127,9 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
             <option value="-118.2">洛杉磯 -118.2°E（+7 min）</option>
             <option value="-73.9">紐約 -73.9°E（+4 min）</option>
             <option value="-0.1">倫敦 -0.1°E（-0.4 min）</option>
-          </select>
+            </select>
+            <i class="ph-bold ph-caret-down caret"></i>
+          </div>
         </div>
 
         <button type="submit" class="submit-btn">
@@ -987,8 +1005,8 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
     gap: 12px;
   }
   .ziwei-form .row.two-col > div { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-  .ziwei-form .date-selects { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; }
-  .ziwei-form .date-selects select { min-width: 0; }
+  /* 生日三欄＝占卜站同款（年 flex 1.5、gap 8） */
+  .ziwei-form .date-row { display: flex; gap: 8px; }
   .ziwei-form label {
     font-family: var(--font-sans);
     font-size: 14px;
@@ -1008,7 +1026,22 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
     font-family: var(--font-serif);
     font-size: 16px;
     color: var(--ink-900);
+    line-height: 1.4;   /* 同 ds.css .zf-select（高 48），2026-09-03 */
     text-overflow: ellipsis;
+  }
+  /* 對齊占卜站 .f-select 配方（2026-09-03，與 /ziwei 同款）：appearance:none＋Phosphor caret＋shadow-xs */
+  .ziwei-form select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 34px;
+    box-shadow: var(--shadow-xs);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .ziwei-form input { box-shadow: var(--shadow-xs); transition: border-color .15s, box-shadow .15s; }
+  .ziwei-form .select-wrap { position: relative; flex: 1 1 0; min-width: 0; }
+  .ziwei-form .select-wrap .caret {
+    position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+    pointer-events: none; color: var(--rose-400);
   }
   .ziwei-form input:focus,
   .ziwei-form select:focus {
