@@ -21,11 +21,11 @@ export const WEEK_TOPICS: Record<string, WeekTopic> = {
     descTail: '風易揚老師的解卦，每週一更新；點一下就能抽這週屬於你的一卦，不用登入。',
   },
   wealth: {
-    key: 'wealth', path: 'wealth-week', label: '財富', eyebrow: '這週的卦', kicker: '你現在的狀況',
-    ctaTitle: '抽這週你的財富一卦',
+    key: 'wealth', path: 'wealth-week', label: '財運', eyebrow: '這週的卦', kicker: '你現在的狀況',
+    ctaTitle: '抽這週你的財運一卦',
     ctaLead: '同樣是錢的事，每個人的卦不一樣。點一下就起卦，不用登入、不用填生日。',
-    shareTitle: '這週的財富卦',
-    descTail: '風易揚老師的解卦，每週一更新；點一下就能抽這週你的財富一卦，不用登入。',
+    shareTitle: '這週的財運卦',
+    descTail: '風易揚老師的解卦，每週一更新；點一下就能抽這週你的財運一卦，不用登入。',
   },
   fortune: {
     key: 'fortune', path: 'fortune-week', label: '運勢', eyebrow: '這週的卦', kicker: '這週先顧哪一頭',
