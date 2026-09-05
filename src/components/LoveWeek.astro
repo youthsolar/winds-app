@@ -83,6 +83,13 @@ const shareText = `${data.h1}。${data.line}`;
 
 <script is:inline>
   (function () {
+    // 來源往下帶：這頁是從哪個平台進來的（utm_source），抽一卦的連結就把 src 改成 love-week-<平台>，
+    // /gua 與占卜站那端才分得出 Threads／IG／FB／YT，不然到第三站起就只剩 love-week 一個值。
+    try {
+      var us = (new URLSearchParams(location.search).get('utm_source') || '').replace(/[^a-z0-9_-]/gi, '').slice(0, 20);
+      var a = document.querySelector('a.lw-btn[href*="src=love-week"]');
+      if (us && a) a.setAttribute('href', a.getAttribute('href').replace('src=love-week', 'src=love-week-' + us));
+    } catch (e) {}
     var b = document.getElementById('lwShare');
     if (!b) return;
     b.addEventListener('click', function () {

@@ -1637,5 +1637,22 @@ window.STATE=STATE;
 
 boot();
 </script>
+<!-- 帶 utm 進站記點（2026-09-06 補）：占卜頁沒用 BaseLayout，之前從活動頁／社群帶 utm 進來的人 D1 一列都沒有，
+     漏斗第四站是瞎的。與 BaseLayout 那段逐字相同：sendBeacon → api.winds.tw/hit → D1 link_hits。 -->
+<script is:inline>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var c = q.get('utm_content');
+    var s = q.get('utm_source');
+    if (!c && !s) return;
+    try {
+      navigator.sendBeacon('https://api.winds.tw/hit', JSON.stringify({
+        path: location.pathname,
+        utm_source: s || '',
+        utm_content: c || '',
+      }));
+    } catch (e) {}
+  })();
+</script>
 </body>
 </html>
