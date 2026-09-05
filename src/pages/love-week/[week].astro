@@ -1,0 +1,20 @@
+---
+// 舊週存檔：/love-week/2026-w37/ 這種路徑，內容不刪，當搜尋資產。
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LoveWeek, { type LoveWeekData } from '../../components/LoveWeek.astro';
+
+export async function getStaticPaths() {
+  const files = import.meta.glob('../../data/love-week/*.json', { eager: true }) as Record<string, { default: LoveWeekData }>;
+  const weeks = Object.values(files).map((m) => m.default).sort((a, b) => (a.week < b.week ? 1 : -1));
+  return weeks.map((data, i) => ({ params: { week: data.week }, props: { data, isCurrent: i === 0 } }));
+}
+const { data, isCurrent } = Astro.props as { data: LoveWeekData; isCurrent: boolean };
+const draft = data.status !== 'published';
+---
+<BaseLayout
+  title={`${data.range_long.slice(0, 7)}${data.range} 的愛情卦・${data.hex.name} · 找風問幸福`}
+  description={`${data.range_long}，那一週的愛情走「${data.hex.char}」。${data.line} 風易揚老師的解卦。`}
+  noindex={draft}
+>
+  <LoveWeek data={data} isCurrent={isCurrent} />
+</BaseLayout>

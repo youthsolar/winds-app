@@ -1,0 +1,162 @@
+---
+// 這週卦象愛情運勢（活動頁第一頁，2026-09-05）
+// 輕量化規格：不登入、不填生日、一眼看完。上半段人人一樣的「這週一卦」，下半段一顆鈕走 /gua 零登入起卦。
+// 版型逐值抄 DS：PageHeader／Card／GlyphDisc／Chip／Button，列表行抄活動頁 gift-event-page.jsx entries。
+// 料＝src/data/love-week/<週>.json，每週一換；舊週留在 /love-week/<週>/。
+export interface LoveWeekData {
+  week: string; range: string; range_long: string; status: string;
+  hex: { char: string; name: string; sub: string };
+  h1: string; lede: string; line: string; tags: string[];
+  states: { char: string; title: string; line: string }[];
+  quote: string;
+  prev?: { week: string; label: string } | null;
+}
+interface Props { data: LoveWeekData; isCurrent: boolean }
+const { data, isCurrent } = Astro.props;
+// 個人化入口：/gua 零登入起卦，topic=love 改感情口吻、src 帶進往占卜站的 utm（api.winds.tw gua.ts）
+const guaUrl = 'https://api.winds.tw/gua?topic=love&src=love-week';
+const shareUrl = isCurrent ? 'https://winds.tw/love-week/' : `https://winds.tw/love-week/${data.week}/`;
+const shareText = `${data.h1}。${data.line}`;
+---
+<div class="lw-wrap">
+  <div class="lw-inner">
+    <header class="lw-head">
+      <span class="lw-eyebrow">{isCurrent ? '這週的卦' : '那一週的卦'}・{data.range}</span>
+      <h1 class="lw-h1">{data.h1}</h1>
+      <p class="lw-lede">{data.lede}</p>
+    </header>
+
+    <div class="lw-card lw-hero">
+      <div class="lw-hex">
+        <span class="lw-disc lw-disc-big">{data.hex.char}</span>
+        <div>
+          <div class="lw-hex-name">{data.hex.name}</div>
+          <div class="lw-hex-sub">{data.hex.sub}</div>
+          <p class="lw-hex-line lw-hex-line-desk">{data.line}</p>
+        </div>
+      </div>
+      <p class="lw-hex-line lw-hex-line-mobile">{data.line}</p>
+      <div class="lw-chips">{data.tags.map((t) => <span class="lw-chip">{t}</span>)}</div>
+    </div>
+
+    <div class="lw-card">
+      <div class="lw-kick">你現在的狀況</div>
+      <div class="lw-three">
+        {data.states.map((s) => (
+          <div class="lw-row">
+            <span class="lw-disc lw-disc-seat">{s.char}</span>
+            <div class="lw-rowtext"><div class="lw-rowtitle">{s.title}</div><div class="lw-rowline">{s.line}</div></div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="lw-card lw-sunken">
+      <p class="lw-quote">{data.quote}</p>
+      <div class="lw-by">風易揚老師的解卦</div>
+    </div>
+
+    <div class="lw-card lw-hero lw-tint lw-last">
+      <div class="lw-kick">這週屬於你的</div>
+      <div class="lw-cta-title">抽這週屬於你的一卦</div>
+      <p class="lw-cta-lead">同一件事，每個人的卦不一樣。點一下就起卦，不用登入、不用填生日。</p>
+      <a class="lw-btn" href={guaUrl}>現在抽一卦</a>
+      <div class="lw-cta-note">起卦以你點下去的這一刻為準。</div>
+      <div class="lw-cta-share"><button type="button" class="lw-btn lw-btn-quiet" id="lwShare" data-url={shareUrl} data-text={shareText}>把這週的卦傳給那個人</button></div>
+    </div>
+
+    {data.prev && (
+      <div class="lw-arch"><span>上一週</span><a href={`/love-week/${data.prev.week}/`}>{data.prev.label}</a></div>
+    )}
+    {!isCurrent && (
+      <div class="lw-arch"><span>這一週</span><a href="/love-week/">看最新一週的卦</a></div>
+    )}
+
+    <p class="lw-terms">卦象文字為風易揚老師的解卦・分享時請保留出處<br />每週一更新，舊週的卦會留在原網址。</p>
+
+    <div class="lw-brand">
+      <a href="/"><img src="/assets/logo.png" alt="找風問幸福" /></a>
+      <p>選擇比努力更重要，命理是對自己的溫柔。</p>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    var b = document.getElementById('lwShare');
+    if (!b) return;
+    b.addEventListener('click', function () {
+      var url = b.getAttribute('data-url') + '?utm_source=share&utm_medium=social&utm_content=love-week';
+      var text = b.getAttribute('data-text') || '';
+      if (navigator.share) {
+        navigator.share({ title: '這週的愛情卦', text: text, url: url }).catch(function () {});
+        return;
+      }
+      var done = function () { var t = b.textContent; b.textContent = '連結複製好了'; setTimeout(function () { b.textContent = t; }, 1800); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text + '\n' + url).then(done, function () {});
+    });
+  })();
+</script>
+
+<style>
+  /* 逐值來源：PageHeader.jsx／Card.jsx／GlyphDisc.jsx／Chip.jsx／Button.jsx／gift-event-page.jsx（活動頁） */
+  .lw-wrap{padding:28px 18px 56px;background:var(--surface-page);}
+  .lw-inner{max-width:440px;margin:0 auto;}
+  .lw-head{margin-bottom:24px;}
+  .lw-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;color:var(--accent-press);}
+  .lw-eyebrow::before{content:"";width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none;}
+  .lw-h1{margin:14px 0 0;font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.2;color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+  .lw-lede{margin:16px 0 0;font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.8;color:var(--text-secondary);word-break:normal;overflow-wrap:anywhere;}
+  .lw-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:24px 22px;margin-bottom:14px;box-shadow:var(--shadow-sm);}
+  .lw-hero{padding:30px 24px 28px;box-shadow:var(--shadow-md);}
+  .lw-tint{background:var(--surface-tint);border-color:var(--rose-100);}
+  .lw-sunken{background:var(--surface-sunken);box-shadow:none;}
+  .lw-last{margin-bottom:20px;}
+  .lw-kick{font-family:var(--font-sans);font-size:11.5px;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:6px;}
+  .lw-hex{display:flex;align-items:center;gap:18px;}
+  .lw-disc{flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-100);}
+  .lw-disc-big{width:88px;height:88px;border-radius:999px;font-size:42px;}
+  .lw-disc-seat{width:48px;height:48px;border-radius:var(--radius-md);font-size:23px;background:var(--surface-tint);}
+  .lw-hex-name{font-family:var(--font-serif);font-size:21px;font-weight:500;letter-spacing:0.02em;color:var(--ink-900);}
+  .lw-hex-sub{font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted);margin-top:4px;}
+  .lw-hex-line{margin:16px 0 0;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.85;color:var(--text-secondary);}
+  .lw-hex-line-desk{display:none;}
+  .lw-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .lw-chip{white-space:nowrap;font-family:var(--font-serif);font-size:15px;font-weight:500;letter-spacing:0.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:10px 17px;}
+  .lw-row{display:flex;align-items:center;gap:16px;padding:13px 0;border-top:1px solid var(--border-soft);}
+  .lw-row:first-child{border-top:none;}
+  .lw-rowtext{flex:1;min-width:0;}
+  .lw-rowtitle{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);}
+  .lw-rowline{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);}
+  .lw-quote{margin:0;font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--ink-900);}
+  .lw-by{margin-top:10px;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted);}
+  .lw-cta-title{font-family:var(--font-serif);font-size:21px;font-weight:500;letter-spacing:0.02em;color:var(--ink-900);margin-bottom:8px;}
+  .lw-cta-lead{font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.85;color:var(--text-secondary);margin:0 0 20px;}
+  .lw-btn{display:flex;width:100%;box-sizing:border-box;align-items:center;justify-content:center;gap:10px;padding:15px 30px;min-height:54px;font-family:var(--font-serif);font-size:18px;font-weight:500;letter-spacing:0.04em;line-height:1;border-radius:var(--radius-pill);background:var(--accent);color:var(--text-on-accent);border:1px solid transparent;box-shadow:var(--shadow-sm);text-decoration:none;cursor:pointer;transition:background var(--dur-fast) var(--ease-soft);}
+  .lw-btn:hover{background:var(--accent-hover);}
+  .lw-btn-quiet{display:inline-flex;width:auto;padding:8px 16px;min-height:36px;font-size:14px;gap:6px;background:transparent;color:var(--accent-press);border-color:transparent;box-shadow:none;}
+  .lw-btn-quiet:hover{background:var(--accent-quiet);}
+  .lw-cta-note{font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);margin-top:12px;}
+  .lw-cta-share{display:flex;justify-content:center;margin-top:6px;}
+  .lw-arch{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 14px;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted);}
+  .lw-arch a{color:var(--accent-press);text-decoration:none;}
+  .lw-arch a:hover{text-decoration:underline;}
+  .lw-terms{margin:14px 0 28px;font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);}
+  .lw-brand{text-align:center;border-top:1px solid var(--border-soft);padding-top:20px;}
+  .lw-brand img{height:50px;width:auto;opacity:0.8;}
+  .lw-brand p{font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-muted);margin:8px 0 0;}
+  @media (min-width:768px){
+    .lw-wrap{padding:56px 24px 88px;}
+    .lw-inner{max-width:720px;}
+    .lw-h1{font-size:42px;}
+    .lw-lede{font-size:18px;}
+    .lw-hex{gap:26px;}
+    .lw-disc-big{width:104px;height:104px;font-size:50px;}
+    .lw-hex-line-desk{display:block;margin-top:10px;}
+    .lw-hex-line-mobile{display:none;}
+    .lw-chip{font-size:16px;padding:11px 20px;}
+    .lw-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 22px;}
+    .lw-three .lw-row{flex-direction:column;align-items:flex-start;gap:12px;border-top:none;padding:14px 0 6px;}
+    .lw-quote{font-size:17px;}
+  }
+</style>

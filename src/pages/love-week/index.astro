@@ -1,0 +1,18 @@
+---
+// 這週卦象愛情運勢：固定網址，永遠顯示最新一週（src/data/love-week/ 裡週碼最大的那份）。
+// status: "draft" ＝ 文案還沒過字，先 noindex；過字後改 "published" 即進索引。
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LoveWeek, { type LoveWeekData } from '../../components/LoveWeek.astro';
+
+const files = import.meta.glob('../../data/love-week/*.json', { eager: true }) as Record<string, { default: LoveWeekData }>;
+const weeks = Object.values(files).map((m) => m.default).sort((a, b) => (a.week < b.week ? 1 : -1));
+const data = weeks[0];
+const draft = data.status !== 'published';
+---
+<BaseLayout
+  title={`這週的愛情卦・${data.hex.name} · 找風問幸福`}
+  description={`${data.range_long}，這週的愛情走「${data.hex.char}」。${data.line} 風易揚老師的解卦，每週一更新；點一下就能抽這週屬於你的一卦，不用登入。`}
+  noindex={draft}
+>
+  <LoveWeek data={data} isCurrent={true} />
+</BaseLayout>
