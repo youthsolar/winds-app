@@ -1,10 +1,10 @@
 ---
-// 活動頁主題家族（love）：固定網址永遠顯示最新一週。status draft＝noindex，過字後改 published。
+// 活動頁主題家族（wealth）：固定網址永遠顯示最新一週。status draft＝noindex，過字後改 published。
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import WeekPage from '../../components/WeekPage.astro';
 import { WEEK_TOPICS, weeksOf } from '../../data/week-topics';
-const topic = WEEK_TOPICS['love'];
-const data = weeksOf('love')[0];
+const topic = WEEK_TOPICS['wealth'];
+const data = weeksOf('wealth')[0];
 const draft = data.status !== 'published';
 ---
 <BaseLayout
