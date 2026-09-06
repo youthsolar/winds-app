@@ -4,21 +4,29 @@
 // 版型逐值抄 DS：PageHeader／Card／GlyphDisc／Chip／Button，列表行抄活動頁 gift-event-page.jsx entries。
 // 料＝src/data/week/<主題>/<週>.json，每週一換；舊週留在 /<主題>-week/<週>/。
 import type { WeekData, WeekTopic } from '../data/week-topics';
-interface Props { data: WeekData; topic: WeekTopic; isCurrent: boolean }
+interface Props { data: WeekData | null; topic: WeekTopic; isCurrent: boolean }
 const { data, topic, isCurrent } = Astro.props;
 // 個人化入口：/gua 零登入起卦，topic 換口吻、src 帶進往占卜站的 utm（api.winds.tw gua.ts）；
 // 頁尾 script 會再把這頁的 utm_source（平台）接到 src 後面。
 const guaUrl = `https://api.winds.tw/gua?topic=${topic.key}&src=${topic.path}`;
-const shareUrl = isCurrent ? `https://winds.tw/${topic.path}/` : `https://winds.tw/${topic.path}/${data.week}/`;
-const shareText = `${data.h1}。${data.line}`;
+const shareUrl = isCurrent || !data ? `https://winds.tw/${topic.path}/` : `https://winds.tw/${topic.path}/${data.week}/`;
+const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，點一下就能抽自己的一卦。`;
 ---
 <div class="lw-wrap">
   <div class="lw-inner">
     <header class="lw-head">
-      <span class="lw-eyebrow">{isCurrent ? topic.eyebrow : '那一週的卦'}・{data.range}</span>
-      <h1 class="lw-h1">{data.h1}</h1>
-      <p class="lw-lede">{data.lede}</p>
+      {data ? (
+        <><span class="lw-eyebrow">{isCurrent ? topic.eyebrow : '那一週的卦'}・{data.range}</span>
+        <h1 class="lw-h1">{data.h1}</h1>
+        <p class="lw-lede">{data.lede}</p></>
+      ) : (
+        <><span class="lw-eyebrow">{topic.eyebrow}</span>
+        <h1 class="lw-h1">{topic.emptyH1}</h1>
+        <p class="lw-lede">{topic.emptyLede}</p></>
+      )}
     </header>
+
+    {data && (<>
 
     <div class="lw-card lw-hero">
       <div class="lw-hex">
@@ -49,6 +57,7 @@ const shareText = `${data.h1}。${data.line}`;
       <p class="lw-quote">{data.quote}</p>
       <div class="lw-by">風易揚老師的解卦</div>
     </div>
+    </>)}
 
     <div class="lw-card lw-hero lw-tint lw-last">
       <div class="lw-kick">這週屬於你的</div>
@@ -59,10 +68,10 @@ const shareText = `${data.h1}。${data.line}`;
       <div class="lw-cta-share"><button type="button" class="lw-btn lw-btn-quiet" id="lwShare" data-url={shareUrl} data-text={shareText} data-title={topic.shareTitle} data-path={topic.path}>把這週的卦傳給那個人</button></div>
     </div>
 
-    {data.prev && (
-      <div class="lw-arch"><span>上一週</span><a href={`/${topic.path}/${data.prev.week}/`}>{data.prev.label}</a></div>
+    {data && data.prev && (
+      <div class="lw-arch"><span>上一篇</span><a href={`/${topic.path}/${data.prev.week}/`}>{data.prev.label}</a></div>
     )}
-    {!isCurrent && (
+    {data && !isCurrent && (
       <div class="lw-arch"><span>這一週</span><a href={`/${topic.path}/`}>看最新一週的卦</a></div>
     )}
 

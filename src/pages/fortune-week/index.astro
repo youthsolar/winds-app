@@ -1,16 +1,17 @@
 ---
-// 活動頁主題家族（fortune）：固定網址永遠顯示最新一週。status draft＝noindex，過字後改 published。
+// 活動頁主題家族（fortune）：固定網址永遠顯示最新一篇，即時讀 worker（核准那一刻就換，不用重 build）。
+export const prerender = false;
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import WeekPage from '../../components/WeekPage.astro';
-import { WEEK_TOPICS, weeksOf } from '../../data/week-topics';
+import { WEEK_TOPICS, fetchWeek } from '../../data/week-topics';
 const topic = WEEK_TOPICS['fortune'];
-const data = weeksOf('fortune')[0];
-const draft = data.status !== 'published';
+const { data } = await fetchWeek('fortune');
+Astro.response.headers.set('Cache-Control', 'public, max-age=60');
 ---
 <BaseLayout
-  title={`這週的${topic.label}卦・${data.hex.name} · 找風問幸福`}
-  description={`${data.range_long}，這週的${topic.label}走「${data.hex.char}」。${data.line} ${topic.descTail}`}
-  noindex={draft}
+  title={data ? `這週的${topic.label}卦・${data.hex.name} · 找風問幸福` : `這週的${topic.label}卦 · 找風問幸福`}
+  description={data ? `${data.range_long}，這週的${topic.label}走「${data.hex.char}」。${data.line} ${topic.descTail}` : `${topic.shareTitle}，${topic.descTail}`}
+  noindex={!data}
 >
   <WeekPage data={data} topic={topic} isCurrent={true} />
 </BaseLayout>
