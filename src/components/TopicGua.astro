@@ -1,22 +1,22 @@
 ---
-// 活動頁主題家族的共用版型（2026-09-05 愛情卦第一版 → 09-06 抽成共用）
-// 輕量化規格：不登入、不填生日、一眼看完。上半段人人一樣的「這週一卦」，下半段一顆鈕走 /gua 零登入起卦。
+// 活動頁主題卦的共用版型（2026-09-05 愛情卦第一版 → 09-06 抽成共用；每一則貼文一卦，不是每週一卦）
+// 輕量化規格：不登入、不填生日、一眼看完。上半段人人一樣的「老師這一卦」，下半段一顆鈕走 /gua 零登入起卦。
 // 版型逐值抄 DS：PageHeader／Card／GlyphDisc／Chip／Button，列表行抄活動頁 gift-event-page.jsx entries。
-// 料＝src/data/week/<主題>/<週>.json，每週一換；舊週留在 /<主題>-week/<週>/。
-import type { WeekData, WeekTopic } from '../data/week-topics';
-interface Props { data: WeekData | null; topic: WeekTopic; isCurrent: boolean }
+// 料＝worker D1（api.winds.tw/topic-gua），他一發就換；舊篇留在 /<主題>-gua/<id>/。
+import type { GuaData, GuaTopic } from '../data/topics';
+interface Props { data: GuaData | null; topic: GuaTopic; isCurrent: boolean }
 const { data, topic, isCurrent } = Astro.props;
 // 個人化入口：/gua 零登入起卦，topic 換口吻、src 帶進往占卜站的 utm（api.winds.tw gua.ts）；
 // 頁尾 script 會再把這頁的 utm_source（平台）接到 src 後面。
 const guaUrl = `https://api.winds.tw/gua?topic=${topic.key}&src=${topic.path}`;
-const shareUrl = isCurrent || !data ? `https://winds.tw/${topic.path}/` : `https://winds.tw/${topic.path}/${data.week}/`;
+const shareUrl = isCurrent || !data ? `https://winds.tw/${topic.path}/` : `https://winds.tw/${topic.path}/${data.id}/`;
 const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，點一下就能抽自己的一卦。`;
 ---
 <div class="lw-wrap">
   <div class="lw-inner">
     <header class="lw-head">
       {data ? (
-        <><span class="lw-eyebrow">{isCurrent ? topic.eyebrow : '那一週的卦'}・{data.range}</span>
+        <><span class="lw-eyebrow">{isCurrent ? topic.eyebrow : '那一卦'}・{data.posted_label} 起</span>
         <h1 class="lw-h1">{data.h1}</h1>
         <p class="lw-lede">{data.lede}</p></>
       ) : (
@@ -60,19 +60,19 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
     </>)}
 
     <div class="lw-card lw-hero lw-tint lw-last">
-      <div class="lw-kick">這週屬於你的</div>
+      <div class="lw-kick">屬於你的一卦</div>
       <div class="lw-cta-title">{topic.ctaTitle}</div>
       <p class="lw-cta-lead">{topic.ctaLead}</p>
       <a class="lw-btn" href={guaUrl} data-src={topic.path}>現在抽一卦</a>
       <div class="lw-cta-note">起卦以你點下去的這一刻為準。</div>
-      <div class="lw-cta-share"><button type="button" class="lw-btn lw-btn-quiet" id="lwShare" data-url={shareUrl} data-text={shareText} data-title={topic.shareTitle} data-path={topic.path}>把這週的卦傳給那個人</button></div>
+      <div class="lw-cta-share"><button type="button" class="lw-btn lw-btn-quiet" id="lwShare" data-url={shareUrl} data-text={shareText} data-title={topic.shareTitle} data-path={topic.path}>把這一卦傳給那個人</button></div>
     </div>
 
     {data && data.prev && (
-      <div class="lw-arch"><span>上一篇</span><a href={`/${topic.path}/${data.prev.week}/`}>{data.prev.label}</a></div>
+      <div class="lw-arch"><span>上一卦</span><a href={`/${topic.path}/${data.prev.id}/`}>{data.prev.label}</a></div>
     )}
     {data && !isCurrent && (
-      <div class="lw-arch"><span>這一週</span><a href={`/${topic.path}/`}>看最新一週的卦</a></div>
+      <div class="lw-arch"><span>最新</span><a href={`/${topic.path}/`}>看老師最新的一卦</a></div>
     )}
 
     <p class="lw-terms">卦象文字為風易揚老師的解卦・分享時請保留出處</p>
@@ -86,7 +86,7 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
 
 <script is:inline>
   (function () {
-    // 來源往下帶：這頁是從哪個平台進來的（utm_source），抽一卦的連結就把 src 改成 <主題>-week-<平台>，
+    // 來源往下帶：這頁是從哪個平台進來的（utm_source），抽一卦的連結就把 src 改成 <主題>-gua-<平台>，
     // /gua 與占卜站那端才分得出 Threads／IG／FB／YT，不然到第三站起就只剩主題一個值。
     try {
       var us = (new URLSearchParams(location.search).get('utm_source') || '').replace(/[^a-z0-9_-]/gi, '').slice(0, 20);
@@ -96,10 +96,10 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
     var b = document.getElementById('lwShare');
     if (!b) return;
     b.addEventListener('click', function () {
-      var url = b.getAttribute('data-url') + '?utm_source=share&utm_medium=social&utm_content=' + (b.getAttribute('data-path') || 'week');
+      var url = b.getAttribute('data-url') + '?utm_source=share&utm_medium=social&utm_content=' + (b.getAttribute('data-path') || 'gua');
       var text = b.getAttribute('data-text') || '';
       if (navigator.share) {
-        navigator.share({ title: b.getAttribute('data-title') || '這週的卦', text: text, url: url }).catch(function () {});
+        navigator.share({ title: b.getAttribute('data-title') || '老師這一卦', text: text, url: url }).catch(function () {});
         return;
       }
       var done = function () { var t = b.textContent; b.textContent = '連結複製好了'; setTimeout(function () { b.textContent = t; }, 1800); };

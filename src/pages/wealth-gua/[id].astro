@@ -1,0 +1,19 @@
+---
+// 舊篇存檔：/wealth-gua/<id>/，內容不刪，當搜尋資產；找不到就退回最新。
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TopicGua from '../../components/TopicGua.astro';
+import { TOPICS, fetchTopicGua } from '../../data/topics';
+const topic = TOPICS['wealth'];
+const id = String(Astro.params.id || '').replace(/[^0-9]/g, '');
+if (!id) return Astro.redirect(`/${topic.path}/`, 302);
+const { data, isCurrent } = await fetchTopicGua('wealth', id);
+if (!data) return Astro.redirect(`/${topic.path}/`, 302);
+Astro.response.headers.set('Cache-Control', 'public, max-age=300');
+---
+<BaseLayout
+  title={`${data.posted_label} 的${topic.label}卦・${data.hex.name} · 找風問幸福`}
+  description={`${data.posted_long}起的${topic.label}卦，走「${data.hex.char}」。${data.line} 風易揚老師的解卦。`}
+>
+  <TopicGua data={data} topic={topic} isCurrent={isCurrent} />
+</BaseLayout>

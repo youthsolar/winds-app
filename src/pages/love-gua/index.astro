@@ -1,0 +1,17 @@
+---
+// 活動頁主題卦（love）：固定網址永遠顯示老師最新的一卦，即時讀 worker（核准那一刻就換，不用重 build）。
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TopicGua from '../../components/TopicGua.astro';
+import { TOPICS, fetchTopicGua } from '../../data/topics';
+const topic = TOPICS['love'];
+const { data } = await fetchTopicGua('love');
+Astro.response.headers.set('Cache-Control', 'public, max-age=60');
+---
+<BaseLayout
+  title={data ? `${topic.label}卦・${data.hex.name} · 找風問幸福` : `${topic.label}卦 · 找風問幸福`}
+  description={data ? `${data.posted_long}起的${topic.label}卦，走「${data.hex.char}」。${data.line} ${topic.descTail}` : `${topic.shareTitle}，${topic.descTail}`}
+  noindex={!data}
+>
+  <TopicGua data={data} topic={topic} isCurrent={true} />
+</BaseLayout>
