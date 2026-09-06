@@ -983,10 +983,46 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       });
       const target = document.getElementById('g_id_signin_ziwei');
       if (target) {
+        target.removeAttribute('data-fb');   // GSI 晚到就把外開引導換回真按鈕
         g.renderButton(target, { theme: 'outline', size: 'large', text: 'signin_with', locale: 'zh_TW', width: 280 });
       }
     };
     tryRender();
+    // tryRender 是無限重試、沒有逾時：GSI 在 App 內建瀏覽器常常一顆按鈕都渲染不出來，
+    // 畫面就永遠停在空卡片。同 /login、/divination、/gift 的處理——時間到還是空的就換外開引導。
+    setTimeout(() => {
+      const target = document.getElementById('g_id_signin_ziwei');
+      if (!target || target.childNodes.length) return;
+      target.setAttribute('data-fb', '1');
+      target.innerHTML =
+        '<div class="auth-fb">' +
+          '<p class="auth-fb-t">這個瀏覽器不支援 Google 登入</p>' +
+          '<p class="auth-fb-d">請點右上角「⋯」選「在瀏覽器開啟」，用 Safari 或 Chrome 進來就可以登入了。</p>' +
+          '<button type="button" class="auth-fb-btn" id="ziweiCopy">複製網址</button>' +
+          (/Android/i.test(navigator.userAgent)
+            ? '<a class="auth-fb-btn" href="intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end">用 Chrome 開啟</a>'
+            : '') +
+        '</div>';
+      const b = document.getElementById('ziweiCopy');
+      if (b) b.addEventListener('click', () => {
+        const u = location.href;
+        const done = () => { b.textContent = '已複製 ✓'; };
+        const legacy = () => {
+          try {
+            const t = document.createElement('textarea');
+            t.value = u; t.style.position = 'fixed'; t.style.opacity = '0';
+            document.body.appendChild(t); t.select(); document.execCommand('copy');
+            document.body.removeChild(t); done();
+          } catch {}
+        };
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(u).then(done, legacy); return;
+          }
+        } catch {}
+        legacy();
+      });
+    }, 3500);
   }
 
   // === 進站偵測：有 token + 有命盤 → 直接顯示結果 ===
@@ -1080,6 +1116,10 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
   .auth-note { color: var(--ink-500); font-size: 11px; margin: 16px 0 0; }
   .auth-note a { color: var(--rose-600); text-decoration: underline; }
   #g_id_signin_ziwei { display: flex; justify-content: center; }
+  #g_id_signin_ziwei[data-fb] { display: block; }
+  .auth-fb-t { font-family: var(--font-serif); font-size: 16px; font-weight: 500; color: var(--ink-900); margin: 0; }
+  .auth-fb-d { margin: 8px auto 14px; max-width: 22em; font-family: var(--font-serif); font-weight: 300; font-size: 13.5px; line-height: 1.75; color: var(--text-secondary); }
+  .auth-fb-btn { display: inline-block; margin: 0 4px; padding: 11px 20px; cursor: pointer; font-family: var(--font-serif); font-size: 14.5px; color: var(--ink-900); background: var(--surface-card); border: 1px solid var(--border-strong); border-radius: var(--radius-pill); text-decoration: none; }
 
   .loading-section { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 72px 16px; color: var(--text-muted); font-family: var(--font-serif); font-size: 15px; }
 

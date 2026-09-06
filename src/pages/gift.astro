@@ -124,6 +124,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .gf-price b{color:var(--rose-500);font-weight:500;}
     .gf-gmount{display:flex;justify-content:center;min-height:44px;}
     .gf-gmount[hidden]{display:none;}
+    .gf-gmount[data-fb]{display:block;}
+    .gf-fb{text-align:center;}
+    .gf-fb-t{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);margin:0;}
+    .gf-fb-d{margin:8px auto 14px;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.75;color:var(--text-secondary);}
+    .gf-fb-btn{display:inline-block;margin:0 4px;padding:11px 20px;cursor:pointer;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);text-decoration:none;}
     .gf-gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap;padding:14px 20px;min-height:54px;cursor:pointer;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
     .gf-gbtn:hover{background:var(--rice-100);}
     .gf-gbtn[disabled]{opacity:0.7;cursor:default;}
@@ -205,7 +210,46 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (!(window.google && google.accounts && google.accounts.id)) { setTimeout(initGsi, 150); return; }
         google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential, auto_select: false, context: 'signin' });
         gmount.innerHTML = '';
+        gmount.removeAttribute('data-fb');   // GSI 晚到就把外開引導換回真按鈕
         google.accounts.id.renderButton(gmount, { theme: (window.ZFTheme && ZFTheme.isDark()) ? 'filled_black' : 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
+      }
+
+      // GSI 在 App 內建瀏覽器（Threads/IG/FB）常常一顆按鈕都渲染不出來，而 initGsi() 是無限重試、
+      // 沒有逾時，畫面就永遠停在空卡片。8/31 已經在 /login 與 /divination 修過，但這頁漏了——
+      // 而所有社群導流句指的都是這一頁（9/6 sana202205 回報「點進去無法填寫」）。
+      // 不猜根因，只看結果：時間到還是空的就換成外開引導。
+      function fallback() {
+        if (!gmount || gmount.hidden || gmount.childNodes.length) return;
+        gmount.setAttribute('data-fb', '1');
+        gmount.innerHTML =
+          '<div class="gf-fb">' +
+            '<p class="gf-fb-t">這個瀏覽器不支援 Google 登入</p>' +
+            '<p class="gf-fb-d">請點右上角「⋯」選「在瀏覽器開啟」，用 Safari 或 Chrome 進來就可以領取了。</p>' +
+            '<button type="button" class="gf-fb-btn" id="gfCopy">複製網址</button>' +
+            (/Android/i.test(navigator.userAgent)
+              ? '<a class="gf-fb-btn" href="intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end">用 Chrome 開啟</a>'
+              : '') +
+          '</div>';
+        var b = document.getElementById('gfCopy');
+        if (b) b.addEventListener('click', function () { copyUrl(b); });
+      }
+      function copyUrl(btn) {
+        var u = location.href;
+        function done() { btn.textContent = '已複製 ✓'; }
+        function legacy() {
+          try {
+            var t = document.createElement('textarea');
+            t.value = u; t.style.position = 'fixed'; t.style.opacity = '0';
+            document.body.appendChild(t); t.select(); document.execCommand('copy');
+            document.body.removeChild(t); done();
+          } catch (e) {}
+        }
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(u).then(done, legacy); return;
+          }
+        } catch (e) {}
+        legacy();
       }
 
       // 已登入 → 自家 DS 按鈕直領；未登入 → 官方 GIS 按鈕
@@ -216,6 +260,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         claimBtn.addEventListener('click', function () { claim(tk); });
       } else {
         initGsi();
+        setTimeout(fallback, 3500);
         window.addEventListener('zf-theme-change', function () { if (!storedToken()) initGsi(); });
       }
 
