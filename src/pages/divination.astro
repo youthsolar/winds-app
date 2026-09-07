@@ -43,6 +43,16 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
   <script is:inline src="/assets/theme-init.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- App 內嵌瀏覽器判定：此頁不走 BaseLayout，跟 BaseLayout.astro 那段逐字相同 -->
+  <script is:inline>
+    window.ZFInApp = function () {
+      var ua = navigator.userAgent || '';
+      // Threads iOS 的標記是 Barcelona；FB 系列是 FBAN/FBAV/FB_IAB/FBIOS
+      return /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Barcelona|Threads|Line\/|KAKAOTALK|MicroMessenger|TikTok|Twitter/i.test(ua)
+        || /\bwv\b/.test(ua);   // Android WebView
+    };
+  </script>
   <script src="/assets/nav-auth.js?v=4" defer></script>
 
   <!-- 量測層（2026-08-15）：此頁不走 BaseLayout，底座另裝一份（GA4 ＋ Meta Pixel）-->
@@ -1308,7 +1318,11 @@ function render(){
   var showHdr=STATE.step!=="cooldown"&&STATE.step!=="interpreting"&&STATE.step!=="repeatwall";
   var fn={topic:viewTopic,info:viewInfo,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown,repeatwall:viewRepeatWall}[STATE.step]||viewTopic;
   root.innerHTML=(showHdr?header():"")+fn();
-  if(STATE.step==="info"&&!STATE.userId){mountGisButton();setTimeout(gsiFallback,3500);}
+  /* App 內嵌瀏覽器：Google 直接封鎖 OAuth，按鈕就算渲染出來也登不進去 → 不掛 GSI，直接出引導 */
+  if(STATE.step==="info"&&!STATE.userId){
+    if(window.ZFInApp&&window.ZFInApp()){gsiFallback(true);}
+    else{mountGisButton();setTimeout(gsiFallback,3500);}
+  }
   window.scrollTo(0,0);
   if(STATE.step==="interpreting")startInterp();
   updateFabCta();
@@ -1583,10 +1597,11 @@ function mountGisButton(){
 }
 /* GSI 在 App 內建瀏覽器（Threads/IG/FB）常常一顆按鈕都渲染不出來，而 mountGisButton 是靜靜地
    return、initGoogleGIS 是無限重試，畫面就停在空卡片、使用者無從得知。這裡不猜根因，只看結果。 */
-function gsiFallback(){
+function gsiFallback(force){
   if(STATE.userId)return;
   var el=document.getElementById("googleSignInBtn");
-  if(!el||el.childNodes.length)return;
+  if(!el)return;
+  if(!force&&el.childNodes.length)return;   /* 逾時路徑：只在掛載點還空的時候接手 */
   var bs='display:inline-block;margin:0 4px;padding:11px 20px;cursor:pointer;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);text-decoration:none';
   el.setAttribute("data-fb","1");
   /* 藏掉同卡片裡的「先用 Google 登入」標題與副標，否則會跟提示自相矛盾 */

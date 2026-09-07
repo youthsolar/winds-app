@@ -86,9 +86,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       // GSI 在 App 內建瀏覽器（Threads/IG/FB）常常一顆按鈕都渲染不出來，
       // 而 init() 是無限重試、沒有逾時，畫面就永遠停在空卡片、使用者無從得知。
       // 這裡不猜根因，只看結果：時間到還是空的就換成外開引導。
-      function fallback() {
+      function fallback(force) {
         var mount = document.getElementById('lgGoogle');
-        if (!mount || mount.childNodes.length) return;
+        if (!mount) return;
+        if (!force && mount.childNodes.length) return;   // 逾時路徑：只在掛載點還空的時候接手
         mount.setAttribute('data-fb', '1');
         // 藏掉副標，否則「用 Google 帳戶登入…」會跟下面的「不支援」自相矛盾
         var sub = document.querySelector('.lg-sub');
@@ -123,8 +124,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         } catch (e) {}
         legacy();
       }
-      init();
-      setTimeout(fallback, 3500);
+      // App 內嵌瀏覽器：Google 直接封鎖 OAuth，按鈕就算渲染出來也登不進去 → 不掛 GSI，直接出引導
+      if (window.ZFInApp && window.ZFInApp()) {
+        fallback(true);
+      } else {
+        init();
+        setTimeout(fallback, 3500);
+      }
       window.addEventListener('zf-theme-change', function () {
         var mount = document.getElementById('lgGoogle');
         if (mount && window.google && google.accounts && google.accounts.id) {

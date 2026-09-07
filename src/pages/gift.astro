@@ -218,8 +218,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       // 沒有逾時，畫面就永遠停在空卡片。8/31 已經在 /login 與 /divination 修過，但這頁漏了——
       // 而所有社群導流句指的都是這一頁（9/6 sana202205 回報「點進去無法填寫」）。
       // 不猜根因，只看結果：時間到還是空的就換成外開引導。
-      function fallback() {
-        if (!gmount || gmount.hidden || gmount.childNodes.length) return;
+      function fallback(force) {
+        if (!gmount || gmount.hidden) return;
+        if (!force && gmount.childNodes.length) return;   // 逾時路徑：只在掛載點還空的時候接手
         gmount.setAttribute('data-fb', '1');
         gmount.innerHTML =
           '<div class="gf-fb">' +
@@ -258,6 +259,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         gmount.hidden = true;
         claimBtn.hidden = false;
         claimBtn.addEventListener('click', function () { claim(tk); });
+      } else if (window.ZFInApp && window.ZFInApp()) {
+        // App 內嵌瀏覽器：Google 直接封鎖 OAuth，按鈕就算渲染出來也登不進去 → 不掛 GSI，直接出引導
+        fallback(true);
       } else {
         initGsi();
         setTimeout(fallback, 3500);

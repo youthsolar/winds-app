@@ -109,6 +109,19 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
     <script src="https://accounts.google.com/gsi/client" async defer />
   )}
 
+  <!-- App 內嵌瀏覽器判定（/login /divination /gift /ziwei 的登入外開引導共用）
+       2026-08-31 只靠「掛載點是不是空的」判斷，但 Google 明文封鎖內嵌 webview 的 OAuth：
+       按鈕照樣渲染得出來、按下去完不成登入，那種情況掛載點不是空的，引導就永遠不出現。
+       所以改成先認 UA，認出來就直接出引導，不賭渲染結果。 -->
+  <script is:inline>
+    window.ZFInApp = function () {
+      var ua = navigator.userAgent || '';
+      // Threads iOS 的標記是 Barcelona；FB 系列是 FBAN/FBAV/FB_IAB/FBIOS
+      return /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Barcelona|Threads|Line\/|KAKAOTALK|MicroMessenger|TikTok|Twitter/i.test(ua)
+        || /\bwv\b/.test(ua);   // Android WebView
+    };
+  </script>
+
   <!-- Nav auth button (shared with public/index.html) -->
   <script src="/assets/nav-auth.js?v=4" defer></script>
 </head>

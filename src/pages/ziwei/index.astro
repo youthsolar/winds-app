@@ -987,12 +987,14 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         g.renderButton(target, { theme: 'outline', size: 'large', text: 'signin_with', locale: 'zh_TW', width: 280 });
       }
     };
-    tryRender();
-    // tryRender 是無限重試、沒有逾時：GSI 在 App 內建瀏覽器常常一顆按鈕都渲染不出來，
-    // 畫面就永遠停在空卡片。同 /login、/divination、/gift 的處理——時間到還是空的就換外開引導。
-    setTimeout(() => {
+    // App 內嵌瀏覽器：Google 直接封鎖 OAuth，按鈕就算渲染出來也登不進去 → 不掛 GSI，直接出引導。
+    // 其餘環境照舊掛 GSI，3.5 秒後掛載點還空的才接手（tryRender 是無限重試、沒有逾時）。
+    const inApp = !!((window as any).ZFInApp && (window as any).ZFInApp());
+    if (!inApp) tryRender();
+    const showFb = (force: boolean) => {
       const target = document.getElementById('g_id_signin_ziwei');
-      if (!target || target.childNodes.length) return;
+      if (!target) return;
+      if (!force && target.childNodes.length) return;
       target.setAttribute('data-fb', '1');
       target.innerHTML =
         '<div class="auth-fb">' +
@@ -1022,7 +1024,9 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         } catch {}
         legacy();
       });
-    }, 3500);
+    };
+    if (inApp) showFb(true);
+    else setTimeout(() => showFb(false), 3500);
   }
 
   // === 進站偵測：有 token + 有命盤 → 直接顯示結果 ===
