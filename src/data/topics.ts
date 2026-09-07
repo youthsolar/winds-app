@@ -50,6 +50,7 @@ export interface GuaData {
   h1: string; lede: string; line: string; tags: string[];
   states: { char: string; title: string; line: string }[];
   quote: string;
+  og_url?: string | null;   // 那一卦的 1200×630 連結卡；worker 確認 R2 有圖才給，沒有就退回通用 og-default
   prev?: { id: string; label: string } | null;
 }
 
@@ -64,7 +65,7 @@ export async function fetchTopicGua(topicKey: string, id?: string): Promise<{ da
     if (!j.ok || !j.item) return { data: null, isCurrent: !id };
     const it = j.item;
     return {
-      data: { id: String(it.id), posted_label: it.posted_label, posted_long: it.posted_long, status: it.status, hex: it.hex, h1: it.h1, lede: it.lede, line: it.line, tags: it.tags || [], states: it.states || [], quote: it.quote, prev: j.prev ? { id: String(j.prev.id), label: j.prev.label } : null },
+      data: { id: String(it.id), posted_label: it.posted_label, posted_long: it.posted_long, status: it.status, hex: it.hex, h1: it.h1, lede: it.lede, line: it.line, tags: it.tags || [], states: it.states || [], quote: it.quote, og_url: it.og_url || null, prev: j.prev ? { id: String(j.prev.id), label: j.prev.label } : null },
       isCurrent: !id || Number(id) === Number(j.latest_id),
     };
   } catch {
