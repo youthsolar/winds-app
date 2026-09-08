@@ -65,6 +65,7 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
       <p class="lw-cta-lead">{topic.ctaLead}</p>
       <a class="lw-btn" href={guaUrl} data-src={topic.path}>現在抽一卦</a>
       <div class="lw-cta-note">起卦以你點下去的這一刻為準。</div>
+      <a class="lw-btn lw-btn-ghost" href="/booking" data-wc-open>想直接找老師談？預約老師</a>
       <div class="lw-cta-share"><button type="button" class="lw-btn lw-btn-quiet" id="lwShare" data-url={shareUrl} data-text={shareText} data-title={topic.shareTitle} data-path={topic.path}>把這一卦傳給那個人</button></div>
     </div>
 
@@ -144,6 +145,8 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
   .lw-cta-lead{font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.85;color:var(--text-secondary);margin:0 0 20px;}
   .lw-btn{display:flex;width:100%;box-sizing:border-box;align-items:center;justify-content:center;gap:10px;padding:15px 30px;min-height:54px;font-family:var(--font-serif);font-size:18px;font-weight:500;letter-spacing:0.04em;line-height:1;border-radius:var(--radius-pill);background:var(--accent);color:var(--text-on-accent);border:1px solid transparent;box-shadow:var(--shadow-sm);text-decoration:none;cursor:pointer;transition:background var(--dur-fast) var(--ease-soft);}
   .lw-btn:hover{background:var(--accent-hover);}
+  .lw-btn-ghost{margin-top:12px;background:transparent;color:var(--accent-press);border:1px solid var(--border-accent);box-shadow:none;font-size:16px;}
+  .lw-btn-ghost:hover{background:var(--accent-quiet);}
   .lw-btn-quiet{display:inline-flex;width:auto;padding:8px 16px;min-height:36px;font-size:14px;gap:6px;background:transparent;color:var(--accent-press);border-color:transparent;box-shadow:none;}
   .lw-btn-quiet:hover{background:var(--accent-quiet);}
   .lw-cta-note{font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);margin-top:12px;}

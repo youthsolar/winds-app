@@ -46,7 +46,7 @@
   .wc-fab:hover{background:var(--accent-hover);transform:translateY(-1px)}
   .wc-fab i{font-size:22px;line-height:1}
   .wc-root.open .wc-fab{display:none}
-  @media(max-width:600px){.wc-fab{right:16px;bottom:16px;padding:12px 16px}.wc-fab-label{display:none}}
+  @media(max-width:600px){.wc-fab{right:16px;bottom:16px;padding:11px 14px}.wc-fab-label{font-size:13.5px}}  /* 手機也要看得到「預約老師」四個字（2026-09-08） */
 
   .wc-panel{position:fixed;right:22px;bottom:22px;z-index:91;width:380px;max-width:calc(100vw - 32px);height:600px;max-height:calc(100dvh - 44px);display:flex;flex-direction:column;background:var(--surface-page);border:1px solid var(--border-soft);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);overflow:hidden;animation:wcRise var(--dur-mid,.22s) var(--ease-soft)}
   @keyframes wcRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -205,6 +205,13 @@
       document.body.classList.remove('wc-open'); document.body.style.top='';
       window.scrollTo(0, S.scrollY||0);
     }
+    // 2026-09-08 拍板：「預約老師」按鈕全站常駐（導覽列／頁尾／內文），按下去一律先跟風小編聊。
+    // 任何帶 data-wc-open 的連結或按鈕都打開這個面板；href 留著給 JS 沒跑起來時退回預約頁。
+    window.wcOpen=open;
+    document.addEventListener('click',function(e){
+      var t=e.target&&e.target.closest?e.target.closest('[data-wc-open]'):null;
+      if(!t) return; e.preventDefault(); open();
+    });
     // 對話內泡泡（DS 卡）：選時段 / 付款。點時段→回送訊息；付款→開連結。
     function renderUi(ui){
       if(!ui) return;

@@ -147,6 +147,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
         <a href="/booking">老師介紹</a>
         <a href="/shop">法器選物</a>
         <a href="/divination" class="zf-btn ghost sm">占卜</a>
+        <a href="/booking" class="zf-btn primary sm" data-wc-open>預約老師</a>
         <button class="zf-theme-btn" id="zfThemeBtn" aria-label="切換深淺色"><i class="ph-thin ph-moon"></i></button>
         <div id="auth-button" class="zf-account"></div>
       </div>
@@ -159,6 +160,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
       <a href="/booking">老師介紹</a>
       <a href="/shop">法器選物</a>
       <a href="/divination" class="zf-btn primary md full">占卜</a>
+      <a href="/booking" class="zf-btn ghost md full" data-wc-open>預約老師</a>
       <button class="zf-theme-btn m" id="zfThemeBtnM" aria-label="切換深淺色"><i class="ph-thin ph-moon"></i><span>深色模式</span></button>
       <div id="auth-button-m" class="zf-account-m"></div>
     </div>
@@ -174,6 +176,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
         <div class="zf-footer-brand">
           <a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福" /></a>
           <p>選擇比努力更重要，命理是對自己的溫柔。</p>
+          <a href="/booking" class="zf-btn primary sm zf-footer-book" data-wc-open>預約老師</a>
         </div>
         <div class="zf-footer-cols">
           <div class="zf-fcol"><div class="zf-fh">命理項目</div><a href="/divination">易經</a><a href="/divination">塔羅</a><a href="/ziwei">紫微</a><a href="/spirit">分靈體</a></div>
@@ -251,6 +254,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
     .zf-footer-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:28px;}
     .zf-footer-brand .zf-logo img{height:54px;width:auto;display:block;}
     .zf-footer-brand p{font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-muted);margin:14px 0 0;max-width:22em;}
+    .zf-footer-brand .zf-footer-book{margin-top:16px;}
     .zf-footer-cols{display:flex;gap:56px;flex-wrap:wrap;row-gap:28px;}
     .zf-fh{font-family:var(--font-sans);font-size:12.5px;letter-spacing:0.02em;color:var(--text-muted);margin-bottom:14px;}
     .zf-fcol a{display:block;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700);margin-bottom:9px;text-decoration:none;}
