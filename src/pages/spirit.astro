@@ -415,9 +415,9 @@ import '../styles/global.css';
       el.innerHTML='<div class="sp-paywall-in">'+
         '<span class="sp-pw-disc">'+ic(isTarget?"sparkle":"chat-circle-dots","fill")+'</span>'+
         '<div class="sp-pw-h">解鎖分靈體對話</div>'+
-        '<p class="sp-pw-p">'+(isTarget?"隨完整占卜報告一起解鎖，7 天內每天 30 句，隨時感應他（可隨時更換對象）。":"自己，就是最好的老師。隨完整占卜報告一起解鎖，7 天內每天 30 句，讓這面鏡子隨時陪你。")+'</p>'+
+        '<p class="sp-pw-p">'+(isTarget?"隨風易揚老師的靈符解方一起解鎖，7 天內每天 30 句，隨時感應他（可隨時更換對象）。":"自己，就是最好的老師。隨風易揚老師的靈符解方一起解鎖，7 天內每天 30 句，讓這面鏡子隨時陪你。")+'</p>'+
         '<div class="sp-pw-tags">'+(isTarget?["感應對象狀態","可隨時換對象","每天 30 句"]:["深夜說說話","陪你把話說清楚","每天 30 句"]).map(function(t){return '<span>'+t+'</span>'}).join("")+'</div>'+
-        '<a class="zf-btn primary lg" href="/divination">'+ic("sparkle")+'解鎖完整報告 · NT$360</a>'+
+        '<a class="zf-btn primary lg" href="/divination">'+ic("sparkle")+'拿到靈符解方 · NT$360</a>'+
         '<button class="sp-pw-close" onclick="closePaywall()">先用今天的次數</button></div>';
     }
     function openPaywall(){var el=document.getElementById("spPaywall");if(el)el.classList.add("show")}

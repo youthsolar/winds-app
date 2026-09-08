@@ -851,7 +851,7 @@ function qianBlockFull(R){
 }
 function viewReportPaid(R,q){
   var F=STATE.full||{};
-  var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>已解鎖完整報告</span>'+
+  var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>已拿到靈符解方</span>'+
     '<h1 class="q">你的完整命理報告</h1>'+
     (q?'<p style="font-family:var(--font-serif);font-size:15px;color:var(--text-muted);margin:12px 0 0">你問的是——「'+esc(q)+'」</p>':'')+
     '</div>';
@@ -859,7 +859,7 @@ function viewReportPaid(R,q){
   h+=block("你的命理檔案","",profileCard(true));
   h+=tarotBlockFull(R);
   h+=qianBlockFull(R);
-  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("你的量能靈符","每逢節氣解鎖一張，依序設成手機桌布。",hexTalismans(true),true);
+  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("風易揚老師的靈符解方","老師親手畫、依你這一卦配的靈符；每逢節氣解鎖一張，依序設成手機桌布。",hexTalismans(true),true);
   h+=recsSection();
   h+='<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:54px">'+
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
@@ -1160,11 +1160,11 @@ function paywall(paid){
           :ic("circle-notch")+'完整解讀載入中…')+'</div>')+
       '</div></div>';
   }
-  return '<div class="paywall"><div class="behind"><p>完整解讀、整年的節氣運勢圖，還有為你量身的數位量能靈符，都在解鎖後為你打開。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>'+
-    '<div class="veil"><span class="lk">'+ic("lock-simple","thin")+'</span><h3>完整解讀與靈符，一起解鎖</h3>'+
-    '<p>一次解鎖兩件事：<strong style="font-weight:500;color:var(--ink-900)">完整解讀</strong>，讓你得到答案；<strong style="font-weight:500;color:var(--ink-900)">五張靈符</strong>，陪你舒緩這個問題。</p>'+
-    '<div class="feat"><span>'+ic("check","bold")+'完整解讀·得到答案</span><span>'+ic("check","bold")+'五張靈符·依次舒緩問題</span><span>'+ic("check","bold")+'紫微七段解讀</span><span>'+ic("check","bold")+'完整節氣運勢圖</span></div>'+
-    '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE+'</button>'+
+  return '<div class="paywall"><div class="behind"><p>風易揚老師親手畫的靈符、完整解讀，還有整年的節氣運勢圖，都在解鎖後為你打開。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>'+
+    '<div class="veil"><span class="lk">'+ic("lock-simple","thin")+'</span><h3>風易揚老師的靈符解方</h3>'+
+    '<p>這一卦的解方：<strong style="font-weight:500;color:var(--ink-900)">五張靈符</strong>，老師親手畫的，依你這一卦配給你，跟著節氣一張一張處理；再加上<strong style="font-weight:500;color:var(--ink-900)">完整解讀</strong>，讓你知道為什麼。</p>'+
+    '<div class="feat"><span>'+ic("check","bold")+'五張靈符·依節氣逐張處理</span><span>'+ic("check","bold")+'完整解讀·得到答案</span><span>'+ic("check","bold")+'紫微七段解讀</span><span>'+ic("check","bold")+'完整節氣運勢圖</span></div>'+
+    '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>'+
     '<p class="veil-alt">想直接找老師談這件事？<a href="/booking" data-wc-open>預約老師</a></p></div></div>';
 }
 function recsSection(){
@@ -1230,7 +1230,7 @@ function viewCooldown(){
     '<p style="font-family:var(--font-serif);font-weight:300;font-size:17.5px;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
     (when?'<div class="when">'+ic("clock")+'<span>這一題，<b>'+esc(when)+'</b>可以再問</span></div>':'')+
     (c.last_log_id
-      ?'<div class="cool-btns"><button class="zf-btn primary md" id="unlockBtn" onclick="STATE.logId=String(STATE.cooldown.last_log_id);createOrder()">'+ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE+'</button><button class="zf-btn secondary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+
+      ?'<div class="cool-btns"><button class="zf-btn primary md" id="unlockBtn" onclick="STATE.logId=String(STATE.cooldown.last_log_id);createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button><button class="zf-btn secondary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+
        '<p style="font-family:var(--font-sans);font-size:12.5px;color:var(--text-secondary);margin-top:14px">不想等的話——解鎖後 7 天陪伴期內，這一題隨時可以再問。</p>'
       :'<div class="cool-btns"><button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button><button class="zf-btn secondary md" onclick="openOA()">到 LINE 看看 '+ic("arrow-right")+'</button></div>')+
     '<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">這不是限制，是想陪你把心放穩一點。</p></div></div>';
@@ -1255,7 +1255,7 @@ function viewRepeatWall(){
       '</div></div>';
   }
   var note='<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">每個方向都有過一次免費的回答，這不是限制，是想陪你把答案看清楚。</p></div></div>';
-  var buyBtn=w.last_log_id?'<button class="zf-btn '+(w.escalate?'secondary':'primary')+' md" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE+'</button>':'';
+  var buyBtn=w.last_log_id?'<button class="zf-btn '+(w.escalate?'secondary':'primary')+' md" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>':'';
   if(w.escalate){
     return head+'<h1>這件事，值得跟老師好好談一談。</h1>'+body+
       '<div class="cool-btns" style="margin-top:24px"><button class="zf-btn primary md" onclick="location.href=\'/booking\'">'+ic("calendar-heart")+'預約老師談一次</button>'+buyBtn+'</div>'+
@@ -1347,7 +1347,7 @@ function updateFabCta(){
   if(STATE.step!=="result"||paid||!pw){if(old)old.remove();return;}
   if(!old){
     var b=document.createElement("button");b.id="fabCta";b.className="zf-btn primary fab-cta";
-    b.innerHTML=ic("sparkle")+'解鎖完整解讀';
+    b.innerHTML=ic("sparkle")+'拿到靈符解方';
     b.onclick=function(){var p=document.querySelector(".paywall");if(p)p.scrollIntoView({behavior:"smooth",block:"center"});};
     document.body.appendChild(b);
   }
@@ -1524,8 +1524,8 @@ function createOrder(){
        try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);}catch(e){}
        var w=window.open(d.pay_url,"_blank");if(!w){location.href=d.pay_url;return;}
        if(btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}
-     }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE;}alert(d.message||"建立訂單失敗，請再試一次。");}
-   }).catch(function(e){STATE.ordering=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'解鎖完整解讀 · NT$ '+TALISMAN_PRICE;}alert("付款錯誤："+e.message);});
+     }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert(d.message||"建立訂單失敗，請再試一次。");}
+   }).catch(function(e){STATE.ordering=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert("付款錯誤："+e.message);});
 }
 
 /* ===== 分享（Web Share API / 剪貼簿）===== */
