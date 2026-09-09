@@ -600,6 +600,7 @@ function buildResult(d){
     purchased:!!d.purchased,deliveryUrl:d.delivery_url||"",
     hexName:d.hexagram_name||"",upperGua:d.upper_gua||"",lowerGua:d.lower_gua||"",
     talismanImg:d.talisman_image_url||"",talismanElements:d.talisman_elements||[],talismanCards:d.talisman_cards||[],jieqi:d.jieqi||null,shengKe:d.sheng_ke||"",
+    hexCode:d.hexagram_code||"",hexCard:d.hex_card||null,
     wuxing:wr?(function(){var ks=["木","火","土","金","水"],vs=ks.map(function(k){return +wr[k]||0}),mx=Math.max.apply(null,vs);return ks.map(function(k,i){return{k:k,v:mx>0?Math.round(vs[i]/mx*100):0}})})():[],
     fortuneLine:a.fortune_line||d.fortune_line||[],
     tarot:d.tarot_cards||[],
@@ -1044,15 +1045,20 @@ function hexTalismans(paid){
   var R=STATE.result||{};
   /* 節氣：優先用後端算的真值，退回靜態佔位 */
   var SOLAR=R.jieqi?{next:R.jieqi.next,date:R.jieqi.next_date,line:PH_SOLAR.line,seq:R.jieqi.seq||[]}:PH_SOLAR;
-  var inner=R.talismanImg
+  /* 免費卦符卡（2026-09-09 拍板「卦符免費給、押 7 天」）：未付款也直接給清楚的卦符卡，後端出圖、卡面自帶落款與到期日；過期後後端回過期態 */
+  var HC=(!paid&&R.hexCard&&R.hexCard.url)?R.hexCard:null;
+  var inner=HC
+    ? '<img src="'+esc(HC.url)+'" alt="'+esc(R.hexName||'')+' 卦符" decoding="async" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">'
+    : R.talismanImg
     ? '<img src="'+esc(R.talismanImg)+'" draggable="false" oncontextmenu="return false;" class="'+(paid?'':'blurred')+'" style="width:100%;height:100%;object-fit:cover">'
     : '<div class="'+(paid?'':'blurred')+'" style="width:100%;height:100%">'+fulu('䷀',R.hexName||'靈符',true)+'</div>';
   var guaSym=(GUA_UNI[R.upperGua]||'')+(GUA_UNI[R.lowerGua]||'');
   var h='<div class="zf-card sunken" style="margin-bottom:20px"><div class="tal-hero">'+
     '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
-    (paid?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這是為你而生的靈符——解鎖後就會清晰</span></div>')+
+    ((paid||HC)?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這是為你而生的靈符——解鎖後就會清晰</span></div>')+
     '</div>'+
-    '<div class="tal-caption">'+ic("device-mobile")+(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16')+'</div></div>'+
+    '<div class="tal-caption">'+ic("device-mobile")+(HC?(HC.expired?'這一卦已過期，重新起一卦':'先給你一張 · '+esc(HC.valid_until_label)+' 前有效 · 長按存成手機桌布'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</div>'+
+    ((HC&&!HC.expired)?'<a class="zf-btn secondary sm" style="margin-top:10px" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("download-simple")+'存這張卦符</a>':'')+'</div>'+
     '<div class="hexcol"><span class="hex-name">這次的卦，是「'+esc(R.hexName||'')+'」</span>'+
     (guaSym?'<p class="hex-read" style="font-size:24px;letter-spacing:6px;color:var(--accent-press);margin:10px 0 0">'+guaSym+'</p>':'')+
     '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+SOLAR.next+'</b>（'+SOLAR.date+'）。'+SOLAR.line+'</span></div></div>'+
@@ -1164,7 +1170,10 @@ function paywall(paid){
     '<div class="veil"><span class="lk">'+ic("lock-simple","thin")+'</span><h3>風易揚老師的靈符解方</h3>'+
     '<p>這一卦的解方：<strong style="font-weight:500;color:var(--ink-900)">五張靈符</strong>，老師親手畫的，依你這一卦配給你，跟著節氣一張一張處理；再加上<strong style="font-weight:500;color:var(--ink-900)">完整解讀</strong>，讓你知道為什麼。</p>'+
     '<div class="feat"><span>'+ic("check","bold")+'五張靈符·依節氣逐張處理</span><span>'+ic("check","bold")+'完整解讀·得到答案</span><span>'+ic("check","bold")+'紫微七段解讀</span><span>'+ic("check","bold")+'完整節氣運勢圖</span></div>'+
-    '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>'+
+    ((R.hexCard&&R.hexCard.expired)
+      ?'<button class="zf-btn primary lg" onclick="exitFlow()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
+      :'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>'+
+       (R.hexCard?'<p class="veil-alt">這張卦符 '+esc(R.hexCard.valid_until_label)+' 前有效，過了要重新起卦。</p>':''))+
     '<p class="veil-alt">想直接找老師談這件事？<a href="/booking" data-wc-open>預約老師</a></p></div></div>';
 }
 function recsSection(){
