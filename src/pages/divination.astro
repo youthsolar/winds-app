@@ -1049,7 +1049,7 @@ function viewResult(){
   var R=STATE.result||{};var paid=STATE.paid||R.purchased;var q=STATE.text||"";
   if(paid)return viewReportPaid(R,q);
   /* 第一眼那句大字（9/9 拍板：Jeffery 親寫，逐字照用；放這一頁不放首頁） */
-  var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">算半天，你就缺風易揚老師一張符令</h1>';
+  var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">風易揚老師一張符令就能改善</h1>';
   if(q)h+='<p style="font-family:var(--font-serif);font-size:14.5px;color:var(--text-muted);margin:6px 0 10px">你問的是「'+esc(q)+'」</p>';
   if(R.summary)h+='<div class="sum-body">'+md(R.summary)+'</div>';
   h+='</div>';
