@@ -110,6 +110,31 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
        2026-08-31 只靠「掛載點是不是空的」判斷，但 Google 明文封鎖內嵌 webview 的 OAuth：
        按鈕照樣渲染得出來、按下去完不成登入，那種情況掛載點不是空的，引導就永遠不出現。
        所以改成先認 UA，認出來就直接出引導，不賭渲染結果。 -->
+  <!-- 生日三選單：日子只列到該月月底、閏年跟年份走（2026-09-10 Jeffery：「月份大小沒有套資料庫」，全站一併修）。
+       事件委派，靜態表單（紫微／老師排盤／法器／活動頁）與 JS 動態產生的（分靈體對象生日）都吃；
+       改年或月時超出月底的日子清回「日」。占卜頁自己有一套（ff-days），不經這裡。 -->
+  <script is:inline>
+    (function () {
+      var T = [['#birthYear','#birthMonth','#birthDay'],['#solarYear','#solarMonth','#solarDay'],['[name=byear]','[name=bmonth]','[name=bday]'],['#tgYear','#tgMonth','#tgDay']];
+      function fix(t) {
+        var y = document.querySelector(t[0]), m = document.querySelector(t[1]), d = document.querySelector(t[2]);
+        if (!y || !m || !d) return;
+        var M = +m.value; if (!M) return;
+        var N = new Date(+y.value || 2000, M, 0).getDate(), cur = +d.value;
+        var ph = (d.options[0] && d.options[0].value === '') ? d.options[0].outerHTML : '', h = ph;
+        for (var i = 1; i <= N; i++) h += '<option value="' + i + '"' + (i === cur ? ' selected' : '') + '>' + i + ' 日</option>';
+        d.innerHTML = h;
+        if (cur > N) d.value = '';
+      }
+      function all() { for (var i = 0; i < T.length; i++) fix(T[i]); }
+      document.addEventListener('change', function (e) {
+        var el = e.target; if (!el || el.tagName !== 'SELECT') return;
+        for (var i = 0; i < T.length; i++) if (el.matches(T[i][0]) || el.matches(T[i][1])) fix(T[i]);
+      });
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', all); else all();
+      window.zfFixDays = all;
+    })();
+  </script>
   <script is:inline>
     window.ZFInApp = function () {
       var ua = navigator.userAgent || '';
