@@ -473,6 +473,91 @@ import ConciergeWidget from '../components/ConciergeWidget.astro';
     a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
     /* 風小編只在結果頁現身（含回看模式）；漏斗填單過程不打擾 */
     body:not(.show-concierge) .wc-root{display:none!important}
+
+    /* ===== 去表單化（2026-09-10）：水鏡起卦／老師逐題問／回訪一行——DS ui_kits/free-flow 逐值 ===== */
+    .ff .ff-h{font-size:22px;line-height:1.35;font-weight:500;margin:8px 0 6px;text-wrap:balance}
+    .ff .lede{font-size:14.5px;line-height:1.8}
+    .ff-p{font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.8;color:var(--text-secondary);margin:0 0 12px}
+    .ff-clock{text-align:center;font-family:var(--font-sans);font-size:12px;color:var(--text-muted);letter-spacing:.08em;font-variant-numeric:tabular-nums;min-height:18px}
+    .ff-err{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:90;max-width:88vw;background:var(--surface-card);border:1px solid var(--border-accent);color:var(--text-primary);border-radius:var(--radius-pill);padding:10px 18px;font-family:var(--font-serif);font-size:14px;box-shadow:var(--shadow-md);display:none}
+    /* 水鏡：純 CSS 鏡身——黑漆鏡緣（--mirror-rim）＋細金邊（--mirror-gold）＋五行水色鏡面（--water-*）；token 兩主題不翻 */
+    .ff-mirrorwrap{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:8px}
+    .ff-mirror{position:relative;border-radius:var(--radius-pill);box-sizing:border-box;border:10px solid var(--mirror-rim);overflow:hidden;
+      background:radial-gradient(circle at 36% 28%,var(--water-hi) 0%,var(--water-mid) 52%,var(--water-deep) 100%);
+      box-shadow:0 0 0 2px var(--mirror-gold),inset 0 0 0 1px var(--mirror-rim-hi),inset 0 0 30px color-mix(in srgb,var(--ink-900) 34%,transparent),var(--shadow-md);
+      user-select:none;-webkit-user-select:none;touch-action:none;cursor:default}
+    .ff-mirror.cast{cursor:pointer}
+    .ff-mirror.dial{cursor:ew-resize}
+    .ff-stars{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .ff-stars circle{fill:var(--water-glint)}
+    .ff-sheen{position:absolute;left:14%;top:10%;width:42%;height:26%;border-radius:50%;background:radial-gradient(ellipse at center,var(--water-glint) 0%,transparent 70%);filter:blur(6px);pointer-events:none;animation:ffSheen 9s ease-in-out infinite alternate}
+    .ff-rips{position:absolute;inset:0;pointer-events:none}
+    .ff-rips span{position:absolute;left:50%;top:50%;width:20px;height:20px;border-radius:var(--radius-pill);border:1.2px solid var(--water-glint);opacity:.85;transform:translate(-50%,-50%);animation:ffRip 3.2s cubic-bezier(.16,.6,.3,1) forwards}
+    @keyframes ffRip{to{width:110%;height:110%;opacity:0}}
+    @keyframes ffSheen{to{transform:translate(6%,4%);opacity:.75}}
+    @keyframes ffTwinkle{to{opacity:.08}}
+    .ff-hexc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+    .ff-yaos{display:flex;flex-direction:column;gap:9px;width:86px}
+    .ff-mirror[style*="216"] .ff-yaos{width:78px}
+    .ff-yao{display:flex;gap:12px;height:8px;opacity:0;transform:translateY(14px);filter:blur(6px);transition:opacity .9s var(--ease-soft),transform .9s var(--ease-soft),filter .9s var(--ease-soft)}
+    .ff-yao.yang{gap:0}
+    .ff-yao.on{opacity:1;transform:none;filter:blur(0)}
+    .ff-yao i{flex:1;display:block;background:var(--mirror-ink);border-radius:2px;box-shadow:0 0 10px var(--disc-frost-hair)}
+    .ff-hexname{min-height:30px;text-align:center;font-family:var(--font-serif);font-size:20px;font-weight:600;letter-spacing:.12em;color:var(--text-primary);white-space:nowrap;opacity:0;transform:translateY(-6px);transition:opacity .9s var(--ease-soft) .3s,transform .9s var(--ease-soft) .3s}
+    .ff-hexname.on{opacity:1;transform:none}
+    /* 轉輪鏡（年份） */
+    .ff-ticks{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .ff-ticks line{stroke:var(--mirror-ink)}
+    .ff-dialtxt{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-family:var(--font-serif);color:var(--mirror-ink);text-shadow:0 1px 0 var(--water-glint);font-variant-numeric:tabular-nums;pointer-events:none}
+    .ff-dial-k{font-size:11px;letter-spacing:.2em;opacity:.8;font-family:var(--font-sans)}
+    .ff-dial-y{font-size:42px;font-weight:600;line-height:1.1}
+    .ff-dial-m{font-size:11px;letter-spacing:.12em;opacity:.75;font-family:var(--font-sans);margin-top:2px}
+    /* 老師逐題問 */
+    .ff-prog{display:flex;gap:4px;margin:0 0 10px}
+    .ff-prog i{flex:1;height:3px;border-radius:999px;background:var(--border-soft)}
+    .ff-prog i.on{background:var(--accent)}
+    .ff-chat{display:grid;gap:12px}
+    .ff-who{display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
+    .ff-av{flex:none;width:26px;height:26px;border-radius:var(--radius-md);background:var(--paper,var(--surface-card));border:1px solid var(--rose-100);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:12px;color:var(--accent-press)}
+    .ff-bub{max-width:88%;padding:11px 14px;border-radius:18px;font-family:var(--font-serif);font-size:14.5px;line-height:1.7;background:var(--surface-card);border:1px solid var(--border-soft);border-top-left-radius:6px;color:var(--text-primary);font-weight:300;animation:ffIn .38s var(--ease-soft)}
+    .ff-bub.me{background:var(--accent);color:var(--text-on-accent);justify-self:end;width:fit-content;white-space:nowrap;border-top-right-radius:6px;border-top-left-radius:18px;border-color:transparent;font-weight:500}
+    @keyframes ffIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    .ff-ctl{margin-top:4px}
+    .ff-next{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+    .ff-petals{position:relative;width:200px;height:200px;margin:6px auto}
+    .ff-petals button{position:absolute;width:40px;height:40px;border-radius:999px;transform:translate(-50%,-50%);border:1px solid var(--border-strong);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:13px;cursor:pointer}
+    .ff-petals button.on{background:var(--accent);color:var(--text-on-accent);border-color:transparent}
+    .ff-petals .c{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-serif);font-size:15px;color:var(--text-primary);text-align:center;line-height:1.3}
+    .ff-petals .c small{display:block;font-size:11px;color:var(--text-muted);letter-spacing:.08em;font-family:var(--font-sans)}
+    .ff-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .ff-days button{height:34px;border-radius:var(--radius-sm);border:1px solid var(--border-soft);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:13.5px;cursor:pointer;font-variant-numeric:tabular-nums}
+    .ff-days button.on{background:var(--accent);color:var(--text-on-accent);border-color:transparent}
+    .ff-arc svg{width:100%;height:150px;overflow:visible}
+    .ff-arc .horizon{stroke:var(--border-strong);stroke-dasharray:3 4}
+    .ff-arc .path{fill:none;stroke:var(--border-accent);stroke-width:1.2;stroke-dasharray:2 5}
+    .ff-arc .dot{cursor:pointer}
+    .ff-arc .dot circle{fill:var(--surface-card);stroke:var(--border-strong);stroke-width:1.2}
+    .ff-arc .dot .halo{fill:var(--gold-300);opacity:.35;stroke:none}
+    .ff-arc .dot.on circle:not(.halo){fill:var(--gold-400);stroke:var(--gold-500)}
+    .ff-arc .dot text{font-family:var(--font-serif);font-size:9.5px;fill:var(--text-muted);text-anchor:middle;pointer-events:none}
+    .ff-arc .dot.on text{fill:var(--ink-900);font-weight:600}
+    .ff-shilabel{font-family:var(--font-serif);font-size:15px;text-align:center;color:var(--text-primary);margin-top:2px}
+    .ff-shilabel small{color:var(--text-muted);font-size:12px;margin-left:6px}
+    .ff-seals{display:flex;gap:10px;justify-content:center}
+    .ff-seals button{width:64px;height:64px;border-radius:14px;border:1.5px solid var(--border-strong);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:20px;cursor:pointer;transition:all .15s}
+    .ff-seals button.on{background:var(--rose-600);color:var(--text-on-accent);border-color:transparent;transform:rotate(-3deg)}
+    .ff-inp{width:100%;box-sizing:border-box;padding:12px 16px;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);outline:none;transition:border-color .15s,box-shadow .15s}
+    .ff-inp:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring,var(--accent-quiet))}
+    .ff-inp.bad{border-color:var(--critical)}
+    .ff-hint{margin-top:7px;font-family:var(--font-sans);font-size:12.5px;color:var(--critical);min-height:1em}
+    .ff-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-pill);padding:8px 8px 8px 16px;font-family:var(--font-serif);font-size:14px;color:var(--text-primary)}
+    .ff-chip a{flex:none;font-family:var(--font-sans);font-size:12.5px;color:var(--accent-press);border:1px solid var(--border-accent);border-radius:999px;padding:3px 10px;text-decoration:none}
+    /* 結果頁：主句＋傳給那個該看到的人 */
+    .ff-main{font-family:var(--font-serif);font-weight:500;font-size:22px;line-height:1.35;color:var(--text-primary);margin:12px 0 6px;text-wrap:balance}
+    .ff-share{margin-top:14px}
+    .ff-share .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:10px}
+    .ff-share .note{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);margin-top:8px;text-align:center}
+    @media (prefers-reduced-motion:reduce){.ff-sheen,.ff-rips span,.ff-bub{animation:none!important}.ff-rips span{opacity:0}}
   </style>
 </head>
 <body>
@@ -561,10 +646,11 @@ var READING_LINES=["正在為你翻開這張牌……","對齊你的命盤與節
 
 /* ===== state ===== */
 var STATE={step:"topic",paid:false,dir:null,sub:null,q:null,text:"",gender:"",service:"",
+ cast:null,ask:0,data:{year:1990,month:null,day:null,shi:6,gender:"",name:"",email:""},ret:false,retInfo:null,retLog:"",retToken:"",k:"",ref:"",shareUrl:"",
  lineUserId:"",logId:"",talismanName:"量能靈符",
  submitting:false,ordering:false,soulConfirmed:false,reportMode:false,
  prefill:null,cooldown:null,repeatWall:null,result:null,error:""};
-var STEPS=[{k:"topic",l:"選題"},{k:"info",l:"資料"},{k:"interpreting",l:"解讀"},{k:"result",l:"結果"}];
+var STEPS=[{k:"topic",l:"選題"},{k:"cast",l:"起卦"},{k:"ask",l:"認識你"},{k:"result",l:"結果"}];
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function ic(n,w){return '<i class="ph'+(w?'-'+w:'')+' ph-'+n+'"></i>'}
 function pad2(n){n=String(n);return n.length<2?"0"+n:n}
@@ -620,7 +706,8 @@ function buildResult(d){
 
 /* ===== progress header ===== */
 function header(){
-  var idx=Math.max(0,STEPS.findIndex(function(s){return s.k===STATE.step}));
+  var sk={hex:"cast",ret:"ask"}[STATE.step]||STATE.step;
+  var idx=Math.max(0,STEPS.findIndex(function(s){return s.k===sk}));
   var pct=((idx+(STATE.step==="result"?1:0.5))/STEPS.length)*100;
   var steps=STEPS.map(function(s,i){
     var cls=i<idx?"done":(i===idx?"cur":"");
@@ -670,7 +757,7 @@ function viewTopic(){
         '<textarea class="f-textarea" maxlength="300" rows="'+Math.max(4,Math.min(10,Math.ceil(STATE.text.length/22)+1))+'" oninput="STATE.text=this.value;this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'" style="font-size:18px">'+esc(STATE.text)+'</textarea>'+
         '<p class="hint" style="margin-top:8px">'+ic("sparkle")+'占卜前，靜心默想一位神尊或天使做主。</p>'+
         '<p class="hint" style="margin-top:4px">'+ic("heart")+'一次問一件事，解讀會更清楚也更貼近你。</p>'+
-        '<div style="margin-top:28px"><button class="zf-btn primary lg" onclick="go(\'info\')">就問這個 '+ic("arrow-right")+'</button></div></div>';
+        '<div style="margin-top:28px"><button class="zf-btn primary lg" onclick="go(\'cast\')">就問這個 '+ic("arrow-right")+'</button></div></div>';
     }
     h+='</div>';
   }
@@ -691,61 +778,148 @@ function pickQ(el,qt){
   render();
 }
 
-/* ===== Step 2 info ===== */
-function viewInfo(){
-  var pf=STATE.prefill||{};
-  var pfDate="",pfTime="";
-  if(pf.date_of_birth){var dp=String(pf.date_of_birth).split(" ");pfDate=dp[0]||"";pfTime=(dp[1]||"").slice(0,5);}
-  var pfY="",pfM="",pfD="";if(pfDate){var ymd=pfDate.split("-");pfY=+ymd[0]||"";pfM=+ymd[1]||"";pfD=+ymd[2]||"";}
-  var pfPhone=pf.phone?String(pf.phone).replace(/^\+886/,"0"):"";
-  function selA(v,cur){return (cur!==""&&v==cur)?' selected':''}
-  var years='';for(var y=2026;y>=1940;y--)years+='<option value="'+y+'"'+selA(y,pfY)+'>'+y+' 年</option>';
-  var months='';for(var m=1;m<=12;m++)months+='<option value="'+m+'"'+selA(m,pfM)+'>'+m+' 月</option>';
-  var days='';for(var d=1;d<=31;d++)days+='<option value="'+d+'"'+selA(d,pfD)+'>'+d+' 日</option>';
-  var sc=[["子時 23–01","00:00"],["丑時 01–03","02:00"],["寅時 03–05","04:00"],["卯時 05–07","06:00"],["辰時 07–09","08:00"],["巳時 09–11","10:00"],["午時 11–13","12:00"],["未時 13–15","14:00"],["申時 15–17","16:00"],["酉時 17–19","18:00"],["戌時 19–21","20:00"],["亥時 21–23","22:00"]];
-  var pfShi="";if(pfTime){var hh=parseInt(pfTime.split(":")[0],10);if(!isNaN(hh)){pfShi=sc[Math.floor(((hh+1)%24)/2)][1];}}
-  var sco=sc.map(function(s){return '<option value="'+s[1]+'"'+selA(s[1],pfShi)+'>'+s[0]+'</option>'}).join("");
-  function field(id,l,ph,t,v,fw){return '<label style="display:block"'+(fw?' class="fw"':'')+'><span class="f-label">'+l+'</span><input id="'+id+'" class="f-input" type="'+(t||"text")+'" placeholder="'+ph+'" value="'+esc(v||"")+'"></label>'}
-  var gNow=STATE.gender||pf.gender||"";
-  var h='<div class="step-intro"><span class="eyebrow"><span class="dot"></span>先讓我認識你</span><h1>留下幾個基本資料就好。</h1><p class="lede">只要這幾項，30 秒就能為你排出命盤和呼叫你的分靈體。</p></div>';
-  if(!STATE.userId){h+='<div class="zf-card tint" style="margin-bottom:26px;text-align:center;padding:22px">'+
-    '<div style="font-family:var(--font-serif);font-size:16.5px;font-weight:500;color:var(--ink-900);margin-bottom:4px">先用 Google 登入</div>'+
-    '<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);margin-bottom:14px">這次的解讀會存進你的帳號，下次回來不用重填。</div>'+
-    '<div id="googleSignInBtn" style="display:flex;justify-content:center"></div></div>';}
-  h+='<div class="info-grid">';
-  h+=field("inSurname","姓","王","text",pf.last_name)+field("inGiven","名","怡君","text",pf.first_name);
-  h+='<label style="display:block"><span class="f-label">國曆生日</span><div style="display:flex;gap:8px">'+
-     '<div class="f-select-wrap" style="flex:1.5"><select id="inYear" class="f-select"><option value="" disabled'+(pfY?'':' selected')+'>年</option>'+years+'</select><span class="caret">'+ic("caret-down","bold")+'</span></div>'+
-     '<div class="f-select-wrap"><select id="inMonth" class="f-select"><option value="" disabled'+(pfM?'':' selected')+'>月</option>'+months+'</select><span class="caret">'+ic("caret-down","bold")+'</span></div>'+
-     '<div class="f-select-wrap"><select id="inDay" class="f-select"><option value="" disabled'+(pfD?'':' selected')+'>日</option>'+days+'</select><span class="caret">'+ic("caret-down","bold")+'</span></div></div></label>';
-  h+='<div><label style="display:block"><span class="f-label">出生時間</span><div class="f-select-wrap"><select class="f-select" id="shichen"><option value="" disabled'+(pfShi?'':' selected')+'>選一個時辰</option>'+sco+'</select><span class="caret">'+ic("caret-down","bold")+'</span></div></label>'+
-     '<button type="button" onclick="toggleNoon(this)" style="all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;margin-top:10px"><span class="noonbox" style="width:18px;height:18px;border-radius:5px;border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;flex:none"></span><span style="font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700)">不知道？用午時（11:00–13:00）</span></button></div>';
-  /* 性別（依新設計）*/
-  h+='<div class="fw"><div class="f-label">性別</div><div style="display:flex;gap:10px;margin-top:2px">'+
-     ['女','男','不指定'].map(function(g){return '<button type="button" class="gbtn'+(gNow===g?' on':'')+'" data-g="'+g+'" onclick="pickGender(\''+g+'\')">'+g+'</button>'}).join("")+'</div></div>';
-  /* 進階選填摺疊（2026-07-24 摩擦點拍板：手機/出生地 降級選填收摺）*/
-  h+='<details class="fw" style="margin-top:2px"><summary style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted);cursor:pointer;padding:6px 0">進階選填（手機・出生地）</summary>'+
-     '<div style="display:grid;gap:14px;padding-top:10px">'+
-     field("inPhone","手機（選填）","0912 345 678","tel",pfPhone,true)+
-     '<label class="fw" style="display:block"><span class="f-label">出生地 <span style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);font-weight:400">選填</span></span><input id="inLocation" class="f-input" type="text" placeholder="例：出生的城市" value="'+esc(pf.location||"")+'"><span class="hint" style="margin-top:6px">填寫有助於更準確的時辰校正</span></label>'+
-     '</div></details>';
-  h+=field("inEmail","電子郵件","you@gmail.com","email",pf.email||STATE.gEmail,true);
-  h+='</div>';
-  h+='<p class="hint" style="margin-top:18px">'+ic("lock-simple")+'Email 目前僅接受 @gmail.com。</p>';
-  h+='<div id="infoErr" class="hidden" style="margin-top:14px;font-family:var(--font-sans);font-size:13.5px;color:var(--critical);background:var(--rose-50);border:1px solid var(--rose-100);border-radius:var(--radius-md);padding:11px 14px"></div>';
-  /* 分靈體 teaser（保留 live 真實 prefetch）*/
-  h+='<div class="zf-card tint" style="margin-top:32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">'+
-     '<div style="display:flex;align-items:center;gap:14px"><span style="flex:none;width:46px;height:46px;border-radius:999px;background:var(--rose-100);display:flex;align-items:center;justify-content:center;color:var(--rose-500);font-size:24px">'+ic("butterfly","thin")+'</span>'+
-     '<div><div style="font-family:var(--font-serif);font-size:16.5px;font-weight:500;color:var(--ink-900)">先認識自己的分靈體</div>'+
-     '<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);margin-top:2px">祂會陪你看這次的占卜結果——解讀前，先接通</div></div></div>'+
-     '<button type="button" id="soulBtn" class="zf-btn ghost sm" onclick="soulPrefetch()">'+(STATE.soulConfirmed?ic("check","bold")+'分靈體已上線':ic("sparkle")+'接通')+'</button></div>';
-  h+='<div style="margin-top:36px"><button class="zf-btn primary lg full" id="submitBtn" onclick="submitDivination()">開始為我解讀 '+ic("arrow-right")+'</button></div>';
-  return '<main class="shell narrow">'+h+'</main>';
+/* ===== Step 2 起卦（水鏡）→ 看到卦 → 老師逐題問／回訪一行（2026-09-10 去表單化；DS 真值 ui_kits/free-flow/page.jsx＋water-mirror.jsx）===== */
+var SHI=[["子","23–01","00:00"],["丑","01–03","02:00"],["寅","03–05","04:00"],["卯","05–07","06:00"],["辰","07–09","08:00"],["巳","09–11","10:00"],["午","11–13","12:00"],["未","13–15","14:00"],["申","15–17","16:00"],["酉","17–19","18:00"],["戌","19–21","20:00"],["亥","21–23","22:00"]];
+var ASK=["year","month","day","shi","gender","name","email"];
+var FF_STARS=(function(){var s=7;function rnd(){s=(s*9301+49297)%233280;return s/233280;}var pts=[];for(var i=0;i<26;i++){var a=rnd()*Math.PI*2,r=0.18+Math.sqrt(rnd())*0.72;pts.push({x:0.5+r*0.5*Math.cos(a),y:0.5+r*0.5*Math.sin(a),r:0.6+rnd()*1.3,o:0.22+rnd()*0.5,d:rnd()*6});}return pts;})();
+var FF_REDUCE=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+function ffStars(size){return '<svg class="ff-stars" viewBox="0 0 '+size+' '+size+'">'+FF_STARS.map(function(p,i){return '<circle cx="'+(p.x*size).toFixed(1)+'" cy="'+(p.y*size).toFixed(1)+'" r="'+p.r.toFixed(2)+'" opacity="'+p.o.toFixed(2)+'"'+(FF_REDUCE?'':' style="animation:ffTwinkle '+(5+(i%4))+'s ease-in-out '+p.d.toFixed(2)+'s infinite alternate"')+'/>'}).join("")+'</svg>';}
+function ffYaos(code,rising){return '<div class="ff-yaos">'+String(code||"000000").split("").map(function(c,i){var shown=(6-i)<=rising;return '<div class="ff-yao'+(c==="1"?' yang':'')+(shown?' on':'')+'">'+(c==="1"?'<i></i>':'<i></i><i></i>')+'</div>'}).join("")+'</div>';}
+function ffDialTicks(size,year){var c=size/2,off=year%10,t='';for(var i=0;i<60;i++){var a=((i*6-off*6)*Math.PI)/180,big=i%10===0,r1=big?c*0.80:c*0.86,r2=c*0.93;t+='<line x1="'+(c+r1*Math.cos(a)).toFixed(1)+'" y1="'+(c+r1*Math.sin(a)).toFixed(1)+'" x2="'+(c+r2*Math.cos(a)).toFixed(1)+'" y2="'+(c+r2*Math.sin(a)).toFixed(1)+'" stroke-width="'+(big?2:1)+'" opacity="'+(big?0.85:0.45)+'"/>';}return '<svg class="ff-ticks" viewBox="0 0 '+size+' '+size+'">'+t+'</svg>';}
+/* 水鏡：mode cast|reveal|dial；純 CSS 鏡身（黑漆鏡緣＋細金邊＋五行水色），token 兩主題不翻 */
+function ffMirror(mode,o){
+  o=o||{};var size=o.size||236,inner=size-20;
+  var body=mode==="dial"
+    ? ffDialTicks(inner,o.year)+'<div class="ff-dialtxt"><div class="ff-dial-k">轉輪鏡</div><div class="ff-dial-y" id="ffDialY">'+o.year+'</div><div class="ff-dial-m" id="ffDialM">民國 '+(o.year-1911)+'</div></div>'
+    : '<div class="ff-hexc" id="ffYaos">'+ffYaos(o.code,o.rising||0)+'</div>';
+  return '<div class="ff-mirrorwrap">'+
+    '<div class="ff-mirror'+(mode==="dial"?' dial':mode==="cast"?' cast':'')+'" id="ffMirror" style="width:'+size+'px;height:'+size+'px" role="'+(mode==="dial"?'slider':'button')+'" aria-label="'+(mode==="dial"?'轉輪鏡選年份':'按住水面')+'">'+
+    ffStars(inner)+'<span class="ff-sheen"></span><div class="ff-rips" id="ffRips"></div>'+body+'</div>'+
+    (mode!=="dial"?'<div class="ff-hexname'+((o.rising||0)>=6&&o.name?' on':'')+'" id="ffHexName">'+esc(o.name||'')+'</div>':'')+
+    '</div>';
 }
-function toggleNoon(btn){var box=btn.querySelector(".noonbox");var sel=document.getElementById("shichen");var on=box.getAttribute("data-on")==="1";
-  if(on){box.removeAttribute("data-on");box.style.background="transparent";box.innerHTML="";sel.disabled=false;}
-  else{box.setAttribute("data-on","1");box.style.background="var(--accent)";box.style.borderColor="var(--accent)";box.style.color="var(--text-on-accent)";box.innerHTML='<i class="ph-bold ph-check" style="font-size:12px"></i>';sel.value="12:00";sel.disabled=true;}}
-function pickGender(g){STATE.gender=(STATE.gender===g?"":g);var bs=document.querySelectorAll(".gbtn");for(var i=0;i<bs.length;i++){bs[i].classList.toggle("on",bs[i].getAttribute("data-g")===STATE.gender);}}
+/* 漣漪：一組 3～4 圈依序往外散（3.2s）；閒置每 5.2s 一組，按住 1.6s 一組 */
+var FF_RIP={timer:null,busy:false};
+function ffRipBurst(){var box=document.getElementById("ffRips");if(!box||FF_REDUCE)return;var n=3+Math.round(Math.random());for(var k=0;k<n;k++){setTimeout(function(){var b=document.getElementById("ffRips");if(!b)return;var s=document.createElement("span");b.appendChild(s);setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s);},3400);},k*380);}}
+function ffRipStart(busy){ffRipStop();FF_RIP.busy=!!busy;ffRipBurst();FF_RIP.timer=setInterval(ffRipBurst,busy?1600:5200);}
+function ffRipStop(){if(FF_RIP.timer){clearInterval(FF_RIP.timer);FF_RIP.timer=null;}}
+
+/* ── 2 起卦 ── */
+var FF_CAST={t:null,rising:0,busy:false};
+function viewCast(){
+  return '<main class="shell narrow ff"><div class="step-intro"><span class="eyebrow"><span class="dot"></span>起卦</span><h1 class="ff-h">'+esc(STATE.q||"")+'</h1>'+
+    '<p class="lede">把心裡的事想一遍，按住鏡面讓漣漪靜下來，卦象就出來了。</p></div>'+
+    ffMirror("cast",{code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
+    '<div class="ff-clock" id="ffClock"></div></main>';
+}
+function ffCastWire(){
+  var m=document.getElementById("ffMirror");if(!m)return;
+  FF_CAST={t:null,rising:0,busy:false};ffRipStart(false);
+  function draw(){var y=document.getElementById("ffYaos");if(y&&STATE.cast)y.innerHTML=ffYaos(STATE.cast.code,FF_CAST.rising);var n=document.getElementById("ffHexName");if(n&&STATE.cast){n.textContent=STATE.cast.name;n.classList.toggle("on",FF_CAST.rising>=6);}}
+  function stop(){if(FF_CAST.t&&FF_CAST.t!=="done"){clearInterval(FF_CAST.t);FF_CAST.t=null;FF_CAST.rising=0;FF_CAST.busy=false;STATE.cast=null;draw();ffRipStart(false);var c=document.getElementById("ffClock");if(c)c.textContent="";m.classList.remove("busy");}}
+  function start(e){
+    if(FF_CAST.t)return;e.preventDefault();try{m.setPointerCapture(e.pointerId);}catch(x){}
+    FF_CAST.busy=true;m.classList.add("busy");ffRipStart(true);
+    FF_CAST.t="pending";
+    /* 按下去那一刻起卦：後端用此刻的時間起卦（同 /gua），零資料 */
+    fetch(WORKER_API+"/free-cast",{method:"POST"}).then(function(r){return r.json();}).then(function(d){
+      if(FF_CAST.t!=="pending")return;               /* 已放開 */
+      if(!d||!d.success){FF_CAST.t=null;stop();showFfErr("起卦沒成功，再按一次。");return;}
+      STATE.cast={code:d.code,name:d.name,line:d.line,castAt:d.cast_at,castLabel:d.cast_label||""};
+      var c=document.getElementById("ffClock");if(c)c.textContent=STATE.cast.castLabel+" 起卦";
+      FF_CAST.t=setInterval(function(){
+        FF_CAST.rising++;draw();
+        if(FF_CAST.rising>=6){clearInterval(FF_CAST.t);FF_CAST.t="done";FF_CAST.busy=false;ffRipStart(false);setTimeout(function(){if(STATE.step==="cast")go("hex");},1700);}
+      },520);
+    }).catch(function(){FF_CAST.t=null;stop();showFfErr("連線不穩，再按一次。");});
+  }
+  function release(){if(FF_CAST.t==="pending"){FF_CAST.t=null;stop();return;}stop();}
+  m.addEventListener("pointerdown",start);m.addEventListener("pointerup",release);m.addEventListener("pointercancel",release);
+}
+function showFfErr(msg){var e=document.getElementById("ffErr");if(!e){e=document.createElement("div");e.id="ffErr";e.className="ff-err";var r=document.getElementById("root");if(r)r.appendChild(e);}e.textContent=msg;e.style.display="block";setTimeout(function(){e.style.display="none";},4000);}
+
+/* ── 3 看到卦 ── */
+function viewHex(){
+  var c=STATE.cast||{};
+  return '<main class="shell narrow ff"><div class="step-intro"><span class="eyebrow"><span class="dot"></span>你的卦</span></div>'+
+    ffMirror("reveal",{code:c.code,rising:6,name:c.name})+
+    '<div class="ff-clock" style="margin-top:-6px;margin-bottom:12px">'+esc(c.castLabel||"")+' 起卦</div>'+
+    (c.line?'<div class="zf-card" style="padding:14px 16px"><p class="ff-p" style="margin:0;color:var(--text-primary)">'+esc(c.line)+'</p></div>':'')+
+    '<p class="ff-p" style="margin-top:14px">有一張卦符可以先護住你。要配得更準，老師得看你的命盤。</p>'+
+    '<button class="zf-btn primary lg" style="width:100%" onclick="go(\''+(STATE.ret?'ret':'ask')+'\')">'+(STATE.ret?'好，用上次的資料':'好，讓老師認識我')+'</button></main>';
+}
+
+/* ── 4 老師開口問（一次一題，每題一個可以玩的控制項）── */
+function ffWho(){return '<div class="ff-who"><span class="ff-av">風</span>風易揚老師</div>';}
+function ffBub(t,me){return '<div class="ff-bub'+(me?' me':'')+'">'+t+'</div>';}
+function shiName(i){return SHI[i][0]+"時";}
+function viewAsk(){
+  var k=ASK[STATE.ask],d=STATE.data;
+  var all=[ffBub("這一卦我看到了。要配符給你，得先看你的命盤。你哪一年出生的？")];
+  if(STATE.ask>=1)all.push(ffBub(d.year+" 年",1),ffBub("幾月？"));
+  if(STATE.ask>=2)all.push(ffBub(d.month+" 月",1),ffBub("幾號？"));
+  if(STATE.ask>=3)all.push(ffBub(d.month+" 月 "+d.day+" 日",1),ffBub("那天你是什麼時候出生的？不確定就放在中午。"));
+  if(STATE.ask>=4)all.push(ffBub(shiName(d.shi),1),ffBub("命盤要分陰陽。你是？"));
+  if(STATE.ask>=5)all.push(ffBub(esc(d.gender),1),ffBub("我要怎麼稱呼你？"));
+  if(STATE.ask>=6)all.push(ffBub(esc(d.name||"—"),1),ffBub("留個信箱。這張卦符七天內有效，到期前我提醒你回來。"));
+  var bubbles=all.slice(-3).join("");
+  var ctl="";
+  if(k==="year")ctl=ffMirror("dial",{year:d.year,size:216});
+  if(k==="month"){ctl='<div class="ff-petals">';for(var m=1;m<=12;m++){var a=(m-3)*30*Math.PI/180;var x=100+78*Math.cos(a),yv=100+78*Math.sin(a);ctl+='<button type="button" class="'+(d.month===m?'on':'')+'" style="left:'+x.toFixed(1)+'px;top:'+yv.toFixed(1)+'px" onclick="ffSet(\'month\','+m+')">'+m+'</button>';}ctl+='<div class="c">'+(d.month?d.month+' 月':'—')+'<small>國曆</small></div></div>';}
+  if(k==="day"){ctl='<div class="ff-days">';for(var dd=1;dd<=31;dd++)ctl+='<button type="button" class="'+(d.day===dd?'on':'')+'" onclick="ffSet(\'day\','+dd+')">'+dd+'</button>';ctl+='</div>';}
+  if(k==="shi"){
+    var pts='';for(var i=0;i<12;i++){var day=i>=3&&i<=9,x2,y2;if(day){var ang=Math.PI-((i-3)/6)*Math.PI;x2=170-118*Math.cos(ang);y2=112-118*Math.sin(ang);}else{var kk=[10,11,0,1,2].indexOf(i);x2=170-104+kk*52;y2=138;}var on=d.shi===i;
+      pts+='<g class="dot'+(on?' on':'')+'" onclick="ffSet(\'shi\','+i+')">'+(on?'<circle cx="'+x2+'" cy="'+y2+'" r="18" class="halo"/>':'')+'<circle cx="'+x2+'" cy="'+y2+'" r="'+(on?12:9)+'"/><text x="'+x2+'" y="'+(y2+3.5)+'">'+SHI[i][0]+'</text></g>';}
+    ctl='<div class="ff-arc"><svg viewBox="0 0 340 150"><line class="horizon" x1="10" y1="112" x2="330" y2="112"/><path class="path" d="M 52 112 A 118 118 0 0 1 288 112"/>'+pts+'</svg></div>'+
+      '<div class="ff-shilabel">'+shiName(d.shi)+'<small>'+SHI[d.shi][1]+'</small></div>';
+  }
+  if(k==="gender")ctl='<div class="ff-seals">'+["女","男"].map(function(g){return '<button type="button" class="'+(d.gender===g?'on':'')+'" onclick="ffSet(\'gender\',\''+g+'\')">'+g+'</button>'}).join("")+'</div>';
+  if(k==="name")ctl='<input class="ff-inp" id="ffName" type="text" value="'+esc(d.name)+'" placeholder="姓名，或你想被叫的名字" autocomplete="name" oninput="STATE.data.name=this.value">';
+  if(k==="email"){var bad=!!d.email&&!validGmail(d.email);ctl='<input class="ff-inp'+(bad?' bad':'')+'" id="ffEmail" type="email" inputmode="email" autocomplete="email" value="'+esc(d.email)+'" placeholder="信箱" oninput="STATE.data.email=this.value.trim();ffNextState()">'+
+    '<div class="ff-hint" id="ffEmailHint">'+(bad?'目前只收 Gmail 信箱，再看一下拼法':'')+'</div>';}
+  var canNext=!((k==="month"&&!d.month)||(k==="day"&&!d.day)||(k==="gender"&&!d.gender)||(k==="email"&&!validGmail(d.email)));
+  return '<main class="shell narrow ff">'+
+    '<div class="ff-prog">'+ASK.map(function(_,i){return '<i class="'+(i<=STATE.ask?'on':'')+'"></i>'}).join("")+'</div>'+
+    '<div class="ff-chat">'+ffWho()+bubbles+'<div class="ff-ctl">'+ctl+'</div>'+
+    '<div class="ff-next">'+(STATE.ask>0?'<button class="zf-btn secondary sm" onclick="ffPrev()">上一題</button>':'')+
+    '<button class="zf-btn primary sm" id="ffNext" '+(canNext?'':'disabled')+' onclick="ffNext()">'+(STATE.ask===ASK.length-1?'排命盤':'下一題')+'</button></div></div></main>';
+}
+function ffSet(key,val){STATE.data[key]=val;render();}
+function ffNextState(){var b=document.getElementById("ffNext");if(!b)return;var d=STATE.data,k=ASK[STATE.ask];var ok=!((k==="email"&&!validGmail(d.email)));b.disabled=!ok;var h=document.getElementById("ffEmailHint"),inp=document.getElementById("ffEmail");if(h){var bad=!!d.email&&!validGmail(d.email);h.textContent=bad?'目前只收 Gmail 信箱，再看一下拼法':'';if(inp)inp.classList.toggle("bad",bad);}}
+function ffPrev(){if(STATE.ask>0){STATE.ask--;render();}}
+function ffNext(){
+  var k=ASK[STATE.ask],d=STATE.data;
+  if(k==="day"&&d.month&&d.day>new Date(d.year,d.month,0).getDate()){showFfErr(d.month+" 月沒有 "+d.day+" 日，再選一次。");return;}
+  if(k==="email"){if(!validGmail(d.email)){ffNextState();return;}if(EMAILV.email===d.email&&EMAILV.verdict==="bad"){showFfErr("這個信箱好像有誤（查無此信箱），再確認一次。");return;}submitFree();return;}
+  STATE.ask++;render();
+}
+/* 轉輪鏡：左右拖 9px＝1 年；點左半／右半各退進 1 年（只用手指點的人也能調） */
+function ffDialWire(){
+  var m=document.getElementById("ffMirror");if(!m||!m.classList.contains("dial"))return;
+  var sx=null,acc=0,moved=0;
+  function setY(y){y=Math.max(1940,Math.min(new Date().getFullYear(),y));if(y===STATE.data.year)return;STATE.data.year=y;var t=m.querySelector(".ff-ticks");if(t)t.outerHTML=ffDialTicks(m.clientWidth-20,y);var e=document.getElementById("ffDialY");if(e)e.textContent=y;var mm=document.getElementById("ffDialM");if(mm)mm.textContent="民國 "+(y-1911);}
+  m.addEventListener("pointerdown",function(e){sx=e.clientX;acc=0;moved=0;try{m.setPointerCapture(e.pointerId);}catch(x){}});
+  m.addEventListener("pointermove",function(e){if(sx===null)return;var dx=e.clientX-sx;sx=e.clientX;acc+=dx;moved+=Math.abs(dx);var step=Math.trunc(acc/9);if(step){acc-=step*9;setY(STATE.data.year+step);}});
+  m.addEventListener("pointerup",function(e){if(sx===null)return;if(moved<4){var r=m.getBoundingClientRect();setY(STATE.data.year+((e.clientX-r.left)<r.width/2?-1:1));}sx=null;});
+  m.addEventListener("pointercancel",function(){sx=null;});
+}
+
+/* ── 4b 回訪一行 ── */
+function viewRet(){
+  var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);var shi=isNaN(hh)?6:Math.floor(((hh+1)%24)/2);
+  var line=[(r.last_name||"")+(r.first_name||""),ymd.length===3?(+ymd[0])+"/"+(+ymd[1])+"/"+(+ymd[2]):"",shiName(shi),r.gender||"",r.email_masked||""].filter(Boolean).join("・");
+  return '<main class="shell narrow ff"><div class="step-intro"><span class="eyebrow"><span class="dot"></span>老師開口</span></div>'+
+    '<div class="ff-chat">'+ffWho()+ffBub("這一卦我看到了。上次你留過命盤，還是用同一份嗎？")+
+    '<div class="ff-chip"><span>'+esc(line)+'</span><a href="#" onclick="ffEditRet();return false;">改</a></div>'+
+    '<div class="ff-next"><button class="zf-btn primary sm" onclick="submitFree()">就用這個</button></div></div></main>';
+}
+function ffEditRet(){var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);
+  STATE.data={year:+ymd[0]||1990,month:+ymd[1]||null,day:+ymd[2]||null,shi:isNaN(hh)?6:Math.floor(((hh+1)%24)/2),gender:r.gender||"",name:(r.last_name||"")+(r.first_name||""),email:r.email||""};
+  STATE.ret=false;STATE.ask=0;go("ask");}
+/* 稱呼拆姓名：中文 2～4 字＝首字（複姓兩字）為姓；其餘整串當名 */
+function splitName(s){s=String(s||"").trim();if(!s)return{surname:"",given:""};var dbl=["歐陽","司馬","諸葛","上官","司徒","東方","皇甫","尉遲","公孫","慕容","端木","夏侯","令狐"];
+  if(/^[一-鿿]{2,4}$/.test(s)){for(var i=0;i<dbl.length;i++)if(s.indexOf(dbl[i])===0&&s.length>2)return{surname:dbl[i],given:s.slice(2)};return{surname:s.charAt(0),given:s.slice(1)};}
+  var sp=s.split(/\s+/);if(sp.length>=2)return{surname:sp[0],given:sp.slice(1).join(" ")};return{surname:"",given:s};}
 
 /* ===== Step 3 interpreting ===== */
 var interpTimer=null;
@@ -872,8 +1046,9 @@ function viewReportPaid(R,q){
 function viewResult(){
   var R=STATE.result||{};var paid=STATE.paid||R.purchased;var q=STATE.text||"";
   if(paid)return viewReportPaid(R,q);
-  var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span>';
-  if(q)h+='<p style="font-family:var(--font-serif);font-size:15px;color:var(--text-muted);margin:14px 0 6px">你問的是——</p><h1 class="q">「'+esc(q)+'」</h1>';
+  /* 第一眼那句大字（9/9 拍板：Jeffery 親寫，逐字照用；放這一頁不放首頁） */
+  var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">算半天，你就缺風易揚老師一張符令</h1>';
+  if(q)h+='<p style="font-family:var(--font-serif);font-size:14.5px;color:var(--text-muted);margin:6px 0 10px">你問的是「'+esc(q)+'」</p>';
   if(R.summary)h+='<div class="sum-body">'+md(R.summary)+'</div>';
   h+='</div>';
   h+='<div class="banner"><div class="bimg" style="background-image:url(/assets/flow-banner-top.jpg),linear-gradient(135deg,var(--rose-100),var(--clay-200))"></div><div class="cap"><span>慢慢看，不用急。</span></div></div>';
@@ -1063,6 +1238,12 @@ function hexTalismans(paid){
     (guaSym?'<p class="hex-read" style="font-size:24px;letter-spacing:6px;color:var(--accent-press);margin:10px 0 0">'+guaSym+'</p>':'')+
     '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+SOLAR.next+'</b>（'+SOLAR.date+'）。'+SOLAR.line+'</span></div></div>'+
     '</div></div>';
+  /* 病毒環路（9/9 拍板）：把這一卦傳給那個該看到的人——圖（長按存）／連結（零登入收卡頁，縮圖＝同一張卡） */
+  if(HC&&!HC.expired&&STATE.shareUrl)h+='<div class="zf-card ff-share"><span class="eyebrow"><span class="dot"></span>把這一卦傳給那個該看到的人</span>'+
+    '<p class="ff-p" style="margin:8px 0 0;font-size:13.5px">同一張卡、同一個卦。對方不用登入就看得到。</p>'+
+    '<div class="row"><a class="zf-btn secondary md" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("image","thin")+'存成圖片</a>'+
+    '<button class="zf-btn primary md" onclick="shareCard(this)">'+ic("link-simple","thin")+'複製連結</button></div>'+
+    '<div class="note">連結的縮圖＝這張卦符卡</div></div>';
   var els=R.talismanElements||[];
   var cards=R.talismanCards||[];
   /* 優先用後端的五行符令卡（含真模糊圖＋覆蓋狀態）；無則退回純五行名 */
@@ -1171,7 +1352,7 @@ function paywall(paid){
     '<p>這一卦的解方：<strong style="font-weight:500;color:var(--ink-900)">五張靈符</strong>，老師親手畫的，依你這一卦配給你，跟著節氣一張一張處理；再加上<strong style="font-weight:500;color:var(--ink-900)">完整解讀</strong>，讓你知道為什麼。</p>'+
     '<div class="feat"><span>'+ic("check","bold")+'五張靈符·依節氣逐張處理</span><span>'+ic("check","bold")+'完整解讀·得到答案</span><span>'+ic("check","bold")+'紫微七段解讀</span><span>'+ic("check","bold")+'完整節氣運勢圖</span></div>'+
     ((R.hexCard&&R.hexCard.expired)
-      ?'<button class="zf-btn primary lg" onclick="exitFlow()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
+      ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
       :'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>'+
        (R.hexCard?'<p class="veil-alt">這張卦符 '+esc(R.hexCard.valid_until_label)+' 前有效，過了要重新起卦。</p>':''))+
     '<p class="veil-alt">想直接找老師談這件事？<a href="/booking" data-wc-open>預約老師</a></p></div></div>';
@@ -1330,13 +1511,13 @@ function render(){
     return;
   }
   var showHdr=STATE.step!=="cooldown"&&STATE.step!=="interpreting"&&STATE.step!=="repeatwall";
-  var fn={topic:viewTopic,info:viewInfo,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown,repeatwall:viewRepeatWall}[STATE.step]||viewTopic;
+  var fn={topic:viewTopic,cast:viewCast,hex:viewHex,ask:viewAsk,ret:viewRet,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown,repeatwall:viewRepeatWall}[STATE.step]||viewTopic;
   root.innerHTML=(showHdr?header():"")+fn();
-  /* App 內嵌瀏覽器：Google 直接封鎖 OAuth，按鈕就算渲染出來也登不進去 → 不掛 GSI，直接出引導 */
-  if(STATE.step==="info"&&!STATE.userId){
-    if(window.ZFInApp&&window.ZFInApp()){gsiFallback(true);}
-    else{mountGisButton();setTimeout(gsiFallback,3500);}
-  }
+  /* 水鏡：起卦頁掛按住／放開；看到卦頁只呼吸；轉輪鏡掛拖曳；離開就停漣漪計時器 */
+  ffRipStop();
+  if(STATE.step==="cast")ffCastWire();
+  else if(STATE.step==="hex")ffRipStart(false);
+  else if(STATE.step==="ask"&&ASK[STATE.ask]==="year")ffDialWire();
   window.scrollTo(0,0);
   if(STATE.step==="interpreting")startInterp();
   updateFabCta();
@@ -1367,10 +1548,10 @@ function updateFabCta(){
   fabScroll();
 }
 function go(s){STATE.step=s;render()}
-function back(){var map={info:"topic",result:"info"};if(map[STATE.step])go(map[STATE.step])}
+function back(){var map={cast:"topic",hex:"topic",ask:"hex",ret:"hex",result:"topic"};if(map[STATE.step])go(map[STATE.step])}
 function exitFlow(){location.href="/";}
 function openOA(){window.open(LINE_OA_URL,"_blank");}
-function askAnother(){STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;STATE.logId="";STATE.repeatWall=null;go("topic");}
+function askAnother(){STATE.cast=null;STATE.ask=0;STATE.k="";STATE.shareUrl="";STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;STATE.logId="";STATE.repeatWall=null;go("topic");}
 function showInfoErr(msg){var e=document.getElementById("infoErr");if(e){e.textContent=msg;e.classList.remove("hidden");e.scrollIntoView({behavior:"smooth",block:"center"});}else{alert(msg);}}
 
 /* ===== Google SSO auth ===== */
@@ -1392,97 +1573,93 @@ function checkEmailLive(email){
       if(d.verdict==="bad")showInfoErr("這個 Email 好像有誤（查無此信箱），請再確認一次。");
     }).catch(function(){});
 }
-document.addEventListener("focusout",function(ev){var t=ev.target;if(t&&t.id==="inEmail")checkEmailLive(t.value.trim());});
+document.addEventListener("focusout",function(ev){var t=ev.target;if(t&&t.id==="ffEmail")checkEmailLive(t.value.trim());});
 function validPhoneTW(p){return /^09\d{8}$/.test((p||"").replace(/[\s-]/g,""));}
 function phoneE164(p){p=(p||"").replace(/[\s-]/g,"");return p.indexOf("0")===0?"+886"+p.slice(1):p;}
 
-/* ===== 表單收集 ===== */
-function gatherInfo(){
-  function v(id){var el=document.getElementById(id);return el?el.value.trim():"";}
-  var surname=v("inSurname"),given=v("inGiven"),phone=v("inPhone").replace(/[\s-]/g,""),email=v("inEmail");
-  var y=v("inYear"),m=v("inMonth"),d=v("inDay"),t=v("shichen");
-  if(!surname)return{err:"請先輸入姓氏。"};
-  if(!given)return{err:"請先輸入名字。"};
-  if(!y||!m||!d)return{err:"請先選擇你的出生日期。"};
-  if(!t)return{err:"請選擇出生時間（不確定可勾選午時）。"};
-  if(phone&&!validPhoneTW(phone))return{err:"請輸入正確的手機號碼（例如 0912345678）。"};
-  if(!validGmail(email))return{err:"Email 目前僅接受 @gmail.com 信箱。"};
-  if(EMAILV.email===email&&EMAILV.verdict==="bad")return{err:"這個 Email 好像有誤（查無此信箱），請再確認一次。"};
-  return{surname:surname,given:given,phone:phone,email:email,dob:y+"-"+pad2(m)+"-"+pad2(d)+" "+t};
-}
-
-/* ===== 分靈體 prefetch（best-effort）===== */
-function soulPrefetch(){
-  var btn=document.getElementById("soulBtn");if(!btn||STATE.soulConfirmed)return;
-  if(!STATE.userId){showInfoErr("請先用 Google 登入（表單上方），分靈體才能認得你。");return;}
-  var info=gatherInfo();if(info.err){showInfoErr(info.err);return;}
-  btn.disabled=true;btn.innerHTML=ic("circle-notch")+'凝聚中…';
-  fetch(API.prefetch,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
-    body:JSON.stringify({google_sub:STATE.userId,date_of_birth:info.dob,last_name:info.surname,first_name:info.given})})
-   .then(function(r){return r.json();}).then(function(d){
-     STATE.soulConfirmed=!!d.success;
-     btn.disabled=false;btn.innerHTML=d.success?ic("check","bold")+'分靈體已上線':ic("sparkle")+'先認識它';
-   }).catch(function(){btn.disabled=false;btn.innerHTML=ic("sparkle")+'再試一次';});
-}
-
-/* ===== 送出占卜 → interpreting → 輪詢 ===== */
-function submitDivination(){
+/* ===== 送出（去表單化：零登入，靠 log token 看結果）→ interpreting → 輪詢 ===== */
+function submitFree(){
   if(STATE.submitting)return;
-  if(!STATE.userId){showInfoErr("請先用 Google 登入（表單上方），我才能把這次的解讀保留給你。");return;}
-  if(!STATE.text){showInfoErr("請先回到上一步，選一句想問的話。");return;}
-  var info=gatherInfo();if(info.err){showInfoErr(info.err);return;}
-  STATE.userName={surname:info.surname,given:info.given};
-  STATE.submitting=true;STATE.logId="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;
-  go("interpreting");
+  if(!STATE.cast||!STATE.cast.code){showFfErr("先回到水鏡起一卦。");go("cast");return;}
+  if(!STATE.text){showFfErr("請先回到上一步，選一句想問的話。");go("topic");return;}
+  var d=STATE.data,payload;
+  if(STATE.ret&&STATE.retInfo){
+    var r=STATE.retInfo;
+    payload={date_of_birth:r.date_of_birth||"",last_name:r.last_name||"",first_name:r.first_name||"",gender:r.gender||"",email:r.email||""};
+    STATE.userName={surname:r.last_name||"",given:r.first_name||""};
+  }else{
+    if(!d.month||!d.day||!d.gender||!validGmail(d.email)){showFfErr("老師還有幾題沒問完。");go("ask");return;}
+    var nm=splitName(d.name);
+    payload={date_of_birth:d.year+"-"+pad2(d.month)+"-"+pad2(d.day)+" "+SHI[d.shi][2],last_name:nm.surname,first_name:nm.given,gender:d.gender,email:d.email};
+    STATE.userName={surname:nm.surname,given:nm.given};
+  }
+  payload.free_flow=true;payload.question=STATE.text;payload.divination_method="雙占卜";
+  payload.cast_code=STATE.cast.code;payload.cast_at=STATE.cast.castAt;
+  if(STATE.retLog&&STATE.retToken){payload.k_log_id=Number(STATE.retLog);payload.k=STATE.retToken;}
+  if(STATE.ref)payload.ref_log_id=Number(STATE.ref)||undefined;
   var edmTok="";try{edmTok=localStorage.getItem("winds_edm_token")||"";}catch(e){}
-  fetch(API.submit,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
-    body:JSON.stringify({google_sub:STATE.userId,question:STATE.text,divination_method:"雙占卜",
-      date_of_birth:info.dob,last_name:info.surname,first_name:info.given,
-      gender:STATE.gender||((STATE.prefill&&STATE.prefill.gender)||""),phone:phoneE164(info.phone),email:info.email,
-      edm_token:edmTok||undefined})})
+  if(edmTok)payload.edm_token=edmTok;
+  STATE.submitting=true;STATE.logId="";STATE.k="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;
+  go("interpreting");
+  fetch(API.submit,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
    .then(function(resp){
      if(!resp.ok){return resp.json().catch(function(){return{};}).then(function(d){
+       if(d.recast){STATE.submitting=false;STATE.cast=null;go("cast");setTimeout(function(){showFfErr(d.message||"回到水鏡重新按一次。");},60);return null;}
        if(d.repeat_wall){STATE.repeatWall=d;STATE.logId=d.last_log_id||"";STATE.submitting=false;go("repeatwall");return null;}
        if(resp.status===429||d.blocked){STATE.cooldown={message:d.message,available_at:d.available_at,last_log_id:d.last_log_id||null};STATE.submitting=false;go("cooldown");return null;}
-       if(d.error==="phone_duplicate"||d.error==="email_duplicate"){STATE.submitting=false;go("info");setTimeout(function(){showInfoErr(d.message||"此聯絡資料已被使用。");},60);return null;}
-       throw new Error(d.message||("HTTP "+resp.status));
+       if(d.error==="email_duplicate"){STATE.submitting=false;STATE.ret=false;STATE.ask=ASK.length-1;go("ask");setTimeout(function(){showFfErr(d.message||"這個信箱已被其他帳號使用。");},60);return null;}
+       throw new Error(d.message||d.error||("HTTP "+resp.status));
      });}
      return resp.json();
    })
    .then(function(data){
      if(!data)return;
      if(data.blocked){STATE.cooldown={message:data.message,available_at:data.available_at,last_log_id:data.last_log_id||null};STATE.submitting=false;go("cooldown");return;}
-     if(data.success===false){STATE.submitting=false;go("info");setTimeout(function(){showInfoErr(data.message||"發生錯誤，請再試一次。");},60);return;}
+     if(data.success===false){STATE.submitting=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr(data.message||"發生錯誤，請再試一次。");},60);return;}
+     if(data.k){STATE.k=data.k;STATE.logId=String(data.log_id||"");try{localStorage.setItem("winds_ff_log",STATE.logId);localStorage.setItem("winds_ff_k",STATE.k);}catch(e){}}
      if(data.pending){pollStatus(data.log_id||"");return;}
      finishResult(data);
    })
-   .catch(function(e){STATE.submitting=false;go("info");setTimeout(function(){showInfoErr("送出失敗："+e.message);},60);});
+   .catch(function(e){STATE.submitting=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr("送出失敗："+e.message);},60);});
 }
 
 function pollStatus(logId){
   var attempts=0,max=23;
+  var ident=STATE.k?("&k="+encodeURIComponent(STATE.k)):("&google_sub="+encodeURIComponent(STATE.userId||""));
   var timer=setInterval(function(){
     attempts++;
-    fetch(API.status+"?log_id="+encodeURIComponent(logId)+"&google_sub="+encodeURIComponent(STATE.userId),{headers:authHeaders()})
+    fetch(API.status+"?log_id="+encodeURIComponent(logId)+ident,{headers:authHeaders()})
      .then(function(r){return r.json();}).then(function(d){
        if(d.ready&&d.summary){clearInterval(timer);finishResult(d,logId);}
-       else if(attempts>=max){clearInterval(timer);STATE.submitting=false;go("info");setTimeout(function(){showInfoErr("占卜仍在進行，結果會透過 LINE 推送給你，請留意通知 🔔");},60);}
-     }).catch(function(){if(attempts>=max){clearInterval(timer);STATE.submitting=false;go("info");setTimeout(function(){showInfoErr("連線中斷，結果會透過 LINE 推送給你。");},60);}});
+       else if(attempts>=max){clearInterval(timer);STATE.submitting=false;go(STATE.k?"hex":"info");setTimeout(function(){showFfErr("老師還在寫，稍後再回來這一頁看。");},60);}
+     }).catch(function(){if(attempts>=max){clearInterval(timer);STATE.submitting=false;go(STATE.k?"hex":"info");setTimeout(function(){showFfErr("連線中斷，稍後再回來這一頁看。");},60);}});
   },4000);
 }
 
 function finishResult(d,logId){
   STATE.submitting=false;
   STATE.logId=d.log_id||d.reading_id||logId||"";
+  STATE.shareUrl=d.share_url||"";
   if(d.next_action)STATE.talismanName=d.next_action.talisman_name||STATE.talismanName;
   STATE.result=buildResult(d);
   STATE.paid=!!d.purchased;
   /* 回看模式（會員中心 ?log_id=）沒走表單，userName 用後端回的真名補上，姓名學才有得算 */
   if(!STATE.userName&&d.client_last_name)STATE.userName={surname:d.client_last_name,given:d.client_first_name||""};
+  if(!STATE.userName&&d.client_first_name)STATE.userName={surname:"",given:d.client_first_name||""};
   go("result");
   if(STATE.paid)loadFullContent();
   if(STATE.logId)loadRecs(STATE.logId);
   loadNaming();
+}
+
+/* 把這一卦傳給那個該看到的人：連結＝收卡頁（零登入、縮圖＝同一張卦符卡） */
+function shareCard(btn){
+  var url=STATE.shareUrl;if(!url)return;
+  var R=STATE.result||{};var text="有人替你起了一卦——"+(R.hexName||"")+"。找風問幸福 · 風易揚老師親繪";
+  function ok(){if(btn){var o=btn.innerHTML;btn.innerHTML=ic("check","bold")+'已複製連結';setTimeout(function(){btn.innerHTML=o;},2200);}}
+  if(navigator.share){navigator.share({title:"有人替你起了一卦",text:text,url:url}).catch(function(){if(navigator.clipboard)navigator.clipboard.writeText(url).then(ok);});return;}
+  if(navigator.clipboard){navigator.clipboard.writeText(url).then(ok);return;}
+  prompt("複製這個連結傳給對方：",url);
 }
 
 /* ===== 姓名學（無狀態端點，安全；載入後就地換 #nameMount）===== */
@@ -1520,7 +1697,7 @@ function createOrder(){
   if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'建立訂單中…';}
   var _pressToken="";try{_pressToken=localStorage.getItem("winds_press_token")||"";}catch(e){}
   fetch(API.order,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
-    body:JSON.stringify({google_sub:STATE.userId,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken})})
+    body:JSON.stringify({google_sub:STATE.userId,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken,k:STATE.k||undefined})})
    .then(function(r){return r.json();}).then(function(d){
      STATE.ordering=false;
      if(d.success&&d.free_unlock){
@@ -1567,10 +1744,10 @@ function doPrefill(){
    .then(function(r){return r.json();}).then(function(d){
      if(d&&d.error==="maintenance"){location.href="/maintenance.html";return;}
      if(!d||!d.found)return;
-     STATE.prefill={last_name:d.last_name||"",first_name:d.first_name||"",date_of_birth:d.date_of_birth||"",phone:d.phone||"",email:d.email||"",gender:d.gender||"",location:d.location||""};
-     if(d.gender&&!STATE.gender)STATE.gender=d.gender;
-     if(d.personality_profile)STATE.soulConfirmed=true;
-     if(STATE.step==="info")render();
+     /* Google 老用戶：資料還在就走「回訪一行」，不再看表單 */
+     var em=String(d.email||""),at=em.indexOf("@");
+     if(d.date_of_birth){STATE.retInfo={last_name:d.last_name||"",first_name:d.first_name||"",date_of_birth:d.date_of_birth||"",gender:d.gender||"",email:em,email_masked:at>0?em.slice(0,Math.min(2,at))+"***"+em.slice(at):""};STATE.ret=true;}
+     if(STATE.step==="hex")render();
    }).catch(function(){});
 }
 
@@ -1645,23 +1822,33 @@ function boot(){
   var pressT=params.get("pt");if(pressT){try{localStorage.setItem("winds_press_token",pressT);}catch(e){}}
   var saved="";try{saved=localStorage.getItem("winds_google_token")||"";}catch(e){}
   if(saved&&!adoptGoogleToken(saved)){try{localStorage.removeItem("winds_google_token");}catch(e){}}
-  var rid=params.get("log_id"),pending="";try{pending=sessionStorage.getItem("winds_pending_log_id")||"";}catch(e){}
+  var rid=params.get("log_id"),kk=params.get("k")||"",ret=params.get("ret")||"",ref=params.get("ref")||"",pending="";try{pending=sessionStorage.getItem("winds_pending_log_id")||"";}catch(e){}
+  if(ref)STATE.ref=ref;   /* 從別人的卦符卡收卡頁「我也起一卦」進來 */
+  /* 去表單化：?log_id=&k= 用 log token 看結果，零登入（提醒信、付完款回跳都走這條） */
+  if(rid&&kk){STATE.k=kk;STATE.reportMode=true;STATE.step="interpreting";render();pollStatus(rid);return;}
+  if(!kk&&rid){try{var sk=localStorage.getItem("winds_ff_log")||"",skk=localStorage.getItem("winds_ff_k")||"";if(sk===String(rid)&&skk)STATE.k=skk;}catch(e){}}
   if(rid||pending){
-    if(pending){try{sessionStorage.removeItem("winds_pending_log_id");}catch(e){}}
+    if(pending){try{pending_k=localStorage.getItem("winds_ff_log")===pending?(localStorage.getItem("winds_ff_k")||""):"";if(pending_k)STATE.k=pending_k;}catch(e){}try{sessionStorage.removeItem("winds_pending_log_id");}catch(e){}}
     STATE.reportMode=true;   // 完整報告：回訪既有占卜 → 結果頁套站台 Nav/Footer
     STATE.step="interpreting";render();pollStatus(rid||pending);
-    if(!STATE.userId)initGoogleGIS();
+    if(!STATE.userId&&!STATE.k)initGoogleGIS();
     return;
   }
-  if(STATE.userId)doPrefill();
+  /* 回訪一行：提醒信 ?ret=<卦>&k=<token>，或同一支手機上次留過（localStorage；FB 內建瀏覽器可能關了就清，清了就照常問） */
+  var rl=ret,rk=kk;if(!(rl&&rk)){try{rl=localStorage.getItem("winds_ff_log")||"";rk=localStorage.getItem("winds_ff_k")||"";}catch(e){}}
+  if(rl&&rk){STATE.retLog=rl;STATE.retToken=rk;
+    fetch(API.prefill+"?ret="+encodeURIComponent(rl)+"&k="+encodeURIComponent(rk)).then(function(r){return r.json();}).then(function(d){
+      if(d&&d.found){STATE.retInfo=d;STATE.ret=true;if(STATE.step==="hex")render();}
+    }).catch(function(){});}
+  else if(STATE.userId)doPrefill();
   render();
-  initGoogleGIS();
 }
+var pending_k="";
 
 /* 對外（onclick handlers 需 global）*/
-window.pickDir=pickDir;window.pickSub=pickSub;window.pickQ=pickQ;window.toggleNoon=toggleNoon;window.pickGender=pickGender;
+window.pickDir=pickDir;window.pickSub=pickSub;window.pickQ=pickQ;
 window.go=go;window.back=back;window.exitFlow=exitFlow;window.openOA=openOA;window.askAnother=askAnother;
-window.submitDivination=submitDivination;window.soulPrefetch=soulPrefetch;window.createOrder=createOrder;window.shareResult=shareResult;window.loadFullContent=loadFullContent;window.unlockStepPay=unlockStepPay;
+window.submitFree=submitFree;window.ffSet=ffSet;window.ffNext=ffNext;window.ffPrev=ffPrev;window.ffNextState=ffNextState;window.ffEditRet=ffEditRet;window.shareCard=shareCard;window.createOrder=createOrder;window.shareResult=shareResult;window.loadFullContent=loadFullContent;window.unlockStepPay=unlockStepPay;
 window.STATE=STATE;
 
 boot();

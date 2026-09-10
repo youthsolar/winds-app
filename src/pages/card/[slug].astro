@@ -1,0 +1,71 @@
+---
+// 收卡頁「有人替你起了一卦」（2026-09-10 去表單化・病毒環路第 4 步；DS ui_kits/free-flow/page.jsx VReceived）
+// 🔴 零登入：同一張卡、同一個卦、同一句卦辭；底下「我也起一卦」回到起卦第 1 步（帶 ref＝來源卡，記點用）。
+// 網址 /card/{log_id}-{卦符卡 token}；資料即時讀 worker /card-info（它同時記 link_hits '/card'）。
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const API = 'https://api.winds.tw';
+const slug = String(Astro.params.slug || '');
+const m = slug.match(/^(\d{1,10})-([a-f0-9]{20})$/);
+let data: { id: number; hex_name: string; line: string; image_url: string; expired: boolean; valid_until_label: string; from_name: string } | null = null;
+if (m) {
+  try {
+    const r = await fetch(`${API}/card-info?id=${m[1]}&t=${m[2]}`, {
+      headers: {
+        Accept: 'application/json',
+        // 記點要用訪客的 UA／Referer（不然全記成 worker 自己）
+        'User-Agent': Astro.request.headers.get('user-agent') || '',
+        Referer: Astro.request.headers.get('referer') || '',
+      },
+    });
+    const j = await r.json() as any;
+    if (j && j.success) data = j;
+  } catch { data = null; }
+}
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+if (!data) Astro.response.status = 404;
+
+const from = data && data.from_name ? data.from_name : '有人';
+const castUrl = data ? `/divination/?ref=${data.id}&utm_source=card&utm_medium=share&utm_content=${data.id}` : '/divination/';
+const title = data ? `${from}把這一卦傳給你 · ${data.hex_name} · 找風問幸福` : '有人替你起了一卦 · 找風問幸福';
+const desc = data ? `${data.hex_name}。${data.line}${data.line ? '。' : ''}風易揚老師親繪的卦符，${data.expired ? '這一卦已過期' : data.valid_until_label + ' 前有效'}。` : '找風問幸福 · 風易揚老師親繪';
+---
+<BaseLayout title={title} description={desc} ogImage={data ? data.image_url : undefined} noindex={true}>
+  <main class="rc-wrap">
+    {data ? (
+      <div class="rc">
+        <span class="rc-eyebrow"><i></i>有人替你起了一卦</span>
+        <h1 class="rc-h">{from}把這一卦傳給你</h1>
+        <p class="rc-p">{data.hex_name}。{data.line}{data.line ? '。' : ''}</p>
+        <div class="rc-card">
+          <img src={data.image_url} alt={`${data.hex_name} 卦符`} width="1080" height="1920" decoding="async" />
+        </div>
+        <div class={`rc-exp${data.expired ? ' off' : ''}`}>{data.expired ? '這一卦已過期，重新起一卦' : `這張卦符 ${data.valid_until_label} 前有效`}</div>
+        <a class="zf-btn primary lg rc-cta" href={castUrl}><i class="ph-thin ph-sparkle"></i>我也起一卦</a>
+        <p class="rc-foot">找風問幸福 · 風易揚老師親繪</p>
+      </div>
+    ) : (
+      <div class="rc">
+        <span class="rc-eyebrow"><i></i>找不到這一卦</span>
+        <h1 class="rc-h">這張卦符的連結不完整</h1>
+        <p class="rc-p">請對方再傳一次，或你自己起一卦。</p>
+        <a class="zf-btn primary lg rc-cta" href="/divination/"><i class="ph-thin ph-sparkle"></i>我也起一卦</a>
+      </div>
+    )}
+  </main>
+</BaseLayout>
+
+<style>
+  .rc-wrap{max-width:560px;margin:0 auto;padding:28px 18px 64px}
+  .rc-eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-sans);font-size:11.5px;letter-spacing:.02em;color:var(--accent-press)}
+  .rc-eyebrow i{width:5px;height:5px;border-radius:999px;background:var(--accent-press)}
+  .rc-h{font-family:var(--font-serif);font-weight:500;font-size:22px;line-height:1.35;margin:8px 0 6px;color:var(--text-primary);text-wrap:balance}
+  .rc-p{font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.8;color:var(--text-secondary);margin:2px 0 12px}
+  .rc-card{width:min(240px,64vw);margin:14px auto 0;aspect-ratio:9/16;border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm);background:var(--water-deep)}
+  .rc-card img{display:block;width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default}
+  .rc-exp{font-family:var(--font-sans);font-size:12px;color:var(--caution);letter-spacing:.04em;margin:10px 0 0;text-align:center}
+  .rc-exp.off{color:var(--text-muted)}
+  .rc-cta{display:flex;width:100%;box-sizing:border-box;margin-top:18px;gap:8px}
+  .rc-foot{text-align:center;font-family:var(--font-serif);font-weight:300;font-size:12.5px;color:var(--text-secondary);margin:10px 0 0}
+</style>

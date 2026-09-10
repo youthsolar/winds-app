@@ -63,6 +63,10 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
     --ink-on-photo:#F6EFE6; --frost-on-accent:rgba(255,253,248,0.22); --frost-btn:rgba(255,253,248,0.86); --shadow-sheet-up:0 -8px 32px rgba(70,52,40,0.18);
     --el-wood-bg:var(--tint-sage-disc); --el-wood-tx:var(--sage-500); --el-fire-bg:var(--rose-100); --el-fire-tx:var(--rose-500);
     --el-earth-bg:var(--tint-clay-hi); --el-earth-tx:#8B6844; --el-metal-bg:#F4EDD8; --el-metal-tx:#7A6130; --el-water-bg:#E2EBF0; --el-water-tx:#3A5F7A;
+    /* 水鏡（DS tokens-additions 2026-09-09）：鏡面＝五行水色、黑漆鏡緣＋細金邊；兩主題皆不翻（鏡子是實物） */
+    --el-water-hi:#7E9DB3; --el-water-deep:#223A4C;
+    --water-hi:#7E9DB3; --water-mid:#3A5F7A; --water-deep:#223A4C; --water-glint:rgba(236,244,250,0.55);
+    --mirror-rim:#2E2823; --mirror-rim-hi:#4A4038; --mirror-gold:#7A6130; --mirror-ink:#F3F7FA;
     /* fonts */
     --font-serif: "Noto Serif TC", "Songti TC", serif;
     /* typography scale（DS tokens/typography.css）*/
@@ -210,6 +214,9 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
   --el-earth-bg: #382E24;  --el-earth-tx: #C9A878;
   --el-metal-bg: #38321F;  --el-metal-tx: #CDB678;
   --el-water-bg: #283036;  --el-water-tx: #9DB0BC;
+  /* 水鏡 token 不隨主題翻：釘回明亮版原值 */
+  --water-hi:#7E9DB3; --water-mid:#3A5F7A; --water-deep:#223A4C; --water-glint:rgba(236,244,250,0.55);
+  --mirror-rim:#2E2823; --mirror-rim-hi:#4A4038; --mirror-gold:#7A6130; --mirror-ink:#F3F7FA;
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.30);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.32);
   --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.32), 0 8px 24px rgba(0, 0, 0, 0.42);
