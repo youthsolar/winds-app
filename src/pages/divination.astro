@@ -866,7 +866,7 @@ function viewAsk(){
   var ctl="";
   if(k==="year")ctl=ffMirror("dial",{year:d.year,size:216});
   if(k==="month"){ctl='<div class="ff-petals">';for(var m=1;m<=12;m++){var a=(m-3)*30*Math.PI/180;var x=100+78*Math.cos(a),yv=100+78*Math.sin(a);ctl+='<button type="button" class="'+(d.month===m?'on':'')+'" style="left:'+x.toFixed(1)+'px;top:'+yv.toFixed(1)+'px" onclick="ffSet(\'month\','+m+')">'+m+'</button>';}ctl+='<div class="c">'+(d.month?d.month+' 月':'—')+'<small>國曆</small></div></div>';}
-  if(k==="day"){ctl='<div class="ff-days">';for(var dd=1;dd<=31;dd++)ctl+='<button type="button" class="'+(d.day===dd?'on':'')+'" onclick="ffSet(\'day\','+dd+')">'+dd+'</button>';ctl+='</div>';}
+  if(k==="day"){var N=ffDaysIn(d.year,d.month);ctl='<div class="ff-days">';for(var dd=1;dd<=N;dd++)ctl+='<button type="button" class="'+(d.day===dd?'on':'')+'" onclick="ffSet(\'day\','+dd+')">'+dd+'</button>';ctl+='</div><div class="ff-hint" style="color:var(--text-muted)">'+d.year+' 年 '+d.month+' 月有 '+N+' 天</div>';}
   if(k==="shi"){
     var pts='';for(var i=0;i<12;i++){var day=i>=3&&i<=9,x2,y2;if(day){var ang=Math.PI-((i-3)/6)*Math.PI;x2=170-118*Math.cos(ang);y2=112-118*Math.sin(ang);}else{var kk=[10,11,0,1,2].indexOf(i);x2=170-104+kk*52;y2=138;}var on=d.shi===i;
       pts+='<g class="dot'+(on?' on':'')+'" onclick="ffSet(\'shi\','+i+')">'+(on?'<circle cx="'+x2+'" cy="'+y2+'" r="18" class="halo"/>':'')+'<circle cx="'+x2+'" cy="'+y2+'" r="'+(on?12:9)+'"/><text x="'+x2+'" y="'+(y2+3.5)+'">'+SHI[i][0]+'</text></g>';}
@@ -884,7 +884,9 @@ function viewAsk(){
     '<div class="ff-next">'+(STATE.ask>0?'<button class="zf-btn secondary sm" onclick="ffPrev()">上一題</button>':'')+
     '<button class="zf-btn primary sm" id="ffNext" '+(canNext?'':'disabled')+' onclick="ffNext()">'+(STATE.ask===ASK.length-1?'排命盤':'下一題')+'</button></div></div></main>';
 }
-function ffSet(key,val){STATE.data[key]=val;render();}
+/* 該月有幾天（閏年跟著年份走）：日子只列到月底；改了年或月，原本選的日子超過月底就清掉 */
+function ffDaysIn(y,m){return new Date(y||1990,m||1,0).getDate();}
+function ffSet(key,val){STATE.data[key]=val;var d=STATE.data;if((key==="month"||key==="year")&&d.day&&d.day>ffDaysIn(d.year,d.month))d.day=null;render();}
 function ffNextState(){var b=document.getElementById("ffNext");if(!b)return;var d=STATE.data,k=ASK[STATE.ask];var ok=!((k==="email"&&!validGmail(d.email)));b.disabled=!ok;var h=document.getElementById("ffEmailHint"),inp=document.getElementById("ffEmail");if(h){var bad=!!d.email&&!validGmail(d.email);h.textContent=bad?'目前只收 Gmail 信箱，再看一下拼法':'';if(inp)inp.classList.toggle("bad",bad);}}
 function ffPrev(){if(STATE.ask>0){STATE.ask--;render();}}
 function ffNext(){
@@ -897,7 +899,7 @@ function ffNext(){
 function ffDialWire(){
   var m=document.getElementById("ffMirror");if(!m||!m.classList.contains("dial"))return;
   var sx=null,acc=0,moved=0;
-  function setY(y){y=Math.max(1940,Math.min(new Date().getFullYear(),y));if(y===STATE.data.year)return;STATE.data.year=y;var t=m.querySelector(".ff-ticks");if(t)t.outerHTML=ffDialTicks(m.clientWidth-20,y);var e=document.getElementById("ffDialY");if(e)e.textContent=y;var mm=document.getElementById("ffDialM");if(mm)mm.textContent="民國 "+(y-1911);}
+  function setY(y){y=Math.max(1940,Math.min(new Date().getFullYear(),y));if(y===STATE.data.year)return;STATE.data.year=y;if(STATE.data.day&&STATE.data.day>ffDaysIn(y,STATE.data.month))STATE.data.day=null;var t=m.querySelector(".ff-ticks");if(t)t.outerHTML=ffDialTicks(m.clientWidth-20,y);var e=document.getElementById("ffDialY");if(e)e.textContent=y;var mm=document.getElementById("ffDialM");if(mm)mm.textContent="民國 "+(y-1911);}
   m.addEventListener("pointerdown",function(e){sx=e.clientX;acc=0;moved=0;try{m.setPointerCapture(e.pointerId);}catch(x){}});
   m.addEventListener("pointermove",function(e){if(sx===null)return;var dx=e.clientX-sx;sx=e.clientX;acc+=dx;moved+=Math.abs(dx);var step=Math.trunc(acc/9);if(step){acc-=step*9;setY(STATE.data.year+step);}});
   m.addEventListener("pointerup",function(e){if(sx===null)return;if(moved<4){var r=m.getBoundingClientRect();setY(STATE.data.year+((e.clientX-r.left)<r.width/2?-1:1));}sx=null;});
