@@ -1256,13 +1256,12 @@ function hexTalismans(paid){
     h+='<div class="tal5-grid">'+list.map(function(c,i){
       var el=c.element;
       /* 未付款＋該位次已上傳真圖 → 顯示真模糊符令；否則退回符號佔位（同樣鎖住外觀） */
-      /* 付費後照 delivery 頁同一套逐節氣解鎖：step<=unlock_step 才給真圖（token 閘控），其餘鎖住可加購 */
+      /* 付費後照 delivery 頁同一套逐節氣自動開：step<=unlock_step 才給真圖（token 閘控），其餘鎖住等節氣（9/11 起不再加購） */
       var F=STATE.full,tok=STATE.fullToken;
       var step=i+1;
       var ustep=(paid&&F)?Math.max(1,Number(F.unlock_step)||1):0;
       var showClear=(paid&&F&&tok&&step<=ustep);
       var days=(paid&&F)?daysUntilUnlock(F.paid_at||F.purchased_at,step):null;
-      var canUnlock=(paid&&F&&step>ustep&&days===0);
       var showReal=(!paid&&c.available&&c.blur_url);
       var inner=showClear
         ? '<img src="'+esc(WORKER_API+"/card-image/"+tok+"/"+step)+'?v='+Date.now()+'" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" onclick="window.open(this.src,\'_blank\')">'
@@ -1272,14 +1271,12 @@ function hexTalismans(paid){
       var fog='';
       if(!paid)fog='<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span></div>';
       else if(!showClear)fog='<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span>'+
-        (canUnlock
-          ?'<button class="zf-btn primary sm" onclick="unlockStepPay('+step+')">'+ic("sparkle")+'解鎖 · NT$ '+(STATE.unlockPrice||100)+'</button>'
-          :(days!=null?'<span class="fu-wait">'+days+' 天後可解鎖</span>':''))+'</div>';
+        (days!=null?'<span class="fu-wait">'+(days>0?days+' 天後自動開':'節氣到了，重新整理就開')+'</span>':'')+'</div>';
       return '<div class="tal5"><div style="position:relative">'+tframe(inner,false,EL_GLOW[String(el).slice(0,1)])+fog+'</div>'+
         '<div class="nm">'+(SOLAR.seq[i]||SOLAR.next)+' · '+esc(el)+'</div>'+
-        (paid?'<div class="nm" style="margin-top:2px;color:var(--text-muted)">'+(showClear?'✓ 已解鎖':'第 '+step+' 個節氣解鎖')+'</div>':'')+'</div>';
+        (paid?'<div class="nm" style="margin-top:2px;color:var(--text-muted)">'+(showClear?'✓ 已經開了':'第 '+step+' 個節氣自動開')+'</div>':'')+'</div>';
     }).join("")+'</div>';
-    if(paid)h+='<div style="text-align:center;margin-top:16px;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)">'+ic("download-simple")+'每逢節氣解鎖一張，依序設成手機桌布——點已解鎖的靈符可開大圖儲存</div>';
+    if(paid)h+='<div style="text-align:center;margin-top:16px;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)">'+ic("download-simple")+'每逢節氣自動開一張，開了會通知你回來拿——點已開的靈符可開大圖儲存</div>';
   }
   return h;
 }
@@ -1305,7 +1302,6 @@ function loadFullContent(retry){
   var m=(R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/);
   if(!m)return;
   STATE.fullLoading=true;STATE.fullError=false;STATE.fullGenerating=false;STATE.fullToken=m[1];
-  fetch(WORKER_API+"/config").then(function(r){return r.json();}).then(function(c){if(c&&c.unlock_price)STATE.unlockPrice=Number(c.unlock_price)||100;}).catch(function(){});
   fetch(WORKER_API+"/delivery-content?token="+m[1],{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
     STATE.fullLoading=false;
     if(d&&d.ok&&d.hexagram_content){STATE.full=d;STATE.fullGenerating=false;}
@@ -1319,20 +1315,12 @@ function loadFullContent(retry){
     if(STATE.step==="result")render();
   }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result")render();});
 }
-/* 量能靈符逐節氣解鎖（FI-SYNC：機制與 liff/delivery.html 一致——每 14 天（節氣）一張、到期可 NT$100 解鎖；2026-08-16 拍板 14 天制，與後端 payment.ts 對齊） */
+/* 量能靈符逐節氣自動開（FI-SYNC：機制與 liff/delivery.html 一致——每 14 天（節氣）一張、到期自動開＋通知；9/11 起不收 NT$100，與後端 talisman-gate.ts 對齊） */
 function daysUntilUnlock(paidAt,step){
   var base=new Date(paidAt);
   var unlockDate=new Date(base.getTime()+(step-1)*14*24*60*60*1000);
   var diff=Math.ceil((unlockDate-new Date())/(1000*60*60*24));
   return diff>0?diff:0;
-}
-function unlockStepPay(step){
-  fetch(WORKER_API+"/liff-unlock-order",{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
-    body:JSON.stringify({delivery_token:STATE.fullToken,step:step})})
-   .then(function(r){return r.json()}).then(function(d){
-     if(d.ok===false){alert(d.error||"目前無法解鎖");}
-     else if(d.pay_url){location.href=d.pay_url;}
-   }).catch(function(){alert("網路錯誤，請稍後再試");});
 }
 function paywall(paid){
   var R=STATE.result||{};
@@ -1851,7 +1839,7 @@ var pending_k="";
 /* 對外（onclick handlers 需 global）*/
 window.pickDir=pickDir;window.pickSub=pickSub;window.pickQ=pickQ;
 window.go=go;window.back=back;window.exitFlow=exitFlow;window.openOA=openOA;window.askAnother=askAnother;
-window.submitFree=submitFree;window.ffSet=ffSet;window.ffNext=ffNext;window.ffPrev=ffPrev;window.ffNextState=ffNextState;window.ffEditRet=ffEditRet;window.shareCard=shareCard;window.createOrder=createOrder;window.shareResult=shareResult;window.loadFullContent=loadFullContent;window.unlockStepPay=unlockStepPay;
+window.submitFree=submitFree;window.ffSet=ffSet;window.ffNext=ffNext;window.ffPrev=ffPrev;window.ffNextState=ffNextState;window.ffEditRet=ffEditRet;window.shareCard=shareCard;window.createOrder=createOrder;window.shareResult=shareResult;window.loadFullContent=loadFullContent;
 window.STATE=STATE;
 
 boot();
