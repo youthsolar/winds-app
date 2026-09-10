@@ -1,0 +1,291 @@
+---
+// 老師預約後台（內部）— 2026-09-10 SB 停付當晚第一版；之後照老師回饋改。
+// 入口：/teacher-booking；密碼閘＝老師共用密碼（localStorage winds_teacher_secret，同老師排盤工具，請求帶 X-Teacher-Secret）
+// 資料：api.winds.tw/teacher/catalog（老師／項目／地點）／bookings（預約＋擋時間＋班表）／blocks／workday／bookings/{id}
+// 視覺：殼照 crm.astro（page-header／auth-gate），元件用 ds.css zf-*；列表列為本頁專屬，值走 DS token。
+import BaseLayout from '../layouts/BaseLayout.astro';
+const pageTitle = '老師預約後台｜找風問幸福（內部）';
+---
+
+<BaseLayout title={pageTitle} description="老師預約後台" ogType="website" noindex={true}>
+  <main class="tb-main">
+    <header class="page-header">
+      <span class="eyebrow"><span class="dot"></span>老師專用 · 內部</span>
+      <h1>預約後台</h1>
+      <p class="lede">看今天和這週誰來、改期、擋掉不想被約的時間、標記聯繫狀態。客人約到的空檔就是照這裡算的。</p>
+    </header>
+
+    <section class="auth-gate" id="auth-gate" hidden>
+      <div class="auth-card">
+        <h2>請輸入老師密碼</h2>
+        <p class="auth-desc">與老師排盤工具同一組密碼。密碼由負責人提供，請勿外流。</p>
+        <form id="pwd-form" style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
+          <input class="zf-input" type="password" id="pwd-input" autocomplete="off" placeholder="老師密碼" style="text-align:center" />
+          <button type="submit" class="zf-btn primary md full">進入後台</button>
+          <p id="pwd-error" class="auth-note" style="color:var(--critical);min-height:1.2em" hidden>密碼錯誤，請再試一次</p>
+        </form>
+      </div>
+    </section>
+
+    <section class="loading-section" id="loading-section" hidden>
+      <span class="zf-spinner" style="width:42px;height:42px;border-width:3px"></span>
+      <p>正在讀預約…</p>
+    </section>
+
+    <section id="tb-section" hidden>
+      <div class="tb-toolbar">
+        <div class="tb-nav">
+          <button class="zf-btn secondary sm" id="nav-prev" type="button" aria-label="上一段">‹</button>
+          <button class="zf-btn secondary sm" id="nav-today" type="button">今天</button>
+          <button class="zf-btn secondary sm" id="nav-next" type="button" aria-label="下一段">›</button>
+          <span class="tb-range" id="tb-range"></span>
+        </div>
+        <div class="tb-filters">
+          <div class="zf-tabs segmented sm" role="tablist">
+            <button class="zf-tab on" data-view="day" type="button">日</button>
+            <button class="zf-tab" data-view="week" type="button">週</button>
+          </div>
+          <select class="zf-input tb-select" id="prov-select"><option value="">全部老師</option></select>
+          <button class="zf-btn primary sm" id="block-btn" type="button">擋時間</button>
+        </div>
+      </div>
+
+      <div class="tb-block-form" id="block-form" hidden>
+        <div class="tb-form-grid">
+          <label>老師<select class="zf-input" id="bf-prov"></select></label>
+          <label>日期<input class="zf-input" type="date" id="bf-date" /></label>
+          <label>從<input class="zf-input" type="time" id="bf-from" step="900" value="10:00" /></label>
+          <label>到<input class="zf-input" type="time" id="bf-to" step="900" value="22:00" /></label>
+          <label>原因（選填）<input class="zf-input" type="text" id="bf-reason" placeholder="例：外出、休息" /></label>
+        </div>
+        <div class="tb-form-actions">
+          <button class="zf-btn primary sm" id="bf-save" type="button">擋掉這段時間</button>
+          <button class="zf-btn secondary sm" id="bf-dayoff" type="button">整天休假</button>
+          <button class="zf-btn ghost sm" id="bf-cancel" type="button">取消</button>
+          <span class="tb-form-status" id="bf-status"></span>
+        </div>
+      </div>
+
+      <div class="tb-days" id="tb-days"></div>
+    </section>
+
+    <section id="error-section" class="error-section" hidden>
+      <p id="error-text"></p>
+      <button class="zf-btn secondary md" id="retry-btn" type="button">再試一次</button>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  const WORKER_API = 'https://api.winds.tw';
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const authGate = $('auth-gate'), loading = $('loading-section'), section = $('tb-section'), errorSection = $('error-section');
+  const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+  const STATUSES = ['聯繫中', '聯繫確認', '行程有衝突', '已完成', '沒來'];
+  const WK = ['日', '一', '二', '三', '四', '五', '六'];
+
+  function getSecret() { try { return localStorage.getItem('winds_teacher_secret') || ''; } catch { return ''; } }
+  function setSecret(s: string) { try { localStorage.setItem('winds_teacher_secret', s); } catch {} }
+  function clearSecret() { try { localStorage.removeItem('winds_teacher_secret'); } catch {} }
+  function headers(extra: Record<string, string> = {}) { return { 'X-Teacher-Secret': getSecret(), ...extra }; }
+  function hideAll() { authGate.hidden = loading.hidden = section.hidden = errorSection.hidden = true; }
+  async function api(path: string, init: RequestInit = {}) {
+    const r = await fetch(WORKER_API + path, { ...init, headers: headers({ ...(init.body ? { 'Content-Type': 'application/json' } : {}), ...((init.headers as any) || {}) }) });
+    if (r.status === 401) { clearSecret(); hideAll(); authGate.hidden = false; throw new Error('unauthorized'); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.message || j.error || ('HTTP ' + r.status));
+    return j;
+  }
+
+  // ── 日期工具（全部台北本地、字串運算，不碰時區）──
+  const pad = (n: number) => String(n).padStart(2, '0');
+  function ymd(d: Date) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+  function addDays(s: string, n: number) { const [y, m, d] = s.split('-').map(Number); const t = new Date(y, m - 1, d + n); return ymd(t); }
+  function wk(s: string) { const [y, m, d] = s.split('-').map(Number); return WK[new Date(y, m - 1, d).getDay()]; }
+  function mdLabel(s: string) { const [, m, d] = s.split('-').map(Number); return `${m}/${d}（${wk(s)}）`; }
+  function hm(dt: string) { return String(dt).slice(11, 16); }
+
+  // ── 狀態 ──
+  let view: 'day' | 'week' = 'day';
+  let anchor = ymd(new Date());
+  let provider = '';
+  let catalog: any = { providers: [], locations: [] };
+  let data: any = { bookings: [], blocks: [], workdays: [] };
+
+  function range() {
+    if (view === 'day') return { from: anchor, to: anchor };
+    const [y, m, d] = anchor.split('-').map(Number); const dow = new Date(y, m - 1, d).getDay();
+    const from = addDays(anchor, -((dow + 6) % 7)); return { from, to: addDays(from, 6) };   // 週一起
+  }
+
+  async function load() {
+    const { from, to } = range();
+    $('tb-range').textContent = view === 'day' ? mdLabel(from) : `${mdLabel(from)} – ${mdLabel(to)}`;
+    try {
+      data = await api(`/teacher/bookings?from=${from}&to=${to}${provider ? '&provider=' + provider : ''}`);
+      render();
+    } catch (e: any) { if (e.message !== 'unauthorized') { hideAll(); errorSection.hidden = false; $('error-text').textContent = '讀不到預約：' + e.message; } }
+  }
+
+  function provName(id: any) { const p = catalog.providers.find((x: any) => String(x.id) === String(id)); return p ? p.name : `老師 #${id}`; }
+
+  function render() {
+    const { from, to } = range();
+    const days: string[] = []; for (let d = from; d <= to; d = addDays(d, 1)) days.push(d);
+    const wdMap: Record<string, any> = {}; for (const w of data.workdays) wdMap[`${w.provider_id}|${w.date}`] = w;
+    const html = days.map((date) => {
+      const bks = data.bookings.filter((b: any) => String(b.start_datetime).slice(0, 10) === date);
+      const bls = data.blocks.filter((b: any) => String(b.start_datetime).slice(0, 10) <= date && String(b.end_datetime).slice(0, 10) >= date);
+      const offs = provider ? [wdMap[`${provider}|${date}`]].filter((w) => w && Number(w.is_day_off) === 1) : data.workdays.filter((w: any) => w.date === date && Number(w.is_day_off) === 1);
+      const items: string[] = [];
+      for (const w of offs) items.push(`<div class="tb-row tb-off"><span class="tb-time">全天</span><div class="tb-body"><b>${esc(provName(w.provider_id))} 休假</b></div><div class="tb-act"><button class="zf-btn ghost sm" data-act="workon" data-prov="${w.provider_id}" data-date="${date}">恢復上班</button></div></div>`);
+      for (const b of bls) items.push(`<div class="tb-row tb-blk"><span class="tb-time">${hm(b.start_datetime)}–${hm(b.end_datetime)}</span><div class="tb-body"><b>${esc(provName(b.provider_id))} 擋時間</b>${b.reason ? `<span>${esc(b.reason)}</span>` : ''}</div><div class="tb-act"><button class="zf-btn ghost sm" data-act="unblock" data-id="${b.id}">解除</button></div></div>`);
+      for (const b of bks) {
+        const canceled = /cancel/.test(String(b.status));
+        const st = b.teacher_status || '聯繫中';
+        items.push(`<div class="tb-row${canceled ? ' tb-canceled' : ''}" data-id="${b.id}">
+          <span class="tb-time">${hm(b.start_datetime)}<small>–${hm(b.end_datetime)}</small></span>
+          <div class="tb-body">
+            <b>${esc(b.client_name || '—')}${b.client_phone ? ` <a href="tel:${esc(b.client_phone)}">${esc(b.client_phone)}</a>` : ''}</b>
+            <span>${esc(b.service_name || '')}${!provider ? `｜${esc(b.provider_name || '')}` : ''}${b.location_name ? `｜${esc(b.location_name)}` : ''}</span>
+            ${b.note ? `<em>${esc(b.note)}</em>` : ''}
+            ${canceled ? '<span class="zf-tag neutral outline">已取消</span>' : ''}
+          </div>
+          <div class="tb-act">${canceled ? '' : `
+            <select class="zf-input tb-status" data-act="status" data-id="${b.id}">${STATUSES.map((s) => `<option${s === st ? ' selected' : ''}>${s}</option>`).join('')}</select>
+            <button class="zf-btn secondary sm" data-act="resched" data-id="${b.id}" data-start="${esc(b.start_datetime)}">改期</button>
+            <button class="zf-btn ghost sm" data-act="cancel" data-id="${b.id}">取消</button>`}
+          </div></div>`);
+      }
+      return `<section class="tb-day${date === ymd(new Date()) ? ' today' : ''}"><h3>${mdLabel(date)}<span>${bks.filter((b: any) => !/cancel/.test(String(b.status))).length} 位</span></h3>${items.length ? items.join('') : '<p class="tb-empty">這天沒有預約。</p>'}</section>`;
+    }).join('');
+    $('tb-days').innerHTML = html;
+    hideAll(); section.hidden = false;
+  }
+
+  // ── 動作 ──
+  async function act(el: HTMLElement) {
+    const a = el.dataset.act, id = el.dataset.id;
+    try {
+      if (a === 'status') await api(`/teacher/bookings/${id}`, { method: 'PATCH', body: JSON.stringify({ teacher_status: (el as HTMLSelectElement).value }) });
+      if (a === 'cancel') { if (!confirm('確定取消這筆預約？客人那邊要另外通知。')) return; await api(`/teacher/bookings/${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'canceled' }) }); }
+      if (a === 'resched') {
+        const cur = String(el.dataset.start || '').slice(0, 16).replace(' ', 'T');
+        const v = prompt('改到什麼時候？（格式 2026-09-12 15:00）', cur.replace('T', ' '));
+        if (!v) return;
+        const m = v.trim().match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/); if (!m) { alert('格式要像 2026-09-12 15:00'); return; }
+        await api(`/teacher/bookings/${id}`, { method: 'PATCH', body: JSON.stringify({ start_datetime: `${m[1]} ${m[2]}:00` }) });
+      }
+      if (a === 'unblock') await api(`/teacher/blocks?id=${id}`, { method: 'DELETE' });
+      if (a === 'workon') await api('/teacher/workday', { method: 'PUT', body: JSON.stringify({ provider_id: Number(el.dataset.prov), date: el.dataset.date, is_day_off: 0, time_from: null, time_to: null }) });
+      await load();
+    } catch (e: any) { if (e.message !== 'unauthorized') alert(e.message); }
+  }
+  $('tb-days').addEventListener('click', (e) => { const t = (e.target as HTMLElement).closest('[data-act]') as HTMLElement | null; if (t && t.tagName !== 'SELECT') act(t); });
+  $('tb-days').addEventListener('change', (e) => { const t = e.target as HTMLElement; if (t.dataset.act === 'status') act(t); });
+
+  // ── 擋時間表單 ──
+  const bf = $('block-form');
+  $('block-btn').addEventListener('click', () => { bf.hidden = !bf.hidden; ($('bf-date') as HTMLInputElement).value = anchor; if (provider) ($('bf-prov') as HTMLSelectElement).value = provider; });
+  $('bf-cancel').addEventListener('click', () => { bf.hidden = true; });
+  async function saveBlock(dayOff: boolean) {
+    const prov = ($('bf-prov') as HTMLSelectElement).value, date = ($('bf-date') as HTMLInputElement).value;
+    const from = ($('bf-from') as HTMLInputElement).value, to = ($('bf-to') as HTMLInputElement).value, reason = ($('bf-reason') as HTMLInputElement).value.trim();
+    const st = $('bf-status'); st.textContent = '';
+    if (!prov || !date) { st.textContent = '要選老師和日期'; return; }
+    try {
+      if (dayOff) await api('/teacher/workday', { method: 'PUT', body: JSON.stringify({ provider_id: Number(prov), date, is_day_off: 1 }) });
+      else { if (!from || !to || from >= to) { st.textContent = '結束要晚於開始'; return; } await api('/teacher/blocks', { method: 'POST', body: JSON.stringify({ provider_id: Number(prov), start_datetime: `${date} ${from}:00`, end_datetime: `${date} ${to}:00`, reason }) }); }
+      bf.hidden = true; anchor = date; await load();
+    } catch (e: any) { st.textContent = e.message; }
+  }
+  $('bf-save').addEventListener('click', () => saveBlock(false));
+  $('bf-dayoff').addEventListener('click', () => saveBlock(true));
+
+  // ── 導覽 ──
+  $('nav-prev').addEventListener('click', () => { anchor = addDays(anchor, view === 'day' ? -1 : -7); load(); });
+  $('nav-next').addEventListener('click', () => { anchor = addDays(anchor, view === 'day' ? 1 : 7); load(); });
+  $('nav-today').addEventListener('click', () => { anchor = ymd(new Date()); load(); });
+  document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => { document.querySelectorAll('[data-view]').forEach((x) => x.classList.remove('on')); b.classList.add('on'); view = (b as HTMLElement).dataset.view as any; load(); }));
+  $('prov-select').addEventListener('change', () => { provider = ($('prov-select') as HTMLSelectElement).value; try { localStorage.setItem('winds_teacher_provider', provider); } catch {} load(); });
+  $('retry-btn').addEventListener('click', () => boot());
+
+  // ── 開機：有密碼就讀目錄（探 401），沒有就出密碼閘 ──
+  async function boot() {
+    hideAll(); loading.hidden = false;
+    if (!getSecret()) { hideAll(); authGate.hidden = false; return; }
+    try {
+      catalog = await api('/teacher/catalog');
+      const opts = catalog.providers.map((p: any) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+      $('prov-select').innerHTML = '<option value="">全部老師</option>' + opts;
+      $('bf-prov').innerHTML = opts;
+      try { provider = localStorage.getItem('winds_teacher_provider') || ''; } catch {}
+      if (provider && !catalog.providers.some((p: any) => String(p.id) === provider)) provider = '';
+      ($('prov-select') as HTMLSelectElement).value = provider;
+      await load();
+    } catch (e: any) { if (e.message !== 'unauthorized') { hideAll(); errorSection.hidden = false; $('error-text').textContent = '讀不到資料：' + e.message; } }
+  }
+  ($('pwd-form') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const val = ($('pwd-input') as HTMLInputElement).value.trim(); if (!val) return;
+    $('pwd-error').hidden = true;
+    const r = await fetch(WORKER_API + '/teacher/catalog', { headers: { 'X-Teacher-Secret': val } }).catch(() => null);
+    if (!r || r.status === 401) { $('pwd-error').hidden = false; return; }
+    setSecret(val); boot();
+  });
+  boot();
+</script>
+
+<style is:global>
+  .tb-main { max-width: var(--container); margin: 0 auto; padding: 32px 32px 80px; }
+  .page-header { margin-bottom: 24px; }
+  .page-header .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: 12px; font-weight: 500; letter-spacing: 0.02em; color: var(--accent-press); }
+  .page-header .eyebrow .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); flex: none; }
+  .page-header h1 { font-family: var(--font-serif); font-size: 38px; font-weight: 500; color: var(--ink-900); margin: 10px 0 0; letter-spacing: 0.01em; line-height: 1.3; }
+  .page-header .lede { font-family: var(--font-serif); font-weight: 300; color: var(--text-secondary); font-size: 18px; line-height: 1.8; max-width: 34em; margin: 10px 0 0; }
+  .auth-gate { max-width: 480px; margin: 40px auto; }
+  .auth-card { background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 32px 28px; text-align: center; box-shadow: var(--shadow-sm); }
+  .auth-card h2 { font-family: var(--font-serif); font-weight: 500; color: var(--ink-900); margin: 0 0 12px; font-size: 22px; }
+  .auth-desc { font-family: var(--font-serif); color: var(--ink-700); font-size: 14px; line-height: 1.7; margin: 0 0 24px; }
+  .auth-note { font-family: var(--font-sans); color: var(--ink-500); font-size: 12px; margin: 4px 0 0; }
+  .loading-section { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 72px 16px; color: var(--text-muted); font-family: var(--font-serif); font-size: 15px; }
+  .error-section { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 48px 16px; font-family: var(--font-serif); color: var(--ink-900); }
+
+  .tb-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tb-nav { display: flex; align-items: center; gap: 8px; }
+  .tb-range { font-family: var(--font-serif); font-size: 16px; font-weight: 500; color: var(--ink-900); margin-left: 6px; }
+  .tb-filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .tb-select { width: auto; min-width: 140px; padding: 7px 12px; font-size: 14px; }
+  .tb-block-form { background: var(--surface-tint); border: 1px solid var(--rose-100); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; }
+  .tb-form-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+  .tb-form-grid label { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-sans); font-size: 12.5px; color: var(--ink-700); }
+  .tb-form-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .tb-form-status { font-family: var(--font-sans); font-size: 13px; color: var(--critical); }
+
+  .tb-day { margin-bottom: 22px; }
+  .tb-day h3 { display: flex; align-items: baseline; gap: 10px; font-family: var(--font-serif); font-size: 18px; font-weight: 500; color: var(--ink-900); margin: 0 0 8px; }
+  .tb-day h3 span { font-family: var(--font-sans); font-size: 12.5px; font-weight: 400; color: var(--text-muted); }
+  .tb-day.today h3 { color: var(--accent-press); }
+  .tb-empty { font-family: var(--font-serif); color: var(--text-muted); margin: 0; padding: 10px 4px; font-size: 14.5px; }
+  .tb-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-md); margin-bottom: 8px; box-shadow: var(--shadow-xs); }
+  .tb-row.tb-blk { background: var(--surface-sunken); }
+  .tb-row.tb-off { background: var(--surface-sunken); border-style: dashed; }
+  .tb-row.tb-canceled { opacity: .55; }
+  .tb-time { font-family: var(--font-serif); font-size: 17px; font-weight: 500; color: var(--ink-900); font-variant-numeric: tabular-nums; }
+  .tb-time small { display: block; font-size: 12px; font-weight: 400; color: var(--text-muted); }
+  .tb-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .tb-body b { font-family: var(--font-serif); font-size: 16px; font-weight: 500; color: var(--ink-900); }
+  .tb-body b a { color: var(--accent-press); text-decoration: none; font-family: var(--font-sans); font-size: 13.5px; margin-left: 6px; }
+  .tb-body span { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); overflow-wrap: anywhere; }
+  .tb-body em { font-style: normal; font-family: var(--font-sans); font-size: 12.5px; color: var(--ink-700); }
+  .tb-act { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .tb-status { width: auto; padding: 6px 10px; font-size: 13px; }
+  @media (max-width: 760px) {
+    .tb-main { padding: 22px 16px 64px; }
+    .page-header h1 { font-size: 26px; }
+    .page-header .lede { font-size: 15px; }
+    .tb-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tb-row { grid-template-columns: 72px minmax(0, 1fr); }
+    .tb-act { grid-column: 1 / -1; justify-content: flex-start; }
+  }
+</style>
