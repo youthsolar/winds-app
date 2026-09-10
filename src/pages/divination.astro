@@ -1657,9 +1657,10 @@ function shareCard(btn){
   var url=STATE.shareUrl;if(!url)return;
   var R=STATE.result||{};var text="有人替你起了一卦——"+(R.hexName||"")+"。找風問幸福 · 風易揚老師親繪";
   function ok(){if(btn){var o=btn.innerHTML;btn.innerHTML=ic("check","bold")+'已複製連結';setTimeout(function(){btn.innerHTML=o;},2200);}}
-  if(navigator.share){navigator.share({title:"有人替你起了一卦",text:text,url:url}).catch(function(){if(navigator.clipboard)navigator.clipboard.writeText(url).then(ok);});return;}
-  if(navigator.clipboard){navigator.clipboard.writeText(url).then(ok);return;}
-  prompt("複製這個連結傳給對方：",url);
+  function manual(){prompt("複製這個連結傳給對方：",url);}
+  function copy(){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(ok,manual);}else manual();}
+  if(navigator.share){navigator.share({title:"有人替你起了一卦",text:text,url:url}).catch(function(e){if(!e||e.name!=="AbortError")copy();});return;}
+  copy();
 }
 
 /* ===== 姓名學（無狀態端點，安全；載入後就地換 #nameMount）===== */
