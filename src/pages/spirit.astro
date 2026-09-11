@@ -385,7 +385,7 @@ import '../styles/global.css';
          removeTyping();var d=o.d;
          if(o.status===403&&d.needSubscribe){openPaywall();return}
          if(!d.success){
-           if(d.error==="no_profile"){appendMsg("spirit","我還不認識你呢——先去完成一次占卜，讓我感應你的靈魂頻率，回來我們再好好聊。",nowHM());setTimeout(function(){location.href="/divination"},3000);return}
+           if(d.error==="no_profile"){appendMsg("spirit","我還不認識你呢——先拿到老師的靈符解方，讓我感應你的靈魂頻率，回來我們再好好聊。",nowHM());setTimeout(function(){location.href="/divination"},3000);return}
            if(d.error==="daily_limit"){appendMsg("spirit",d.message||"今天聊得夠多了，讓彼此沉澱一下，明天再來。",nowHM());ta.disabled=true;ta.placeholder="分靈體已休息，明天再來";return}
            if(d.error==="target_locked"){toast("訂閱期間已鎖定對象（"+d.locked_birthday+"）");S.lockedBirthday=d.locked_birthday;renderTarget();return}
            if(d.error==="ai_failed"){if(userEl&&userEl.parentNode)userEl.parentNode.removeChild(userEl);ta.value=msg;autoResize(ta);toast(d.message||"分靈體暫時無法回應，請稍後再試");return}

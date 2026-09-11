@@ -1201,6 +1201,10 @@ function nameCard(paid){
 /* ===== 分靈體側寫（逐值對齊 DS SpiritCard；body 用 real profile、名/特質示意待 Zoho）===== */
 function spiritCard(paid){
   var R=STATE.result||{};
+  /* 2026-09-11：側寫付款後才生成——未付款一律顯示鎖定說明 */
+  if(!paid){
+    return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">分靈體側寫會在你拿到靈符解方之後生成，7 天陪伴期內隨時能和祂聊。</p></div>';
+  }
   /* 缺真側寫不給假人設（PH_SPIRIT「夜合」是示意稿）——誠實告知狀態 */
   if(!(R.profile&&R.profile.trim())){
     return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">'+(R.profileGenerating?'你的分靈體側寫正在生成…稍後回來這頁就能看到。':'分靈體已接通…下次占卜時會顯示完整側寫。')+'</p></div>';
