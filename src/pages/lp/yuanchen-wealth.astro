@@ -150,7 +150,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
               <div class="lp-form">
                 <label class="zf-field"><span class="zf-field-label">本人姓名</span><input class="zf-input" name="name" type="text" autocomplete="name" required /></label>
                 <label class="zf-field"><span class="zf-field-label">手機</span><input class="zf-input" name="phone" type="tel" inputmode="numeric" placeholder="09xxxxxxxx" required /></label>
-                <label class="zf-field"><span class="zf-field-label">國曆生日</span>
+                <label class="zf-field"><span class="zf-field-label">西元生日（陽曆）</span>
                   <div class="zf-select-row">
                     <div class="zf-select-wrap"><select class="zf-select" name="byear" required><option value="" disabled selected>年</option>{YEARS.map((y) => <option value={y}>{y} 年</option>)}</select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></div>
                     <div class="zf-select-wrap"><select class="zf-select" name="bmonth" required><option value="" disabled selected>月</option>{MONTHS.map((m) => <option value={m}>{m} 月</option>)}</select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></div>
@@ -364,7 +364,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         if (!f.variant) return fail('請選擇款式。');
         if (!f.name) return fail('請輸入本人姓名。');
         if (!/^09\d{8}$/.test(f.phone)) return fail('請輸入正確手機（09xxxxxxxx）。');
-        if (!f.bdate) return fail('請選擇國曆生日。');
+        if (!f.bdate) return fail('請選擇西元生日（陽曆）。');
         if (!validYmd(f.bdate)) return fail('這一天不存在，請再確認生日。');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return fail('請輸入正確 Email。');
         if (!store) return fail('請先選取貨門市。');

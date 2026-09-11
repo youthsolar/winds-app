@@ -211,7 +211,7 @@ import '../styles/global.css';
       if(!tok)return false;
       try{var p=JSON.parse(atob(tok.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
         if(p.exp&&p.exp*1000<Date.now()){localStorage.removeItem("winds_google_token");return false}
-        S.userId=p.sub;S.idToken=tok;return true;
+        S.userId="google:"+p.sub;S.idToken=tok;return true;
       }catch(e){localStorage.removeItem("winds_google_token");return false}
     }
 
@@ -306,7 +306,7 @@ import '../styles/global.css';
       var days="";for(var d=1;d<=31;d++)days+='<option value="'+d+'"'+selA(d,pD)+'>'+d+' 日</option>';
       var sco=TG_SC.map(function(x){return '<option value="'+x[1]+'"'+selA(x[1],pT)+'>'+x[0]+'</option>'}).join("");
       var caret='<span class="caret">'+ic("caret-down","bold")+'</span>';
-      return '<label style="display:block"><span class="f-label">對象國曆生日</span><div class="zf-select-row">'+
+      return '<label style="display:block"><span class="f-label">對象西元生日（陽曆）</span><div class="zf-select-row">'+
         '<div class="zf-select-wrap"><select id="tgYear" class="zf-select"><option value="" disabled'+(pY?"":" selected")+'>年</option>'+years+'</select>'+caret+'</div>'+
         '<div class="zf-select-wrap"><select id="tgMonth" class="zf-select"><option value="" disabled'+(pM?"":" selected")+'>月</option>'+months+'</select>'+caret+'</div>'+
         '<div class="zf-select-wrap"><select id="tgDay" class="zf-select"><option value="" disabled'+(pD?"":" selected")+'>日</option>'+days+'</select>'+caret+'</div></div></label>'+
@@ -383,7 +383,7 @@ import '../styles/global.css';
       var send_=document.getElementById("spSend");send_.setAttribute("disabled","");S.sending=true;
       showTyping();
       fetch(API.chat,{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({userId:S.userId,message:msg,sessionId:S.sessionId,sessionType:S.mode,targetBirthday:S.mode==="target"?targetBirthday:null})})
+        body:JSON.stringify({lineUserId:S.userId,message:msg,sessionId:S.sessionId,sessionType:S.mode,targetBirthday:S.mode==="target"?targetBirthday:null})})
        .then(function(resp){return resp.json().then(function(d){return{status:resp.status,d:d}})})
        .then(function(o){
          removeTyping();var d=o.d;
@@ -430,8 +430,9 @@ import '../styles/global.css';
     /* ===== status / config ===== */
     function fetchStatus(){
       if(!S.userId)return Promise.resolve();
-      return fetch(API.status+"?userId="+encodeURIComponent(S.userId)).then(function(r){return r.ok?r.json():null}).then(function(d){
+      return fetch(API.status+"?lineUserId="+encodeURIComponent(S.userId)).then(function(r){return r.ok?r.json():null}).then(function(d){
         if(d){S.subscribed=!!d.subscribed;S.lockedBirthday=d.locked_birthday||null;
+          if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;
           if(d.daily_rounds!=null)S.dailyRounds=d.daily_rounds;
           if(d.remaining_rounds!=null)S.roundsSelf=d.remaining_rounds;
           if(d.remaining_rounds_target!=null)S.roundsTarget=d.remaining_rounds_target;}

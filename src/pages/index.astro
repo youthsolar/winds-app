@@ -19,7 +19,7 @@ const DECK = [
 ];
 const DEFAULT = 2;
 const DAILY_QUOTE = '這不是算命，而是跟自己的靈魂對話。';
-const FIELDS = ['姓', '名', '國曆生日', '出生時間', '手機', '電子郵件'];
+const FIELDS = ['姓', '名', '西元生日（陽曆）', '出生時間', '手機', '電子郵件'];
 // 預約項目：接真實 SB 服務（services.json = D1，source==='simplybook'），連到真項目頁
 const sbServices = (servicesData as any[]).filter((s) => s.source === 'simplybook' && (s.price ?? 0) > 0);
 const glyphOf = (name: string) => {
