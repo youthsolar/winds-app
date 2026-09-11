@@ -233,7 +233,7 @@ import '../styles/global.css';
         '<div class="sp-wrap">'+
           '<div id="spProf"></div>'+
           '<div id="spTarget"></div>'+
-          '<div id="spCount"></div>'+
+          '<div id="spCount" class="sp-count"></div>'+
           '<div class="sp-msgs" id="spMsgs"></div>'+
           inputRow()+
           '<div class="sp-paywall" id="spPaywall"></div>'+
@@ -329,7 +329,8 @@ import '../styles/global.css';
           '<span class="num'+(rr===0?" zero":"")+'">'+ic("chat-circle")+rr+' 句</span>';
         return;
       }
-      var n=(S.freeRemaining==null)?"—":S.freeRemaining;
+      if(S.freeRemaining==null){el.innerHTML="";return}
+      var n=S.freeRemaining;
       el.innerHTML='<span class="muted">今日剩餘</span>'+
         '<span class="num'+(S.freeRemaining===0?" zero":"")+'">'+ic("chat-circle")+n+' 次</span>'+
         '<button class="unlock" onclick="openPaywall()">解鎖對話</button>';
