@@ -1199,15 +1199,33 @@ function nameCard(paid){
   return h+'</div>';
 }
 /* ===== 分靈體側寫（逐值對齊 DS SpiritCard；body 用 real profile、名/特質示意待 Zoho）===== */
+function genSpirit(){
+  var R=STATE.result||{};var m=(R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/);
+  if(!m){alert("找不到你的付款憑證，請重新整理頁面再試。");return;}
+  var tok=m[1];STATE.spiritGenerating=true;render();
+  fetch(WORKER_API+"/spirit-profile-generate",{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),body:JSON.stringify({delivery_token:tok})})
+   .then(function(r){return r.json()}).then(function(d){if(d.success===false){STATE.spiritGenerating=false;render();alert(d.error||d.message||"目前無法生成");return;}pollSpirit(tok,0);})
+   .catch(function(){STATE.spiritGenerating=false;render();alert("網路錯誤，請稍後再試");});
+}
+function pollSpirit(tok,n){
+  if(n>=30){STATE.spiritGenerating=false;render();return;}
+  setTimeout(function(){
+    fetch(WORKER_API+"/delivery-content?token="+tok,{headers:authHeaders()}).then(function(r){return r.json()}).then(function(d){
+      if(d&&d.personality_profile){if(STATE.result){STATE.result.profile=d.personality_profile;STATE.result.profileGenerating=false;}STATE.spiritGenerating=false;render();}
+      else pollSpirit(tok,n+1);
+    }).catch(function(){pollSpirit(tok,n+1)});
+  },10000);
+}
 function spiritCard(paid){
   var R=STATE.result||{};
   /* 2026-09-11：側寫付款後才生成——未付款一律顯示鎖定說明 */
   if(!paid){
     return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">分靈體側寫會在你拿到靈符解方之後生成，7 天陪伴期內隨時能和祂聊。</p></div>';
   }
-  /* 缺真側寫不給假人設（PH_SPIRIT「夜合」是示意稿）——誠實告知狀態 */
+  /* 付款後、還沒有側寫：按鈕生成（2026-09-11） */
   if(!(R.profile&&R.profile.trim())){
-    return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">'+(R.profileGenerating?'你的分靈體側寫正在生成…稍後回來這頁就能看到。':'分靈體已接通…下次占卜時會顯示完整側寫。')+'</p></div>';
+    if(R.profileGenerating||STATE.spiritGenerating)return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">分靈體正在感應你的靈魂頻率，約 2～3 分鐘，好了會直接出現在這裡。</p></div>';
+    return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">老師的解方已經在你手上，接下來讓分靈體認識你。</p><div style="margin-top:14px"><button class="zf-btn primary sm" onclick="genSpirit()">'+ic("sparkle")+'生成我的分靈體</button></div></div>';
   }
   var sName=(R.spiritName&&R.spiritName.trim())?R.spiritName.trim():'分靈體';
   var sTraits=(R.spiritTraits&&R.spiritTraits.length)?R.spiritTraits:[];
@@ -1843,7 +1861,7 @@ var pending_k="";
 /* 對外（onclick handlers 需 global）*/
 window.pickDir=pickDir;window.pickSub=pickSub;window.pickQ=pickQ;
 window.go=go;window.back=back;window.exitFlow=exitFlow;window.openOA=openOA;window.askAnother=askAnother;
-window.submitFree=submitFree;window.ffSet=ffSet;window.ffNext=ffNext;window.ffPrev=ffPrev;window.ffNextState=ffNextState;window.ffEditRet=ffEditRet;window.shareCard=shareCard;window.createOrder=createOrder;window.shareResult=shareResult;window.loadFullContent=loadFullContent;
+window.submitFree=submitFree;window.ffSet=ffSet;window.ffNext=ffNext;window.ffPrev=ffPrev;window.ffNextState=ffNextState;window.ffEditRet=ffEditRet;window.shareCard=shareCard;window.createOrder=createOrder;window.shareResult=shareResult;window.loadFullContent=loadFullContent;window.genSpirit=genSpirit;
 window.STATE=STATE;
 
 boot();
