@@ -24,6 +24,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <p class="gf-hint" id="gfHint" hidden><span class="gf-spinner"></span>正在為你準備…</p>
           <div class="gf-note">免費領取・每個帳號限一次</div>
           <div class="gf-tagline"><span class="gf-tag">今天名額有限，領完為止</span></div>
+          {/* 9/11：社群廣告把人帶進來，但領取一定要 Google 登入，在 App 內建瀏覽器登不進去＝死路。
+              起卦那條線 9/10 起已經零登入，這裡給一條人人看得到的出口，utm 由前端原樣帶過去。 */}
+          <a id="gfCastNow" class="gf-castnow" href="/divination/">先直接占一卦，不用登入 →</a>
         </div>
 
         <div class="gf-card">
@@ -135,7 +138,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .gf-hint{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px 0 0;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
     .gf-spinner{display:inline-block;flex:none;width:18px;height:18px;border-radius:999px;border:2px solid var(--rose-200);border-top-color:var(--rose-500);animation:gfSpin 1.1s linear infinite;box-sizing:border-box;}
     @keyframes gfSpin{to{transform:rotate(360deg)}}
-    .gf-note{font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);margin-top:12px;}
+    .gf-castnow{display:block;margin-top:14px;font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--rose-600);text-decoration:none;border-bottom:1px solid var(--rose-200);padding-bottom:2px;width:fit-content;margin-left:auto;margin-right:auto}
+  .gf-note{font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);margin-top:12px;}
     .gf-tagline{margin-top:12px;}
     .gf-tag{display:inline-block;font-family:var(--font-sans);font-size:12px;color:var(--rose-500);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:3px 12px;}
     .gf-fulltitle{font-family:var(--font-serif);font-size:21px;font-weight:500;color:var(--ink-900);letter-spacing:0.02em;margin-bottom:8px;}
@@ -218,6 +222,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       // 沒有逾時，畫面就永遠停在空卡片。8/31 已經在 /login 與 /divination 修過，但這頁漏了——
       // 而所有社群導流句指的都是這一頁（9/6 sana202205 回報「點進去無法填寫」）。
       // 不猜根因，只看結果：時間到還是空的就換成外開引導。
+      // 把進站帶的 utm 原樣接到起卦連結上，記點才算得到是這波廣告帶來的
+      (function carryUtm(){
+        var a=document.getElementById('gfCastNow');
+        if(a&&location.search)a.setAttribute('href','/divination/'+location.search);
+      })();
       function fallback(force) {
         if (!gmount || gmount.hidden) return;
         if (!force && gmount.childNodes.length) return;   // 逾時路徑：只在掛載點還空的時候接手
@@ -230,6 +239,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             (/Android/i.test(navigator.userAgent)
               ? '<a class="gf-fb-btn" href="intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end">用 Chrome 開啟</a>'
               : '') +
+            // 9/11：社群廣告把人帶進來，卡在這裡等於整條導流白做。給一條不用登入的出口：
+            // 起卦那條線 9/10 起已經零登入，原樣帶著 utm 過去，記點才接得上。
+            '<p class="gf-fb-d" style="margin-top:14px">不想換瀏覽器也沒關係，先占一卦看看，這一段不用登入。</p>' +
+            '<a class="gf-fb-btn" href="/divination/' + location.search + '">直接占一卦</a>' +
           '</div>';
         var b = document.getElementById('gfCopy');
         if (b) b.addEventListener('click', function () { copyUrl(b); });
