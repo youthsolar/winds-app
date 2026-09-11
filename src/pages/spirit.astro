@@ -291,6 +291,9 @@ import '../styles/global.css';
         '<div style="display:flex;align-items:center;gap:7px"><span style="color:var(--rose-400);font-size:15px">'+ic("sparkle","fill")+'</span><span style="font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--ink-900)">輸入對象的生日，我就能感應到他</span></div>'+
         tgBirthFields()+
         '<button class="zf-btn primary md full" style="margin-top:2px" onclick="confirmTarget()">開始感應 '+ic("arrow-right")+'</button></div>';
+      // 三下拉是 JS 動態產生的，BaseLayout 的全站修正在 DOMContentLoaded 就跑完了，
+      // 這裡要再叫一次，否則日子欄一開始固定列 31 天（改月份才會被委派的 change 修正）。
+      if(window.zfFixDays)window.zfFixDays();
     }
     // 對象生日＝占卜頁同款「年／月／日」三下拉＋時辰下拉（2026-09-03 對齊；原生 date/time 欄樣式不受控）
     var TG_SC=[["子時 23–01","00:00"],["丑時 01–03","02:00"],["寅時 03–05","04:00"],["卯時 05–07","06:00"],["辰時 07–09","08:00"],["巳時 09–11","10:00"],["午時 11–13","12:00"],["未時 13–15","14:00"],["申時 15–17","16:00"],["酉時 17–19","18:00"],["戌時 19–21","20:00"],["亥時 21–23","22:00"]];
