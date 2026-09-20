@@ -1245,7 +1245,8 @@ function hexTalismans(paid){
   /* 節氣：優先用後端算的真值，退回靜態佔位 */
   var SOLAR=R.jieqi?{next:R.jieqi.next,date:R.jieqi.next_date,line:PH_SOLAR.line,seq:R.jieqi.seq||[]}:PH_SOLAR;
   /* 免費卦符卡（2026-09-09 拍板「卦符免費給、押 7 天」）：未付款也直接給清楚的卦符卡，後端出圖、卡面自帶落款與到期日；過期後後端回過期態 */
-  var HC=(!paid&&R.hexCard&&R.hexCard.url)?R.hexCard:null;
+  /* 2026-09-20 Jeffery 拍板：付費後也用同一張卦符卡（後端出付費態：底下寫「法效期間 · M/D 止」、不會過期），1 卦＋5 符六張同一套 */
+  var HC=(R.hexCard&&R.hexCard.url)?R.hexCard:null;
   var inner=HC
     ? '<img src="'+esc(HC.url)+'" alt="'+esc(R.hexName||'')+' 卦符" decoding="async" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">'
     : R.talismanImg
@@ -1256,7 +1257,7 @@ function hexTalismans(paid){
     '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
     ((paid||HC)?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這是為你而生的靈符——解鎖後就會清晰</span></div>')+
     '</div>'+
-    '<div class="tal-caption">'+ic("device-mobile")+(HC?(HC.expired?'這一卦已過期，重新起一卦':'先給你一張 · '+esc(HC.valid_until_label)+' 前有效 · 長按存成手機桌布'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</div>'+
+    '<div class="tal-caption">'+ic("device-mobile")+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止 · 長按存成手機桌布':'先給你一張 · '+esc(HC.valid_until_label)+' 前有效 · 長按存成手機桌布'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</div>'+
     ((HC&&!HC.expired)?'<a class="zf-btn secondary sm" style="margin-top:10px" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("download-simple")+'存這張卦符</a>':'')+'</div>'+
     '<div class="hexcol"><span class="hex-name">這次的卦，是「'+esc(R.hexName||'')+'」</span>'+
     (guaSym?'<p class="hex-read" style="font-size:24px;letter-spacing:6px;color:var(--accent-press);margin:10px 0 0">'+guaSym+'</p>':'')+

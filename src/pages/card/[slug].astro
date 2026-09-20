@@ -8,7 +8,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 const API = 'https://api.winds.tw';
 const slug = String(Astro.params.slug || '');
 const m = slug.match(/^(\d{1,10})-([a-f0-9]{20})$/);
-let data: { id: number; hex_name: string; line: string; image_url: string; expired: boolean; valid_until_label: string; from_name: string } | null = null;
+let data: { id: number; hex_name: string; line: string; image_url: string; expired: boolean; paid?: boolean; valid_until_label: string; from_name: string } | null = null;
 if (m) {
   try {
     const r = await fetch(`${API}/card-info?id=${m[1]}&t=${m[2]}`, {
@@ -29,7 +29,7 @@ if (!data) Astro.response.status = 404;
 const from = data && data.from_name ? data.from_name : '有人';
 const castUrl = data ? `/divination/?ref=${data.id}&utm_source=card&utm_medium=share&utm_content=${data.id}` : '/divination/';
 const title = data ? `${from}把這一卦傳給你 · ${data.hex_name} · 找風問幸福` : '有人替你起了一卦 · 找風問幸福';
-const desc = data ? `${data.hex_name}。${data.line}${data.line ? '。' : ''}風易揚老師親繪的卦符，${data.expired ? '這一卦已過期' : data.valid_until_label + ' 前有效'}。` : '找風問幸福 · 風易揚老師親繪';
+const desc = data ? `${data.hex_name}。${data.line}${data.line ? '。' : ''}風易揚老師親繪的卦符，${data.expired ? '這一卦已過期' : data.paid ? '法效期間 ' + data.valid_until_label + ' 止' : data.valid_until_label + ' 前有效'}。` : '找風問幸福 · 風易揚老師親繪';
 ---
 <BaseLayout title={title} description={desc} ogImage={data ? data.image_url : undefined} noindex={true}>
   <main class="rc-wrap">
@@ -41,7 +41,7 @@ const desc = data ? `${data.hex_name}。${data.line}${data.line ? '。' : ''}風
         <div class="rc-card">
           <img src={data.image_url} alt={`${data.hex_name} 卦符`} width="1080" height="1920" decoding="async" />
         </div>
-        <div class={`rc-exp${data.expired ? ' off' : ''}`}>{data.expired ? '這一卦已過期，重新起一卦' : `這張卦符 ${data.valid_until_label} 前有效`}</div>
+        <div class={`rc-exp${data.expired ? ' off' : ''}`}>{data.expired ? '這一卦已過期，重新起一卦' : data.paid ? `法效期間 ${data.valid_until_label} 止` : `這張卦符 ${data.valid_until_label} 前有效`}</div>
         <a class="zf-btn primary lg rc-cta" href={castUrl}><i class="ph-thin ph-sparkle"></i>我也起一卦</a>
         <p class="rc-foot">找風問幸福 · 風易揚老師親繪</p>
       </div>
