@@ -908,7 +908,7 @@ function viewHex(){
     '<div class="ff-clock" style="margin-top:-6px;margin-bottom:12px">'+esc(c.castLabel||"")+' 起卦</div>'+
     (c.line?'<div class="zf-card" style="padding:14px 16px"><p class="ff-p" style="margin:0;color:var(--text-primary)">'+esc(c.line)+'</p></div>':'')+
     '<p class="ff-p" style="margin-top:14px">有一張卦符可以先護住你。要配得更準，老師得看你的命盤。</p>'+
-    '<button class="zf-btn primary lg" style="width:100%" onclick="go(\''+(STATE.ret?'ret':'ask')+'\')">'+(STATE.ret?'好，用上次的資料':'好，讓老師認識我')+'</button></main>';
+    '<button class="zf-btn primary lg" style="width:100%" onclick="go(\''+((STATE.ret&&!HOME)?'ret':'ask')+'\')">'+((STATE.ret&&!HOME)?'好，用上次的資料':'好，讓老師認識我')+'</button></main>';
 }
 
 /* ── 4 老師開口問（一次一題，每題一個可以玩的控制項）── */
@@ -958,6 +958,7 @@ function ffNext(){
   var k=ASK[STATE.ask],d=STATE.data;
   if(k==="day"&&d.month&&d.day>new Date(d.year,d.month,0).getDate()){showFfErr(d.month+" 月沒有 "+d.day+" 日，再選一次。");return;}
   if(k==="email"){if(!validGmail(d.email)){ffNextState();return;}if(EMAILV.email===d.email&&EMAILV.verdict==="bad"){showFfErr("這個信箱好像有誤（查無此信箱），再確認一次。");return;}submitFree();return;}
+  if(HOME&&k==="home"&&STATE.ret&&STATE.retInfo){go("ret");return;}   /* 回訪的人：家的情形答完就用上次的資料 */
   STATE.ask++;render();
 }
 /* 轉輪鏡：左右拖 9px＝1 年；點左半／右半各退進 1 年（只用手指點的人也能調） */
@@ -981,8 +982,8 @@ function viewRet(){
     '<div class="ff-next"><button class="zf-btn primary sm" onclick="submitFree()">就用這個</button></div></div></main>';
 }
 function ffEditRet(){var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);
-  STATE.data={year:+ymd[0]||1990,month:+ymd[1]||null,day:+ymd[2]||null,shi:isNaN(hh)?6:Math.floor(((hh+1)%24)/2),gender:r.gender||"",name:(r.last_name||"")+(r.first_name||""),email:r.email||""};
-  STATE.ret=false;STATE.ask=0;go("ask");}
+  STATE.data={year:+ymd[0]||1990,month:+ymd[1]||null,day:+ymd[2]||null,shi:isNaN(hh)?6:Math.floor(((hh+1)%24)/2),gender:r.gender||"",name:(r.last_name||"")+(r.first_name||""),email:r.email||"",home:STATE.data.home||""};
+  STATE.ret=false;STATE.ask=(HOME&&STATE.data.home)?1:0;go("ask");}   /* home 模式：家的情形已答過就從年份接著問 */
 /* 稱呼拆姓名：中文 2～4 字＝首字（複姓兩字）為姓；其餘整串當名 */
 function splitName(s){s=String(s||"").trim();if(!s)return{surname:"",given:""};var dbl=["歐陽","司馬","諸葛","上官","司徒","東方","皇甫","尉遲","公孫","慕容","端木","夏侯","令狐"];
   if(/^[一-鿿]{2,4}$/.test(s)){for(var i=0;i<dbl.length;i++)if(s.indexOf(dbl[i])===0&&s.length>2)return{surname:dbl[i],given:s.slice(2)};return{surname:s.charAt(0),given:s.slice(1)};}
@@ -1663,6 +1664,7 @@ function submitFree(){
   if(!STATE.text){showFfErr("請先回到上一步，選一句想問的話。");go("topic");return;}
   var d=STATE.data,payload;
   if(STATE.ret&&STATE.retInfo){
+    if(HOME&&!d.home){showFfErr("先說一聲這張符要守哪裡。");STATE.ask=0;go("ask");return;}
     var r=STATE.retInfo;
     payload={date_of_birth:r.date_of_birth||"",last_name:r.last_name||"",first_name:r.first_name||"",gender:r.gender||"",email:r.email||""};
     STATE.userName={surname:r.last_name||"",given:r.first_name||""};
