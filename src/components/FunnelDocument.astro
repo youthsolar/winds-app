@@ -550,10 +550,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-seals{display:flex;gap:10px;justify-content:center}
     .ff-seals button{width:64px;height:64px;border-radius:14px;border:1.5px solid var(--border-strong);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:20px;cursor:pointer;transition:all .15s}
     .ff-seals button.on{background:var(--rose-600);color:var(--text-on-accent);border-color:transparent;transform:rotate(-3deg)}
-    /* 家的情形四選一：字比性別印章長，改成兩欄膠囊 */
-    .ff-seals.home{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:360px;margin:0 auto}
-    .ff-seals.home button{width:auto;height:56px;font-size:17px;border-radius:14px;padding:0 12px}
-    .ff-seals.home button.on{transform:none}
+    /* 家的情形四選一：沿用選題那步的 q-item 單選列，寬度收到對話框內 */
+    .ff-homelist{width:100%;max-width:420px;margin:0 auto;gap:8px}
+    .ff-homelist .q-item{padding:13px 16px;font-size:16.5px}
     /* ── 活動頁「家裡的符」落地（home 模式）── */
     .hg-top{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:680px;margin:0 auto;padding:14px 20px 0}
     .hg-logo img{height:34px;width:auto;display:block}
@@ -571,8 +570,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .hg-teacher span:last-child{font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)}
     .hg-cast{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding-top:6px}
     .hg-guide{font-family:var(--font-serif);font-size:17px;line-height:1.7;color:var(--text-secondary);margin:0}
-    .hg-situ{font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted);line-height:2.2;margin:8px 0 0;max-width:420px}
-    .hg-situ .zf-tag{margin:0 3px}
+    .hg-situ{font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted);line-height:1.8;margin:8px 0 0}
     .hg-foot{margin-top:56px;padding-top:22px;border-top:1px solid var(--border-soft);text-align:center}
     .hg-foot p{font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.8;color:var(--text-secondary);margin:0 0 12px}
     .hg-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;font-family:var(--font-sans);font-size:13px}
@@ -846,7 +844,6 @@ function ffRipStop(){if(FF_RIP.timer){clearInterval(FF_RIP.timer);FF_RIP.timer=n
 
 /* ── 0 活動頁落地（home 模式首屏；文案 D 版逐字，Jeffery 2026-09-23 定稿）── */
 function viewLanding(){
-  var hs=HOME_SITU;
   return '<header class="hg-top"><a href="/" class="hg-logo" aria-label="找風問幸福 · 回首頁"><img src="/assets/logo.png" alt="找風問幸福"></a>'+
     '<img class="hg-bagua" src="/assets/bagua-nav.png" alt="" aria-hidden="true">'+
     '<button class="ph-exit" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'"></i></button></header>'+
@@ -862,7 +859,7 @@ function viewLanding(){
     '<section class="hg-cast" id="hgCast"><span class="eyebrow"><span class="dot"></span>起卦</span><p class="hg-guide">手放上來，按著三秒，卦自己會浮上來。</p>'+
       ffMirror("cast",{code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
       '<div class="ff-clock" id="ffClock"></div>'+
-      '<p class="hg-situ">卦出來之後，老師先問一句這張符要守哪裡：'+hs.map(function(x){return '<span class="zf-tag rose outline">'+esc(x.l)+'</span>'}).join("")+'</p></section>'+
+      '<p class="hg-situ">卦出來之後，老師先問一句：這張符要守哪裡。</p></section>'+
     '<footer class="hg-foot"><p>找風問好窩我也在籌備，只收拎包入住的套房，現在還沒有房源，開了我先在這裡講一聲。</p>'+
       '<div class="hg-links"><a href="https://home.winds.tw/">找風問好窩</a><a href="/divination">問別的事</a><a href="/terms">使用條款</a><a href="/privacy">隱私權政策</a></div>'+
       '<p class="hg-legal">© '+new Date().getFullYear()+' 找風問幸福 · 靈學的溫柔陪伴 · 不涉及醫療或投資建議</p></footer>'+
@@ -939,7 +936,8 @@ function viewAsk(){
     ctl='<div class="ff-arc"><svg viewBox="0 0 340 150"><line class="horizon" x1="10" y1="112" x2="330" y2="112"/><path class="path" d="M 52 112 A 118 118 0 0 1 288 112"/>'+pts+'</svg></div>'+
       '<div class="ff-shilabel">'+shiName(d.shi)+'<small>'+SHI[d.shi][1]+'</small></div>';
   }
-  if(k==="home")ctl='<div class="ff-seals home">'+HOME_SITU.map(function(s){return '<button type="button" class="'+(d.home===s.k?'on':'')+'" onclick="ffSet(\'home\',\''+s.k+'\')">'+esc(s.l)+'</button>'}).join("")+'</div>';
+  /* 家的情形＝跟選題那步同一款單選列（q-item），不另造膠囊 */
+  if(k==="home")ctl='<div class="q-list ff-homelist">'+HOME_SITU.map(function(s){return '<button type="button" class="q-item'+(d.home===s.k?' on':'')+'" onclick="ffSet(\'home\',\''+s.k+'\')"><span class="q-radio"></span><span>'+esc(s.l)+'</span></button>'}).join("")+'</div>';
   if(k==="gender")ctl='<div class="ff-seals">'+["女","男"].map(function(g){return '<button type="button" class="'+(d.gender===g?'on':'')+'" onclick="ffSet(\'gender\',\''+g+'\')">'+g+'</button>'}).join("")+'</div>';
   if(k==="name")ctl='<input class="ff-inp" id="ffName" type="text" value="'+esc(d.name)+'" placeholder="姓名，或你想被叫的名字" autocomplete="name" oninput="STATE.data.name=this.value">';
   if(k==="email"){var bad=!!d.email&&!validGmail(d.email);ctl='<input class="ff-inp'+(bad?' bad':'')+'" id="ffEmail" type="email" inputmode="email" autocomplete="email" value="'+esc(d.email)+'" placeholder="信箱" oninput="STATE.data.email=this.value.trim();ffNextState()">'+
