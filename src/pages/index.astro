@@ -6,7 +6,7 @@ import servicesData from '../data/services.json';
 const SCENARIOS = [
   { key: '已讀不回', q: '他已讀不回的這幾天，\n你是不是也一直在看手機？', sub: '先別急著想他怎麼了，\n先看看自己現在是什麼狀態？' },
   { key: '曖昧不明', q: '這段曖昧，是有機會，\n還是在等一個無緣的人？', sub: '說不清楚的，先不用說清楚。\n抽一張牌，看看現在的你該怎麼做？' },
-  { key: '有沒有未來', q: '你們之間，\n是否還走得下去？', sub: '現在不用決定，\n先把方向看清楚再說。' },
+  { key: '有沒有未來', q: '你們還有沒有可能？', sub: '先不用急著決定，\n我們先看看。' },
   { key: '最近心不安', q: '最近心裡總是不太安穩，\n又說不上來為什麼？', sub: '說不出口的，不代表不重要。\n從一張牌開始。' },
 ];
 const DECK = [
@@ -18,7 +18,7 @@ const DECK = [
   { name: '太陽', line: '今天不用想太多。做一件小事，對自己好一點就夠了。' },
 ];
 const DEFAULT = 2;
-const DAILY_QUOTE = '這不是算命，而是跟自己的靈魂對話。';
+const DAILY_QUOTE = '有些事情想很久，還是沒有答案。那就換個角度看看。';
 const FIELDS = ['姓', '名', '西元生日（陽曆）', '出生時間', '手機', '電子郵件'];
 // 預約項目：接真實 SB 服務（services.json = D1，source==='simplybook'），連到真項目頁
 const sbServices = (servicesData as any[]).filter((s) => s.source === 'simplybook' && (s.price ?? 0) > 0);
@@ -30,10 +30,17 @@ const cleanName = (name: string) => String(name || '').replace(/^[【\[]/, '').r
 const lineOf = (s: any) => String(s.llm_description || (s.description || '').replace(/<[^>]+>/g, '') || '').replace(/\s+/g, ' ').trim();
 const durOf = (s: any) => (s.duration_minutes ? `${s.duration_minutes} 分鐘` : '一對一');
 const ntd = (p: number) => `NT$ ${Number(p).toLocaleString()}`;
+// 首頁專用介紹（2026-09-24 Jeffery 首頁文案修改：像老師坐在個案對面講話；只覆蓋首頁這一行，/services 與 D1 不動）
+const HOME_SVC_LINES: [RegExp, string][] = [
+  [/元辰宮|知運勢|代觀/, '如果你最近很多事情一起不順，卻又說不上來問題到底在哪裡，可以從元辰宮開始看。老師會代替你進入元辰宮，看看目前整體狀態，以及是哪個地方出了問題。'],
+  [/水鏡|查因果|通靈/, '有一件事情，你一直很想知道真正的原因嗎？通靈水鏡法主要就是用來查這件事。不繞圈，直接從你最在意的問題開始。'],
+  [/命書|籤詩|問事/, '如果你現在只有一件事情想問，而且希望直接一點，可以選這個。不需要八字，告訴老師你想問什麼就可以。'],
+];
+const homeLine = (name: string) => (HOME_SVC_LINES.find(([re]) => re.test(String(name || ''))) || [])[1] || '';
 const featuredSvc = sbServices.find((s) => /元辰宮|知運勢/.test(s.name)) || sbServices[0];
 const FEATURED = featuredSvc && {
-  id: featuredSvc.id, glyph: glyphOf(featuredSvc.name), kind: '主力靈性診斷',
-  name: cleanName(featuredSvc.name), line: lineOf(featuredSvc).slice(0, 64),
+  id: featuredSvc.id, glyph: glyphOf(featuredSvc.name), kind: '先從這裡看',
+  name: cleanName(featuredSvc.name), line: homeLine(featuredSvc.name) || lineOf(featuredSvc).slice(0, 64),
   price: ntd(featuredSvc.price), duration: durOf(featuredSvc),
 };
 const smallPicks: any[] = [];
@@ -44,7 +51,7 @@ for (const re of [/水鏡|查因果|通靈/, /命書|籤詩|問事/]) {
 for (const s of sbServices) { if (smallPicks.length >= 2) break; if (s.id !== featuredSvc?.id && !smallPicks.includes(s)) smallPicks.push(s); }
 const SVC = smallPicks.slice(0, 2).map((s) => ({
   id: s.id, glyph: glyphOf(s.name), name: cleanName(s.name),
-  line: lineOf(s).slice(0, 40), price: ntd(s.price), duration: durOf(s),
+  line: homeLine(s.name) || lineOf(s).slice(0, 40), price: ntd(s.price), duration: durOf(s),
 }));
 const TALIS = [
   { glyph: '安', name: '安神隨身符', line: '睡不好、心緒亂時，放在枕邊。', price: '480' },
@@ -55,7 +62,7 @@ const TALIS = [
 const FLOW = '/divination';  // 深度占卜漏斗（DS 重建）
 const BOOK = '/booking';     // 預約老師（真 SB 老師 + 預約精靈）
 const SHOP = '/shop';        // 法器選物（真 ES 商品）
-const pageDesc = '先聽聽現在的自己。輕輕抽一張牌，看看今天的提醒；或只用 6 個基本資料、30 秒得到完整占卜解讀。找風問幸福，陪你把心裡的事慢慢說完。';
+const pageDesc = '先聽聽現在的自己。輕輕抽一張牌，看看今天的提醒；或填 6 個基本資料，大概 30 秒，接下來的交給我們。找風問幸福，陪你把心裡的事慢慢說完。';
 const br = (s) => s.split('\n');
 
 // GEO：品牌實體錨點（Organization + WebSite）。AI 引擎靠這個認識「找風問幸福是誰」；
@@ -146,7 +153,7 @@ const homeJsonLd = {
     <section class="selling">
       <div class="wrap selling-row">
         <div class="selling-claim">
-          <span>只要 <em>6 個</em> 基本資料</span><span class="plus">＋</span><span><em>30 秒</em> 得到幸福</span>
+          <span>填 <em>6 個</em> 基本資料，大概 <em>30 秒</em>。</span><span>接下來的交給我們。</span>
         </div>
         <div class="fields">
           {FIELDS.map((f, i) => (<span class="field"><span class="fn">{String(i + 1).padStart(2, '0')}</span>{f}</span>))}
@@ -156,7 +163,7 @@ const homeJsonLd = {
 
     <!-- 預約項目 -->
     <section class="wrap block">
-      <div class="zf-section-heading sh"><h2 class="zf-sh-title cjk">預約項目</h2><p class="zf-sh-lede">老師親自諮詢與進行法事。</p></div>
+      <div class="zf-section-heading sh"><h2 class="zf-sh-title cjk">預約項目</h2><p class="zf-sh-lede">有些事情，還是要讓老師親自看。你可以從下面選一個最接近目前狀況的項目。</p></div>
       <div class="svc-grid">
         {FEATURED && (
         <a class="zf-card tint interactive svc-featured" href={`/services?id=sb-${FEATURED.id}`} id="homeSvcFeatured">
@@ -188,13 +195,13 @@ const homeJsonLd = {
 
     <!-- 預約對談 + 法器 -->
     <section id="deepen" class="wrap block">
-      <div class="zf-section-heading sh"><h2 class="zf-sh-title cjk">想了解得更深？</h2><p class="zf-sh-lede">想看完整命盤、找老師當面聊或帶一件小東西回家——慢慢來。</p></div>
+      <div class="zf-section-heading sh"><h2 class="zf-sh-title cjk">還想再往下看看？</h2><p class="zf-sh-lede">沒關係，你慢慢選。</p></div>
       <div class="deepen-grid">
         <div class="zf-card talk-card">
           <div class="talk-banner"><img src="/assets/talk-space-banner.png" alt="預約對談的空間" /><span class="badge on-img">預約對談</span></div>
           <div class="talk-body">
             <h3>選一位老師慢慢聊</h3>
-            <p>預約實體或線上對談，說說一直卡住的心怎麼了。</p>
+            <p>有些事情，打字真的講不清楚。那就直接找老師聊。可選實體或線上。</p>
             <div class="readers" id="homeReaders"><span class="av rose">林</span><span class="av clay">陳</span><span class="av sage">王</span><span class="rd-note">資深老師線上預約</span></div>
             <div class="talk-foot">
               <span><span class="meta" id="homeBookMeta">單次 30 分鐘起</span><span class="price" id="homeBookPrice">NT$ 2,000 起</span></span>
@@ -357,7 +364,9 @@ const homeJsonLd = {
     function cleanNm(n){ return String(n||'').replace(/^[【\[]/,'').replace(/[】\]][\s\S]*$/,'').trim() || n; }
     function glyph(n){ var m = cleanNm(n).match(/[一-鿿]/); return m ? m[0] : '占'; }
     function ntd(p){ return 'NT$ ' + (Number(p)||0).toLocaleString('en-US'); }
-    function lineOf(s,n){ return String(s.llm || (s.desc||'').replace(/<[^>]+>/g,'') || '').replace(/\s+/g,' ').trim().slice(0,n); }
+    var HOME_LINES=[[/元辰宮|知運勢|代觀/,'如果你最近很多事情一起不順，卻又說不上來問題到底在哪裡，可以從元辰宮開始看。老師會代替你進入元辰宮，看看目前整體狀態，以及是哪個地方出了問題。'],[/水鏡|查因果|通靈/,'有一件事情，你一直很想知道真正的原因嗎？通靈水鏡法主要就是用來查這件事。不繞圈，直接從你最在意的問題開始。'],[/命書|籤詩|問事/,'如果你現在只有一件事情想問，而且希望直接一點，可以選這個。不需要八字，告訴老師你想問什麼就可以。']];
+    function homeLine(n){ for(var i=0;i<HOME_LINES.length;i++){ if(HOME_LINES[i][0].test(String(n||''))) return HOME_LINES[i][1]; } return ''; }
+    function lineOf(s,n){ return homeLine(s.name) || String(s.llm || (s.desc||'').replace(/<[^>]+>/g,'') || '').replace(/\s+/g,' ').trim().slice(0,n); }
     function setTxt(box,sel,t){ var el = box && box.querySelector(sel); if(el) el.textContent = t; }
     fetch('https://api.winds.tw/sb-services').then(function(r){return r.json();}).then(function(d){
       var all = ((d && d.services) || []).filter(function(s){ return (Number(s.price)||0) > 0; });
