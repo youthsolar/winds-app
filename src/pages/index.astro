@@ -33,7 +33,7 @@ const ntd = (p: number) => `NT$ ${Number(p).toLocaleString()}`;
 // 首頁專用介紹（2026-09-24 Jeffery 首頁文案修改：像老師坐在個案對面講話；只覆蓋首頁這一行，/services 與 D1 不動）
 const HOME_SVC_LINES: [RegExp, string][] = [
   [/元辰宮|知運勢|代觀/, '如果你最近很多事情一起不順，卻又說不上來問題到底在哪裡，可以從元辰宮開始看。老師會代替你進入元辰宮，看看目前整體狀態，以及是哪個地方出了問題。'],
-  [/水鏡|查因果|通靈/, '有一件事情，你一直很想知道真正的原因嗎？通靈水鏡法主要就是用來查這件事。不繞圈，直接從你最在意的問題開始。'],
+  [/水鏡|查因果/, '有一件事情，你一直很想知道真正的原因嗎？通靈水鏡法主要就是用來查這件事。不繞圈，直接從你最在意的問題開始。'],
   [/命書|籤詩|問事/, '如果你現在只有一件事情想問，而且希望直接一點，可以選這個。不需要八字，告訴老師你想問什麼就可以。'],
 ];
 const homeLine = (name: string) => (HOME_SVC_LINES.find(([re]) => re.test(String(name || ''))) || [])[1] || '';
@@ -44,7 +44,7 @@ const FEATURED = featuredSvc && {
   price: ntd(featuredSvc.price), duration: durOf(featuredSvc),
 };
 const smallPicks: any[] = [];
-for (const re of [/水鏡|查因果|通靈/, /命書|籤詩|問事/]) {
+for (const re of [/水鏡|查因果/, /命書|籤詩|問事/]) {
   const f = sbServices.find((s) => re.test(s.name) && s.id !== featuredSvc?.id && !smallPicks.includes(s));
   if (f) smallPicks.push(f);
 }
@@ -364,7 +364,7 @@ const homeJsonLd = {
     function cleanNm(n){ return String(n||'').replace(/^[【\[]/,'').replace(/[】\]][\s\S]*$/,'').trim() || n; }
     function glyph(n){ var m = cleanNm(n).match(/[一-鿿]/); return m ? m[0] : '占'; }
     function ntd(p){ return 'NT$ ' + (Number(p)||0).toLocaleString('en-US'); }
-    var HOME_LINES=[[/元辰宮|知運勢|代觀/,'如果你最近很多事情一起不順，卻又說不上來問題到底在哪裡，可以從元辰宮開始看。老師會代替你進入元辰宮，看看目前整體狀態，以及是哪個地方出了問題。'],[/水鏡|查因果|通靈/,'有一件事情，你一直很想知道真正的原因嗎？通靈水鏡法主要就是用來查這件事。不繞圈，直接從你最在意的問題開始。'],[/命書|籤詩|問事/,'如果你現在只有一件事情想問，而且希望直接一點，可以選這個。不需要八字，告訴老師你想問什麼就可以。']];
+    var HOME_LINES=[[/元辰宮|知運勢|代觀/,'如果你最近很多事情一起不順，卻又說不上來問題到底在哪裡，可以從元辰宮開始看。老師會代替你進入元辰宮，看看目前整體狀態，以及是哪個地方出了問題。'],[/水鏡|查因果/,'有一件事情，你一直很想知道真正的原因嗎？通靈水鏡法主要就是用來查這件事。不繞圈，直接從你最在意的問題開始。'],[/命書|籤詩|問事/,'如果你現在只有一件事情想問，而且希望直接一點，可以選這個。不需要八字，告訴老師你想問什麼就可以。']];
     function homeLine(n){ for(var i=0;i<HOME_LINES.length;i++){ if(HOME_LINES[i][0].test(String(n||''))) return HOME_LINES[i][1]; } return ''; }
     function lineOf(s,n){ return homeLine(s.name) || String(s.llm || (s.desc||'').replace(/<[^>]+>/g,'') || '').replace(/\s+/g,' ').trim().slice(0,n); }
     function setTxt(box,sel,t){ var el = box && box.querySelector(sel); if(el) el.textContent = t; }
@@ -383,7 +383,7 @@ const homeJsonLd = {
       if(smallBox){
         var picks = [], used = {};
         if(featured) used[featured.id] = true;
-        [/水鏡|查因果|通靈/, /命書|籤詩|問事/].forEach(function(re){
+        [/水鏡|查因果/, /命書|籤詩|問事/].forEach(function(re){
           var f = all.find(function(s){ return re.test(s.name) && !used[s.id]; });
           if(f){ picks.push(f); used[f.id] = true; }
         });
