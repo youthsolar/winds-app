@@ -12,6 +12,12 @@ const BASE = 'https://winds.tw';
    給不跑 JavaScript 的讀取端（ChatGPT 的網頁工具連 winds.tw 4KB 純頁都說 not accessible，先備一條穩的路＋供合成 MD）。
    noindex、canonical 指回原頁，不搶索引。原頁若不是 HTML 或非 200 就原樣回。 */
 const TEXT_RE = /^(\/.*?)\/text\/?$/;
+function stripBlock(h: string, open: string): string {
+  const i = h.indexOf(open); if (i < 0) return h;
+  const re = /<div\b|<\/div>/gi; re.lastIndex = i; let depth = 0; let m: RegExpExecArray | null;
+  while ((m = re.exec(h))) { depth += m[0][1] === '/' ? -1 : 1; if (depth === 0) return h.slice(0, i) + h.slice(m.index + m[0].length); }
+  return h;
+}
 function toText(html: string, canon: string): string {
   let h = html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -20,11 +26,15 @@ function toText(html: string, canon: string): string {
     .replace(/<svg[\s\S]*?<\/svg>/gi, '')
     .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
     .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+    .replace(/<footer class="zf-footer"[\s\S]*?<\/footer>/gi, '')
+    .replace(/<select[\s\S]*?<\/select>/gi, '')
+    .replace(/<textarea[\s\S]*?<\/textarea>/gi, '')
     .replace(/<link\b[^>]*>/gi, '')
     .replace(/<meta\s+name="robots"[^>]*>/gi, '')
     .replace(/<!--[\s\S]*?-->/g, '');
   const head = '<meta name="robots" content="noindex,follow"><link rel="canonical" href="' + canon + '">' +
     '<style>body{margin:0;background:#FBF8F3;color:#2B2622;font-family:"Noto Serif TC","Songti TC",serif;line-height:1.85;max-width:680px;padding:28px 20px 56px;margin:0 auto}h1{font-size:26px;font-weight:500;line-height:1.3}h2{font-size:20px;font-weight:500}h3{font-size:16px;font-weight:500}p,li{font-size:15.5px}a{color:#B4746A}button{display:none}.text-note{margin-top:40px;padding-top:16px;border-top:1px solid #E6DED6;font-size:13px;color:#8A7F76}</style>';
+  h = stripBlock(h, '<div class="wc-root"'); // 右下角風小編小工具（巢狀 div，用深度計數切掉）
   h = h.replace(/<\/head>/i, head + '</head>');
   h = h.replace(/<\/body>/i, '<p class="text-note">這一頁是 <a href="' + canon + '">' + canon + '</a> 的文字版，只有文案、沒有功能。</p></body>');
   return h;
