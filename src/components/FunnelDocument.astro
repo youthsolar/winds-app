@@ -1146,31 +1146,8 @@ function viewResult(){
   /* 姓名學：等真分析回來才現身（PH_NAME 只是示意稿，直接亮會把別人名字掛在用戶頭上） */
   h+='<div id="nameSection" style="display:none">'+block("姓名學分析","",'<div id="nameMount"></div>')+'</div>';
   h+=block("你的分靈體側寫","",spiritCard(paid));
-  if(R.tarot&&R.tarot.length){
-    var POS=["過去","現在","未來","建議","結果"];
-    h+=block("為這題抽的五張牌","",'<div class="tarot-grid">'+R.tarot.map(function(c,i){
-      var pol=c.is_reversed?"逆位":"正位";var img=c.image_url||c.image||"";
-      var face=img?'<img src="'+esc(img)+'" alt="'+esc(c.card_name)+'" style="width:100%;height:100%;object-fit:contain">':'<span class="nm">'+esc(c.card_name)+'</span>';
-      return '<div><div class="tcard"><span class="tpos-tag zf-tag rose">'+(POS[i]||("牌位"+(i+1)))+'</span>'+face+'</div>'+
-        '<div class="tline">'+esc(c.card_name)+' · '+pol+'</div></div>';
-    }).join("")+'</div>');
-  }
-  var oc=R.oracle,km=R.kongming;
-  if(oc||(km&&km.curHex)){
-    var qk='<div class="qk-grid">';
-    if(oc)qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">'+esc(oc.type)+'</span>'+(oc.level?'<span class="zf-tag rose outline">'+esc(oc.level)+'</span>':'')+'</div>'+
-      (oc.no?'<div class="qno">'+esc(oc.no)+'</div>':'')+(oc.poem?'<div class="qpoem">'+oc.poem.split(/[，。、；;\s]+/).filter(Boolean).map(function(l){return '<span>'+esc(l)+'</span>'}).join("")+'</div>':'')+
-      (paid?'':'<p class="hint" style="margin-top:14px">'+ic("lock-simple")+'完整籤解，解鎖後為你打開。</p>')+'</div>';
-    if(km&&km.curHex){var kmLine=km.interp?(paid?km.interp:(km.interp.length>80?km.interp.substring(0,80)+'…':km.interp)):'';
-      qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數</span>'+(km.fortuneLevel?'<span class="zf-tag rose outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
-        (km.signOrder?'<div class="qno">'+esc(km.signOrder)+'</div>':'')+
-        (km.poem?'<p class="kpoem">'+esc(km.poem)+'</p>':'')+
-        (kmLine?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+esc(kmLine)+(!paid&&km.interp&&km.interp.length>80?' <span style="color:var(--rose-500)">解鎖完整預言 →</span>':'')+'</p>':'')+'</div>';
-    }
-    qk+='</div>';
-    h+=block("籤詩與神數","",qk);
-  }
   h+='<div class="banner tall"><div class="bimg" style="background-image:url(/assets/talk-space-banner.jpg),linear-gradient(135deg,var(--clay-200),var(--rose-100))"></div><div class="cap"><span>要不要改變，你決定。</span></div></div>';
+  /* 2026-09-24 收版面（Jeffery 拍板）：免費頁不再顯示五張牌、籤詩與神數，兩者只活在解讀文字裡；付費報告照舊 */
   /* 2026-09-24 分流（Jeffery 拍板）：LLM 判斷這件事該先讓老師看 → 預約排前面，NT$360 仍在下面照常顯示 */
   h+=teacherFirstBlock();
   if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("完整解讀與你的靈符","完整解讀，得到答案；解開靈符，舒緩問題。",hexTalismans(paid)+'<div style="margin-top:20px">'+paywall(paid)+'</div>',true);
