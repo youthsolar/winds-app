@@ -2,9 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 // 品牌故事頁 — 值對齊 handoff brand-story-page.jsx + DS SectionHeading/IconDisc/GlyphDisc/Card
 const BELIEFS = [
-  { icon: 'feather', title: '命理是一種溫柔', body: '我們不替你決定什麼，只是把你心裡已經知道、卻還說不出口的，慢慢陪你看清楚。' },
-  { icon: 'ear', title: '先被聽見，再被解答', body: '很多時候你要的不是答案，是有人願意好好聽你說。對談從聽你開始，不是從牌開始。' },
-  { icon: 'sun-horizon', title: '選擇比努力更重要', body: '走得累，常常不是不夠努力，是方向走偏了。我們陪你把方向看清，再決定怎麼走。' },
+  { icon: 'feather', title: '先看清楚，再決定', body: '我們不替你做決定。把現在發生的事攤開來看，你心裡本來就有的那個答案，會自己浮出來。' },
+  { icon: 'ear', title: '先聽你說', body: '很多時候你要的不是答案，是有人願意把你的事聽完。對談從你開口開始，不是從牌開始。' },
+  { icon: 'sun-horizon', title: '選擇比努力更重要', body: '走得累，常常不是不夠努力，是方向走偏了。方向看清楚了，再決定怎麼走。' },
 ];
 const MARKS = [
   { g: '易', name: '易經', note: '問一件具體的事' },
@@ -14,11 +14,11 @@ const MARKS = [
   { g: '靈', name: '分靈體', note: '和自己對話' },
 ];
 const ORIGIN = [
-  '我們見過太多人，帶著一個說不出口的問題，深夜睡不著，反覆看著同一個對話框。不是要被算命，是想被好好聽見一次。',
-  '所以我們把命理做得慢一點、軟一點。易經、塔羅、紫微、姓名學，都只是工具——真正重要的，是有人願意陪你，把那件事一起看清楚。',
-  '你不必先把自己整理好才能來。慢慢說，我在這裡聽。',
+  '我們見過太多人，帶著一個說不出口的問題，深夜睡不著，反覆看著同一個對話框。不是想被算命，是想有人把這件事好好聽一次。',
+  '所以我們把命理做得慢一點。易經、塔羅、紫微、姓名學都只是工具，真正有用的，是有人跟你一起把那件事看清楚。',
+  '你不用先把自己整理好才能來。想到什麼就說，我在這裡。',
 ];
-const pageDesc = '找風問幸福的起念：不是被算命，是被好好聽見。易經、塔羅、紫微、姓名學都只是工具，真正重要的是有人陪你把心裡的事看清楚。';
+const pageDesc = '有些問題，不是你想不明白，是手上的資訊還不夠。找風問幸福把命理、通靈與老師的實際經驗放在一起，先把現在發生的事情看清楚，再決定下一步。';
 ---
 <BaseLayout title="品牌故事｜找風問幸福" description={pageDesc} ogType="website">
   <main class="story">
@@ -29,7 +29,7 @@ const pageDesc = '找風問幸福的起念：不是被算命，是被好好聽�
         <div class="zf-section-heading">
           <span class="zf-sh-eyebrow">品牌故事</span>
           <h1 class="zf-sh-title cjk">找風，是為了把心安頓下來。</h1>
-          <p class="zf-sh-lede">風看不見，卻能感覺到方向。我們做的，是陪你在說不清楚的時候，找到那陣風——然後問問自己，怎麼樣才會幸福。</p>
+          <p class="zf-sh-lede">有些問題，不是你想不明白。是你手上的資訊還不夠。找風問幸福把命理、通靈與老師的實際經驗放在一起，先把現在發生的事情看清楚，再決定下一步。</p>
         </div>
       </div>
     </section>
@@ -87,7 +87,7 @@ const pageDesc = '找風問幸福的起念：不是被算命，是被好好聽�
     <section class="wrap block">
       <div class="cta-card">
         <h2 class="cjk">有件事放在心上很久了嗎？</h2>
-        <p class="cta-sub">不用先想清楚。從一張牌開始，我們陪你慢慢看。</p>
+        <p class="cta-sub">不用先想清楚。從一張牌開始，我們一起看。</p>
         <div class="cta-btns">
           <a class="zf-btn lg primary" href="/" style="font-size:17px">抽一張牌</a>
           <a class="zf-btn lg secondary" href="/services/"><i class="ph-thin ph-calendar-heart" style="font-size:16px"></i>預約老師對談</a>
