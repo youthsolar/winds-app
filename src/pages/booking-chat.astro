@@ -180,7 +180,15 @@ import '../styles/global.css';
         <h1>預約老師</h1>
         <p>跟小幫手聊聊你的狀況，我幫你推薦對症的老師、查真實時段、完成預約 ✨</p>
       </div>
-      <div class="sp-msgs" id="msgs"></div>
+      <div class="sp-msgs" id="msgs">
+        <!-- 靜態版（2026-09-24）：不跑 JavaScript 的抓取工具只看得到這一段；boot 時先清空再接對話 -->
+        <div class="sp-static" style="font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.85;color:var(--text-secondary);padding:8px 4px">
+          <p style="margin:0 0 10px">這裡是風小編。你不用先想好要約什麼，把最近在意的事說一說就好。</p>
+          <p style="margin:0 0 10px">聽完，我會推薦最接近你狀況的老師與項目，查老師真實的空檔，幫你把時間定下來。台北現場或遠端視訊都可以。</p>
+          <p style="margin:0 0 10px">預約項目有三大類：通靈水鏡法問事、元辰宮代觀，還有依狀況才做的法科項目。想先自己看，可以到<a href="/services/">預約項目</a>逐項讀。</p>
+          <p style="margin:0">對話需要瀏覽器執行程式。請用手機或電腦瀏覽器開啟這一頁，下面的輸入框就能打字，或按電話圖示直接講。</p>
+        </div>
+      </div>
       <div class="sp-input">
         <button class="bc-voicebtn bc-voicebtn-input" id="bcVoiceBtn" aria-label="改用語音通話" title="跟風小編講電話"><i class="ph-fill ph-phone"></i></button>
         <textarea id="ta" rows="1" placeholder="說說你在意的事…"></textarea>
@@ -204,6 +212,7 @@ import '../styles/global.css';
     }
 
     var msgsEl=document.getElementById('msgs'), taEl=document.getElementById('ta'), sendEl=document.getElementById('send');
+    msgsEl.innerHTML=''; // 清掉給抓取工具看的靜態文案，對話由 JS 接手
 
     function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     // 網址 char class 排除結尾雜訊（中文括號/標點），避免把 …blog-192） 的 ）吃進連結→404

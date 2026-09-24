@@ -604,6 +604,19 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     <section class="hg-cast"><span class="eyebrow"><span class="dot"></span>起卦</span><p class="hg-guide">手放上來，按著三秒，卦自己會浮上來。</p><p class="hg-situ">卦出來之後，老師先問一句：這張符要守哪裡。住得不太順、新家剛入住、想常備一張、房子還在挑，選一個。</p><p class="hg-situ">起卦要按住水鏡，請用手機或電腦瀏覽器開啟這一頁。</p></section>
     <footer class="hg-foot"><p>找風問好窩我也在籌備，只收拎包入住的套房，現在還沒有房源，開了我先在這裡講一聲。</p></footer>
   </main>
+)}{mode === 'divination' && (
+  <!-- 占卜漏斗的靜態版（2026-09-24）：不跑 JavaScript 的抓取工具只看得到這一段；render() 一啟動整塊換掉。文字對齊 viewTopic() 與首頁定稿 -->
+  <main class="shell narrow ff hg">
+    <section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 想問一件事</span><h1 class="hg-h1">今天，想讓哪件事安心？</h1><p class="lede">先選一個大方向，我再陪你找出那個不安的點</p></section>
+    <section class="hg-cols">
+      <div class="zf-card hg-card"><h3>感情與婚姻</h3><p>關於感情、婚姻、那個人的事。想看清彼此真實的想法與走向。</p></div>
+      <div class="zf-card hg-card"><h3>事業與財富</h3><p>包含工作方向、轉職創業、財務壓力與收入穩定度。想釐清下一步。</p></div>
+      <div class="zf-card hg-card"><h3>身心與健康</h3><p>身心狀態、睡眠、壓力或長期不適。先好好照顧一下自己。</p></div>
+    </section>
+    <section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮觀修 · 符令親繪</span></div></section>
+    <section class="hg-cast"><span class="eyebrow"><span class="dot"></span>怎麼走</span><p class="hg-guide">選好方向，挑一個最接近你的問題，手放上水鏡按著三秒，卦自己會浮上來。</p><p class="hg-situ">卦出來，老師先解這一卦，再依卦給你一張親手畫的卦符，存成手機桌布守七天。算半天，你就缺風易揚老師一張符令。</p><p class="hg-situ">起卦要按住水鏡，請用手機或電腦瀏覽器開啟這一頁。</p></section>
+    <footer class="hg-foot"><p>想讓老師親自看？可以直接<a href="/booking-chat/">預約老師</a>，或到<a href="/services/">預約項目</a>看看哪一項最接近你現在的狀況。</p></footer>
+  </main>
 )}</div>
 <!-- 風小編：只在占卜結果頁現身（render() 切 body class），讓用戶看完解讀即時問預約 -->
 <ConciergeWidget />
