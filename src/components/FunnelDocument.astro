@@ -552,6 +552,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-seals button{width:64px;height:64px;border-radius:14px;border:1.5px solid var(--border-strong);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:20px;cursor:pointer;transition:all .15s}
     .ff-seals button.on{background:var(--rose-600);color:var(--text-on-accent);border-color:transparent;transform:rotate(-3deg)}
     /* 家的情形四選一（home 模式，看到卦那一頁）：DS chip 膠囊，兩行置中 */
+    .paywall .veil .ns-line{font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--text-secondary);margin:0 0 10px;text-align:left}
+    .paywall .veil .ns-line b{font-weight:500;color:var(--ink-900)}
     .hg-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px 0 6px}
     .hg-chips .chip{font-size:15.5px;padding:11px 18px}
     /* ── 活動頁「家裡的符」落地（home 模式）── */
@@ -742,6 +744,7 @@ function buildResult(d){
     hexName:d.hexagram_name||"",upperGua:d.upper_gua||"",lowerGua:d.lower_gua||"",
     talismanImg:d.talisman_image_url||"",talismanElements:d.talisman_elements||[],talismanCards:d.talisman_cards||[],jieqi:d.jieqi||null,shengKe:d.sheng_ke||"",
     hexCode:d.hexagram_code||"",hexCard:d.hex_card||null,
+    nextStep:d.next_step||null,   /* 2026-09-24：{focus,talisman_reason,needs_teacher,teacher_line}，舊紀錄 null */
     wuxing:wr?(function(){var ks=["木","火","土","金","水"],vs=ks.map(function(k){return +wr[k]||0}),mx=Math.max.apply(null,vs);return ks.map(function(k,i){return{k:k,v:mx>0?Math.round(vs[i]/mx*100):0}})})():[],
     fortuneLine:a.fortune_line||d.fortune_line||[],
     tarot:d.tarot_cards||[],
@@ -1168,6 +1171,8 @@ function viewResult(){
     h+=block("籤詩與神數","",qk);
   }
   h+='<div class="banner tall"><div class="bimg" style="background-image:url(/assets/talk-space-banner.jpg),linear-gradient(135deg,var(--clay-200),var(--rose-100))"></div><div class="cap"><span>要不要改變，你決定。</span></div></div>';
+  /* 2026-09-24 分流（Jeffery 拍板）：LLM 判斷這件事該先讓老師看 → 預約排前面，NT$360 仍在下面照常顯示 */
+  h+=teacherFirstBlock();
   if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("完整解讀與你的靈符","完整解讀，得到答案；解開靈符，舒緩問題。",hexTalismans(paid)+'<div style="margin-top:20px">'+paywall(paid)+'</div>',true);
   else h+=block("完整解讀","",paywall(paid));
   h+=recsSection();
@@ -1179,6 +1184,19 @@ function viewResult(){
     '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
+function teacherFirstBlock(){
+  var NS=(STATE.result&&STATE.result.nextStep)||null;
+  if(!NS||!NS.needs_teacher)return '';
+  return block("這件事建議先讓老師看","",'<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.8;color:var(--text-secondary);margin:0">'+esc(NS.teacher_line||'這一類的事，老師看過再配符比較穩。')+'</p>'+
+    '<div style="margin-top:14px"><button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button></div></div>');
+}
+/* 付費牆上方兩句（2026-09-24 拍板「系統每次自己寫」）：有才顯示 */
+function nextStepLines(){
+  var NS=(STATE.result&&STATE.result.nextStep)||null;if(!NS)return '';
+  return (NS.focus?'<p class="ns-line"><b>依照這次分析，你目前比較需要處理的是：</b>'+esc(NS.focus)+'</p>':'')+
+    (NS.talisman_reason?'<p class="ns-line"><b>這組符為什麼配給你：</b>'+esc(NS.talisman_reason)+'</p>':'');
+}
+function talismanName(){var R=STATE.result||{};return R.hexName?'【'+esc(R.hexName)+' 靈符】':'靈符';}
 function block(title,note,inner,noteTag){return '<section class="res-block"><h3 class="res-h3">'+title+'</h3>'+(note?(noteTag?'<div class="res-note-tag"><span class="zf-tag rose outline">'+esc(note)+'</span></div>':'<p class="res-note">'+ic("sparkle")+esc(note)+'</p>'):'')+inner+'</section>'}
 function fact(l,v,s){return '<div class="fact"><div class="l">'+l+'</div><div class="v">'+v+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>'}
 /* ===== 完整命理檔案（逐值對齊 DS step4-result.jsx ProfileCard；real 有則用、缺則示意待後端）===== */
@@ -1445,8 +1463,8 @@ function paywall(paid){
       '</div></div>';
   }
   return '<div class="paywall"><div class="behind"><p>風易揚老師親手畫的靈符、完整解讀，還有整年的節氣運勢圖，都在解鎖後為你打開。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>'+
-    '<div class="veil"><span class="lk">'+ic("lock-simple","thin")+'</span><h3>風易揚老師的靈符解方</h3>'+
-    (HOME?'<p>我親手畫的五張五行符，節氣到了開一張。不做折扣，也沒有加購。</p>':'<p>這一卦的解方：<strong style="font-weight:500;color:var(--ink-900)">五張靈符</strong>，老師親手畫的，依你這一卦配給你，跟著節氣一張一張處理；再加上<strong style="font-weight:500;color:var(--ink-900)">完整解讀</strong>，讓你知道為什麼。</p>')+
+    '<div class="veil"><span class="lk">'+ic("lock-simple","thin")+'</span><h3>風易揚老師的靈符解方</h3>'+nextStepLines()+
+    (HOME?'<p>我親手畫的 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+' 五張</strong>，節氣到了開一張。不做折扣，也沒有加購。</p>':'<p>這一卦配給你的是 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+' 五張</strong>，老師親手畫的，跟著節氣一張一張處理；再加上<strong style="font-weight:500;color:var(--ink-900)">完整解讀</strong>，讓你知道為什麼。</p>')+
     '<div class="feat"><span>'+ic("check","bold")+'五張靈符·依節氣逐張處理</span><span>'+ic("check","bold")+'完整解讀·得到答案</span><span>'+ic("check","bold")+'紫微七段解讀</span><span>'+ic("check","bold")+'完整節氣運勢圖</span></div>'+
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
