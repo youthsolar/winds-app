@@ -1,4 +1,5 @@
 ---
+import HomeGuaStatic from './HomeGuaStatic.astro';
 /*
  * 核心占卜漏斗（整份文件）— 純 Astro + vanilla（不用 React）。
  * 2026-09-23：從 pages/divination.astro 原樣搬成元件，讓 /divination 與活動頁 /home-gua（家裡的符）共用同一條流程；
@@ -592,18 +593,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
 </head>
 <body data-mode={mode}>
 <div id="root">{mode === 'home' && (
-  <!-- 落地文案的靜態版（2026-09-24）：不跑 JavaScript 的抓取工具（ChatGPT、搜尋引擎、社群預覽）只看得到這一段；JS 一啟動 render() 就整塊換掉。文字＝D 版定稿，與 viewLanding() 同一份 -->
-  <main class="shell narrow ff hg">
-    <section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 家裡的符</span><h1 class="hg-h1">卦怎麼走，符就怎麼給</h1><p class="lede">按住水鏡，家裡先留一張</p></section>
-    <section class="hg-cols">
-      <div class="zf-card hg-card"><h3>家也會有狀況</h3><p>屋子的狀況多半不是一下子來的。壁角的濕、走道的風、換季的悶，日子堆著堆著，住的人身上就有反應。</p></div>
-      <div class="zf-card hg-card"><h3>老師怎麼看</h3><p>我不急著講吉凶。手按在水鏡上，那一刻的卦就是這個家現在的樣子。卦怎麼走，符就怎麼給，每一張都是我親手畫的真跡，一卦一張。</p></div>
-      <div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來，我先給一張卦符，守著家裡七天。想走長一點，我再解五張五行符，一個節氣開一張。全部存成手機桌布，不必擺、不必燒。</p></div>
-    </section>
-    <section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮觀修 · 符令親繪</span></div></section>
-    <section class="hg-cast"><span class="eyebrow"><span class="dot"></span>起卦</span><p class="hg-guide">手放上來，按著三秒，卦自己會浮上來。</p><p class="hg-situ">卦出來之後，老師先問一句：這張符要守哪裡。住得不太順、新家剛入住、想常備一張、房子還在挑，選一個。</p><p class="hg-situ">起卦要按住水鏡，請用手機或電腦瀏覽器開啟這一頁。</p></section>
-    <footer class="hg-foot"><p>找風問好窩我也在籌備，只收拎包入住的套房，現在還沒有房源，開了我先在這裡講一聲。</p></footer>
-  </main>
+  <!-- 落地文案的靜態版：見 HomeGuaStatic.astro（與 /home-gua/text/ 共用） -->
+  <HomeGuaStatic />
 )}{mode === 'divination' && (
   <!-- 占卜漏斗的靜態版（2026-09-24）：不跑 JavaScript 的抓取工具只看得到這一段；render() 一啟動整塊換掉。文字對齊 viewTopic() 與首頁定稿 -->
   <main class="shell narrow ff hg">
