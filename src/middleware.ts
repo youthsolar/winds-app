@@ -29,6 +29,8 @@ function toText(html: string, canon: string): string {
     .replace(/<footer class="zf-footer"[\s\S]*?<\/footer>/gi, '')
     .replace(/<select[\s\S]*?<\/select>/gi, '')
     .replace(/<textarea[\s\S]*?<\/textarea>/gi, '')
+    .replace(/<p class="lw-hex-line lw-hex-line-desk"[^>]*>[\s\S]*?<\/p>/gi, '') // 主題卦頁：同一句桌機／手機各一份，CSS 只顯示一份，文字版只留一份
+    .replace(/<span\b/gi, ' <span') // 行內標籤（chip）之間補空白，免得三個標籤黏成一句
     .replace(/<link\b[^>]*>/gi, '')
     .replace(/<meta\s+name="robots"[^>]*>/gi, '')
     .replace(/<!--[\s\S]*?-->/g, '');

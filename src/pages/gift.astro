@@ -11,7 +11,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="gf-head">
         <div class="gf-eyebrow">老師請客</div>
         <h1 class="gf-h1">老師請你拿一次靈符解方</h1>
-        <p class="gf-lead">放在心上的事，總是想得特別多——感情、工作，或一個說不出口的決定。風易揚老師請你占一卦、拿一次他的靈符解方，把心定下來。</p>
+        <p class="gf-lead">最近有一件事情，一直放在心上嗎？感情、工作，或是一個你還拿不定主意的決定，都可以拿來起一卦。這一次，風易揚老師請你看完整卦象，也會依你的卦給你一份老師親繪的靈符解方。</p>
       </div>
 
       <!-- 一般態 -->
@@ -19,10 +19,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <div class="gf-card gf-card-hero">
           <div id="gfGmount" class="gf-gmount" aria-label="使用 Google 領取"></div>
           <button id="gfClaimBtn" class="gf-gbtn" hidden>
-            <span class="gf-gbtn-label">用 Google 帳戶領取</span>
+            <span class="gf-gbtn-label">用 Google 帳號領這一卦</span>
           </button>
           <p class="gf-hint" id="gfHint" hidden><span class="gf-spinner"></span>正在為你準備…</p>
-          <div class="gf-note">免費領取・每個帳號限一次</div>
+          <div class="gf-note">老師請客・每個帳號限一次</div>
           <div class="gf-tagline"><span class="gf-tag">今天名額有限，領完為止</span></div>
           {/* 9/11：社群廣告把人帶進來，但領取一定要 Google 登入，在 App 內建瀏覽器登不進去＝死路。
               起卦那條線 9/10 起已經零登入，這裡給一條人人看得到的出口，utm 由前端原樣帶過去。 */}
@@ -33,32 +33,32 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <div class="gf-kicker">這次請客的內容</div>
           <div class="gf-row">
             <span class="gf-seat"><i class="ph-thin ph-scroll"></i></span>
-            <div class="gf-rowtext"><div class="gf-rowtitle">完整卦象解讀</div><div class="gf-rowline">老師針對你問的事，逐段把卦講給你聽。</div></div>
+            <div class="gf-rowtext"><div class="gf-rowtitle">完整卦象解讀</div><div class="gf-rowline">你問的事情，老師會依卦象一段一段說給你聽。</div></div>
           </div>
           <div class="gf-row">
             <span class="gf-seat"><i class="ph-thin ph-yin-yang"></i></span>
-            <div class="gf-rowtext"><div class="gf-rowtitle">五行量能分佈</div><div class="gf-rowline">看見自己此刻的狀態，知道勁該往哪使。</div></div>
+            <div class="gf-rowtext"><div class="gf-rowtitle">五行量能分佈</div><div class="gf-rowline">看看你現在的五行狀況，哪一邊多、哪一邊少。</div></div>
           </div>
           <div class="gf-row">
             <span class="gf-seat"><i class="ph-thin ph-flower-lotus"></i></span>
-            <div class="gf-rowtext"><div class="gf-rowtitle">風易揚老師的靈符解方</div><div class="gf-rowline">老師親手畫的靈符，依你的卦配給你，跟著節氣一張一張處理。</div></div>
+            <div class="gf-rowtext"><div class="gf-rowtitle">風易揚老師親繪靈符解方</div><div class="gf-rowline">老師依你的卦配符，跟著節氣一張一張開。</div></div>
           </div>
-          <div class="gf-price">靈符解方價值 <b>NT$360</b>，這一卦由老師請客。</div>
+          <div class="gf-price">這份靈符解方原價 <b>NT$360</b>，這一卦老師請你。</div>
         </div>
 
         <div class="gf-card gf-card-last">
           <div class="gf-kicker">怎麼領</div>
           <div class="gf-row">
             <span class="gf-seat gf-seat-num">1</span>
-            <div class="gf-rowtext"><div class="gf-rowtitle">登入領取</div><div class="gf-rowline">用 Google 帳號登入，領取這次的請客。</div></div>
+            <div class="gf-rowtext"><div class="gf-rowtitle">用 Google 帳號登入</div><div class="gf-rowline">這次領取會記在你的 Google 帳號。</div></div>
           </div>
           <div class="gf-row">
             <span class="gf-seat gf-seat-num">2</span>
-            <div class="gf-rowtext"><div class="gf-rowtitle">選題起卦</div><div class="gf-rowline">挑一件放在心上的事，填六個基本資料。</div></div>
+            <div class="gf-rowtext"><div class="gf-rowtitle">選一件你想問的事</div><div class="gf-rowline">填六個基本資料，大概 30 秒。</div></div>
           </div>
           <div class="gf-row">
             <span class="gf-seat gf-seat-num">3</span>
-            <div class="gf-rowtext"><div class="gf-rowtitle">展開解讀</div><div class="gf-rowline">稍候片刻，老師的完整解讀隨即展開。</div></div>
+            <div class="gf-rowtext"><div class="gf-rowtitle">看完整解讀</div><div class="gf-rowline">起卦完成後，就可以往下看老師的完整解讀。</div></div>
           </div>
         </div>
       </div>
@@ -79,10 +79,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <div class="gf-card gf-card-hero">
           <span class="gf-seat gf-seat-big"><i class="ph-thin ph-moon-stars"></i></span>
           <div class="gf-fulltitle">今天的名額被領完了</div>
-          <p class="gf-fulllead">老師每天準備的名額有限。留下 email，明天的名額幫你保留一個。</p>
+          <p class="gf-fulllead">今天老師準備的份數已經領完了。留下 Email，明天有名額時再通知你。</p>
           <form id="gfWaitForm">
             <input id="gfWaitEmail" class="gf-field" type="email" required placeholder="你的 email" autocomplete="email" />
-            <button type="submit" class="gf-cta gf-cta-btn"><i class="ph-thin ph-envelope-simple"></i>幫我保留明天的名額</button>
+            <button type="submit" class="gf-cta gf-cta-btn"><i class="ph-thin ph-envelope-simple"></i>明天有名額告訴我</button>
           </form>
           <div class="gf-note" id="gfWaitNote">只寄這一封領取信，不會拿你的 email 做其他用途。</div>
         </div>

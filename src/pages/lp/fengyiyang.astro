@@ -17,6 +17,17 @@ try {
 } catch { /* build 時抓不到就整頁空殼，不擋 build */ }
 
 const services: any[] = (prov?.services || []).filter((s: any) => Number(s.price) > 0);
+
+/* 落地頁專用文案（2026-09-24 小風審稿定稿）：SB 老師檔的自介／標籤／三張主打卡說明太文學，
+   這頁改成老師坐在個案面前講話的口吻。只蓋這頁的顯示，SB 資料與預約流程不動；其他頁仍吃 SB 原文。 */
+const LP_LEDE = ['有一件事情，你想很久了，還是想不通嗎？', '感情、工作、財運，或是一件你一直想知道原因的事，都可以直接跟老師說。', '先把事情看清楚，再決定接下來要怎麼處理。'];
+const LP_SKILLS = ['感情', '工作', '財運', '想知道原因的事'];
+const LP_SKILL_MAIN = '老師主要看：事情的原因、目前的狀況，以及接下來怎麼處理。';
+const LP_FEATURED_DESC: Record<string, string[]> = {
+  '4':   ['有一件事情一直想不通，或是很想知道「為什麼會變成這樣」，可以從這一項開始。', '把你想問的事告訴老師，老師用通靈水鏡法來看。'],
+  '6':   ['如果你想先知道自己目前的元辰宮狀況，可以選這一項。', '由老師代觀，先看目前看到的狀況，再跟你說接下來需不需要處理。'],
+  '136': ['這一項包含婚姻、事業與外煞三類元辰宮修補。', '做完之後，老師會交代後續要注意的事；至少要留 49 天靜養心神，讓自己適應。', '不確定自己是不是需要做到全修補，可以先預約元辰宮代觀，先看目前的狀況。'],
+};
 const ntd = (n: number) => 'NT$ ' + Number(n).toLocaleString('en-US');
 const clean = (n: string) => String(n || '').replace(/^【/, '').replace(/】$/, '');
 
@@ -40,7 +51,7 @@ const minPrice = services.length ? Math.min(...services.map((s) => Number(s.pric
 
 const canonical = 'https://winds.tw/lp/fengyiyang/';
 const title = '風易揚老師 一對一預約｜通靈水鏡法・元辰宮觀修｜找風問幸福';
-const description = (prov?.blurb || '風易揚老師以通靈水鏡法探查因果根源，透過元辰宮觀修協助調整命運格局。台北大安或遠端視訊一對一，線上付訂金保留時段。').slice(0, 155);
+const description = (LP_LEDE.join('') + '台北大安或遠端視訊一對一，線上付訂金保留時段。').slice(0, 155);
 const jsonLd = prov ? [
   {
     '@context': 'https://schema.org', '@type': 'Person', name: prov.name, url: canonical,
@@ -74,8 +85,8 @@ const jsonLd = prov ? [
               <span class="zf-ph-eyebrow">一對一預約 · 台北大安 或 遠端視訊</span>
               <h1 class="lp-h1">{prov.name}</h1>
               <p class="lp-style">{prov.style}</p>
-              <p class="lp-lede">{prov.blurb}</p>
-              <div class="lp-chips">{(prov.skills || []).map((k: string) => <span class="zf-tag rose">{k}</span>)}</div>
+              {LP_LEDE.map((t) => <p class="lp-lede">{t}</p>)}
+              <div class="lp-chips">{LP_SKILLS.map((k: string) => <span class="zf-tag rose">{k}</span>)}</div>
               <div class="lp-cta">
                 <a class="zf-btn primary lg" href="#book">預約老師<i class="ph ph-arrow-down"></i></a>
                 <a class="zf-btn secondary lg" href="#items">看項目與價格</a>
@@ -84,7 +95,6 @@ const jsonLd = prov ? [
             </div>
             <figure class="lp-hero-photo">
               <img src={prov.photo} alt={prov.name} width="520" height="520" loading="eager" />
-              <figcaption><i class="ph-thin ph-quotes"></i>{prov.quote}</figcaption>
             </figure>
           </div>
         </section>
@@ -97,7 +107,7 @@ const jsonLd = prov ? [
           </div>
           <div class="lp-two">
             <div class="zf-prose ink"><p>{prov.desc}</p></div>
-            <div class="zf-prose"><p class="lp-skillmain">擅長：{prov.skill_main}</p><p>{prov.style.split('・').map((t: string) => <span class="zf-tag rose outline" style="margin:0 6px 6px 0">{t}</span>)}</p></div>
+            <div class="zf-prose"><p class="lp-skillmain">{LP_SKILL_MAIN}</p><p>{prov.style.split('・').map((t: string) => <span class="zf-tag rose outline" style="margin:0 6px 6px 0">{t}</span>)}</p></div>
           </div>
         </section>
 
@@ -106,7 +116,7 @@ const jsonLd = prov ? [
           <div class="zf-section-heading">
             <span class="zf-sh-eyebrow">項目與價格</span>
             <h2 class="zf-sh-title">先從這三項開始</h2>
-            <p class="zf-sh-lede">不確定要選哪一項，先看看這三項——多數人第一次來都從這裡起頭。價格為全額，線上先付四成訂金。</p>
+            <p class="zf-sh-lede">第一次找老師，不知道該選哪一項，可以先從下面三項看起。價格是項目全額，線上先付四成訂金，時段就會保留下來。</p>
           </div>
           <div class="lp-featured">
             {featured.map((s: any) => (
@@ -116,7 +126,7 @@ const jsonLd = prov ? [
                   <span class="lp-fcard-price">{ntd(s.price)}</span>
                 </div>
                 <h3>{clean(s.name)}</h3>
-                <p>{s.desc}</p>
+                {(LP_FEATURED_DESC[String(s.id)] || [s.desc]).map((t) => <p>{t}</p>)}
                 <button class="zf-btn primary md" type="button" data-pick={s.id}>預約這項<i class="ph ph-arrow-right"></i></button>
                 <span class="lp-fcard-dep">訂金 {ntd(s.deposit)}</span>
               </article>
@@ -149,12 +159,12 @@ const jsonLd = prov ? [
         <section class="lp-wrap lp-block">
           <div class="zf-section-heading">
             <span class="zf-sh-eyebrow">怎麼進行</span>
-            <h2 class="zf-sh-title">三步，時段就是你的</h2>
+            <h2 class="zf-sh-title">想找老師，就從這裡選時間</h2>
           </div>
           <ol class="lp-steps">
-            <li><span class="lp-step-n">1</span><div><b>選方式</b><p>{locations.map((l: any) => l.type === 'online' ? '遠端視訊：' + l.note : '台北實體：' + l.note).join('；')}。</p></div></li>
-            <li><span class="lp-step-n">2</span><div><b>選項目與時間</b><p>看得到老師未來四週真實的空檔，挑一個你方便的。</p></div></li>
-            <li><span class="lp-step-n">3</span><div><b>付訂金保留</b><p>線上付四成訂金（信用卡、行動支付皆可），時段就保留給你；餘額當天現場或依老師指示結清。</p></div></li>
+            <li><span class="lp-step-n">1</span><div><b>選實體或遠端</b><p>台北可以到大安區現場；不方便過來，也可以選遠端視訊。</p><p>{locations.map((l: any) => l.type === 'online' ? '遠端視訊：' + l.note : '台北實體：' + l.note).join('；')}。</p></div></li>
+            <li><span class="lp-step-n">2</span><div><b>選項目和時間</b><p>頁面會顯示老師未來四週可以預約的時間，挑一個你方便的就好。</p></div></li>
+            <li><span class="lp-step-n">3</span><div><b>付四成訂金</b><p>線上付四成訂金後，時段就會保留下來。餘額實體當天現場結清；遠端依老師指示結清。</p></div></li>
           </ol>
         </section>
 
@@ -176,7 +186,7 @@ const jsonLd = prov ? [
           <details><summary>訂金是多少？餘額什麼時候付？</summary><p>訂金為項目全額的四成，線上付款後時段即保留。餘額實體當天現場結清，遠端依老師指示結清。</p></details>
           <details><summary>遠端視訊怎麼進行？</summary><p>預約完成後會自動開啟線上會議室連結，時間到用手機或電腦點進去即可，不用另外安裝軟體。</p></details>
           <details><summary>為什麼 Email 只收 Gmail？</summary><p>預約確認信與會議連結都靠信箱送達，Gmail 送達率最穩定，避免你收不到通知。</p></details>
-          <details><summary>要準備什麼？</summary><p>本人姓名與西元生日（含出生時辰更好）。想問的事先想好一兩件，當面聊就好。</p></details>
+          <details><summary>要準備什麼？</summary><p>本人姓名、西元生日；如果知道出生時辰，也一起準備。</p><p>另外，把你最想問的一兩件事先放在心裡，來了直接跟老師說就好。</p></details>
         </section>
       </>
     )}
