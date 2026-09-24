@@ -126,6 +126,7 @@ const jsonLd = [
           {isSB ? '預約老師' : '前往購買'}
         </a>
         <p class="sd-book-note">{isSB ? '報名與付款將前往安全頁完成' : '超商店到店 · 7 天內 · 台灣限定'}</p>
+        {isSB && <p class="sd-alt">還不確定？先線上起一卦，老師依卦給靈符解方（NT$360）。<a href="/divination/">先起一卦</a></p>}
       </section>
 
       {related.length > 0 && (
@@ -178,5 +179,7 @@ const jsonLd = [
       .sd-head h1 { font-size: 26px; }
       .sd-book-price { font-size: 23px; }
     }
+      .sd-alt { margin: 14px 0 0; font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); line-height: 1.7; text-align: center; }
+    .sd-alt a { color: var(--rose-600); border-bottom: 1px solid var(--rose-200); }
   </style>
 </BaseLayout>

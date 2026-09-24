@@ -34,4 +34,6 @@ esSource: "/pages/reserve"
 
 ![台北通靈預約](https://cdn.winds.tw/es/1956d850e2_13631001.jpg)
 
+還不確定要不要預約？可以先線上起一卦，老師依卦給你一張靈符解方（NT$360）。[先起一卦](/divination/)
+
 ##

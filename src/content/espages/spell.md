@@ -111,4 +111,6 @@ esSource: "/pages/spell"
 
 [瞭解更多](/blog/category/風水法術/)
 
+還不確定要不要預約？可以先線上起一卦，老師依卦給你一張靈符解方（NT$360）。[先起一卦](/divination/)
+
 ##

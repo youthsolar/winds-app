@@ -283,7 +283,7 @@
         // 繞圈→占卜出口卡（DS：surface-tint 卡 + DS primary 按鈕）
         var a=document.createElement('div'); a.className='wc-action';
         var btn=document.createElement('a'); btn.className='wc-action-btn'; btn.href=ui.url;
-        btn.textContent=(ui.label||'試著占卜看看')+' →';
+        btn.textContent=(ui.label||'先起一卦，老師依卦給你一張靈符解方')+' →';
         a.appendChild(btn); msgs.appendChild(a); msgs.scrollTop=msgs.scrollHeight;
       } else if(ui.kind==='handoff' && ui.url){
         // 真人 handoff（網頁版）：加入官方 LINE @uneedwind 好友 → 老師在 OA 後台接
