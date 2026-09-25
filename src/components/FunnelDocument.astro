@@ -233,6 +233,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .res-head h3{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)}
     .res-h3{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900);margin:0 0 14px}
     .res-note-tag{margin:-6px 0 16px}
+    /* 2026-09-26：這顆藥丸裝的是整句副標不是短標籤，DS .zf-tag 的 white-space:nowrap 會在手機把整頁撐寬（付費頁 33 字破格）。只在這裡放行換行，不動 ds.css */
+    .res-note-tag .zf-tag{white-space:normal;text-align:center;max-width:100%}
     .res-note{display:flex;align-items:flex-start;gap:6px;font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:-6px 0 16px}
     .tpos-tag{position:absolute;top:8px;right:8px;z-index:1}
     .fact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
@@ -731,7 +733,7 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return
 function ic(n,w){return '<i class="ph'+(w?'-'+w:'')+' ph-'+n+'"></i>'}
 function pad2(n){n=String(n);return n.length<2?"0"+n:n}
 /* 輕量 markdown：去掉 ##/**，換行轉 <br> */
-function md(t){if(!t)return"";return esc(t).replace(/^#{1,6}\s*/gm,"").replace(/\*\*(.+?)\*\*/g,"$1").replace(/\*(.+?)\*/g,"$1").replace(/`{1,3}([^`]*)`{1,3}/g,"$1").replace(/---+/g,"─────").replace(/\n{2,}/g,"<br><br>").replace(/\n/g,"<br>")}
+function md(t){if(!t)return"";return esc(t).replace(/^(&gt;\s*)+/gm,"").replace(/^#{1,6}\s*/gm,"").replace(/\*\*(.+?)\*\*/g,"$1").replace(/\*(.+?)\*/g,"$1").replace(/`{1,3}([^`]*)`{1,3}/g,"$1").replace(/---+/g,"─────").replace(/\n{2,}/g,"<br><br>").replace(/\n/g,"<br>")}
 /* 八卦 unicode */
 var GUA_UNI={'乾':'☰','天':'☰','兌':'☱','澤':'☱','離':'☲','火':'☲','震':'☳','雷':'☳','巽':'☴','風':'☴','坎':'☵','水':'☵','艮':'☶','山':'☶','坤':'☷','地':'☷'};
 function parseKongmingText(text){
@@ -1393,8 +1395,10 @@ function hexTalismans(paid){
   /* 優先用後端的五行符令卡（含真模糊圖＋覆蓋狀態）；無則退回純五行名 */
   var list=cards.length?cards:els.map(function(el,i){return{pos:i+1,element:el,available:false,blur_url:""}});
   if(list.length){
-    h+='<div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">對應卦象的 '+list.length+' 張量能靈符</span><span class="zf-tag rose outline" style="font-size:12px">隨「'+esc(R.hexName||'本')+'卦」而對應</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
-      '<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">前面的卦象、節氣與你的狀態，已經指出目前最需要留意的地方。</p><p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">所以出現在這裡的五張靈符，不是隨機抽取，而是依照這次起卦的結果，為你整理出的解方，每一張都由風易揚老師親手繪製。</p>';
+    /* 2026-09-26 對齊 DS ResBlock（step4-result.jsx）：區段上方 26px、標題自成一行 margin 0 0 14px、標籤另起一行（.res-note-tag -6px 0 16px）、說明文 14.5/1.7 */
+    h+='<div style="margin-top:26px"><h4 style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);margin:0 0 14px">對應卦象的 '+list.length+' 張量能靈符</h4>'+
+      '<div class="res-note-tag" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="zf-tag rose outline" style="font-size:12px">隨「'+esc(R.hexName||'本')+'卦」而對應</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
+      '<p style="font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">前面的卦象、節氣與你的狀態，已經指出目前最需要留意的地方。</p><p style="font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">所以出現在這裡的五張靈符，不是隨機抽取，而是依照這次起卦的結果，為你整理出的解方，每一張都由風易揚老師親手繪製。</p></div>';
     h+='<div class="tal5-grid">'+list.map(function(c,i){
       var el=c.element;
       /* 未付款＋該位次已上傳真圖 → 顯示真模糊符令；否則退回符號佔位（同樣鎖住外觀） */
@@ -1433,6 +1437,7 @@ function mdFull(t){
     if(m=l.match(/^#{1,2}\s*(.+)$/)){flush();out.push('<div class="fi-h1">'+m[1]+'</div>');return;}
     if(m=l.match(/^#{3,6}\s*(.+)$/)){flush();out.push('<div class="fi-h2">'+m[1]+'</div>');return;}
     if(/^-{3,}$/.test(l)){flush();out.push('<hr class="fi-hr">');return;}
+    l=l.replace(/^(&gt;\s*)+/,''); /* 2026-09-26：LLM 偶爾用 markdown 引言「> 」，之前原樣印出成一個 > 字 */
     buf.push(l.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'$1'));
   });
   flush();
@@ -1620,7 +1625,7 @@ function siteHeader(){
 function siteFooter(){
   return '<footer class="zf-footer"><div class="zf-footer-in">'+
     '<div class="zf-footer-top">'+
-      '<div class="zf-footer-brand"><a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福"></a><p>選擇比努力更重要，命理是對自己的溫柔。</p>  <a href="/booking" class="zf-btn primary sm zf-footer-book" data-wc-open>預約老師</a></div>'+
+      '<div class="zf-footer-brand"><a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福"></a><p>選擇比努力更重要，命理是對自己的溫柔。</p></div>'+
       '<div class="zf-footer-cols">'+
         '<div class="zf-fcol"><div class="zf-fh">命理項目</div><a href="/divination">易經</a><a href="/divination">塔羅</a><a href="/ziwei">紫微</a><a href="/spirit">分靈體</a></div>'+
         '<div class="zf-fcol"><div class="zf-fh">探索</div><a href="/blog">案例專欄</a><a href="/services">預約項目</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a><a href="/course">靈修課程</a></div>'+
@@ -1642,7 +1647,7 @@ function wireSiteChrome(){
 /* ===== 中文照詞組斷行（2026-09-26 Jeffery：「一張／符令」「最需要／留意」在詞中間被切）=====
    瀏覽器對中文預設逐字換行；用 BudouX（Google 的中文斷詞，assets/budoux-zh-hant.min.js 自託管）把文字包進
    <budoux-zh-hant>，它在詞組邊界插看不見的斷點並套 word-break:keep-all，只准在詞組之間換行。每次 render 後跑一次。 */
-var CJK_SEL='.summary .q,.res-h3,.res-note,.sum-body,.ff-p,.paywall .veil h3,.paywall .veil p,.gets-t,.get b,.get span,.recs .head h2,.recs .head p,.rec h4,.rec .reason p,.rec-kicker,.hg-h1,.hg-card p,.hg-guide,.lede,.ff-h,.ff-main,.ff-bub,.season-tip .t,.tal-caption,.dir-title,.dir-sub,.section-q,.interp .line,.cool h1,.cool p,.fi-h1,.fi-h2,.fi-body,.tline,.hex-read,.tal5 .ln,.hg-situ,.step-intro h1,.step-intro p';
+var CJK_SEL='.summary .q,.res-h3,.res-note,.res-note-tag .zf-tag,.sum-body,.ff-p,.paywall .veil h3,.paywall .veil p,.gets-t,.get b,.get span,.recs .head h2,.recs .head p,.rec h4,.rec .reason p,.rec-kicker,.hg-h1,.hg-card p,.hg-guide,.lede,.ff-h,.ff-main,.ff-bub,.season-tip .t,.tal-caption,.dir-title,.dir-sub,.section-q,.interp .line,.cool h1,.cool p,.fi-h1,.fi-h2,.fi-body,.tline,.hex-read,.tal5 .ln,.hg-situ,.step-intro h1,.step-intro p';
 var cjkParser=null;
 function cjkWrap(root){
   if(!root||!window.customElements||!customElements.get('budoux-zh-hant'))return;
@@ -1658,7 +1663,9 @@ function cjkWrap(root){
     while((n=walker.nextNode()))nodes.push(n);
     for(var j=0;j<nodes.length;j++){
       var v=nodes[j].nodeValue;if(!/[\u3400-\u9fff]/.test(v)||v.indexOf('\u200b')>=0)continue;
-      var seg=cjkParser.parse(v).join('\u200b').replace(re,function(m){return m.replace(/\u200b/g,'');});
+      var seg=cjkParser.parse(v).join('\u200b').replace(re,function(m){return m.replace(/\u200b/g,'');})
+        /* 2026-09-26：BudouX 按 UTF-16 切，會把 emoji（🌙 等四位元組字）切成兩半再插 \u200b → 手機顯示兩個方框。把落在代理對／ZWJ／變體選擇子旁的斷點拿掉 */
+        .replace(/([\uD800-\uDBFF\u200D])\u200b|\u200b(?=[\uDC00-\uDFFF\u200D\uFE0E\uFE0F\u20E3])/g,'$1');
       if(seg!==v)nodes[j].nodeValue=seg;
     }
   }
