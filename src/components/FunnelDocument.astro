@@ -540,9 +540,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-bub{max-width:88%;padding:11px 14px;border-radius:18px;font-family:var(--font-serif);font-size:14px;line-height:1.7;background:var(--surface-card);border:1px solid var(--border-soft);border-top-left-radius:6px;color:var(--text-primary);font-weight:300;animation:ffIn .38s var(--ease-soft)}
     .ff-bub.me{background:var(--accent);color:var(--text-on-accent);justify-self:end;width:fit-content;white-space:nowrap;border-top-right-radius:6px;border-top-left-radius:18px;border-color:transparent;font-weight:500}
     @keyframes ffIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-    .ff-ctl{margin-top:4px}
+    .ff-ctl{margin:16px 0 12px} /* 2026-09-26 Jeffery：問生日的圖形上下太擠，各留白 */
     .ff-next{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
-    .ff-petals{position:relative;width:200px;height:200px;margin:6px auto}
+    .ff-petals{position:relative;width:200px;height:200px;margin:10px auto}
     .ff-petals button{position:absolute;width:40px;height:40px;border-radius:999px;transform:translate(-50%,-50%);border:1px solid var(--border-strong);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:13px;cursor:pointer}
     .ff-petals button.on{background:var(--accent);color:var(--text-on-accent);border-color:transparent}
     .ff-petals .c{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-serif);font-size:16px;color:var(--text-primary);text-align:center;line-height:1.3}
@@ -550,7 +550,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
     .ff-days button{height:34px;border-radius:var(--radius-sm);border:1px solid var(--border-soft);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:13px;cursor:pointer;font-variant-numeric:tabular-nums}
     .ff-days button.on{background:var(--accent);color:var(--text-on-accent);border-color:transparent}
-    .ff-arc svg{width:100%;height:150px;overflow:visible}
+    .ff-arc svg{width:100%;height:192px;overflow:visible} /* 2026-09-26：弧頂圓點 y=-6、光暈 r18 原本凸出畫布頂到上面的泡泡；viewBox 上留 28、下留 14 */
     .ff-arc .horizon{stroke:var(--border-strong);stroke-dasharray:3 4}
     .ff-arc .path{fill:none;stroke:var(--border-accent);stroke-width:1.2;stroke-dasharray:2 5}
     .ff-arc .dot{cursor:pointer}
@@ -559,7 +559,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-arc .dot.on circle:not(.halo){fill:var(--gold-400);stroke:var(--gold-500)}
     .ff-arc .dot text{font-family:var(--font-serif);font-size:9.5px;fill:var(--text-muted);text-anchor:middle;pointer-events:none}
     .ff-arc .dot.on text{fill:var(--ink-900);font-weight:600}
-    .ff-shilabel{font-family:var(--font-serif);font-size:14px;text-align:center;color:var(--text-primary);margin-top:2px}
+    .ff-shilabel{font-family:var(--font-serif);font-size:14px;text-align:center;color:var(--text-primary);margin-top:8px}
     .ff-shilabel small{color:var(--text-muted);font-size:12px;margin-left:6px}
     .ff-seals{display:flex;gap:10px;justify-content:center}
     .ff-seals button{width:64px;height:64px;border-radius:14px;border:1.5px solid var(--border-strong);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:20px;cursor:pointer;transition:all .15s}
@@ -610,6 +610,91 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-share .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:10px}
     .ff-share .note{font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:8px;text-align:center}
     @media (prefers-reduced-motion:reduce){.ff-sheen,.ff-rips span,.ff-bub{animation:none!important}.ff-rips span{opacity:0}}
+    /* ===== 2026-09-26 DS 逐值對齊（真值 step4-result.jsx；對賬表見本日收工檔）。只改數值與手機斷點，不動結構；要調版面請改上面原規則或這裡 ===== */
+    .res-note{font-size:14.5px}
+    .res-note-tag .zf-tag{font-size:12px}
+    .tpos-tag.zf-tag{font-size:12px}
+    .rec .top .zf-tag{font-size:12px}
+    .res-block .zf-card:not(.ff-share):not(.sunken){padding:26px 28px}
+    .tal-hero-card{padding:28px 30px;margin-bottom:20px}
+    .tframe.big .inner-border{inset:12px}
+    .sum-ask{font-family:var(--font-serif);font-size:15px;color:var(--text-muted)}
+    .summary .q,.summary .ff-main{font-size:32px;line-height:1.45}
+    .sum-body{font-size:18.5px;line-height:1.9}
+    .ftile-l{font-size:11.5px}
+    .ftile-v{font-size:21px}
+    .pf-lbl{font-size:11.5px}
+    .bz-pos{font-size:10.5px}
+    .bz-ch{font-size:26px}
+    .ny-pos{font-size:10.5px}
+    .sp-p{font-size:17px}
+    .tcard .nm{font-size:23px}
+    .tline{margin-top:8px}
+    .qno{font-size:12.5px}
+    .paywall .behind p{font-size:17px}
+    .paywall .veil h3{font-size:25px;margin:0 0 10px}
+    .paywall .veil p{font-size:16.5px;line-height:1.85;margin:0 auto;text-align:center}
+    .pc-title{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)}
+    .fi-body{font-size:17px;line-height:2}
+    .tal-caption{font-size:11.5px}
+    .fog .cap{font-size:13.5px}
+    .hex-read{font-size:17px}
+    .season-tip .t{font-size:15px}
+    .tal5-sec{margin-top:20px}
+    .tal5-t{font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)}
+    .tal5-p{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px}
+    .tal5 .nm{font-size:14.5px}
+    .rec .price{font-size:13.5px}
+    .rec .cta{font-size:14.5px}
+    .banner .cap span{font-size:19px}
+    .cool h1{font-size:28px}
+    .cool .when span{font-size:17px}
+    .nm-full{font-size:36px}
+    .nm-c{font-size:34px}
+    .nm-wk{font-size:11px}
+    .nm-sc-cfg{font-size:21px}
+    .nm-sc-short{font-size:15px}
+    .nm-pe-h{font-size:16.5px}
+    .nm-pe-b{font-size:15.5px}
+    @media(max-width:760px){
+      .res-block .zf-card:not(.ff-share):not(.sunken){padding:20px 18px}
+      .tal-hero-card{padding:20px 18px;margin-bottom:16px}
+      .sum-ask{font-size:13.5px}
+      .summary .q,.summary .ff-main{font-size:23px}
+      .sum-body{font-size:16px}
+      .bz-ch{font-size:22px}
+      .sp-p{font-size:15.5px}
+      .tcard .nm{font-size:20px}
+      .tline{font-size:12.5px}
+      .qk-grid{gap:14px}
+      .qpoem span,.kpoem{font-size:16.5px}
+      .paywall .behind{padding:22px 20px}
+      .paywall .veil{padding:32px 20px}
+      .paywall .veil h3{font-size:21px}
+      .paywall .veil p{font-size:15px}
+      .paid-card .body{padding:22px 20px}
+      .pc-title{font-size:18px}
+      .fi-body{font-size:15.5px}
+      .fog{padding:0 14px 16px}
+      .fog .cap{font-size:12.5px}
+      .hex-read{font-size:15.5px}
+      .season-tip{padding:12px 14px}
+      .season-tip .t{font-size:13.5px}
+      .tal5-sec{margin-top:16px}
+      .tal5-p{font-size:13.5px}
+      .tal5 .nm{font-size:13.5px}
+      .recs .head{margin-bottom:24px}
+      .rec .top{padding:20px 20px 0}
+      .rec .b{padding:14px 20px 22px}
+      .cool{padding:40px 20px}
+      .cool h1{font-size:23px}
+      .cool .when span{font-size:15.5px}
+      .nm-full{font-size:30px}
+      .nm-sc-short{font-size:14px}
+      .nm-sum{font-size:15px}
+      .nm-pe{padding:16px}
+      .nm-pe-b{font-size:14.5px}
+    }
   </style>
 </head>
 <body data-mode={mode}>
@@ -980,7 +1065,7 @@ function viewAsk(){
   if(k==="shi"){
     var pts='';for(var i=0;i<12;i++){var day=i>=3&&i<=9,x2,y2;if(day){var ang=Math.PI-((i-3)/6)*Math.PI;x2=170-118*Math.cos(ang);y2=112-118*Math.sin(ang);}else{var kk=[10,11,0,1,2].indexOf(i);x2=170-104+kk*52;y2=138;}var on=d.shi===i;
       pts+='<g class="dot'+(on?' on':'')+'" onclick="ffSet(\'shi\','+i+')">'+(on?'<circle cx="'+x2+'" cy="'+y2+'" r="18" class="halo"/>':'')+'<circle cx="'+x2+'" cy="'+y2+'" r="'+(on?12:9)+'"/><text x="'+x2+'" y="'+(y2+3.5)+'">'+SHI[i][0]+'</text></g>';}
-    ctl='<div class="ff-arc"><svg viewBox="0 0 340 150"><line class="horizon" x1="10" y1="112" x2="330" y2="112"/><path class="path" d="M 52 112 A 118 118 0 0 1 288 112"/>'+pts+'</svg></div>'+
+    ctl='<div class="ff-arc"><svg viewBox="0 -28 340 192"><line class="horizon" x1="10" y1="112" x2="330" y2="112"/><path class="path" d="M 52 112 A 118 118 0 0 1 288 112"/>'+pts+'</svg></div>'+
       '<div class="ff-shilabel">'+shiName(d.shi)+'<small>'+SHI[d.shi][1]+'</small></div>';
   }
   if(k==="gender")ctl='<div class="ff-seals">'+["女","男"].map(function(g){return '<button type="button" class="'+(d.gender===g?'on':'')+'" onclick="ffSet(\'gender\',\''+g+'\')">'+g+'</button>'}).join("")+'</div>';
@@ -1051,6 +1136,7 @@ function startInterp(){
 }
 
 /* ===== SVG charts ===== */
+function IS_MOBILE(){try{return window.matchMedia('(max-width:760px)').matches;}catch(e){return false;}} /* 2026-09-26 DS 手機值：雷達 168、節氣圖 110 */
 function radarSVG(size){
   var data=(STATE.result&&STATE.result.wuxing)||[];if(data.length<3)return"";
   var cx=size/2,cy=size/2,R=size/2-26,n=data.length;
@@ -1067,7 +1153,7 @@ function radarSVG(size){
 }
 function seasonSVG(paid){
   var fl=(STATE.result&&STATE.result.fortuneLine)||[];if(fl.length<2)return"";
-  var data=fl.map(function(p){return (Number(p.score)+100)/2}),w=520,h=150,pad=8,max=100,min=0,n=data.length,cut=paid?n:Math.ceil(n/2);
+  var data=fl.map(function(p){return (Number(p.score)+100)/2}),w=520,h=IS_MOBILE()?110:150,pad=8,max=100,min=0,n=data.length,cut=paid?n:Math.ceil(n/2);
   function X(i){return pad+i*(w-pad*2)/(n-1)}function Y(v){return h-pad-(v-min)/(max-min)*(h-pad*2)}
   var line=data.map(function(v,i){return(i?"L":"M")+X(i).toFixed(1)+","+Y(v).toFixed(1)}).join(" ");
   var area=line+" L"+X(n-1).toFixed(1)+","+h+" L"+X(0).toFixed(1)+","+h+" Z";
@@ -1103,7 +1189,7 @@ function tarotBlockFull(R){
     h+='<div class="zf-card" style="margin-bottom:20px"><div style="font-family:var(--font-sans);font-size:12px;letter-spacing:.12em;color:var(--text-muted);margin-bottom:12px">本命塔羅牌組</div><div class="tarot-grid">'+
       bm.map(function(t){
         var face=t.image_url?'<img src="'+esc(t.image_url)+'" alt="'+esc(t.card_name||'')+'" style="width:100%;height:100%;object-fit:contain">':'<span class="nm">'+esc(t.card_name||'')+'</span>';
-        return '<div><div class="tcard"><span class="tpos-tag zf-tag rose">'+esc(t.label||'')+'</span>'+face+'</div><div class="tline">'+esc(t.card_name||'')+'</div></div>';
+        return '<div><div class="tcard"><span class="tpos-tag zf-tag rose outline">'+esc(t.label||'')+'</span>'+face+'</div><div class="tline">'+esc(t.card_name||'')+'</div></div>';
       }).join("")+'</div></div>';
   }
   if(R.tarot&&R.tarot.length){
@@ -1111,7 +1197,7 @@ function tarotBlockFull(R){
     h+='<div class="zf-card"><div style="font-family:var(--font-sans);font-size:12px;letter-spacing:.12em;color:var(--text-muted);margin-bottom:12px">這次的問題 · 五張牌陣</div><div class="tarot-grid">'+R.tarot.map(function(c,i){
       var pol=c.is_reversed?"逆位":"正位";var img=c.image_url||c.image||"";
       var face=img?'<img src="'+esc(img)+'" alt="'+esc(c.card_name)+'" style="width:100%;height:100%;object-fit:contain">':'<span class="nm">'+esc(c.card_name)+'</span>';
-      return '<div><div class="tcard"><span class="tpos-tag zf-tag rose">'+(POS[i]||("牌位"+(i+1)))+'</span>'+face+'</div>'+
+      return '<div><div class="tcard"><span class="tpos-tag zf-tag rose outline">'+(POS[i]||("牌位"+(i+1)))+'</span>'+face+'</div>'+
         '<div class="tline">'+esc(c.card_name)+' · '+pol+'</div></div>';
     }).join("")+'</div></div>';
   }
@@ -1126,13 +1212,13 @@ function qianBlockFull(R){
     qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">'+esc(oc.type)+' · 完整解讀</span>'+(oc.level?'<span class="zf-tag rose outline">'+esc(oc.level)+'</span>':'')+'</div>'+
       (oc.no?'<div class="qno">'+esc(oc.no)+'</div>':'')+
       (oc.poem?'<div class="qpoem">'+oc.poem.split(/[，。、；;\s]+/).filter(Boolean).map(function(l){return '<span>'+esc(l)+'</span>'}).join("")+'</div>':'')+
-      (fullLines?'<p style="font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--ink-700);margin:14px 0 0">'+md(fullLines)+'</p>':'')+'</div>';
+      (fullLines?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+md(fullLines)+'</p>':'')+'</div>';
   }
   if(km&&km.curHex){
     qk+='<div class="zf-card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">孔明大易神數 · 完整解讀</span>'+(km.fortuneLevel?'<span class="zf-tag clay outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
       '<div style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500);letter-spacing:.04em;margin-bottom:10px">'+esc(km.curHex)+(km.chgHex?' → '+esc(km.chgHex):'')+(km.trigger?' · 變爻 '+esc(km.trigger):'')+'</div>'+
-      (km.poem?'<p style="font-family:var(--font-serif);font-size:20px;font-weight:500;line-height:1.7;color:var(--ink-900);margin:0">'+esc(km.poem)+'</p>':'')+
-      (km.interp?'<p style="font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--ink-700);margin:12px 0 0">'+esc(km.interp)+'</p>':'')+'</div>';
+      (km.poem?'<p class="kpoem" style="font-weight:500">'+esc(km.poem)+'</p>':'')+
+      (km.interp?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+esc(km.interp)+'</p>':'')+'</div>';
   }
   return block("解籤","",qk+'</div>');
 }
@@ -1140,7 +1226,7 @@ function viewReportPaid(R,q){
   var F=STATE.full||{};
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>已拿到靈符解方</span>'+
     '<h1 class="q">你的完整命理報告</h1>'+
-    (q?'<p style="font-family:var(--font-serif);font-size:14px;color:var(--text-muted);margin:12px 0 0">你問的是——「'+esc(q)+'」</p>':'')+
+    (q?'<p class="sum-ask" style="margin:12px 0 0">你問的是——「'+esc(q)+'」</p>':'')+
     '</div>';
   h+=block("完整解讀","",paywall(true));
   h+=block("你的命理檔案","",profileCard(true));
@@ -1161,7 +1247,7 @@ function viewResult(){
   if(paid)return viewReportPaid(R,q);
   /* 第一眼那句大字（9/9 拍板：Jeffery 親寫，逐字照用；放這一頁不放首頁） */
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">風易揚老師一張符令就能改善</h1>';
-  if(q)h+='<p style="font-family:var(--font-serif);font-size:14px;color:var(--text-muted);margin:6px 0 10px">你問的是「'+esc(q)+'」</p>';
+  if(q)h+='<p class="sum-ask" style="margin:6px 0 10px">你問的是「'+esc(q)+'」</p>';
   h+='<div style="margin-top:22px">'+hexCardHero(paid)+'</div>';
   if(R.summary)h+='<div class="sum-body">'+md(R.summary)+'</div>';
   h+='</div>';
@@ -1250,7 +1336,7 @@ function profileCard(paid){
        return '<div class="mmt-card" style="background:linear-gradient(165deg,var(--paper),'+bg+')"><span style="position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 38%,'+bg+',transparent 68%);opacity:.9"></span>'+
          '<span class="mmt-tag zf-tag rose outline">'+esc(t.pos||MMP[i])+'</span><span class="mmt-disc" style="color:'+tx+'">'+esc(t.glyph)+'</span>'+
          '<div class="mmt-name">'+esc(t.name)+'</div><div class="mmt-rule"></div>'+(t.line?'<div class="mmt-line">'+esc(t.line)+'</div>':'')+'</div>'}).join("")+'</div></div>';
-  var radar=radarSVG(188),season=seasonSVG(paid),lower='';
+  var radar=radarSVG(IS_MOBILE()?168:188),season=seasonSVG(paid),lower='';
   if(radar){var mx=(R.wuxing||[]).slice().sort(function(a,b){return b.v-a.v});var topEl=mx[0]?mx[0].k:'',lowEl=mx.length?mx[mx.length-1].k:'';
     lower+='<div class="mini-panel" style="align-items:center"><div style="align-self:flex-start;font-family:var(--font-sans);font-size:12px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px">五行分布</div>'+radar+(topEl?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-secondary);text-align:center;margin-top:4px">'+topEl+'氣最旺、'+lowEl+'氣最弱</div>':'')+'</div>';}
   if(season){var fl=R.fortuneLine||[];var ax=fl.length>=3?[fl[0],fl[Math.floor((fl.length-1)/2)],fl[fl.length-1]].map(function(p){return esc(p.name)}):null;
@@ -1368,7 +1454,7 @@ function hexCardHero(paid){
     ? '<img src="'+esc(R.talismanImg)+'" draggable="false" oncontextmenu="return false;" class="'+(paid?'':'blurred')+'" style="width:100%;height:100%;object-fit:cover">'
     : '<div class="'+(paid?'':'blurred')+'" style="width:100%;height:100%">'+fulu('䷀',R.hexName||'靈符',true)+'</div>';
   var guaSym=(GUA_UNI[R.upperGua]||'')+(GUA_UNI[R.lowerGua]||'');
-  var h='<div class="zf-card sunken" style="margin-bottom:20px"><div class="tal-hero">'+
+  var h='<div class="zf-card sunken tal-hero-card"><div class="tal-hero">'+
     '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
     ((paid||HC)?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這是為你而生的靈符——解鎖後就會清晰</span></div>')+
     '</div>'+
@@ -1395,10 +1481,9 @@ function hexTalismans(paid){
   /* 優先用後端的五行符令卡（含真模糊圖＋覆蓋狀態）；無則退回純五行名 */
   var list=cards.length?cards:els.map(function(el,i){return{pos:i+1,element:el,available:false,blur_url:""}});
   if(list.length){
-    /* 2026-09-26 對齊 DS ResBlock（step4-result.jsx）：區段上方 26px、標題自成一行 margin 0 0 14px、標籤另起一行（.res-note-tag -6px 0 16px）、說明文 14.5/1.7 */
-    h+='<div style="margin-top:26px"><h4 style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);margin:0 0 14px">對應卦象的 '+list.length+' 張量能靈符</h4>'+
-      '<div class="res-note-tag" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="zf-tag rose outline" style="font-size:12px">隨「'+esc(R.hexName||'本')+'卦」而對應</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
-      '<p style="font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">前面的卦象、節氣與你的狀態，已經指出目前最需要留意的地方。</p><p style="font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">所以出現在這裡的五張靈符，不是隨機抽取，而是依照這次起卦的結果，為你整理出的解方，每一張都由風易揚老師親手繪製。</p></div>';
+    /* 2026-09-26 逐值對齊 DS step4-result.jsx L398-403：標題 17 與標籤同列 gap 10、margin 0 0 6px、標籤 12/字距 0、說明 14（手機 13.5）；區塊上方留 DS hero 卡的 margin-bottom 20（手機 16） */
+    h+='<div class="tal5-sec"><div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span class="tal5-t">對應卦象的 '+list.length+' 張量能靈符</span><span class="zf-tag rose outline" style="font-size:12px;letter-spacing:0">隨「'+esc(R.hexName||'本')+'卦」而對應</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
+      '<p class="tal5-p">前面的卦象、節氣與你的狀態，已經指出目前最需要留意的地方。</p><p class="tal5-p">所以出現在這裡的五張靈符，不是隨機抽取，而是依照這次起卦的結果，為你整理出的解方，每一張都由風易揚老師親手繪製。</p></div>';
     h+='<div class="tal5-grid">'+list.map(function(c,i){
       var el=c.element;
       /* 未付款＋該位次已上傳真圖 → 顯示真模糊符令；否則退回符號佔位（同樣鎖住外觀） */
@@ -1474,7 +1559,7 @@ function paywall(paid){
   if(paid){
     /* FI-SYNC：付費卡＝完整解讀本體（與 delivery 頁「完整解讀」區塊對齊；孔明／靈符各有專屬區塊） */
     return '<div class="paid-card"><div class="topbar"></div><div class="body">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">'+ic("check-circle","fill")+'<span style="font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)">完整解讀已為你打開</span></div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">'+ic("check-circle","fill")+'<span class="pc-title">完整解讀已為你打開</span></div>'+
       (STATE.full&&STATE.full.hexagram_content
         ?'<div class="fi-body">'+mdFull(STATE.full.hexagram_content)+'</div>'
         :'<div style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+(STATE.fullError
