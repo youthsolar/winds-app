@@ -569,6 +569,10 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .hg-cols{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:26px}
     .hg-card h3{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);margin:0 0 8px}
     .hg-card p{font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.85;color:var(--ink-700);margin:0}
+    .hg-card p+p{margin-top:8px}
+    .hg-guide+.hg-guide{margin-top:4px}
+    .hg-guide.hg-q{margin-top:18px}
+    .hg-list{list-style:none;padding:0;margin:8px 0 0;font-family:var(--font-serif);font-size:15.5px;line-height:1.9;color:var(--ink-700)}
     .hg-teacher{display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--border-soft);border-radius:var(--radius-lg,16px);margin-bottom:30px}
     .hg-teacher .ff-av{margin:0}
     .hg-teacher b{display:block;font-family:var(--font-serif);font-weight:500;font-size:15px;color:var(--ink-900)}
@@ -628,7 +632,7 @@ var LINE_OA_URL="https://lin.ee/tQHsgWB";
    同一條流程、同一個後端；差別：首屏是落地文案＋水鏡（landing）、不選題、卦出來第一題先問「家的情形」四選一，
    答案併進問題字串（老師解卦吃得到）並另存 home_situation（卦符卡那句話依此換）。非 home 模式一行都不走。 */
 var HOME=(document.body.getAttribute("data-mode")==="home");
-var HOME_SITU=[{k:"unsettled",l:"住得不太順"},{k:"moved",l:"新家剛入住"},{k:"keep",l:"想常備一張"},{k:"choosing",l:"房子還在挑"}];
+var HOME_SITU=[{k:"unsettled",l:"住得不太順"},{k:"moved",l:"新家剛入住"},{k:"keep",l:"想替家裡常備一張"},{k:"choosing",l:"房子還在挑"}];
 function homeSitu(k){return HOME_SITU.find(function(x){return x.k===k})||null;}
 
 /* ===== 前端漏斗內容（TOPICS 48 題＝新設計 shared-fortune-data.jsx 權威版；含 service 軟性提示）===== */
@@ -871,14 +875,17 @@ function viewLanding(){
     '<main class="shell narrow ff hg">'+
     '<div class="hg-bagua-row"><img class="hg-bagua" src="/assets/bagua-nav.png" alt="" aria-hidden="true"></div>'+
     '<section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 家裡的符</span>'+
-      '<h1 class="hg-h1">卦怎麼走，符就怎麼給</h1><p class="lede">按住水鏡，家裡先留一張</p></section>'+
+      '<h1 class="hg-h1">卦怎麼走，符就怎麼給</h1><p class="lede">按住水鏡，先看看你住的地方，現在是什麼狀況。</p></section>'+
     '<section class="hg-cols">'+
-      '<div class="zf-card hg-card"><h3>家也會有狀況</h3><p>屋子的狀況多半不是一下子來的。壁角的濕、走道的風、換季的悶，日子堆著堆著，住的人身上就有反應。</p></div>'+
-      '<div class="zf-card hg-card"><h3>老師怎麼看</h3><p>我不急著講吉凶。手按在水鏡上，那一刻的卦就是這個家現在的樣子。卦怎麼走，符就怎麼給，每一張都是我親手畫的真跡，一卦一張。</p></div>'+
-      '<div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來，我先給一張卦符，守著家裡七天。想走長一點，我再解五張五行符，一個節氣開一張。全部存成手機桌布，不必擺、不必燒。</p></div>'+
+      '<div class="zf-card hg-card"><h3>家也會有狀況</h3><p>一個地方住久了，其實你自己最有感覺。</p><p>有時候只是最近特別累、睡不好，回到家還是靜不下來；有時候搬進新家以後，事情就一直不太順。</p><p>也不一定真的出了什麼問題。</p><p>只是人住在裡面久了，家裡的變化，多少都會跟著反映在人的身上。</p><p>所以我會先看卦。</p></div>'+
+      '<div class="zf-card hg-card"><h3>老師怎麼看</h3><p>我不急著跟你講吉凶。</p><p>你把手按在水鏡上三秒。</p><p>那一刻起出來的卦，我就把它當成這個家現在給我的訊息。</p><p>卦怎麼走，我就照著卦給符。</p><p>不是隨機抽一張現成的圖給你。</p><p>每一卦都有它自己的符，每一張符，都是我親手畫的真跡。</p></div>'+
+      '<div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來以後，我會先留一張這一卦的【卦符】給你。</p><p>先放在手機裡，陪著你和家裡七天。</p><p>不用貼在牆上，不用擺供桌，也不用燒。</p><p>就存成手機桌布帶著。</p><p>七天以後，如果你覺得這個家還有一些事情想繼續看，我再照著你的卦，往後解五張五行符。</p><p>不用急著決定。</p><p>先起一卦，就知道了。</p></div>'+
     '</section>'+
     '<section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮觀修 · 符令親繪</span></div></section>'+
-    '<section class="hg-cast" id="hgCast"><span class="eyebrow"><span class="dot"></span>起卦</span><p class="hg-guide">手放上來，按著三秒，卦自己會浮上來。</p>'+
+    '<section class="hg-cast" id="hgCast"><span class="eyebrow"><span class="dot"></span>起卦</span><p class="hg-guide">把手放在水鏡上。</p><p class="hg-guide">按著三秒，不要急著放開。</p><p class="hg-guide">卦會自己浮上來。</p><p class="hg-guide hg-q">你現在比較像哪一種？</p>'+
+      /* 2026-09-25 Jeffery：先選狀況再按水鏡起卦（原本卦出來後才問） */
+      '<div class="hg-chips" id="hgChips">'+HOME_SITU.map(function(x){return '<button type="button" class="chip'+(STATE.data.home===x.k?' on':'')+'" onclick="ffSet(\'home\',\''+x.k+'\')">'+esc(x.l)+'</button>'}).join("")+'</div>'+
+      '<p class="hg-guide">選一個。然後，把手放到水鏡上。</p>'+
       ffMirror("cast",{code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
       '<div class="ff-clock" id="ffClock"></div>'+
       '</section>'+
@@ -903,6 +910,8 @@ function ffCastWire(){
   function stop(){if(FF_CAST.t&&FF_CAST.t!=="done"){clearInterval(FF_CAST.t);FF_CAST.t=null;FF_CAST.rising=0;FF_CAST.busy=false;STATE.cast=null;draw();ffRipStart(false);var c=document.getElementById("ffClock");if(c)c.textContent="";m.classList.remove("busy");}}
   function start(e){
     if(FF_CAST.t)return;e.preventDefault();try{m.setPointerCapture(e.pointerId);}catch(x){}
+    /* 2026-09-25：家裡的符要先選狀況才能起卦 */
+    if(HOME&&!STATE.data.home){var ch=document.getElementById("hgChips");if(ch)ch.scrollIntoView({behavior:"smooth",block:"center"});showFfErr("先選一個，再按水鏡。");return;}
     FF_CAST.busy=true;m.classList.add("busy");ffRipStart(true);
     FF_CAST.t="pending";
     /* 按下去那一刻起卦：後端用此刻的時間起卦（同 /gua），零資料 */
@@ -930,9 +939,7 @@ function viewHex(){
     '<div class="ff-clock" style="margin-top:-6px;margin-bottom:12px">'+esc(c.castLabel||"")+' 起卦</div>'+
     (c.line?'<div class="zf-card" style="padding:14px 16px"><p class="ff-p" style="margin:0;color:var(--text-primary)">'+esc(c.line)+'</p></div>':'')+
     (HOME
-      ? '<p class="ff-p" style="margin-top:14px">這一卦我知道了。說一下，這張符我先替你守哪裡？</p>'+
-        '<div class="hg-chips">'+HOME_SITU.map(function(x){return '<button type="button" class="chip'+(STATE.data.home===x.k?' on':'')+'" onclick="ffSet(\'home\',\''+x.k+'\')">'+esc(x.l)+'</button>'}).join("")+'</div>'+
-        '<p class="ff-p" style="margin-top:4px">要配得更準，老師得看你的命盤。</p>'
+      ? '<p class="ff-p" style="margin-top:14px">這一卦我知道了。要配得更準，老師得看你的命盤。</p>'
       : '<p class="ff-p" style="margin-top:14px">有一張卦符可以先護住你。要配得更準，老師得看你的命盤。</p>')+
     '<button class="zf-btn primary lg" style="width:100%" '+((HOME&&!STATE.data.home)?'disabled ':'')+'onclick="go(\''+(STATE.ret?'ret':'ask')+'\')">'+(STATE.ret?'好，用上次的資料':'好，讓老師認識我')+'</button></main>';
 }
