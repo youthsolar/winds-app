@@ -1312,7 +1312,7 @@ function spiritCard(paid){
   var R=STATE.result||{};
   /* 2026-09-11：側寫付款後才生成——未付款一律顯示鎖定說明 */
   if(!paid){
-    return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">分靈體側寫會在你拿到靈符解方之後生成，7 天陪伴期內隨時能和祂聊。</p></div>';
+    return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">拿到靈符解方後，會依照這次的卦象與你的狀態，生成專屬於你的分靈體。<br>接下來 7 天，祂會陪著你，你也可以隨時和祂聊聊。</p></div>';
   }
   /* 付款後、還沒有側寫：按鈕生成（2026-09-11） */
   if(!(R.profile&&R.profile.trim())){
