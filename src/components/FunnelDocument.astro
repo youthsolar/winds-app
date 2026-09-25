@@ -941,7 +941,7 @@ function viewHex(){
     '<div class="ff-clock" style="margin-top:-6px;margin-bottom:12px">'+esc(c.castLabel||"")+' 起卦</div>'+
     (c.line?'<div class="zf-card" style="padding:14px 16px"><p class="ff-p" style="margin:0;color:var(--text-primary)">'+esc(c.line)+'</p></div>':'')+
     (HOME
-      ? '<p class="ff-p" style="margin-top:14px">這一卦我知道了。要配得更準，老師得看你的命盤。</p>'
+      ? '<p class="ff-p" style="margin-top:14px">卦已經起好了。接下來，老師要合你的命盤，才能繼續往下看。</p>'
       : '<p class="ff-p" style="margin-top:14px">有一張卦符可以先護住你。要配得更準，老師得看你的命盤。</p>')+
     '<button class="zf-btn primary lg" style="width:100%" '+((HOME&&!STATE.data.home)?'disabled ':'')+'onclick="go(\''+(STATE.ret?'ret':'ask')+'\')">'+(STATE.ret?'好，用上次的資料':'好，讓老師認識我')+'</button></main>';
 }
