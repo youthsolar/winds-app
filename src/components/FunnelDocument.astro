@@ -1212,7 +1212,8 @@ function profileCard(paid){
      ny.map(function(n){return '<div class="ny-cell"><div class="ny-pos">'+n.pos+'</div><div class="ny-val">'+esc(n.value)+'</div></div>'}).join("")+'</div></div>';
   var MMP=['本命','功課','業力','天緣'];
   /* 付費版：本命牌組改到「塔羅牌陣」區塊用真牌圖呈現（FI-SYNC 對齊 delivery secTarot），這裡不重複 */
-  var mmt=(!paid&&R.mmtarot&&R.mmtarot.length)?R.mmtarot:null;
+  /* 2026-09-25 Jeffery 拍板：免費頁命理檔案不再顯示本命塔羅牌組（付費版在塔羅牌陣區塊照舊） */
+  var mmt=null;
   if(mmt)h+='<div class="pf-block"><div class="pf-lbl">本命塔羅牌組</div><div class="mmt-grid">'+
      mmt.map(function(t,i){var bg=EL_BG[t.el]||'var(--rose-100)',tx=EL_TX[t.el]||'var(--rose-500)';
        return '<div class="mmt-card" style="background:linear-gradient(165deg,var(--paper),'+bg+')"><span style="position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 38%,'+bg+',transparent 68%);opacity:.9"></span>'+
