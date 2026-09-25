@@ -47,6 +47,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
   <script is:inline src="/assets/theme-init.js"></script>
+  <script is:inline src="/assets/budoux-zh-hant.min.js" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- App 內嵌瀏覽器判定：此頁不走 BaseLayout，跟 BaseLayout.astro 那段逐字相同 -->
@@ -223,7 +224,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     /* result */
     .summary{position:relative;border-radius:var(--radius-xl);overflow:hidden;background:linear-gradient(160deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);padding:38px 40px;margin-bottom:8px}
     @media(max-width:760px){.summary{padding:26px 22px}}
-    .summary .q{font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.45;color:var(--ink-900);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
+    .summary .q{font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.45;color:var(--ink-900);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:balance}
+    .res-h3,.recs .head h2,.hg-h1,.paywall .veil h3,.cool h1,.step-intro h1,.ff-h,.ff-main{text-wrap:balance}
+    .cjk{word-break:keep-all!important;overflow-wrap:anywhere!important} /* !important：.summary .q 等兩層選擇器本來就寫了 word-break:normal，要蓋過去 */
     @media(max-width:760px){.summary .q{font-size:24px}}
     .res-block{margin-top:26px}
     .res-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -1636,6 +1639,33 @@ function wireSiteChrome(){
     else{d.setAttribute('hidden','');if(icon)icon.className='ph-thin ph-list';}
   });}
 }
+/* ===== 中文照詞組斷行（2026-09-26 Jeffery：「一張／符令」「最需要／留意」在詞中間被切）=====
+   瀏覽器對中文預設逐字換行；用 BudouX（Google 的中文斷詞，assets/budoux-zh-hant.min.js 自託管）把文字包進
+   <budoux-zh-hant>，它在詞組邊界插看不見的斷點並套 word-break:keep-all，只准在詞組之間換行。每次 render 後跑一次。 */
+var CJK_SEL='.summary .q,.res-h3,.res-note,.sum-body,.ff-p,.paywall .veil h3,.paywall .veil p,.gets-t,.get b,.get span,.recs .head h2,.recs .head p,.rec h4,.rec .reason p,.rec-kicker,.hg-h1,.hg-card p,.hg-guide,.lede,.ff-h,.ff-main,.ff-bub,.season-tip .t,.tal-caption,.dir-title,.dir-sub,.section-q,.interp .line,.cool h1,.cool p,.fi-h1,.fi-h2,.fi-body,.tline,.hex-read,.tal5 .ln,.hg-situ,.step-intro h1,.step-intro p';
+var cjkParser=null;
+function cjkWrap(root){
+  if(!root||!window.customElements||!customElements.get('budoux-zh-hant'))return;
+  /* 不用 <budoux-zh-hant> 元件（它有 MutationObserver，我們一改文字它就重插），直接借它的 parser 自己切 */
+  if(!cjkParser){try{cjkParser=document.createElement('budoux-zh-hant').parser;}catch(e){return;}}
+  if(!cjkParser||typeof cjkParser.parse!=='function')return;
+  var re=new RegExp(CJK_KEEP.map(function(w){return w.split('').join('\u200b?');}).join('|'),'g');
+  var els=root.querySelectorAll(CJK_SEL);
+  for(var i=0;i<els.length;i++){
+    var el=els[i];if(el.getAttribute('data-cjk'))continue;if(!/[\u3400-\u9fff]/.test(el.textContent))continue;
+    el.setAttribute('data-cjk','1');el.classList.add('cjk');
+    var walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),n,nodes=[];
+    while((n=walker.nextNode()))nodes.push(n);
+    for(var j=0;j<nodes.length;j++){
+      var v=nodes[j].nodeValue;if(!/[\u3400-\u9fff]/.test(v)||v.indexOf('\u200b')>=0)continue;
+      var seg=cjkParser.parse(v).join('\u200b').replace(re,function(m){return m.replace(/\u200b/g,'');});
+      if(seg!==v)nodes[j].nodeValue=seg;
+    }
+  }
+}
+var CJK_KEEP=['風易揚老師','風易揚','老師','找風問幸福','通靈水鏡法','元辰宮代觀','元辰宮','水鏡','分靈體','符令','靈符','卦符','解方','命盤','節氣','起卦','卦象','一張','五張','就能','不是','而是','可以','需要','留意','隨機','親手','繪製','書寫','開光','桌布','手機','家裡','新家','入住','房子','狀況','完整解讀','陪伴','七天','7 天'];
+/* 第一次 render 可能早於 defer 的 budoux 載完：載完再補跑一次 */
+window.addEventListener('load',function(){cjkWrap(document.getElementById('root'));});
 function render(){
   if(interpTimer){interpTimer();interpTimer=null;}
   document.body.classList.toggle("show-concierge",STATE.step==="result"||STATE.step==="cooldown");
@@ -1643,6 +1673,7 @@ function render(){
   // 完整報告模式：以 log_id 回訪、已渲染結果頁 → 套站台 Nav/Footer（取代 funnel 進度條）。
   if(STATE.reportMode&&STATE.step==="result"){
     root.innerHTML=siteHeader()+viewResult()+siteFooter();
+    cjkWrap(root);
     wireSiteChrome();
     window.scrollTo(0,0);
     updateFabCta();
@@ -1651,6 +1682,7 @@ function render(){
   var showHdr=STATE.step!=="landing"&&STATE.step!=="cooldown"&&STATE.step!=="interpreting"&&STATE.step!=="repeatwall";
   var fn={landing:viewLanding,topic:viewTopic,cast:viewCast,hex:viewHex,ask:viewAsk,ret:viewRet,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown,repeatwall:viewRepeatWall}[STATE.step]||(HOME?viewLanding:viewTopic);
   root.innerHTML=(showHdr?header():"")+fn();
+  cjkWrap(root);
   if(HOME&&STATE.step==="landing")wireSiteChrome();
   /* 水鏡：起卦頁掛按住／放開；看到卦頁只呼吸；轉輪鏡掛拖曳；離開就停漣漪計時器 */
   ffRipStop();
@@ -1828,7 +1860,7 @@ function loadRecs(logId){
     if(!STATE.result)return;
     STATE.result.recs=(d.success&&d.recommendations)?d.recommendations:[];
     var mount=document.getElementById("recsMount");
-    if(mount&&STATE.result.recs.length){mount.innerHTML=recsInner(STATE.result.recs);mount.style.display="";}
+    if(mount&&STATE.result.recs.length){mount.innerHTML=recsInner(STATE.result.recs);mount.style.display="";cjkWrap(mount);}
   }).catch(function(){});
 }
 
