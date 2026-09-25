@@ -1461,7 +1461,7 @@ function paywall(paid){
   }
   return '<div class="paywall"><div class="behind"><p>風易揚老師親手畫的靈符、完整解讀，還有整年的節氣運勢圖，都在解鎖後為你打開。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>'+
     '<div class="veil"><span class="lk">'+ic("lock-simple","thin")+'</span><h3>風易揚老師的靈符解方</h3>'+nextStepLines()+
-    (HOME?'<p>我親手畫的 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+' 五張</strong>，節氣到了開一張。不做折扣，也沒有加購。</p>':'<p>這一卦配給你的是 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+' 五張</strong>，老師親手畫的，跟著節氣一張一張處理；再加上<strong style="font-weight:500;color:var(--ink-900)">完整解讀</strong>，讓你知道為什麼。</p>')+
+    (HOME?'<p>我會依照這次的解方，親手為你書寫五張 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>。節氣到了開一張。不做折扣，也沒有加購。</p>':'<p>這一卦配給你的是 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+' 五張</strong>，老師親手畫的，跟著節氣一張一張處理；再加上<strong style="font-weight:500;color:var(--ink-900)">完整解讀</strong>，讓你知道為什麼。</p>')+
     '<div class="feat"><span>'+ic("check","bold")+'五張靈符·依節氣逐張處理</span><span>'+ic("check","bold")+'完整解讀·得到答案</span><span>'+ic("check","bold")+'紫微七段解讀</span><span>'+ic("check","bold")+'完整節氣運勢圖</span></div>'+
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
