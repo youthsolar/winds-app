@@ -1374,7 +1374,7 @@ function hexTalismans(paid){
   var list=cards.length?cards:els.map(function(el,i){return{pos:i+1,element:el,available:false,blur_url:""}});
   if(list.length){
     h+='<div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">對應卦象的 '+list.length+' 張量能靈符</span><span class="zf-tag rose outline" style="font-size:12px">隨「'+esc(R.hexName||'本')+'卦」而對應</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:11.5px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
-      '<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">前面的卦象、節氣與你的狀態，已經指出目前最需要留意的地方。</p><p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">所以出現在這裡的五張靈符，不是隨機抽取，而是依照這次起卦的結果，為你整理出的解方。</p>';
+      '<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">前面的卦象、節氣與你的狀態，已經指出目前最需要留意的地方。</p><p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0 0 14px">所以出現在這裡的五張靈符，不是隨機抽取，而是依照這次起卦的結果，為你整理出的解方，每一張都由風易揚老師親手繪製。</p>';
     h+='<div class="tal5-grid">'+list.map(function(c,i){
       var el=c.element;
       /* 未付款＋該位次已上傳真圖 → 顯示真模糊符令；否則退回符號佔位（同樣鎖住外觀） */
