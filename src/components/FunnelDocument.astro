@@ -1733,19 +1733,22 @@ function submitFree(){
      if(data.blocked){STATE.cooldown={message:data.message,available_at:data.available_at,last_log_id:data.last_log_id||null};STATE.submitting=false;go("cooldown");return;}
      if(data.success===false){STATE.submitting=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr(data.message||"發生錯誤，請再試一次。");},60);return;}
      if(data.k){STATE.k=data.k;STATE.logId=String(data.log_id||"");try{localStorage.setItem("winds_ff_log",STATE.logId);localStorage.setItem("winds_ff_k",STATE.k);}catch(e){}}
-     if(data.pending){pollStatus(data.log_id||"");return;}
+     if(data.pending){if(data.warm_urls&&data.warm_urls.length){warmCards(data.warm_urls.slice());}pollStatus(data.log_id||"",true);return;}
      finishResult(data);
    })
    .catch(function(e){STATE.submitting=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr("送出失敗："+e.message);},60);});
 }
 
-function pollStatus(logId){
-  var attempts=0,max=23;
+/* 預抓要一張接一張（同時抓＝多開無頭瀏覽器互搶，反而更慢還會 404）：卦符卡先，再第 1 張模糊卡（後端會五張一起出），其餘直接命中 */
+function warmCards(list){if(!list.length)return;var im=new Image();im.onload=im.onerror=function(){warmCards(list);};im.src=list.shift();}
+function pollStatus(logId,alreadyWarm){
+  var attempts=0,max=23,warmed=!!alreadyWarm; /* 2026-09-25：等解卦時先把卦符卡＋五張模糊卡抓一次，結果頁一開圖就在 */
   var ident=STATE.k?("&k="+encodeURIComponent(STATE.k)):("&google_sub="+encodeURIComponent(STATE.userId||""));
   var timer=setInterval(function(){
     attempts++;
     fetch(API.status+"?log_id="+encodeURIComponent(logId)+ident,{headers:authHeaders()})
      .then(function(r){return r.json();}).then(function(d){
+       if(d.warm_urls&&d.warm_urls.length&&!warmed){warmed=true;warmCards(d.warm_urls.slice());}
        if(d.ready&&d.summary){clearInterval(timer);finishResult(d,logId);}
        else if(attempts>=max){clearInterval(timer);STATE.submitting=false;go(STATE.k?"hex":"info");setTimeout(function(){showFfErr("老師還在寫，稍後再回來這一頁看。");},60);}
      }).catch(function(){if(attempts>=max){clearInterval(timer);STATE.submitting=false;go(STATE.k?"hex":"info");setTimeout(function(){showFfErr("連線中斷，稍後再回來這一頁看。");},60);}});
