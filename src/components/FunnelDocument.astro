@@ -1162,7 +1162,7 @@ function viewResult(){
   /* 2026-09-24 收版面（Jeffery 拍板）：免費頁不再顯示五張牌、籤詩與神數，兩者只活在解讀文字裡；付費報告照舊 */
   /* 2026-09-24 分流（Jeffery 拍板）：LLM 判斷這件事該先讓老師看 → 預約排前面，NT$360 仍在下面照常顯示 */
   h+=teacherFirstBlock();
-  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("完整解讀與你的靈符","完整解讀，得到答案；解開靈符，舒緩問題。",hexTalismans(paid)+'<div style="margin-top:20px">'+paywall(paid)+'</div>',true);
+  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("完整解讀與你的靈符","看了這一卦的簡答，也看看接下來能為自己做些什麼。",hexTalismans(paid)+'<div style="margin-top:20px">'+paywall(paid)+'</div>',true);
   else h+=block("完整解讀","",paywall(paid));
   h+=recsSection();
   h+=blogSection();
