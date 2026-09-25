@@ -634,6 +634,8 @@ var LINE_OA_URL="https://lin.ee/tQHsgWB";
 var HOME=(document.body.getAttribute("data-mode")==="home");
 var HOME_SITU=[{k:"unsettled",l:"住得不太順"},{k:"moved",l:"新家剛入住"},{k:"keep",l:"想替家裡常備一張"},{k:"choosing",l:"房子還在挑"}];
 function homeSitu(k){return HOME_SITU.find(function(x){return x.k===k})||null;}
+/* 落地頁選狀況：只切換按鈕，不重畫整頁（重畫會跳回頁首，9/25 Jeffery 真機抓到） */
+function hgPick(k,btn){STATE.data.home=k;var ch=document.getElementById("hgChips");if(ch)Array.prototype.forEach.call(ch.querySelectorAll(".chip"),function(b){b.classList.toggle("on",b===btn);});var e=document.getElementById("ffErr");if(e)e.style.display="none";}
 
 /* ===== 前端漏斗內容（TOPICS 48 題＝新設計 shared-fortune-data.jsx 權威版；含 service 軟性提示）===== */
 var TOPICS=[
@@ -884,7 +886,7 @@ function viewLanding(){
     '<section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮觀修 · 符令親繪</span></div></section>'+
     '<section class="hg-cast" id="hgCast"><span class="eyebrow"><span class="dot"></span>起卦</span><p class="hg-guide">把手放在水鏡上。</p><p class="hg-guide">按著三秒，不要急著放開。</p><p class="hg-guide">卦會自己浮上來。</p><p class="hg-guide hg-q">你現在比較像哪一種？</p>'+
       /* 2026-09-25 Jeffery：先選狀況再按水鏡起卦（原本卦出來後才問） */
-      '<div class="hg-chips" id="hgChips">'+HOME_SITU.map(function(x){return '<button type="button" class="chip'+(STATE.data.home===x.k?' on':'')+'" onclick="ffSet(\'home\',\''+x.k+'\')">'+esc(x.l)+'</button>'}).join("")+'</div>'+
+      '<div class="hg-chips" id="hgChips">'+HOME_SITU.map(function(x){return '<button type="button" class="chip'+(STATE.data.home===x.k?' on':'')+'" onclick="hgPick(\''+x.k+'\',this)">'+esc(x.l)+'</button>'}).join("")+'</div>'+
       '<p class="hg-guide">選一個。然後，把手放到水鏡上。</p>'+
       ffMirror("cast",{code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
       '<div class="ff-clock" id="ffClock"></div>'+
