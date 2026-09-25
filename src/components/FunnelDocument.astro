@@ -396,6 +396,12 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .paywall .veil .veil-alt a{color:var(--accent-press);text-decoration:none;border-bottom:1px solid var(--rose-200);padding-bottom:1px}
     .paywall .veil p{font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.8;color:var(--text-secondary);margin:0 0 6px;max-width:26em;text-align:left}
     .feat{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:14px 0 20px}
+    .gets{width:100%;max-width:26em;margin:14px auto 20px;text-align:left}
+    .gets-t{font-family:var(--font-serif);font-size:15.5px;font-weight:500;color:var(--ink-900);margin:0 0 6px}
+    .get{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-top:1px solid var(--border-soft)}
+    .get i{flex:none;font-size:16px;line-height:1;margin-top:5px;color:var(--rose-600)}
+    .get b{display:block;font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--ink-900);line-height:1.5}
+    .get span{display:block;font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.7;color:var(--text-secondary);margin-top:2px}
     .feat span{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:12.5px;color:var(--rose-600);background:var(--rose-50);border-radius:var(--radius-pill);padding:5px 12px}
     .paid-card{background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-lg);overflow:hidden}
     /* 頁內完整解讀（付款後）——⚠️ FI-SYNC：與 liff/delivery.html 的同名類雙面同步，改一邊要改另一邊 */
@@ -1185,6 +1191,15 @@ function nextStepLines(){
   return (NS.focus?'<p class="ns-line"><b>依照這次分析，你目前比較需要處理的是：</b>'+esc(NS.focus)+'</p>':'')+
     (NS.talisman_reason?'<p class="ns-line"><b>這組符為什麼配給你：</b>'+esc(NS.talisman_reason)+'</p>':'');
 }
+/* 2026-09-25 Jeffery 第 9 段：「你會拿到什麼」不再是四顆標籤，改成依價值排序的四項＋一句說明 */
+function getsList(){
+  return '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>'+
+    [['這次起卦的完整解讀','把前面還沒說完的卦象與提醒，完整看清楚。'],
+     ['五張為這次解方親書的 '+talismanName(),'由我依照這次起卦所呈現的狀態親自書寫並開光。'],
+     ['你的節氣運勢與完整分析','看見目前所處的位置，以及接下來值得留意的變化。'],
+     ['專屬分靈體・陪伴 7 天','解方完成後生成，這 7 天裡，有想不通的地方可以再和祂聊聊。']
+    ].map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div></div>';}).join('')+'</div>';
+}
 function talismanName(){var R=STATE.result||{};return R.hexName?'【'+esc(R.hexName)+' 靈符】':'靈符';}
 function block(title,note,inner,noteTag){return '<section class="res-block"><h3 class="res-h3">'+title+'</h3>'+(note?(noteTag?'<div class="res-note-tag"><span class="zf-tag rose outline">'+esc(note)+'</span></div>':'<p class="res-note">'+ic("sparkle")+esc(note)+'</p>'):'')+inner+'</section>'}
 function fact(l,v,s){return '<div class="fact"><div class="l">'+l+'</div><div class="v">'+v+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>'}
@@ -1462,7 +1477,7 @@ function paywall(paid){
   return '<div class="paywall"><div class="behind"><p>風易揚老師親手畫的靈符、完整解讀，還有整年的節氣運勢圖，都在解鎖後為你打開。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>'+
     '<div class="veil"><span class="lk">'+ic("lock-simple","thin")+'</span><h3>風易揚老師的靈符解方</h3>'+nextStepLines()+
     '<p>我會依照這次的解方，親手為你書寫五張 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>。節氣到了開一張。不做折扣，也沒有加購。</p><p>你拿到的，不只是五張靈符，而是這一卦接下來的解方。</p>'+
-    '<div class="feat"><span>'+ic("check","bold")+'五張靈符·依節氣逐張處理</span><span>'+ic("check","bold")+'完整解讀·得到答案</span><span>'+ic("check","bold")+'紫微七段解讀</span><span>'+ic("check","bold")+'完整節氣運勢圖</span></div>'+
+    getsList()+
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
       :'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>'+
