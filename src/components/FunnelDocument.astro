@@ -1122,7 +1122,7 @@ function viewReportPaid(R,q){
   h+=block("你的命理檔案","",profileCard(true));
   h+=tarotBlockFull(R);
   h+=qianBlockFull(R);
-  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("風易揚老師的靈符解方","老師親手畫、依你這一卦配的靈符；每逢節氣解鎖一張，依序設成手機桌布。",hexTalismans(true),true);
+  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("風易揚老師的靈符解方","老師親手畫、依你這一卦配的靈符；每逢節氣解鎖一張，依序設成手機桌布。",hexCardHero(true)+hexTalismans(true),true);
   h+=recsSection();
   h+='<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:54px">'+
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
@@ -1138,6 +1138,7 @@ function viewResult(){
   /* 第一眼那句大字（9/9 拍板：Jeffery 親寫，逐字照用；放這一頁不放首頁） */
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">風易揚老師一張符令就能改善</h1>';
   if(q)h+='<p style="font-family:var(--font-serif);font-size:14.5px;color:var(--text-muted);margin:6px 0 10px">你問的是「'+esc(q)+'」</p>';
+  h+='<div style="margin-top:22px">'+hexCardHero(paid)+'</div>';
   if(R.summary)h+='<div class="sum-body">'+md(R.summary)+'</div>';
   h+='</div>';
   h+='<div class="banner"><div class="bimg" style="background-image:url(/assets/flow-banner-top.jpg),linear-gradient(135deg,var(--rose-100),var(--clay-200))"></div><div class="cap"><span>慢慢看，不用急。</span></div></div>';
@@ -1319,7 +1320,8 @@ function spiritCard(paid){
   return h;
 }
 var PH_SOLAR={next:'芒種',date:'6 月 5 日',line:'芒種前後，天地交接。這時候看一張靈符，比較對。',seq:['芒種','夏至','小暑','大暑','立秋']};
-function hexTalismans(paid){
+/* 2026-09-25 Jeffery：卦符卡移到解讀之前 → 拆成 hexCardHero（卦符卡＋分享盒）與 hexTalismans（五張符） */
+function hexCardHero(paid){
   var R=STATE.result||{};
   /* 節氣：優先用後端算的真值，退回靜態佔位 */
   var SOLAR=R.jieqi?{next:R.jieqi.next,date:R.jieqi.next_date,line:PH_SOLAR.line,seq:R.jieqi.seq||[]}:PH_SOLAR;
@@ -1348,6 +1350,12 @@ function hexTalismans(paid){
     '<div class="row"><a class="zf-btn secondary md" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("image","thin")+'存成圖片</a>'+
     '<button class="zf-btn primary md" onclick="shareCard(this)">'+ic("link-simple","thin")+'複製連結</button></div>'+
     '<div class="note">連結的縮圖＝這張卦符卡</div></div>';
+  return h;
+}
+function hexTalismans(paid){
+  var R=STATE.result||{};
+  var SOLAR=R.jieqi?{next:R.jieqi.next,date:R.jieqi.next_date,line:PH_SOLAR.line,seq:R.jieqi.seq||[]}:PH_SOLAR;
+  var h='';
   var els=R.talismanElements||[];
   var cards=R.talismanCards||[];
   /* 優先用後端的五行符令卡（含真模糊圖＋覆蓋狀態）；無則退回純五行名 */
