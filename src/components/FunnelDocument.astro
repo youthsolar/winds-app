@@ -223,8 +223,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     /* result */
     .summary{position:relative;border-radius:var(--radius-xl);overflow:hidden;background:linear-gradient(160deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);padding:38px 40px;margin-bottom:8px}
     @media(max-width:760px){.summary{padding:26px 22px}}
-    .summary .q{font-family:var(--font-serif);font-size:32px;font-weight:500;line-height:1.45;color:var(--ink-900);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
-    @media(max-width:760px){.summary .q{font-size:23px}}
+    .summary .q{font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.45;color:var(--ink-900);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
+    @media(max-width:760px){.summary .q{font-size:24px}}
     .res-block{margin-top:26px}
     .res-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
     .res-head h3{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)}
@@ -326,8 +326,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .tarot-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
     @media(max-width:760px){.tarot-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
     .tcard{aspect-ratio:.62;border-radius:var(--radius-md);border:1px solid var(--rose-200);background:linear-gradient(165deg,var(--paper),var(--rose-50));box-shadow:var(--shadow-sm);padding:12px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative}
-    .tcard .no{position:absolute;top:8px;left:0;right:0;font-family:var(--font-sans);font-size:10.5px;color:var(--rose-400);letter-spacing:.06em}
-    .tcard .nm{font-family:var(--font-serif);font-size:23px;font-weight:500;color:var(--accent-press)}
+    .tcard .no{position:absolute;top:8px;left:0;right:0;font-family:var(--font-sans);font-size:12px;color:var(--rose-400);letter-spacing:.06em}
+    .tcard .nm{font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--accent-press)}
     .tpos{font-family:var(--font-sans);font-size:11.5px;color:var(--rose-500);font-weight:500;margin:6px 0 3px;text-align:center}
     .tline{font-family:var(--font-serif);font-weight:300;font-size:13px;line-height:1.6;color:var(--text-secondary);text-align:center}
     .qk-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
@@ -337,11 +337,11 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .vqian .poem{display:grid;grid-template-columns:max-content max-content;justify-content:start;gap:6px 1em}
     .vqian .poem span{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900)}
     .vqian .poem span.dim{color:var(--ink-300)}
-    .qno{font-family:var(--font-sans);font-size:12.5px;color:var(--rose-500);letter-spacing:.06em;margin-bottom:10px}
+    .qno{font-family:var(--font-sans);font-size:12px;color:var(--rose-500);letter-spacing:.06em;margin-bottom:10px}
     .qpoem{display:grid;grid-template-columns:max-content max-content;justify-content:start;gap:6px 1em}
     .qpoem span{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900)}
     .kpoem{font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900);margin:0}
-    @media(max-width:760px){.qpoem{gap:6px 0.8em}.qpoem span{font-size:16.5px}.kpoem{font-size:16.5px}}
+    @media(max-width:760px){.qpoem{gap:6px 0.8em}.qpoem span{font-size:16px}.kpoem{font-size:16px}}
 
     /* talisman */
     .tal-hero{display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center}
@@ -368,13 +368,13 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .tal-caption{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-family:var(--font-sans);font-size:12px;color:var(--text-muted)}
     .hex-name{font-family:var(--font-serif);font-size:30px;font-weight:500;color:var(--ink-900)}
     @media(max-width:760px){.hex-name{font-size:24px}.tal-hero .hexcol{text-align:center}}
-    .hex-read{font-family:var(--font-serif);font-weight:300;font-size:17px;line-height:1.9;color:var(--text-secondary);margin:12px 0 0;max-width:28em}
+    .hex-read{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--text-secondary);margin:12px 0 0;max-width:28em}
     .season-tip{display:inline-flex;align-items:flex-start;gap:10px;margin-top:18px;padding:13px 18px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-md);text-align:left}
     .season-tip .t{font-family:var(--font-serif);font-size:14px;line-height:1.7;color:var(--ink-700)}
     .season-tip b{font-weight:500;color:var(--accent-press)}
     .tal5-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
     @media(max-width:760px){.tal5-grid{grid-template-columns:repeat(2,1fr);gap:12px}}
-    .tal5 .nm{font-family:var(--font-serif);font-size:14.5px;font-weight:500;color:var(--ink-900);text-align:center;margin-top:9px}
+    .tal5 .nm{font-family:var(--font-serif);font-size:14px;font-weight:500;color:var(--ink-900);text-align:center;margin-top:9px}
     .tal5 .ln{font-family:var(--font-serif);font-weight:300;font-size:12.5px;line-height:1.55;color:var(--text-secondary);text-align:center;margin-top:2px}
 
     /* 浮動付款 CTA：捲過第一屏浮出、付費牆可見即退場；樣式鏡射風小編 .wc-fab（同 padding/陰影/字級/圖示） */
@@ -1118,16 +1118,16 @@ function qianBlockFull(R){
   var qk='<div class="qk-grid">';
   if(oc){
     var fullLines=(R.oracleRaw||'').split('\n').slice(1).filter(function(l){return l.indexOf('詩：')!==0;}).join('\n');
-    qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">'+esc(oc.type)+' · 完整解讀</span>'+(oc.level?'<span class="zf-tag rose outline">'+esc(oc.level)+'</span>':'')+'</div>'+
+    qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">'+esc(oc.type)+' · 完整解讀</span>'+(oc.level?'<span class="zf-tag rose outline">'+esc(oc.level)+'</span>':'')+'</div>'+
       (oc.no?'<div class="qno">'+esc(oc.no)+'</div>':'')+
       (oc.poem?'<div class="qpoem">'+oc.poem.split(/[，。、；;\s]+/).filter(Boolean).map(function(l){return '<span>'+esc(l)+'</span>'}).join("")+'</div>':'')+
-      (fullLines?'<p style="font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.9;color:var(--ink-700);margin:14px 0 0">'+md(fullLines)+'</p>':'')+'</div>';
+      (fullLines?'<p style="font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--ink-700);margin:14px 0 0">'+md(fullLines)+'</p>':'')+'</div>';
   }
   if(km&&km.curHex){
-    qk+='<div class="zf-card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數 · 完整解讀</span>'+(km.fortuneLevel?'<span class="zf-tag clay outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
-      '<div style="font-family:var(--font-sans);font-size:12.5px;color:var(--rose-500);letter-spacing:.04em;margin-bottom:10px">'+esc(km.curHex)+(km.chgHex?' → '+esc(km.chgHex):'')+(km.trigger?' · 變爻 '+esc(km.trigger):'')+'</div>'+
+    qk+='<div class="zf-card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">孔明大易神數 · 完整解讀</span>'+(km.fortuneLevel?'<span class="zf-tag clay outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
+      '<div style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500);letter-spacing:.04em;margin-bottom:10px">'+esc(km.curHex)+(km.chgHex?' → '+esc(km.chgHex):'')+(km.trigger?' · 變爻 '+esc(km.trigger):'')+'</div>'+
       (km.poem?'<p style="font-family:var(--font-serif);font-size:20px;font-weight:500;line-height:1.7;color:var(--ink-900);margin:0">'+esc(km.poem)+'</p>':'')+
-      (km.interp?'<p style="font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.9;color:var(--ink-700);margin:12px 0 0">'+esc(km.interp)+'</p>':'')+'</div>';
+      (km.interp?'<p style="font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--ink-700);margin:12px 0 0">'+esc(km.interp)+'</p>':'')+'</div>';
   }
   return block("解籤","",qk+'</div>');
 }
@@ -1147,7 +1147,7 @@ function viewReportPaid(R,q){
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
     '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
     (F.purchased_at?'<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin:0">購買時間：'+esc(fmtPaidAt(F.purchased_at))+'</p>':'')+
-    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
+    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:16px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
 function viewResult(){
