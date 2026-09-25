@@ -421,6 +421,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .recs .head{text-align:center;margin-bottom:34px}
     .recs .head h2{font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.18;letter-spacing:.02em;color:var(--ink-900);margin:0 0 8px}
     .recs .head p{font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary)}
+    .recs .head p{line-height:1.8;max-width:30em;margin:0 auto}.recs .head p+p{margin-top:10px}
     .rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
     @media(max-width:760px){.recs{margin-top:44px}.rec-grid{grid-template-columns:1fr;gap:14px}}
     .rec{display:flex;flex-direction:column;height:100%;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;text-decoration:none;transition:all var(--dur-fast) var(--ease-soft)}
@@ -1490,7 +1491,7 @@ function recsSection(){
   return '<section class="recs" id="recsMount">'+recsInner(recs)+'</section>';
 }
 function recsInner(recs){
-  return '<div class="head"><h2>讀完之後，也許你會想——</h2><p>如果心裡還懸著，這些可以接住你。</p></div>'+
+  return '<div class="head"><h2>如果看完這一卦，你心裡還有一件事放不下</h2><p>有些問題，卦象可以給你方向；<br>但有些事情，需要再往原因裡查。</p><p>如果你想知道的，不只是「接下來會怎麼樣」，而是「為什麼會變成這樣」，可以再找老師談談。</p></div>'+
     '<div class="rec-grid">'+recs.map(function(r){
       var book=r.source==='simplybook';var price=r.price?('NT$ '+Number(r.price).toLocaleString()+(book?' 起':'')):'';
       var url=r.url||r.purchase_url||'';
