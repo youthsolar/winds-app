@@ -433,6 +433,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .rec .b{padding:16px 24px 26px;flex:1;display:flex;flex-direction:column}
     .rec h4{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);margin:0 0 8px}
     .rec .reason{display:flex;gap:7px;margin-bottom:16px}
+    .rec-kicker{font-family:var(--font-sans);font-size:12px;letter-spacing:.12em;color:var(--rose-600);margin-bottom:8px}
     .rec .reason p{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary)}
     .rec .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between}
     .rec .price{font-family:var(--font-sans);font-size:13.5px;color:var(--ink-700)}
@@ -1490,12 +1491,21 @@ function recsSection(){
   if(!recs||!recs.length)return '<section class="recs" id="recsMount" style="display:none"></section>';
   return '<section class="recs" id="recsMount">'+recsInner(recs)+'</section>';
 }
+var REC_COPY={
+  "18":{title:"想把一件事查得更清楚",name:"通靈水鏡法｜問事・查因果",desc:"如果你現在最在意的是一件具體的事——感情、婚姻、工作、財運、人際，或一個始終想不明白的問題——老師會透過通靈水鏡法，進一步查清楚事情目前的狀態與背後原因。",cta:"預約通靈水鏡法"},
+  "17":{title:"想看的不是一件事，而是最近整體的自己",name:"元辰宮代觀｜看整體運勢與狀態",desc:"如果你不是只有一件事情卡住，而是覺得最近感情、工作、財運或生活整體都不太對勁，可以從元辰宮目前呈現的狀態，看看問題可能落在哪裡。",cta:"了解元辰宮代觀"}
+};
 function recsInner(recs){
   return '<div class="head"><h2>如果看完這一卦，你心裡還有一件事放不下</h2><p>有些問題，卦象可以給你方向；<br>但有些事情，需要再往原因裡查。</p><p>如果你想知道的，不只是「接下來會怎麼樣」，而是「為什麼會變成這樣」，可以再找老師談談。</p></div>'+
     '<div class="rec-grid">'+recs.map(function(r){
       var book=r.source==='simplybook';var price=r.price?('NT$ '+Number(r.price).toLocaleString()+(book?' 起':'')):'';
       var url=r.url||r.purchase_url||'';
-      var inner='<div class="top"><span class="rec-ic '+(book?"book":"tal")+'">'+ic(book?"calendar-heart":"seal","thin")+'</span><span class="zf-tag '+(book?"rose":"clay")+' outline">'+(book?'預約問事':'法器選物')+'</span></div>'+
+      /* 2026-09-25 Jeffery 第 12 段：問事項目不寫成商品介紹——固定標題＋項目名＋說明＋「預約○○」；沒定稿的項目維持原樣 */
+      var C=REC_COPY[String(r.id)];
+      var inner=C
+        ?'<div class="b" style="padding-top:24px"><div class="rec-kicker">'+C.title+'</div><h4>'+C.name+'</h4><div class="reason"><p>'+C.desc+'</p></div>'+
+          '<div class="foot"><span class="price">'+price+'</span>'+(url?'<span class="cta">'+C.cta+' '+ic("arrow-right")+'</span>':'')+'</div></div>'
+        :'<div class="top"><span class="rec-ic '+(book?"book":"tal")+'">'+ic(book?"calendar-heart":"seal","thin")+'</span><span class="zf-tag '+(book?"rose":"clay")+' outline">'+(book?'預約問事':'法器選物')+'</span></div>'+
         '<div class="b"><h4>'+esc(r.name)+'</h4>'+(r.reason?'<div class="reason">'+ic("quotes","fill")+'<p>'+esc(r.reason)+'</p></div>':'')+
         '<div class="foot"><span class="price">'+price+'</span>'+(url?'<span class="cta">'+(book?'看時間':'看看這個')+' '+ic("arrow-right")+'</span>':'')+'</div></div>';
       return url?'<a class="rec" href="'+esc(url)+'" target="_blank" rel="noopener">'+inner+'</a>':'<div class="rec">'+inner+'</div>';
