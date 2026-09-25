@@ -930,7 +930,7 @@ function viewHex(){
     '<div class="ff-clock" style="margin-top:-6px;margin-bottom:12px">'+esc(c.castLabel||"")+' 起卦</div>'+
     (c.line?'<div class="zf-card" style="padding:14px 16px"><p class="ff-p" style="margin:0;color:var(--text-primary)">'+esc(c.line)+'</p></div>':'')+
     (HOME
-      ? '<p class="ff-p" style="margin-top:14px">這一卦我看到了。說一聲，這張符我先替你守哪裡。</p>'+
+      ? '<p class="ff-p" style="margin-top:14px">這一卦我知道了。說一下，這張符我先替你守哪裡？</p>'+
         '<div class="hg-chips">'+HOME_SITU.map(function(x){return '<button type="button" class="chip'+(STATE.data.home===x.k?' on':'')+'" onclick="ffSet(\'home\',\''+x.k+'\')">'+esc(x.l)+'</button>'}).join("")+'</div>'+
         '<p class="ff-p" style="margin-top:4px">要配得更準，老師得看你的命盤。</p>'
       : '<p class="ff-p" style="margin-top:14px">有一張卦符可以先護住你。要配得更準，老師得看你的命盤。</p>')+
