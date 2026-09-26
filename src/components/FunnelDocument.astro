@@ -826,7 +826,9 @@ function hgPick(k,btn){STATE.data.home=k;var ch=document.getElementById("hgChips
 function hgRemember(){try{if(HOME&&STATE.logId&&STATE.data.home)localStorage.setItem("winds_home_"+STATE.logId,STATE.data.home);}catch(e){}}
 function hgRestore(fc){
   if(!HOME||STATE.data.home||!STATE.logId)return;
-  if(fc&&fc.home){var hs=HOME_SITU.filter(function(x){return x.l===fc.home;})[0];if(hs){STATE.data.home=hs.k;return;}}
+  /* 9/25 前的舊說法對到現行選項（Jeffery 選項卡 9/27）：想常備一張→想替家裡常備一張 */
+  var HOME_OLD={"想常備一張":"keep"};
+  if(fc&&fc.home){var hs=HOME_SITU.filter(function(x){return x.l===fc.home;})[0];var hk=hs?hs.k:HOME_OLD[fc.home];if(hk){STATE.data.home=hk;return;}}
   try{var v=localStorage.getItem("winds_home_"+STATE.logId)||"";if(homeSitu(v))STATE.data.home=v;}catch(e){}
 }
 

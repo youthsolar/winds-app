@@ -221,8 +221,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         return d.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
       }
 
-      function statusOf(r) { return r.purchased ? '已購買' : (r.status === '已解讀' ? '免費版' : '處理中'); }
-      var BADGE_CLS = { '已購買': 'is-sage', '免費版': 'is-neutral', '處理中': 'is-gold' };
+      function statusOf(r) { return r.purchased ? '已購買' : (r.status === '已解讀' ? '基本版' : '處理中'); }
+      var BADGE_CLS = { '已購買': 'is-sage', '基本版': 'is-neutral', '處理中': 'is-gold' };
 
       function recordCard(r) {
         var status = statusOf(r);
@@ -232,7 +232,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         // 動作鈕：已購買→完整解讀(主)；免費版→占卜結果(外框次)；處理中→無鈕
         var action = status === '已購買'
           ? (r.delivery_url ? { label: '查看完整解讀', cls: 'primary', href: r.delivery_url } : null)
-          : status === '免費版'
+          : status === '基本版'
             ? (r.result_url ? { label: '查看占卜結果', cls: 'secondary', href: r.result_url } : null)
             : null;
         var meta = [r.method || '雙占卜'];

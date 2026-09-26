@@ -6,7 +6,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const pageTitle = '紫微斗數命盤 — 人生藍圖｜找風問幸福';
-const pageDesc = '免費排紫微斗數命盤，列出 12 宮主星與副星。海外出生可選真太陽時校正，也能接著看完整命理解讀。';
+const pageDesc = '線上排紫微斗數命盤，列出 12 宮主星與副星。海外出生可選真太陽時校正，也能接著看完整命理解讀。';
 
 // 生日改三欄下拉（2026-08-02 Jeffery 指示：與占卜站正流程一致；原生 input[type=date] 手機體驗差）
 // 範圍與 divination.astro 相同（2026→1940）
@@ -41,7 +41,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 
     <section class="form-section" id="form-section" hidden>
       <p class="edm-welcome" id="edm-welcome" hidden></p>
-      <p class="form-warning">⚠️ 紫微命盤每位使用者終身只能算一次。請仔細確認生日、時辰、性別、出生地，送出後無法修改。</p>
+      <p class="form-warning">紫微命盤每位使用者終身只能算一次。請仔細確認生日、時辰、性別、出生地，送出後無法修改。</p>
       <form id="ziwei-form" class="ziwei-form">
         <div class="row">
           <label for="name">姓名（選填）</label>
@@ -135,7 +135,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         </button>
 
         <p class="form-note">
-          命盤本身免費 + 7 段試讀（每段 150 字）。完整解讀（每段 600-800 字）+ 流年七段 + 大限詳解，已包含在「風易揚老師的靈符解方 NT$360」中，一次解鎖。
+          命盤直接看，另附 7 段試讀（每段 150 字）。完整解讀（每段 600-800 字）+ 流年七段 + 大限詳解，已包含在「風易揚老師的靈符解方 NT$360」中，一次解鎖。
         </p>
       </form>
     </section>
@@ -143,7 +143,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     <section id="result-section" hidden>
       <div class="result-meta">
         <span id="tst-badge" class="tst-badge" hidden></span>
-        <span id="paid-badge" class="paid-badge" hidden>已解鎖完整解讀 ✓</span>
+        <span id="paid-badge" class="paid-badge" hidden>已解鎖完整解讀</span>
       </div>
       <div id="chart-toggle" class="chart-toggle" hidden>
         <button class="toggle-btn is-active" data-mode="natal">本命盤</button>
@@ -244,7 +244,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
   if (EDM_TOKEN) {
     {
       const warn = document.querySelector('.form-warning');
-      if (warn) warn.textContent = '⚠️ 生日與時辰會直接影響整張命盤，送出前請確認。';
+      if (warn) warn.textContent = '生日與時辰會直接影響整張命盤，送出前請確認。';
       const note = document.querySelector('.form-note') as HTMLElement | null;
       if (note) note.style.display = 'none';
       const cta = document.getElementById('unlock-cta');
@@ -915,7 +915,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       shareCopyBtn.onclick = async () => {
         try {
           await navigator.clipboard.writeText(shareUrlInput.value);
-          shareCopyBtn.textContent = '已複製 ✓';
+          shareCopyBtn.textContent = '已複製';
           setTimeout(() => { shareCopyBtn.textContent = '複製連結'; }, 2000);
         } catch {
           shareUrlInput.select();
@@ -1017,7 +1017,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       const b = document.getElementById('ziweiCopy');
       if (b) b.addEventListener('click', () => {
         const u = location.href;
-        const done = () => { b.textContent = '已複製 ✓'; };
+        const done = () => { b.textContent = '已複製'; };
         const legacy = () => {
           try {
             const t = document.createElement('textarea');

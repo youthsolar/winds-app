@@ -168,7 +168,7 @@ import '../styles/global.css';
     <!-- 風小編 header（只在 embed=page 手機全螢幕顯示，取代 sp-intro，逐值對齊原生 ConciergeWidget .wc-head）-->
     <div class="bc-head">
       <span class="bc-av">風</span>
-      <div class="bc-htxt"><div class="bc-title">風小編</div><div class="bc-sub">邊聊邊幫你約好老師 ✨</div></div>
+      <div class="bc-htxt"><div class="bc-title">風小編</div><div class="bc-sub">邊聊邊幫你約好老師</div></div>
       <button class="bc-voicebtn bc-voicebtn-head" id="bcVoiceBtnHead" aria-label="改用語音通話" title="跟風小編講電話"><i class="ph-fill ph-phone"></i></button>
     </div>
     <!-- 語音通話列：待命時隱藏；連線中/通話中出現在 header 下方（位置逐值對齊原生 ConciergeWidget；embed=1 時上方 header 由 concierge.js 面板提供） -->
@@ -334,7 +334,7 @@ import '../styles/global.css';
           addBubble('bot', (d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？');
           if(d&&d.ui) renderUi(d.ui);
         })
-        .catch(function(){ hideTyping(); addBubble('bot','連線好像不太順，請稍後再試一次 🙏'); })
+        .catch(function(){ hideTyping(); addBubble('bot','連線好像不太順，請稍後再試一次'); })
         .finally(function(){ S.sending=false; sendEl.disabled=false; taEl.focus(); });
     }
     function send(){
@@ -351,8 +351,8 @@ import '../styles/global.css';
     function voiceUi(state){
       // idle / connecting / live / ended
       if(state==='connecting'){ vBar.hidden=false; vSt.textContent='連線中…'; setVBtns(true); }
-      else if(state==='live'){ vBar.hidden=false; vSt.textContent='通話中——直接開口說話就可以'; setVBtns(true); addBubble('bot','我在聽了 🎙️ 直接跟我說說你在意的事吧。'); }
-      else { vBar.hidden=true; setVBtns(false); if(state==='ended'&&V.call){ addBubble('bot','通話結束了。想繼續的話，打字或再按一次通話都可以 😊'); } V.call=null; }
+      else if(state==='live'){ vBar.hidden=false; vSt.textContent='通話中，直接開口說話就可以'; setVBtns(true); addBubble('bot','我在聽了，直接跟我說說你在意的事吧。'); }
+      else { vBar.hidden=true; setVBtns(false); if(state==='ended'&&V.call){ addBubble('bot','通話結束了。想繼續的話，打字或再按一次通話都可以'); } V.call=null; }
     }
     // LINE 內建瀏覽器降級：拿不到麥克風 → 提示 + 一鍵外開（LINE 支援 openExternalBrowser=1）
     function voiceDegrade(kind){
@@ -360,8 +360,8 @@ import '../styles/global.css';
       var here=location.href.replace(/([?&])openExternalBrowser=1/,'$1').replace(/[?&]$/,'');
       var extUrl=here+(here.indexOf('?')>=0?'&':'?')+'openExternalBrowser=1';
       addBubble('bot', kind==='mic'
-        ? '這個環境好像拿不到麥克風（LINE 內建瀏覽器常有這個限制）🙏 用下面的按鈕在外部瀏覽器開啟，就能跟我通話了。'
-        : '語音連線暫時不太順，可以先用打字的，或稍後再試 🙏');
+        ? '這個環境好像拿不到麥克風（LINE 內建瀏覽器常有這個限制）。用下面的按鈕在外部瀏覽器開啟，就能跟我通話了。'
+        : '語音連線暫時不太順，可以先用打字的，或稍後再試');
       if(kind==='mic'){ renderUi({kind:'action',url:extUrl,label:'在外部瀏覽器開啟'}); }
     }
     // 通話中的工具結果 → 複用文字版卡片（時段卡/付款卡），可講可點
