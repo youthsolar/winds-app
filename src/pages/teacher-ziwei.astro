@@ -520,13 +520,22 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
   async function fetchPalace(chart: Chart, palace: string, mode: 'natal' | 'yearly' = 'natal', yearly?: ReturnType<typeof buildYearlyContextForApi>) {
     const body: Record<string, unknown> = { chart, palace, mode, yearly };
     if (palace === 'trend' && teacherTrend) body.trend = teacherTrend;
-    const r = await fetch(`${WORKER_API}/admin/teacher-ziwei-interpret`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify(body),
-    });
-    const data = await r.json() as { ok?: boolean; text?: string; paid?: boolean; error?: string };
-    return data.ok ? (data.text || '') : null;
+    /* 2026-09-26（Codex 複審抓到）：這支原本完全沒有 try/catch。連線失敗或回非 JSON（502 之類）時
+       例外會往上冒進逐宮解讀的 while 迴圈，把那個併發 worker 打死；worker 是 Array.from({length:4})
+       建的、沒有 .catch()，所以它不再從佇列拿宮位。四個都死掉時剩下的宮位永遠不會被請求，區塊卡在
+       「解讀生成中…」而且連重試鈕都不會出現（重試鈕是 renderPalaceText 收到 null 才畫的）。
+       改成整支包起來、例外轉成 null：失敗走既有的重試路徑，worker 也繼續跑。 */
+    try {
+      const r = await fetch(`${WORKER_API}/admin/teacher-ziwei-interpret`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      const data = await r.json() as { ok?: boolean; text?: string; paid?: boolean; error?: string };
+      return data.ok ? (data.text || '') : null;
+    } catch {
+      return null;
+    }
   }
 
   function renderPalaceText(palace: string, text: string | null, mount: HTMLElement) {

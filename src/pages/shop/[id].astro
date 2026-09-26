@@ -287,6 +287,11 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
           var f = form.elements; f.name.value = s.name || ''; f.phone.value = s.phone || ''; var b = String(s.bdate || '').split('-'); f.byear.value = b[0] ? String(+b[0]) : ''; f.bmonth.value = b[1] ? String(+b[1]) : ''; f.bday.value = b[2] ? String(+b[2]) : ''; f.bhour.value = s.bhour || '不確定'; f.email.value = s.email || ''; f.note.value = s.note || '';
           var r = form.querySelector('[name=variant][value="' + (s.variant || '').replace(/"/g, '') + '"]'); if (r) r.checked = true;
           if (s.store) showStore(s.store);
+          /* 2026-09-26（Codex 複審抓到）：用程式設 checked 不會觸發 change，而更新總計的程式在
+             change 監聽器裡。totalTxt 的初始值是第一個款式的價格，所以選了別的款式、去超商地圖
+             再回來時，畫面顯示第一款的價錢、下單卻是還原後的款式——客人看到的金額跟實際扣的不一樣。
+             還原完補派一次 change，讓總計跟著更新。restore() 在監聽器掛好之後才跑，派得到。 */
+          form.dispatchEvent(new Event('change'));
         } catch (e) {}
       }
       function save() { try { var o = fields(); o.store = store; sessionStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }

@@ -61,9 +61,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <span class="hr-art-card hr-art-card-r"></span>
           <span class="hr-art-core"><i class="ph-thin ph-calendar-heart"></i></span>
         </div>
-        <h1 class="hr-cta-h1">還沒有預約</h1>
-        <p class="hr-cta-p">想找個人好好說說話嗎？挑一位老師，約一個適合你的時間。</p>
-        <a class="hr-btn hr-btn-lg primary" href="/booking"><i class="ph ph-chat-circle-dots"></i>預約老師</a>
+        <h1 class="hr-cta-h1" id="hrEmptyH1">還沒有預約</h1>
+        <p class="hr-cta-p" id="hrEmptyP">想找個人好好說說話嗎？挑一位老師，約一個適合你的時間。</p>
+        <a class="hr-btn hr-btn-lg primary" id="hrEmptyBtn" href="/booking"><i class="ph ph-chat-circle-dots"></i>預約老師</a>
       </div>
     </main>
   </div>
@@ -217,17 +217,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
       function renderList() { $('hrCards').innerHTML = records.map(bookingCard).join(''); }
 
+      /* 2026-09-26（與 history.astro 同款問題，一併修）：網路失敗、非 JSON、驗證失敗與真的沒有預約
+         原本全部導向同一個「還沒有預約」。已經有預約的人碰到 API 暫時失敗會以為預約被取消了。 */
+      function showLoadError() {
+        var h = $('hrEmptyH1'), p = $('hrEmptyP'), b = $('hrEmptyBtn');
+        if (h) h.textContent = '預約暫時讀不到';
+        if (p) p.textContent = '這不代表你的預約被取消了，是伺服器剛好沒回應。稍等一下重新整理這一頁就好。';
+        if (b) { b.innerHTML = '<i class="ph ph-arrow-clockwise"></i>重新整理'; b.setAttribute('href', location.pathname); }
+        show('hrEmpty');
+      }
       function loadBookings(sub, token) {
         fetch(WORKER_API + '/my-bookings?google_sub=' + encodeURIComponent(sub), { headers: { 'X-Google-Id-Token': token || '' } })
-          .then(function (r) { return r.json(); })
+          .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
           .then(function (d) {
-            if (!d || !d.success) { show('hrEmpty'); return; }
+            if (!d || !d.success) { showLoadError(); return; }
             clientName = d.client_name || '';
             records = d.bookings || [];
             if (!records.length) { show('hrEmpty'); return; }
             renderHeader(); renderList(); show('hrList');
           })
-          .catch(function () { show('hrEmpty'); });
+          .catch(function () { showLoadError(); });
       }
 
       (function init() {

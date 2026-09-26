@@ -63,9 +63,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <span class="hr-art-card hr-art-card-r"></span>
           <span class="hr-art-core"><i class="ph-thin ph-feather"></i></span>
         </div>
-        <h1 class="hr-cta-h1">還沒有占卜紀錄</h1>
-        <p class="hr-cta-p">你的第一次占卜，會在這裡留下。想問的事，慢慢說，我們陪你一起看。</p>
-        <a class="hr-btn hr-btn-lg primary" href="/divination"><i class="ph ph-sparkle"></i>開始第一次占卜</a>
+        <h1 class="hr-cta-h1" id="hrEmptyH1">還沒有占卜紀錄</h1>
+        <p class="hr-cta-p" id="hrEmptyP">你的第一次占卜，會在這裡留下。想問的事，慢慢說，我們陪你一起看。</p>
+        <a class="hr-btn hr-btn-lg primary" id="hrEmptyBtn" href="/divination"><i class="ph ph-sparkle"></i>開始第一次占卜</a>
       </div>
     </main>
   </div>
@@ -304,17 +304,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (card) location.href = card.getAttribute('data-href');
       });
 
+      /* 2026-09-26（Codex 複審抓到）：原本網路失敗、回非 JSON、驗證失敗、以及真的沒有紀錄，
+         四種情況全部導向同一個「還沒有占卜紀錄・開始第一次占卜」。已經有十筆紀錄的人碰到
+         API 暫時失敗時，會以為自己的紀錄整批不見了。
+         後端在「查不到這個人」時回的是 success:true, readings:[]，所以 !success 確實代表出錯，
+         可以跟「真的是空的」分開。 */
+      function showLoadError() {
+        var h = $('hrEmptyH1'), p = $('hrEmptyP'), b = $('hrEmptyBtn');
+        if (h) h.textContent = '紀錄暫時讀不到';
+        if (p) p.textContent = '這不代表你的紀錄不見了，是伺服器剛好沒回應。稍等一下重新整理這一頁就好。';
+        if (b) { b.innerHTML = '<i class="ph ph-arrow-clockwise"></i>重新整理'; b.setAttribute('href', location.pathname); }
+        show('hrEmpty');
+      }
       function loadReadings(sub, token) {
         fetch(WORKER_API + '/my-readings?google_sub=' + encodeURIComponent(sub), { headers: { 'X-Google-Id-Token': token || '' } })
-          .then(function (r) { return r.json(); })
+          .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
           .then(function (d) {
-            if (!d || !d.success) { show('hrEmpty'); return; }
+            if (!d || !d.success) { showLoadError(); return; }
             clientName = d.client_name || '';
             records = d.readings || [];
             if (!records.length) { show('hrEmpty'); return; }
             renderHeader(); renderList(); show('hrList');
           })
-          .catch(function () { show('hrEmpty'); });
+          .catch(function () { showLoadError(); });
       }
 
       (function init() {
