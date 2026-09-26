@@ -1148,7 +1148,7 @@ function radarSVG(size){
   data.forEach(function(_,i){var p=pt(i,R);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+p[0]+'" y2="'+p[1]+'" stroke="var(--rice-300)" stroke-width="1" opacity="0.6"/>'});
   s+='<polygon points="'+val+'" fill="var(--rose-300)" fill-opacity="0.34" stroke="var(--rose-500)" stroke-width="1.5" stroke-linejoin="round"/>';
   data.forEach(function(d,i){var p=pt(i,R*d.v/100);s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="2.6" fill="var(--rose-500)"/>'});
-  data.forEach(function(d,i){var p=pt(i,R+15);s+='<text x="'+p[0]+'" y="'+p[1]+'" text-anchor="middle" dominant-baseline="middle" style="font-family:var(--font-serif);font-size:14px;fill:var(--ink-700)">'+d.k+'</text>'});
+  data.forEach(function(d,i){var p=pt(i,R+13);  /* 2026-09-26：原 R+15 時最上面那個字的頂端被畫布切掉 1.4px（桌機版也一樣），往圓心收 2px 就進框 */s+='<text x="'+p[0]+'" y="'+p[1]+'" text-anchor="middle" dominant-baseline="middle" style="font-family:var(--font-serif);font-size:14px;fill:var(--ink-700)">'+d.k+'</text>'});
   return s+'</svg>';
 }
 function seasonSVG(paid){
@@ -1209,13 +1209,13 @@ function qianBlockFull(R){
   var qk='<div class="qk-grid">';
   if(oc){
     var fullLines=(R.oracleRaw||'').split('\n').slice(1).filter(function(l){return l.indexOf('詩：')!==0;}).join('\n');
-    qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">'+esc(oc.type)+' · 完整解讀</span>'+(oc.level?'<span class="zf-tag rose outline">'+esc(oc.level)+'</span>':'')+'</div>'+
+    qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">'+esc(oc.type)+' · 完整解讀</span>'+(oc.level?'<span class="zf-tag rose outline">'+esc(oc.level)+'</span>':'')+'</div>'+
       (oc.no?'<div class="qno">'+esc(oc.no)+'</div>':'')+
       (oc.poem?'<div class="qpoem">'+oc.poem.split(/[，。、；;\s]+/).filter(Boolean).map(function(l){return '<span>'+esc(l)+'</span>'}).join("")+'</div>':'')+
       (fullLines?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+md(fullLines)+'</p>':'')+'</div>';
   }
   if(km&&km.curHex){
-    qk+='<div class="zf-card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">孔明大易神數 · 完整解讀</span>'+(km.fortuneLevel?'<span class="zf-tag clay outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
+    qk+='<div class="zf-card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數 · 完整解讀</span>'+(km.fortuneLevel?'<span class="zf-tag clay outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
       '<div style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500);letter-spacing:.04em;margin-bottom:10px">'+esc(km.curHex)+(km.chgHex?' → '+esc(km.chgHex):'')+(km.trigger?' · 變爻 '+esc(km.trigger):'')+'</div>'+
       (km.poem?'<p class="kpoem" style="font-weight:500">'+esc(km.poem)+'</p>':'')+
       (km.interp?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+esc(km.interp)+'</p>':'')+'</div>';
@@ -1338,9 +1338,9 @@ function profileCard(paid){
          '<div class="mmt-name">'+esc(t.name)+'</div><div class="mmt-rule"></div>'+(t.line?'<div class="mmt-line">'+esc(t.line)+'</div>':'')+'</div>'}).join("")+'</div></div>';
   var radar=radarSVG(IS_MOBILE()?168:188),season=seasonSVG(paid),lower='';
   if(radar){var mx=(R.wuxing||[]).slice().sort(function(a,b){return b.v-a.v});var topEl=mx[0]?mx[0].k:'',lowEl=mx.length?mx[mx.length-1].k:'';
-    lower+='<div class="mini-panel" style="align-items:center"><div style="align-self:flex-start;font-family:var(--font-sans);font-size:12px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px">五行分布</div>'+radar+(topEl?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-secondary);text-align:center;margin-top:4px">'+topEl+'氣最旺、'+lowEl+'氣最弱</div>':'')+'</div>';}
+    lower+='<div class="mini-panel" style="align-items:center"><div style="align-self:flex-start;font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px">五行分布</div>'+radar+(topEl?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-secondary);text-align:center;margin-top:4px">'+topEl+'氣最旺、'+lowEl+'氣最弱</div>':'')+'</div>';}
   if(season){var fl=R.fortuneLine||[];var ax=fl.length>=3?[fl[0],fl[Math.floor((fl.length-1)/2)],fl[fl.length-1]].map(function(p){return esc(p.name)}):null;
-    lower+='<div class="mini-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-family:var(--font-sans);font-size:12px;letter-spacing:.1em;color:var(--text-muted)">節氣運勢 · 未來六節氣</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 後段付費</span>')+'</div>'+season+(ax?'<div style="display:flex;justify-content:space-between;font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:6px"><span>'+ax[0]+'</span><span>'+ax[1]+'</span><span>'+ax[2]+'</span></div>':'')+'</div>';}
+    lower+='<div class="mini-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted)">節氣運勢 · 未來六節氣</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 後段付費</span>')+'</div>'+season+(ax?'<div style="display:flex;justify-content:space-between;font-family:var(--font-sans);font-size:11px;color:var(--text-muted);margin-top:6px"><span>'+ax[0]+'</span><span>'+ax[1]+'</span><span>'+ax[2]+'</span></div>':'')+'</div>';}
   if(lower)h+='<div class="profile-lower" style="margin-top:14px">'+lower+'</div>';
   /* 付費版：分靈體側寫併入命理檔案（FI-SYNC 對齊 delivery secProfile 尾段） */
   if(paid&&R.profile)h+='<div class="zf-card" style="margin-top:14px"><div style="font-family:var(--font-sans);font-size:12px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:10px">分靈體側寫</div>'+
@@ -1648,7 +1648,7 @@ function viewCooldown(){
   var c=STATE.cooldown||{};var when=c.available_at?fmtWhen(c.available_at):'';
   return '<div class="cool"><div class="glow"></div><div class="zf-card"><span class="moon">'+ic("moon-stars","thin")+'</span>'+
     '<h1>我知道你很在意這件事。</h1>'+
-    '<p style="font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
+    '<p style="font-family:var(--font-serif);font-weight:300;font-size:17.5px;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
     (when?'<div class="when">'+ic("clock")+'<span>這一題，<b>'+esc(when)+'</b>可以再問</span></div>':'')+
     (c.last_log_id
       ?'<div class="cool-btns"><button class="zf-btn primary md" id="unlockBtn" onclick="STATE.logId=String(STATE.cooldown.last_log_id);createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button><button class="zf-btn secondary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+
@@ -1663,7 +1663,7 @@ function viewRepeatWall(){
   var w=STATE.repeatWall||{};
   var msg=esc(w.message||'這個方向，你已經拿過完整的答案，也重複問過了。接下來你需要的是更深的解說，不是再一次占卜。');
   var head='<div class="cool"><div class="glow"></div><div class="zf-card"><span class="moon">'+ic("moon-stars","thin")+'</span>';
-  var body='<p style="font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+msg+'</p>';
+  var body='<p style="font-family:var(--font-serif);font-weight:300;font-size:17.5px;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+msg+'</p>';
   /* 問題相似度＋上次同類占卜（2026-07-22：讓用戶知道牆是比對哪一筆） */
   if(w.last_question){
     var sim=Math.max(0,Math.min(100,Number(w.similarity)||60));
