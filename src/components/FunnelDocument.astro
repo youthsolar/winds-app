@@ -767,6 +767,15 @@ function lvPickWho(k,btn){
   var g=document.getElementById("lvGuide");if(g)g.innerHTML=lvGuideHtml();
   var e=document.getElementById("ffErr");if(e)e.style.display="none";
 }
+/* 2026-09-26（Codex 唯讀複審抓到）：兩個選擇只活在記憶體，後端也沒把問題字串帶回前端，
+   所以付款跳回、重新整理或用 ?log_id= 回訪時會空掉，選「沒有對象」的人會被當成有對象、
+   讀到關係版的字。存進瀏覽器、按這一卦的編號取回；只補這一處，不動後端。 */
+function lvRemember(){try{if(LOVE&&STATE.logId&&STATE.data.loveWho)localStorage.setItem("winds_love_"+STATE.logId,STATE.data.loveWho+"|"+STATE.data.loveAngle);}catch(e){}}
+function lvRestore(){
+  if(!LOVE||STATE.data.loveWho||!STATE.logId)return;
+  try{var v=(localStorage.getItem("winds_love_"+STATE.logId)||"").split("|");
+    if(v[0]){STATE.data.loveWho=v[0];STATE.data.loveAngle=v[1]||"";}}catch(e){}
+}
 function lvPickAngle(k,btn){
   STATE.data.loveAngle=k;
   var r2=document.getElementById("lvAngle");if(r2)Array.prototype.forEach.call(r2.querySelectorAll(".chip"),function(b){b.classList.toggle("on",b===btn);});
@@ -1722,7 +1731,8 @@ function recsInner(recs){
       var book=r.source==='simplybook';var price=r.price?('NT$ '+Number(r.price).toLocaleString()+(book?' 起':'')):'';
       var url=r.url||r.purchase_url||'';
       /* 2026-09-25 Jeffery 第 12 段：問事項目不寫成商品介紹——固定標題＋項目名＋說明＋「預約○○」；沒定稿的項目維持原樣 */
-      var C=(LOVE&&LOVE_REC_COPY[String(r.id)])||REC_COPY[String(r.id)];
+      /* 2026-09-26：好愛的推薦文案只給「心裡有那個人」用；桃花版沒有對應文案，退回通用那組（與上面標題的處理一致） */
+      var C=(LOVE&&!lvSingle()&&LOVE_REC_COPY[String(r.id)])||REC_COPY[String(r.id)];
       var inner=C
         ?'<div class="b" style="padding-top:24px"><div class="rec-kicker">'+C.title+'</div><h4>'+C.name+'</h4><div class="reason"><p>'+C.desc+'</p></div>'+
           '<div class="foot"><span class="price">'+price+'</span>'+(url?'<span class="cta">'+C.cta+' '+ic("arrow-right")+'</span>':'')+'</div></div>'
@@ -2044,6 +2054,7 @@ function pollStatus(logId,alreadyWarm){
 function finishResult(d,logId){
   STATE.submitting=false;
   STATE.logId=d.log_id||d.reading_id||logId||"";
+  lvRestore();lvRemember();   /* 好愛：回訪先取回兩個選擇，新的一卦則把選擇記下來（見 lvRestore 註解） */
   STATE.shareUrl=d.share_url||"";
   if(d.next_action)STATE.talismanName=d.next_action.talisman_name||STATE.talismanName;
   STATE.result=buildResult(d);
