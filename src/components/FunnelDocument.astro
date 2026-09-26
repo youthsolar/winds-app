@@ -1,5 +1,6 @@
 ---
 import HomeGuaStatic from './HomeGuaStatic.astro';
+import LoveGuaStatic from './LoveGuaStatic.astro';
 /*
  * 核心占卜漏斗（整份文件）— 純 Astro + vanilla（不用 React）。
  * 2026-09-23：從 pages/divination.astro 原樣搬成元件，讓 /divination 與活動頁 /home-gua（家裡的符）共用同一條流程；
@@ -10,7 +11,7 @@ import HomeGuaStatic from './HomeGuaStatic.astro';
  */
 import '../styles/global.css';
 import ConciergeWidget from './ConciergeWidget.astro';
-interface Props { mode?: 'divination' | 'home'; title: string; description: string; canonical: string; ogImage?: string; noindex?: boolean; }
+interface Props { mode?: 'divination' | 'home' | 'love'; title: string; description: string; canonical: string; ogImage?: string; noindex?: boolean; }
 const { mode = 'divination', title, description, canonical, ogImage = 'https://winds.tw/og-default.jpg', noindex = true } = Astro.props;
 ---
 
@@ -701,6 +702,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
 <div id="root">{mode === 'home' && (
   <!-- 落地文案的靜態版：見 HomeGuaStatic.astro（與 /home-gua/text/ 共用） -->
   <HomeGuaStatic />
+)}{mode === 'love' && (
+  <!-- 落地文案的靜態版：見 LoveGuaStatic.astro（文字＝2026-09-26 文案規格 V1，與 viewLoveLanding() 同一份） -->
+  <LoveGuaStatic />
 )}{mode === 'divination' && (
   <!-- 占卜漏斗的靜態版（2026-09-24）：不跑 JavaScript 的抓取工具只看得到這一段；render() 一啟動整塊換掉。文字對齊 viewTopic() 與首頁定稿 -->
   <main class="shell narrow ff hg">
@@ -734,6 +738,40 @@ var HOME_SITU=[{k:"unsettled",l:"住得不太順"},{k:"moved",l:"新家剛入住
 function homeSitu(k){return HOME_SITU.find(function(x){return x.k===k})||null;}
 /* 落地頁選狀況：只切換按鈕，不重畫整頁（重畫會跳回頁首，9/25 Jeffery 真機抓到） */
 function hgPick(k,btn){STATE.data.home=k;var ch=document.getElementById("hgChips");if(ch)Array.prototype.forEach.call(ch.querySelectorAll(".chip"),function(b){b.classList.toggle("on",b===btn);});var e=document.getElementById("ffErr");if(e)e.style.display="none";}
+
+/* ===== 活動頁「找風問好愛」love 模式（2026-09-26 文案規格 V1，Jeffery 定稿；選項卡四題拍板）=====
+   沿用 home 模式同一條流程、同一個後端、同一套 DS：差別只在落地文案與結果頁的字。
+   兩排膠囊（拍板）＝先問心裡有沒有那個人（關係卦／桃花卦），再問最想先知道哪一件；兩個答案併進問題字串讓老師解卦吃得到。
+   刻意不新增資料庫欄位、不改 worker：A／B 一律只切前端文字（Jeffery 規格：不為文案需求重構程式）。
+   五張符的叫法沿用站上現行的【卦名 靈符】（拍板），不改成規格初稿的「節靈符」。 */
+var LOVE=(document.body.getAttribute("data-mode")==="love");
+var LOVE_WHO=[{k:"someone",l:"有，我心裡有一個人"},{k:"single",l:"沒有，想看自己的桃花"}];
+var LOVE_ANGLE={
+  someone:[{k:"where",l:"你們現在站在哪裡"},{k:"heart",l:"他的心離你多遠"},{k:"stuck",l:"真正卡住的地方"},{k:"next",l:"接下來會往哪裡走"}],
+  single:[{k:"where",l:"我的桃花走到哪裡"},{k:"heart",l:"機會離我多遠"},{k:"stuck",l:"為什麼一直沒有開始"},{k:"next",l:"下一段正在靠近嗎"}]
+};
+function loveWho(k){return LOVE_WHO.find(function(x){return x.k===k})||null;}
+function loveAngle(who,k){return (LOVE_ANGLE[who]||[]).find(function(x){return x.k===k})||null;}
+function lvSingle(){return STATE.data.loveWho==="single";}
+function lvReady(){return !!(STATE.data.loveWho&&STATE.data.loveAngle);}
+function lvAngleChips(){
+  var who=STATE.data.loveWho;if(!who)return '';
+  return (LOVE_ANGLE[who]||[]).map(function(x){return '<button type="button" class="chip'+(STATE.data.loveAngle===x.k?' on':'')+'" onclick="lvPickAngle(\''+x.k+'\',this)">'+esc(x.l)+'</button>'}).join("");
+}
+/* 第一排換了，第二排整排文字要跟著換（關係版／桃花版兩組不同），所以這顆重畫第二排；同 hgPick 不重畫整頁（重畫會跳回頁首） */
+function lvPickWho(k,btn){
+  STATE.data.loveWho=k;STATE.data.loveAngle="";
+  var r1=document.getElementById("lvWho");if(r1)Array.prototype.forEach.call(r1.querySelectorAll(".chip"),function(b){b.classList.toggle("on",b===btn);});
+  var r2=document.getElementById("lvAngle");if(r2)r2.innerHTML=lvAngleChips();
+  var w=document.getElementById("lvAngleWrap");if(w)w.style.display="";
+  var g=document.getElementById("lvGuide");if(g)g.innerHTML=lvGuideHtml();
+  var e=document.getElementById("ffErr");if(e)e.style.display="none";
+}
+function lvPickAngle(k,btn){
+  STATE.data.loveAngle=k;
+  var r2=document.getElementById("lvAngle");if(r2)Array.prototype.forEach.call(r2.querySelectorAll(".chip"),function(b){b.classList.toggle("on",b===btn);});
+  var e=document.getElementById("ffErr");if(e)e.style.display="none";
+}
 
 /* ===== 前端漏斗內容（TOPICS 48 題＝新設計 shared-fortune-data.jsx 權威版；含 service 軟性提示）===== */
 var TOPICS=[
@@ -808,12 +846,14 @@ var READING_LINES=["正在為你翻開這張牌……","對齊你的命盤與節
 
 /* ===== state ===== */
 var STATE={step:"topic",paid:false,dir:null,sub:null,q:null,text:"",gender:"",service:"",
- cast:null,ask:0,data:{year:1990,month:null,day:null,shi:6,gender:"",name:"",email:"",home:""},ret:false,retInfo:null,retLog:"",retToken:"",k:"",ref:"",shareUrl:"",
+ cast:null,ask:0,data:{year:1990,month:null,day:null,shi:6,gender:"",name:"",email:"",home:"",loveWho:"",loveAngle:""},ret:false,retInfo:null,retLog:"",retToken:"",k:"",ref:"",shareUrl:"",
  lineUserId:"",logId:"",talismanName:"量能靈符",
  submitting:false,ordering:false,soulConfirmed:false,reportMode:false,
  prefill:null,cooldown:null,repeatWall:null,result:null,error:""};
-var STEPS=HOME?[{k:"cast",l:"起卦"},{k:"ask",l:"認識你"},{k:"result",l:"結果"}]:[{k:"topic",l:"選題"},{k:"cast",l:"起卦"},{k:"ask",l:"認識你"},{k:"result",l:"結果"}];
+var STEPS=(HOME||LOVE)?[{k:"cast",l:"起卦"},{k:"ask",l:"認識你"},{k:"result",l:"結果"}]:[{k:"topic",l:"選題"},{k:"cast",l:"起卦"},{k:"ask",l:"認識你"},{k:"result",l:"結果"}];
 if(HOME){STATE.step="landing";STATE.dir="home";STATE.q="家裡先留一張符";STATE.text="我想替現在住的地方求一張符，先看看這個家目前的狀況。";}
+/* love 模式：dir 用 love，結果頁的推薦與文章區就會走感情那一組（BLOG_LINKS.love 已存在） */
+if(LOVE){STATE.step="landing";STATE.dir="love";STATE.q="這段感情，現在走到哪裡";STATE.text="我想為現在這段感情起一卦，先看看我們目前的狀況。";}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function ic(n,w){return '<i class="ph'+(w?'-'+w:'')+' ph-'+n+'"></i>'}
 function pad2(n){n=String(n);return n.length<2?"0"+n:n}
@@ -970,6 +1010,7 @@ function ffRipStop(){if(FF_RIP.timer){clearInterval(FF_RIP.timer);FF_RIP.timer=n
 
 /* ── 0 活動頁落地（home 模式首屏；文案 D 版逐字，Jeffery 2026-09-23 定稿）── */
 function viewLanding(){
+  if(LOVE)return viewLoveLanding();
   /* 2026-09-25 Jeffery：落地頁改用站台標準 Nav（siteHeader），不再用活動頁自己的小頁首 */
   return siteHeader()+
     '<main class="shell narrow ff hg">'+
@@ -995,6 +1036,46 @@ function viewLanding(){
     '</main>';
 }
 
+/* 找風問好愛落地頁（2026-09-26 文案規格 V1）。版型／元件／DS 全部沿用家裡的符那一頁，只換文字與兩排膠囊。
+   改文案：這裡與 LoveGuaStatic.astro 兩份要一起改（靜態版給不跑 JavaScript 的抓取工具看）。 */
+function lvGuideHtml(){
+  if(!STATE.data.loveWho)return '<p class="hg-guide">選一個，再選一件你最想先知道的事。然後，把手放到水鏡上。</p>';
+  if(lvSingle())return '<p class="hg-guide">想著現在的自己。</p><p class="hg-guide">不用急著想下一個人會是誰。</p><p class="hg-guide">先看看，你現在是不是已經準備好讓一個人走進來。</p>';
+  return '<p class="hg-guide">想著那個人。</p><p class="hg-guide">想著你們最近發生的事。</p><p class="hg-guide">不用替他回答。</p><p class="hg-guide">這一卦，先看你們現在站在哪裡。</p>';
+}
+function viewLoveLanding(){
+  return siteHeader()+
+    '<main class="shell narrow ff hg">'+
+    '<div class="hg-bagua-row"><img class="hg-bagua" src="/assets/bagua-nav.png" alt="" aria-hidden="true"></div>'+
+    '<section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 找風問好愛</span>'+
+      '<h1 class="hg-h1">心裡有一個人，卻不知道你們會走到哪裡？</h1>'+
+      '<p class="lede">有些感情，不是沒有答案，只是你還沒看見彼此站在哪裡。</p></section>'+
+    '<section class="hg-cols">'+
+      '<div class="zf-card hg-card"><h3>放不下的，往往不是愛不愛</h3><p>感情最讓人放不下的，往往不是一句「愛不愛」。</p><p>而是他為什麼變了、你們為什麼卡住了，以及這段關係，究竟還有沒有往前走的可能。</p><p>先不用替這段感情下結論。</p><p>想著那個人，為你們起一卦。</p></div>'+
+      '<div class="zf-card hg-card"><h3>老師怎麼看</h3><p>我不急著替他回答愛不愛。</p><p>你把手按在水鏡上三秒。</p><p>那一刻起出來的卦，我就把它當成這段感情現在給我的訊息。</p><p>卦怎麼走，我就照著卦給符。</p><p>不是隨機抽一張現成的圖給你。</p><p>每一卦都有它自己的符，每一張符，都是我親手畫的真跡。</p></div>'+
+      '<div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來以後，我會先留一張這一卦的【卦符】給你。</p><p>先放在手機裡，陪著你七天。</p><p>不用貼在牆上，不用擺供桌，也不用燒。</p><p>就存成手機桌布帶著。</p><p>七天以後，如果這段感情還有一些事情想繼續看，我再照著你的卦，往後解五張靈符。</p><p>不用急著決定。</p><p>先起一卦，就知道了。</p></div>'+
+    '</section>'+
+    '<section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮觀修 · 符令親繪</span></div></section>'+
+    '<section class="hg-cast" id="hgCast"><span class="eyebrow"><span class="dot"></span>起卦</span>'+
+      '<p class="hg-guide">把手放在水鏡上。</p><p class="hg-guide">按著三秒，不要急著放開。</p><p class="hg-guide">卦會自己浮上來。</p>'+
+      '<p class="hg-guide hg-q">現在的你，心裡有特定的人嗎？</p>'+
+      '<div class="hg-chips" id="lvWho">'+LOVE_WHO.map(function(x){return '<button type="button" class="chip'+(STATE.data.loveWho===x.k?' on':'')+'" onclick="lvPickWho(\''+x.k+'\',this)">'+esc(x.l)+'</button>'}).join("")+'</div>'+
+      '<p class="hg-situ">有一個人＝曖昧、交往、冷淡、分手、復合，或是一個始終放不下的人。</p>'+
+      '<p class="hg-situ">沒有＝目前沒有特定對象，想看看最近的感情機會與桃花狀態。</p>'+
+      '<div id="lvAngleWrap"'+(STATE.data.loveWho?'':' style="display:none"')+'>'+
+        '<p class="hg-guide hg-q">那，你最想先知道哪一件？</p>'+
+        '<div class="hg-chips" id="lvAngle">'+lvAngleChips()+'</div>'+
+      '</div>'+
+      '<div id="lvGuide">'+lvGuideHtml()+'</div>'+
+      ffMirror("cast",{code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
+      '<div class="ff-clock" id="ffClock"></div>'+
+      '</section>'+
+    '<footer class="hg-foot">'+
+      '<div class="hg-links"><a href="/home-gua">家裡的符</a><a href="/divination">問別的事</a><a href="/terms">使用條款</a><a href="/privacy">隱私權政策</a></div>'+
+      '<p class="hg-legal">© '+new Date().getFullYear()+' 找風問幸福 · 靈學的溫柔陪伴 · 不涉及醫療或投資建議</p></footer>'+
+    '</main>';
+}
+
 /* ── 2 起卦 ── */
 var FF_CAST={t:null,rising:0,busy:false};
 function viewCast(){
@@ -1012,6 +1093,8 @@ function ffCastWire(){
     if(FF_CAST.t)return;e.preventDefault();try{m.setPointerCapture(e.pointerId);}catch(x){}
     /* 2026-09-25：家裡的符要先選狀況才能起卦 */
     if(HOME&&!STATE.data.home){var ch=document.getElementById("hgChips");if(ch)ch.scrollIntoView({behavior:"smooth",block:"center"});showFfErr("先選一個，再按水鏡。");return;}
+    /* 2026-09-26：找風問好愛要兩排都選完才能起卦 */
+    if(LOVE&&!lvReady()){var lc=document.getElementById(STATE.data.loveWho?"lvAngle":"lvWho");if(lc)lc.scrollIntoView({behavior:"smooth",block:"center"});showFfErr(STATE.data.loveWho?"再選一件你最想先知道的事。":"先選一個，再按水鏡。");return;}
     FF_CAST.busy=true;m.classList.add("busy");ffRipStart(true);
     FF_CAST.t="pending";
     /* 按下去那一刻起卦：後端用此刻的時間起卦（同 /gua），零資料 */
@@ -1038,10 +1121,10 @@ function viewHex(){
     ffMirror("reveal",{code:c.code,rising:6,name:c.name})+
     '<div class="ff-clock" style="margin-top:-6px;margin-bottom:12px">'+esc(c.castLabel||"")+' 起卦</div>'+
     (c.line?'<div class="zf-card" style="padding:14px 16px"><p class="ff-p" style="margin:0;color:var(--text-primary)">'+esc(c.line)+'</p></div>':'')+
-    (HOME
+    ((HOME||LOVE)
       ? '<p class="ff-p" style="margin-top:14px">卦已經起好了。接下來，老師要合你的命盤，才能繼續往下看。</p>'
       : '<p class="ff-p" style="margin-top:14px">有一張卦符可以先護住你。要配得更準，老師得看你的命盤。</p>')+
-    '<button class="zf-btn primary lg" style="width:100%" '+((HOME&&!STATE.data.home)?'disabled ':'')+'onclick="go(\''+(STATE.ret?'ret':'ask')+'\')">'+(STATE.ret?'好，用上次的資料':'好，讓老師認識我')+'</button></main>';
+    '<button class="zf-btn primary lg" style="width:100%" '+(((HOME&&!STATE.data.home)||(LOVE&&!lvReady()))?'disabled ':'')+'onclick="go(\''+(STATE.ret?'ret':'ask')+'\')">'+(STATE.ret?'好，用上次的資料':'好，讓老師認識我')+'</button></main>';
 }
 
 /* ── 4 老師開口問（一次一題，每題一個可以玩的控制項）── */
@@ -1051,7 +1134,7 @@ function shiName(i){return SHI[i][0]+"時";}
 function viewAsk(){
   var k=ASK[STATE.ask],d=STATE.data;
   /* 問句照 ASK 順序長出來；home 模式多了第一題「家的情形」，年份那題的開場跟著改口 */
-  var QS={year:HOME?"好。要配符給你，得先看你的命盤。你哪一年出生的？":"這一卦我看到了。要配符給你，得先看你的命盤。你哪一年出生的？",
+  var QS={year:(HOME||LOVE)?"好。要配符給你，得先看你的命盤。你哪一年出生的？":"這一卦我看到了。要配符給你，得先看你的命盤。你哪一年出生的？",
     month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就放在中午。",gender:"命盤要分陰陽。你是？",name:"我要怎麼稱呼你？",
     email:"留個信箱。這張卦符七天內有效，到期前我提醒你回來。"};
   function ansOf(key){switch(key){case "year":return d.year+" 年";case "month":return d.month+" 月";case "day":return d.month+" 月 "+d.day+" 日";case "shi":return shiName(d.shi);case "gender":return esc(d.gender);case "name":return esc(d.name||"—");}return "";}
@@ -1244,9 +1327,14 @@ function viewReportPaid(R,q){
 function viewResult(){
   var R=STATE.result||{};var paid=STATE.paid||R.purchased;var q=STATE.text||"";
   if(HOME){var hs0=homeSitu(STATE.data.home);q="家裡的符"+(hs0?"・"+hs0.l:"");}
+  if(LOVE){var la0=loveAngle(STATE.data.loveWho,STATE.data.loveAngle);q=(lvSingle()?"我的桃花":"這段感情")+(la0?"・"+la0.l:"");}
   if(paid)return viewReportPaid(R,q);
-  /* 第一眼那句大字（9/9 拍板：Jeffery 親寫，逐字照用；放這一頁不放首頁） */
-  var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">風易揚老師一張符令就能改善</h1>';
+  /* 第一眼那句大字（9/9 拍板：Jeffery 親寫，逐字照用；放這一頁不放首頁）。2026-09-26：好愛改用規格 06A／06B 那兩句 */
+  var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">'+
+    (LOVE?(lvSingle()?'這一卦，看見的是你現在的桃花狀態':'這一卦，看見的是你們現在的關係'):'風易揚老師一張符令就能改善')+'</h1>';
+  if(LOVE)h+=(lvSingle()
+    ?'<p class="lede" style="margin:10px 0 4px">桃花不是單純的「有人追」或「沒人追」。<br>有時候機會已經出現，只是你沒有注意。<br>有時候身邊明明有人，卻始終遇不到真正適合自己的關係。<br>也有些時候，是上一段感情留下的東西，還沒有真正離開。<br>先看看，你現在的感情正在什麼位置。</p>'
+    :'<p class="lede" style="margin:10px 0 4px">有些人明明彼此在意，卻一直停在原地。<br>有些人越靠越近，其中一個卻突然退開。<br>也有些感情真正卡住的，從來不是「愛不愛」，而是兩個人已經站在不同的位置。<br>先別急著問結果。<br>先看看，你們現在怎麼了。</p>');
   if(q)h+='<p class="sum-ask" style="margin:6px 0 10px">你問的是「'+esc(q)+'」</p>';
   h+='<div style="margin-top:22px">'+hexCardHero(paid)+'</div>';
   if(R.summary)h+='<div class="sum-body">'+md(R.summary)+'</div>';
@@ -1261,15 +1349,19 @@ function viewResult(){
   /* 2026-09-24 收版面（Jeffery 拍板）：免費頁不再顯示五張牌、籤詩與神數，兩者只活在解讀文字裡；付費報告照舊 */
   /* 2026-09-24 分流（Jeffery 拍板）：LLM 判斷這件事該先讓老師看 → 預約排前面，NT$360 仍在下面照常顯示 */
   h+=teacherFirstBlock();
-  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("完整解讀與你的靈符","看了這一卦的簡答，也看看接下來能為自己做些什麼。",hexTalismans(paid)+'<div style="margin-top:20px">'+paywall(paid)+'</div>',true);
+  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("完整解讀與你的靈符",(LOVE?(lvSingle()?"看懂你現在的桃花，也看看現在還能為自己做些什麼。":"看懂這段感情，也看看現在還能為自己做些什麼。"):"看了這一卦的簡答，也看看接下來能為自己做些什麼。"),hexTalismans(paid)+'<div style="margin-top:20px">'+paywall(paid)+'</div>',true);
   else h+=block("完整解讀","",paywall(paid));
   h+=recsSection();
   h+=blogSection();
   h+=socialCta();
+  /* 2026-09-26：好愛在最後補規格 21 的重新起卦段 */
+  if(LOVE)h+='<section class="recs" style="margin-top:44px"><div class="head"><h2>還有另一個人，或另一件放不下的事嗎？</h2>'+
+    '<p>剛才那一卦之後，如果你心裡浮現的是另一個人、另一段關係，或另一個真正想知道的問題。</p>'+
+    '<p>靜一下。<br>再為那件事，重新起一卦。</p></div></section>';
   h+='<div style="display:flex;flex-direction:column;align-items:center;gap:22px;margin-top:54px">'+
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
     '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
-    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:16px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
+    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:16px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">'+(LOVE?'重新起卦':'想再問一件別的事')+'</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
 function teacherFirstBlock(){
@@ -1286,12 +1378,22 @@ function nextStepLines(){
 }
 /* 2026-09-25 Jeffery 第 9 段：「你會拿到什麼」不再是四顆標籤，改成依價值排序的四項＋一句說明 */
 function getsList(){
+  /* 2026-09-26：好愛改用規格 15 的八項（Jeffery 逐字照抄；他沒給說明句的就不補，不自己編文案） */
+  var items=LOVE
+    ?(lvSingle()
+      ?[['這次桃花起卦的完整解讀',''],['你目前的桃花狀態',''],['近期值得留意的感情機會',''],['真正影響感情開始的阻礙',''],
+        ['接下來的桃花發展方向',''],['依照這次解方，由風易揚老師親書並開光的五張 '+talismanName(),''],
+        ['完整節氣與桃花狀態分析',''],['專屬分靈體 7 天陪伴','']]
+      :[['這次感情起卦的完整解讀',''],['你們目前的關係狀態',''],['對方目前在這段關係中的位置',''],['真正影響你們的感情阻礙',''],
+        ['這段關係接下來的發展方向',''],['依照這次解方，由風易揚老師親書並開光的五張 '+talismanName(),''],
+        ['完整節氣與感情狀態分析',''],['專屬分靈體 7 天陪伴','']])
+    :[['這次起卦的完整解讀','把前面還沒說完的卦象與提醒，完整看清楚。'],
+      ['五張為這次解方親書的 '+talismanName(),'由我依照這次起卦所呈現的狀態親自書寫並開光。'],
+      ['你的節氣運勢與完整分析','看見目前所處的位置，以及接下來值得留意的變化。'],
+      ['專屬分靈體・陪伴 7 天','解方完成後生成，這 7 天裡，有想不通的地方可以再和祂聊聊。']];
   return '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>'+
-    [['這次起卦的完整解讀','把前面還沒說完的卦象與提醒，完整看清楚。'],
-     ['五張為這次解方親書的 '+talismanName(),'由我依照這次起卦所呈現的狀態親自書寫並開光。'],
-     ['你的節氣運勢與完整分析','看見目前所處的位置，以及接下來值得留意的變化。'],
-     ['專屬分靈體・陪伴 7 天','解方完成後生成，這 7 天裡，有想不通的地方可以再和祂聊聊。']
-    ].map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b><span>'+x[1]+'</span></div></div>';}).join('')+'</div>';
+    items.map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b>'+(x[1]?'<span>'+x[1]+'</span>':'')+'</div></div>';}).join('')+'</div>'+
+    (LOVE?'<p class="veil-alt" style="margin-top:10px">一次 NT$ '+TALISMAN_PRICE+'，沒有訂閱，也不會自動續費。</p>':'');
 }
 function talismanName(){var R=STATE.result||{};return R.hexName?'【'+esc(R.hexName)+' 靈符】':'靈符';}
 function block(title,note,inner,noteTag){return '<section class="res-block"><h3 class="res-h3">'+title+'</h3>'+(note?(noteTag?'<div class="res-note-tag"><span class="zf-tag rose outline">'+esc(note)+'</span></div>':'<p class="res-note">'+ic("sparkle")+esc(note)+'</p>'):'')+inner+'</section>'}
@@ -1420,7 +1522,15 @@ function spiritCard(paid){
   var R=STATE.result||{};
   /* 2026-09-11：側寫付款後才生成——未付款一律顯示鎖定說明 */
   if(!paid){
-    return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">拿到靈符解方後，會依照這次的卦象與你的狀態，生成專屬於你的分靈體。<br>接下來 7 天，祂會陪著你，你也可以隨時和祂聊聊。</p></div>';
+    /* 2026-09-26：好愛換成規格 11 那段（關係版／桃花版差一句） */
+    var sTxt=LOVE
+      ?('拿到靈符解方後，會依照這次的卦象與你的感情狀態，生成專屬於你的分靈體。<br>接下來 7 天，祂會陪著你。<br>'+
+        (lvSingle()
+          ?'當你又開始懷疑「是不是自己遇不到對的人」，或新的感情機會出現、心裡不知道該怎麼判斷時，都可以再和祂聊聊。'
+          :'突然想起他的時候、想傳訊息卻不知道該不該傳的時候，或心裡又冒出一個問題的時候，都可以再和祂聊聊。')+
+        '<br>要不要繼續，是你決定。')
+      :'拿到靈符解方後，會依照這次的卦象與你的狀態，生成專屬於你的分靈體。<br>接下來 7 天，祂會陪著你，你也可以隨時和祂聊聊。';
+    return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">'+sTxt+'</p></div>';
   }
   /* 付款後、還沒有側寫：按鈕生成（2026-09-11） */
   if(!(R.profile&&R.profile.trim())){
@@ -1571,7 +1681,17 @@ function paywall(paid){
   }
   return '<div class="paywall"><div class="behind"><p>風易揚老師親手畫的靈符、完整解讀，還有整年的節氣運勢圖，都在解鎖後為你打開。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>'+
     '<div class="veil"><span class="lk">'+ic("lock-simple","thin")+'</span><h3>風易揚老師的靈符解方</h3>'+nextStepLines()+
-    '<p>我會依照這次的解方，親手為你書寫五張 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>。節氣到了開一張。不做折扣，也沒有加購。</p><p>你拿到的，不只是五張靈符，而是這一卦接下來的解方。</p>'+
+    /* 2026-09-26：好愛改用規格 13 那段（第一句「這不是隨機抽的。」保留強調；關係版／桃花版差三處） */
+    (LOVE
+      ?'<p><strong style="font-weight:500;color:var(--ink-900)">這不是隨機抽的。</strong></p>'+
+       '<p>'+(lvSingle()
+         ?'前面的卦象、你目前的桃花狀態、感情阻礙與接下來的機會，都會影響最後出現的解方。'
+         :'前面的卦象、你們目前的關係、彼此之間的阻礙，以及這段感情正在發展的方向，都會影響最後出現的解方。')+'</p>'+
+       '<p>所以出現在這裡的五張 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>，不是從一堆符令裡隨機挑五張給你。<br>'+
+         '而是依照這次起卦呈現的狀態，找出'+(lvSingle()?'目前':'目前這段關係')+'需要調整與處理的位置。</p>'+
+       '<p>我會依照這次的解方，親手為你書寫五張 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong> 並開光。節氣到了開一張。不做折扣，也沒有加購。</p>'+
+       '<p>你拿到的，不只是五張靈符。<br>而是這一卦看完'+(lvSingle()?'你的桃花狀態':'你們的關係')+'之後，接下來給你的解方。</p>'
+      :'<p>我會依照這次的解方，親手為你書寫五張 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>。節氣到了開一張。不做折扣，也沒有加購。</p><p>你拿到的，不只是五張靈符，而是這一卦接下來的解方。</p>')+
     getsList()+
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
@@ -1588,13 +1708,21 @@ var REC_COPY={
   "18":{title:"想把一件事查得更清楚",name:"通靈水鏡法｜問事・查因果",desc:"如果你現在最在意的是一件具體的事——感情、婚姻、工作、財運、人際，或一個始終想不明白的問題——老師會透過通靈水鏡法，進一步查清楚事情目前的狀態與背後原因。",cta:"預約通靈水鏡法"},
   "17":{title:"想看的不是一件事，而是最近整體的自己",name:"元辰宮代觀｜看整體運勢與狀態",desc:"如果你不是只有一件事情卡住，而是覺得最近感情、工作、財運或生活整體都不太對勁，可以從元辰宮目前呈現的狀態，看看問題可能落在哪裡。",cta:"了解元辰宮代觀"}
 };
+/* 2026-09-26 好愛專用（規格 17／18 逐字）；沒對到的項目自動退回 REC_COPY */
+var LOVE_REC_COPY={
+  "18":{title:"有一個人，也有一件事情真的想問清楚",name:"通靈水鏡法｜問感情・查因果",desc:"適合心裡已經有明確對象，也有一件真正想弄清楚的事情。我們不只是問「會不會復合？」「他愛不愛我？」，而是進一步看看這段關係目前的狀態、彼此之間的問題，以及那些你始終想不明白的地方。",cta:"了解通靈水鏡法"},
+  "17":{title:"如果最近不只是感情，而是整個自己都不太對",name:"元辰宮代觀｜看整體運勢與狀態",desc:"如果你發現最近卡住的不只是感情，工作、財運、人際、生活，甚至自己的情緒，好像都同時不太順，那真正需要看的，也許就不只是「你和他」，而是你自己目前整體的狀態。",cta:"了解元辰宮代觀"}
+};
 function recsInner(recs){
-  return '<div class="head"><h2>如果看完這一卦，你心裡還有一件事放不下</h2><p>有些問題，卦象可以給你方向；<br>但有些事情，需要再往原因裡查。</p><p>如果你想知道的，不只是「接下來會怎麼樣」，而是「為什麼會變成這樣」，可以再找老師談談。</p></div>'+
+  /* 2026-09-26：好愛「有那個人」時改用規格 16（桃花版 Jeffery 沒寫，維持原本通用那段） */
+  return (LOVE&&!lvSingle()
+    ?'<div class="head"><h2>如果看完這一卦，你還是放不下那個人</h2><p>有些感情，知道方向之後，心裡就會慢慢有答案。</p><p>但有些事情，你真正想知道的是：<br>他為什麼突然變了？<br>我們之間是不是發生了我不知道的事？<br>他心裡現在究竟怎麼看我？<br>為什麼我們總是在靠近之後又分開？<br>這段關係是不是還有更深的原因？</p><p>當你想查的已經不只是這一卦的方向，就可以再往裡面問。</p></div>'
+    :'<div class="head"><h2>如果看完這一卦，你心裡還有一件事放不下</h2><p>有些問題，卦象可以給你方向；<br>但有些事情，需要再往原因裡查。</p><p>如果你想知道的，不只是「接下來會怎麼樣」，而是「為什麼會變成這樣」，可以再找老師談談。</p></div>')+
     '<div class="rec-grid">'+recs.map(function(r){
       var book=r.source==='simplybook';var price=r.price?('NT$ '+Number(r.price).toLocaleString()+(book?' 起':'')):'';
       var url=r.url||r.purchase_url||'';
       /* 2026-09-25 Jeffery 第 12 段：問事項目不寫成商品介紹——固定標題＋項目名＋說明＋「預約○○」；沒定稿的項目維持原樣 */
-      var C=REC_COPY[String(r.id)];
+      var C=(LOVE&&LOVE_REC_COPY[String(r.id)])||REC_COPY[String(r.id)];
       var inner=C
         ?'<div class="b" style="padding-top:24px"><div class="rec-kicker">'+C.title+'</div><h4>'+C.name+'</h4><div class="reason"><p>'+C.desc+'</p></div>'+
           '<div class="foot"><span class="price">'+price+'</span>'+(url?'<span class="cta">'+C.cta+' '+ic("arrow-right")+'</span>':'')+'</div></div>'
@@ -1633,7 +1761,10 @@ function socialCta(){
   return '<section class="social-cta">'+
     '<span class="sc-eyebrow">'+ic("heart-straight","fill")+'把這份陪伴，帶回每一天</span>'+
     '<h3>我們每天在社群，留一句話給你</h3>'+
-    '<p class="sc-lead">節氣的提醒、這週的運勢，還有一點<em>想對你說的話</em>。追蹤我們，讓陪伴不只在你來問的時候。</p>'+
+    /* 2026-09-26：好愛換成規格 20 的愛情版補充文字 */
+    (LOVE
+      ?'<p class="sc-lead">有些感情裡的話，當下聽不進去。<br>過幾天再看到，也許就<em>懂了</em>。</p>'
+      :'<p class="sc-lead">節氣的提醒、這週的運勢，還有一點<em>想對你說的話</em>。追蹤我們，讓陪伴不只在你來問的時候。</p>')+
     '<div class="sc-row">'+links.map(function(l){
       return '<a class="sc-link" href="'+l[5]+'" target="_blank" rel="noopener">'+
         '<span class="sc-ic '+l[0]+'">'+ic(l[1],"thin")+'</span>'+
@@ -1772,10 +1903,10 @@ function render(){
     return;
   }
   var showHdr=STATE.step!=="landing"&&STATE.step!=="cooldown"&&STATE.step!=="interpreting"&&STATE.step!=="repeatwall";
-  var fn={landing:viewLanding,topic:viewTopic,cast:viewCast,hex:viewHex,ask:viewAsk,ret:viewRet,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown,repeatwall:viewRepeatWall}[STATE.step]||(HOME?viewLanding:viewTopic);
+  var fn={landing:viewLanding,topic:viewTopic,cast:viewCast,hex:viewHex,ask:viewAsk,ret:viewRet,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown,repeatwall:viewRepeatWall}[STATE.step]||((HOME||LOVE)?viewLanding:viewTopic);
   root.innerHTML=(showHdr?header():"")+fn();
   cjkWrap(root);
-  if(HOME&&STATE.step==="landing")wireSiteChrome();
+  if((HOME||LOVE)&&STATE.step==="landing")wireSiteChrome();
   /* 水鏡：起卦頁掛按住／放開；看到卦頁只呼吸；轉輪鏡掛拖曳；離開就停漣漪計時器 */
   ffRipStop();
   if(STATE.step==="cast"||STATE.step==="landing")ffCastWire();
@@ -1811,10 +1942,10 @@ function updateFabCta(){
   fabScroll();
 }
 function go(s){STATE.step=s;render()}
-function back(){var map=HOME?{cast:"landing",hex:"landing",ask:"hex",ret:"hex",result:"landing"}:{cast:"topic",hex:"topic",ask:"hex",ret:"hex",result:"topic"};if(map[STATE.step])go(map[STATE.step])}
+function back(){var map=(HOME||LOVE)?{cast:"landing",hex:"landing",ask:"hex",ret:"hex",result:"landing"}:{cast:"topic",hex:"topic",ask:"hex",ret:"hex",result:"topic"};if(map[STATE.step])go(map[STATE.step])}
 function exitFlow(){location.href="/";}
 function openOA(){window.open(LINE_OA_URL,"_blank");}
-function askAnother(){STATE.cast=null;STATE.ask=0;STATE.k="";STATE.shareUrl="";STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;STATE.logId="";STATE.repeatWall=null;if(HOME){STATE.data.home="";STATE.dir="home";STATE.q="家裡先留一張符";STATE.text="我想替現在住的地方求一張符，先看看這個家目前的狀況。";}go(HOME?"landing":"topic");}
+function askAnother(){STATE.cast=null;STATE.ask=0;STATE.k="";STATE.shareUrl="";STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;STATE.logId="";STATE.repeatWall=null;if(HOME){STATE.data.home="";STATE.dir="home";STATE.q="家裡先留一張符";STATE.text="我想替現在住的地方求一張符，先看看這個家目前的狀況。";}if(LOVE){STATE.data.loveWho="";STATE.data.loveAngle="";STATE.dir="love";STATE.q="這段感情，現在走到哪裡";STATE.text="我想為現在這段感情起一卦，先看看我們目前的狀況。";}go((HOME||LOVE)?"landing":"topic");}
 function showInfoErr(msg){var e=document.getElementById("infoErr");if(e){e.textContent=msg;e.classList.remove("hidden");e.scrollIntoView({behavior:"smooth",block:"center"});}else{alert(msg);}}
 
 /* ===== Google SSO auth ===== */
@@ -1848,11 +1979,13 @@ function submitFree(){
   var d=STATE.data,payload;
   if(STATE.ret&&STATE.retInfo){
     if(HOME&&!d.home){showFfErr("先說一聲這張符要守哪裡。");go("hex");return;}
+    if(LOVE&&!lvReady()){showFfErr("先回到上一步，把兩個選項選完。");go("landing");return;}
     var r=STATE.retInfo;
     payload={date_of_birth:r.date_of_birth||"",last_name:r.last_name||"",first_name:r.first_name||"",gender:r.gender||"",email:r.email||""};
     STATE.userName={surname:r.last_name||"",given:r.first_name||""};
   }else{
     if(HOME&&!d.home){showFfErr("先說一聲這張符要守哪裡。");go("hex");return;}
+    if(LOVE&&!lvReady()){showFfErr("先回到上一步，把兩個選項選完。");go("landing");return;}
     if(!d.month||!d.day||!d.gender||!validGmail(d.email)){showFfErr("老師還有幾題沒問完。");go("ask");return;}
     var nm=splitName(d.name);
     payload={date_of_birth:d.year+"-"+pad2(d.month)+"-"+pad2(d.day)+" "+SHI[d.shi][2],last_name:nm.surname,first_name:nm.given,gender:d.gender,email:d.email};
@@ -1860,6 +1993,9 @@ function submitFree(){
   }
   payload.free_flow=true;payload.question=STATE.text;payload.divination_method="雙占卜";
   if(HOME){var hs=homeSitu(STATE.data.home);if(hs){payload.question=STATE.text+"　家的情形："+hs.l+"。";payload.home_situation=hs.k;}}
+  /* 2026-09-26 好愛：兩排膠囊的答案併進問題字串，老師解卦吃得到；刻意不開新欄位（不動 worker 與資料庫） */
+  if(LOVE){var lw=loveWho(STATE.data.loveWho),la=loveAngle(STATE.data.loveWho,STATE.data.loveAngle);
+    if(lw&&la)payload.question=STATE.text+"　感情狀況："+(lvSingle()?"目前沒有特定對象，想看自己的桃花":"心裡有一個特定的人")+"。最想先知道："+la.l+"。";}
   payload.cast_code=STATE.cast.code;payload.cast_at=STATE.cast.castAt;
   if(STATE.retLog&&STATE.retToken){payload.k_log_id=Number(STATE.retLog);payload.k=STATE.retToken;}
   if(STATE.ref)payload.ref_log_id=Number(STATE.ref)||undefined;
@@ -2085,7 +2221,7 @@ window.addEventListener('zf-theme-change',function(){var d=window.ZFTheme&&ZFThe
 window.addEventListener('zf-theme-change',function(){mountGisButton._redo=true;mountGisButton();});
 function boot(){
   /* 量測：ViewContent＝進到占卜漏斗（/divination） */
-  try{var cn=HOME?'home-gua':'divination';if(window.fbq)fbq('track','ViewContent',{content_name:cn});if(window.gtag)gtag('event','view_item',{item_name:cn});}catch(e){}
+  try{var cn=LOVE?'love':HOME?'home-gua':'divination';if(window.fbq)fbq('track','ViewContent',{content_name:cn});if(window.gtag)gtag('event','view_item',{item_name:cn});}catch(e){}
   var params=new URLSearchParams(location.search);
   var edmT=params.get("t");if(edmT){try{localStorage.setItem("winds_edm_token",edmT);}catch(e){}}
   /* 媒體專屬 token（?pt=）：認持有、單次核銷——存起來，解鎖時帶給後端 */
