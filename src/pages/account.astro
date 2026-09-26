@@ -120,7 +120,21 @@ const entries = [
       document.getElementById('acMain').hidden = false;
 
       document.getElementById('acLogout').addEventListener('click', function () {
-        try { localStorage.removeItem('winds_google_token'); } catch (e) {}
+        /* 2026-09-26（Codex 複審抓到，實際比它說的更嚴重）：原本登出只清 winds_google_token，
+           其他本機痕跡全部留著。在共用的手機或電腦上，下一個人會拿到前一個人的東西：
+             ・winds_booking_session ＝ 預約對話的整段紀錄（感情、健康、想問的事）
+             ・winds_ff_log / winds_ff_k ＝ 占卜漏斗開機會拿這兩個去撈「上次的資料」，
+               於是下一個人會看到前一個人的生日、姓名、信箱被端出來讓他「沿用上次的資料」
+           登出就是要把痕跡清掉，所以一律清掉 winds_ 開頭的本機資料（含日後新增的鍵）。 */
+        try {
+          var kill = [];
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (k && k.indexOf('winds_') === 0) kill.push(k);
+          }
+          kill.forEach(function (k) { localStorage.removeItem(k); });
+        } catch (e) {}
+        try { sessionStorage.removeItem('winds_pending_log_id'); } catch (e) {}
         location.href = '/';
       });
     })();

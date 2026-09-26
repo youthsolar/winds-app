@@ -245,6 +245,16 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   // 目前結果的走勢資料（供 fetchPalace 的 trend 解讀帶入 body）
   let teacherTrend: any = null;
+  /* 2026-09-26（Codex 複審抓到）：13 段逐宮解讀是併發打的，老師若在上一位客人還沒跑完就按
+     「再算一位客人」，舊請求不會取消。interpStarted 與 cache 雖然在 showResult() 裡宣告、換客人
+     會拿到新閉包，但 interpretation-mount 是同一個 DOM 元素，舊回應照樣寫進新客人正在看的畫面，
+     於是兩位客人的解讀混在一起。原本那道 currentMode === mode 只擋本命／流年切換，擋不了換人。
+     加批次序號：只有最新那一批的回應可以渲染。 */
+  let resultGen = 0;
+  /* 同一個問題的第二半：下面那個重試用的 click 監聽器原本每算一位客人就往同一個 interpMount 疊一個，
+     監聽器不會被移除。算過三位客人之後按一次「重試」會同時打三個不同客人的請求（每個監聽器抓著
+     自己那位客人的 chartData 閉包），畫面顯示誰取決於誰先回來。改成只留最新那一個。 */
+  let retryHandler: ((ev: Event) => void) | null = null;
 
   function setLoading(on: boolean) {
     if (!submitBtn) return;
@@ -683,6 +693,7 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
   }
 
   function showResult(chartData: any) {
+    const myGen = ++resultGen;   // 這一位客人的批次序號（見 resultGen 註解）
     hideAllSections();
     resultSection.hidden = false;
 
@@ -747,7 +758,7 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
             const text = await fetchPalace(chartData.chart as Chart, palace, mode, mode === 'yearly' ? yearlyApiCtx ?? undefined : undefined);
             cache[palace] = text;
             // 只在當前 mode 還是這個時渲染（避免快速切換 race condition）
-            if (currentMode === mode) renderPalaceText(palace, text, interpMount);
+            if (currentMode === mode && myGen === resultGen) renderPalaceText(palace, text, interpMount);
           }
         });
       }
@@ -769,8 +780,9 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
       };
     });
 
-    // Retry handler (delegated)
-    interpMount.addEventListener('click', async (ev) => {
+    // Retry handler (delegated)。換客人時先拆掉上一位的監聽器，只留最新這一個（見 retryHandler 註解）
+    if (retryHandler) interpMount.removeEventListener('click', retryHandler);
+    retryHandler = async (ev: Event) => {
       const target = ev.target as HTMLElement;
       if (target.classList.contains('retry-palace')) {
         const palace = target.dataset.palace;
@@ -780,10 +792,12 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
         block.className = 'interp-text loading';
         block.textContent = '重試中…';
         const text = await fetchPalace(chartData.chart as Chart, palace, currentMode, currentMode === 'yearly' ? yearlyApiCtx ?? undefined : undefined);
+        if (myGen !== resultGen) return;   // 等待期間老師已經換客人了，這份不要畫上去
         interpCache[currentMode][palace] = text;
         renderPalaceText(palace, text, interpMount);
       }
-    });
+    };
+    interpMount.addEventListener('click', retryHandler);
 
     // 老師版永遠全文，無 paywall / 分享連結（已移除對應區塊）
   }
