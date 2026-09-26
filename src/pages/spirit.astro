@@ -389,7 +389,9 @@ import '../styles/global.css';
       var userEl=appendMsg("user",msg,nowHM());
       var send_=document.getElementById("spSend");send_.setAttribute("disabled","");S.sending=true;
       showTyping();
-      fetch(API.chat,{method:"POST",headers:{"Content-Type":"application/json"},
+      /* 2026-09-26（Codex 複審抓到）：原本只送 lineUserId，token 存了沒用，worker 直接信任呼叫方給的身分，
+         知道別人 Google 編號的人就能用掉對方的額度、讀到對方的資料。改成把 token 一起送，worker 端驗身分。 */
+      fetch(API.chat,{method:"POST",headers:{"Content-Type":"application/json","X-Google-Id-Token":S.idToken||""},
         body:JSON.stringify({lineUserId:S.userId,message:msg,sessionId:S.sessionId,sessionType:S.mode,targetBirthday:S.mode==="target"?targetBirthday:null})})
        .then(function(resp){return resp.json().then(function(d){return{status:resp.status,d:d}})})
        .then(function(o){
@@ -437,7 +439,7 @@ import '../styles/global.css';
     /* ===== status / config ===== */
     function fetchStatus(){
       if(!S.userId)return Promise.resolve();
-      return fetch(API.status+"?lineUserId="+encodeURIComponent(S.userId)).then(function(r){return r.ok?r.json():null}).then(function(d){
+      return fetch(API.status+"?lineUserId="+encodeURIComponent(S.userId),{headers:{"X-Google-Id-Token":S.idToken||""}}).then(function(r){return r.ok?r.json():null}).then(function(d){
         if(d){S.subscribed=!!d.subscribed;S.lockedBirthday=d.locked_birthday||null;
           if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;
           if(d.daily_rounds!=null)S.dailyRounds=d.daily_rounds;
