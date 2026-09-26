@@ -354,15 +354,21 @@ import { PERSONAS } from '../data/booking-teachers';
         shell(sn(4),'確認預約',inner,foot);
         mount.querySelector('[data-back]').addEventListener('click',stepInfo);
         mount.querySelector('[data-go]').addEventListener('click',function(){
-          var btn=this; btn.classList.add('disabled'); btn.textContent='建立訂單中…';
+          var btn=this;
+          /* 2026-09-26（Codex 複審抓到）：原本只加 CSS class，鈕其實沒被停用——鍵盤 Enter／Space
+             還會再觸發，第一次回應前連按會建出多筆預約與多張付款單，其中幾筆會占住時段變成孤兒單。
+             改成真的設 disabled 屬性並在入口擋掉重入；成功會跳轉離開，所以只在失敗時解鎖。 */
+          if(btn.disabled)return;
+          btn.disabled=true; btn.classList.add('disabled'); btn.textContent='建立訂單中…';
+          function unlockGo(){btn.disabled=false;btn.classList.remove('disabled');btn.textContent='確認並付訂金';}
           fetch(WORKER_API+'/sb-book',{method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({service:W.svc.id,provider:W.prov.id,datetime:W.date+' '+W.time+':00',
               location:W.loc?W.loc.id:null,
               name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null,note:W.fields.note||null})})
            .then(function(r){return r.json();}).then(function(d){
              if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
-             else{showErr(document.getElementById('wzErr2'),d&&d.message||'建立預約失敗，請稍後再試。');btn.classList.remove('disabled');btn.textContent='確認並付訂金';}
-           }).catch(function(){showErr(document.getElementById('wzErr2'),'網路錯誤，請稍後再試。');btn.classList.remove('disabled');btn.textContent='確認並付訂金';});
+             else{showErr(document.getElementById('wzErr2'),d&&d.message||'建立預約失敗，請稍後再試。');unlockGo();}
+           }).catch(function(){showErr(document.getElementById('wzErr2'),'網路錯誤，請稍後再試。');unlockGo();});
         });
       }
       function row(k,v){return '<div class="bw-row"><span class="bw-k">'+esc(k)+'</span><span class="bw-v">'+esc(v)+'</span></div>';}
