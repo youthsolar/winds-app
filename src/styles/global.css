@@ -14,10 +14,10 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
     --sage-300:#B7BFA3; --sage-400:#98A484; --sage-500:#7A8866;
     --ink-900:#2E2823; --ink-700:#4A4038; --ink-500:#6E6359; --ink-400:#948A7E;
 
-    --paper: #FBF8F3;
+    --paper: #FFFDF8;   /* DS colors.css：lifted card white（2026-09-26 由 #FBF8F3＝頁底色 改正）*/
     --surface: #FFFDF8;
     --accent: #C18C84;
-    --font-sans: "Noto Sans TC", system-ui, -apple-system, sans-serif;
+    --font-sans: "Noto Sans TC", system-ui, -apple-system, "PingFang TC", sans-serif;
     --radius-xs:6px; --radius-sm:10px; --radius-md:14px; --radius-lg:20px; --radius-xl:28px; --radius-2xl:36px; --radius-pill:999px;
     /* 間距 token 逐值抄 winds-design-tokens/tokens.css:109-111（2026-09-03 補：ds.css .zf-card 用 --space-6 卻沒定義 → 內距變 0） */
     --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px; --space-8:32px; --space-10:40px; --space-12:48px; --space-16:64px; --space-20:80px; --space-24:96px; --space-32:128px;
@@ -29,7 +29,7 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
        全部對映既有色階，值與 ES 主題 / LIFF / apex 完全一致，新頁（blog/項目…）用語意名。*/
     /* surfaces */
     --surface-page:   var(--rice-50);
-    --surface-card:   var(--surface);   /* #FFFDF8 = handoff --paper */
+    --surface-card:   var(--paper);     /* DS colors.css */
     --surface-sunken: var(--rice-100);
     --surface-tint:   var(--rose-50);
     /* text */
@@ -47,6 +47,7 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
     --border-strong: var(--rice-300);
     --border-accent: var(--rose-300);
     --border-hair:   1px;
+    --border-thick:  1.5px;
     /* antique gold (sparing) + functional */
     --gold-300:#D8C49A; --gold-400:#C2A878; --gold-500:#A88C5C;
     --caution:#A88C5C; --positive:#7A8866; --critical:#B5675C;
@@ -83,6 +84,7 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
     --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
     --dur-fast:140ms; --dur-base:240ms; --dur-slow:420ms;
     --shadow-xs: 0 1px 2px rgba(70,52,40,.05);
+    --shadow-glow: 0 0 0 6px var(--focus-ring);
     --shadow-xl: 0 10px 28px rgba(70,52,40,.08), 0 28px 72px rgba(70,52,40,.14);
   }
 
@@ -108,11 +110,26 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
     letter-spacing: var(--ls-heading);
     margin: 0 0 0.5em;
   }
+  /* DS base.css：標題預設字級（頁面自帶字級的不受影響） */
+  h1 { font-size: var(--t-h1); }
+  h2 { font-size: var(--t-h2); }
+  h3 { font-size: var(--t-h3); }
+  h4 { font-size: var(--t-h4); }
 
   p { margin: 0 0 1em; }
 
   a { color: var(--accent-press); text-decoration: none; }
   a:hover { color: var(--accent-hover); }
+
+  /* DS base.css：反白選字＋鍵盤聚焦玫瑰外框（never blue） */
+  ::selection { background: var(--accent-tint); color: var(--ink-900); }
+  /* DS 原寫 outline:none＋glow，但 :where 權重 0，帶陰影的按鈕會蓋掉 glow → 完全沒聚焦框；補玫瑰 outline 保底 */
+  :where(button, a, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--rose-300);
+    outline-offset: 2px;
+    box-shadow: var(--shadow-glow);
+    border-radius: var(--radius-sm);
+  }
 
   /* Nav links — 統一 nav 右側樣式（跟 public/index.html .winds-topnav .links 一致） */
   .nav-link,
@@ -164,6 +181,7 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
   --positive: #B4C096;
   --caution:  #D6BE8E;
   --critical: #D89289;
+  --clay-100: #3A2F26;  /* DS 無此 token；站內 lp/商品頁當 tint-clay-hi 用 → 暗色跟著翻 */
   --tint-clay-hi:   #3A2F26;
   --tint-clay-disc: #332B22;
   --tint-sage-hi:   #2C322B;

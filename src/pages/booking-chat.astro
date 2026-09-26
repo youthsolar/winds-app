@@ -14,6 +14,7 @@ import '../styles/global.css';
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
+  <script is:inline src="/assets/theme-init.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>預約老師 · 找風問幸福</title>
   <meta name="description" content="跟小幫手說說你想問的事。我幫你找合適的老師、查時段，再把預約約好。" />
@@ -117,7 +118,7 @@ import '../styles/global.css';
     .wc-pay{margin:2px 0 14px 40px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:18px}
     .wc-pay-amt{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900);margin-bottom:2px}
     .wc-pay-amt small{font-family:var(--font-sans);font-size:12px;font-weight:400;color:var(--text-muted)}
-    .wc-pay-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm)}
+    .wc-pay-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:500;letter-spacing:.04em;line-height:1;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm);transition:background var(--dur-fast) var(--ease-soft)}
     .wc-pay-btn:hover{background:var(--accent-hover)}
     .wc-pay-note{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);text-align:center;margin-top:10px}
     .wc-prov{margin:2px 0 14px 40px;display:flex;flex-direction:column;gap:10px}
@@ -130,7 +131,7 @@ import '../styles/global.css';
     .wc-prov-meta{font-family:var(--font-sans);font-size:12px;color:var(--text-secondary);margin-top:2px}
     .wc-prov-reason{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0}
     .wc-prov-desc{font-family:var(--font-sans);font-size:12px;line-height:1.6;color:var(--text-muted);margin:6px 0 0}
-    .wc-prov-btn{all:unset;cursor:pointer;display:block;text-align:center;margin-top:12px;padding:10px;font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);box-shadow:var(--shadow-sm)}
+    .wc-prov-btn{all:unset;cursor:pointer;display:block;text-align:center;margin-top:12px;padding:10px;font-family:var(--font-serif);font-size:15px;font-weight:500;letter-spacing:.04em;line-height:1;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);box-shadow:var(--shadow-sm);transition:background var(--dur-fast) var(--ease-soft)}
     .wc-prov-btn:hover{background:var(--accent-hover)}
     .wc-action{margin:2px 0 14px 40px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:16px}
     .wc-action-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:var(--w-medium);letter-spacing:.04em;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm);transition:background var(--dur-fast) var(--ease-soft)}

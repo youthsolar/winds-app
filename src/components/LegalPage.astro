@@ -116,6 +116,9 @@ const isP = (b: Block): b is { p: string } => 'p' in b;
 
   @media (max-width:820px){
     .lg2{padding:48px 20px 0;}
+    /* DS LegalPage 用 useMedia(820) 傳 PageHeader mobile：30／16 */
+    .lg2 .zf-ph-title{font-size:30px;}
+    .lg2 .zf-ph-lede{font-size:16px;}
     .lg2-intro{margin-top:28px;}
     .lg2-para{font-size:15.5px;}
     .lg2-toc{margin-top:28px;padding:20px 20px;}
@@ -132,7 +135,6 @@ const isP = (b: Block): b is { p: string } => 'p' in b;
     .lg2-party-name{flex:1 0 100%;font-size:16px;}
     .lg2-party-use{font-size:15px;}
     .lg2-contact{margin-top:44px;padding:30px 22px;}
-    .lg2-contact-lede{font-size:16px;}
     .lg2-contact-link{font-size:17px;}
   }
 </style>

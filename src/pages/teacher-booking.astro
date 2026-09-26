@@ -35,9 +35,9 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
     <section id="tb-section" hidden>
       <div class="tb-toolbar">
         <div class="tb-nav">
-          <button class="zf-btn secondary sm" id="nav-prev" type="button" aria-label="上一段">‹</button>
+          <button class="zf-btn secondary sm" id="nav-prev" type="button" aria-label="上一段"><i class="ph ph-caret-left" style="font-size:15px"></i></button>
           <button class="zf-btn secondary sm" id="nav-today" type="button">今天</button>
-          <button class="zf-btn secondary sm" id="nav-next" type="button" aria-label="下一段">›</button>
+          <button class="zf-btn secondary sm" id="nav-next" type="button" aria-label="下一段"><i class="ph ph-caret-right" style="font-size:15px"></i></button>
           <span class="tb-range" id="tb-range"></span>
         </div>
         <div class="tb-filters">
@@ -45,14 +45,14 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
             <button class="zf-tab on" data-view="day" type="button">日</button>
             <button class="zf-tab" data-view="week" type="button">週</button>
           </div>
-          <select class="zf-input tb-select" id="prov-select"><option value="">全部老師</option></select>
+          <div class="zf-select-wrap tb-select-wrap"><select class="zf-select tb-select" id="prov-select"><option value="">全部老師</option></select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></div>
           <button class="zf-btn primary sm" id="block-btn" type="button">擋時間</button>
         </div>
       </div>
 
       <div class="tb-block-form" id="block-form" hidden>
         <div class="tb-form-grid">
-          <label>老師<select class="zf-input" id="bf-prov"></select></label>
+          <label>老師<div class="zf-select-wrap"><select class="zf-select" id="bf-prov"></select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></div></label>
           <label>日期<input class="zf-input" type="date" id="bf-date" /></label>
           <label>從<input class="zf-input" type="time" id="bf-from" step="900" value="10:00" /></label>
           <label>到<input class="zf-input" type="time" id="bf-to" step="900" value="22:00" /></label>
@@ -152,7 +152,7 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
             ${canceled ? '<span class="zf-tag neutral outline">已取消</span>' : ''}
           </div>
           <div class="tb-act">${canceled ? '' : `
-            <select class="zf-input tb-status" data-act="status" data-id="${b.id}">${STATUSES.map((s) => `<option${s === st ? ' selected' : ''}>${s}</option>`).join('')}</select>
+            <span class="zf-select-wrap tb-status-wrap"><select class="zf-select tb-status" data-act="status" data-id="${b.id}">${STATUSES.map((s) => `<option${s === st ? ' selected' : ''}>${s}</option>`).join('')}</select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></span>
             <button class="zf-btn secondary sm" data-act="resched" data-id="${b.id}" data-start="${esc(b.start_datetime)}">改期</button>
             <button class="zf-btn ghost sm" data-act="cancel" data-id="${b.id}">取消</button>`}
           </div></div>`);
@@ -241,8 +241,8 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   .page-header { margin-bottom: 24px; }
   .page-header .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: 12px; font-weight: 500; letter-spacing: 0.02em; color: var(--accent-press); }
   .page-header .eyebrow .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); flex: none; }
-  .page-header h1 { font-family: var(--font-serif); font-size: 38px; font-weight: 500; color: var(--ink-900); margin: 10px 0 0; letter-spacing: 0.01em; line-height: 1.3; }
-  .page-header .lede { font-family: var(--font-serif); font-weight: 300; color: var(--text-secondary); font-size: 18px; line-height: 1.8; max-width: 34em; margin: 10px 0 0; }
+  .page-header h1 { font-family: var(--font-serif); font-size: 38px; font-weight: 500; color: var(--ink-900); margin: 12px 0 0; letter-spacing: 0.01em; line-height: 1.3; }
+  .page-header .lede { font-family: var(--font-serif); font-weight: 300; color: var(--text-secondary); font-size: 18px; line-height: 1.8; max-width: none; margin: 12px 0 0; }
   .auth-gate { max-width: 480px; margin: 40px auto; }
   .auth-card { background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 32px 28px; text-align: center; box-shadow: var(--shadow-sm); }
   .auth-card h2 { font-family: var(--font-serif); font-weight: 500; color: var(--ink-900); margin: 0 0 12px; font-size: 22px; }
@@ -255,10 +255,12 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   .tb-nav { display: flex; align-items: center; gap: 8px; }
   .tb-range { font-family: var(--font-serif); font-size: 16px; font-weight: 500; color: var(--ink-900); margin-left: 6px; }
   .tb-filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .tb-select { width: auto; min-width: 140px; padding: 7px 12px; font-size: 14px; }
+  .tb-select-wrap { flex: none; }
+  .tb-select { width: auto; min-width: 140px; padding: 7px 34px 7px 12px; font-size: 14px; }
   .tb-block-form { background: var(--surface-tint); border: 1px solid var(--rose-100); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; }
   .tb-form-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
   .tb-form-grid label { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-sans); font-size: 12.5px; color: var(--ink-700); }
+  .tb-form-grid .zf-select-wrap { flex: none; }
   .tb-form-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
   .tb-form-status { font-family: var(--font-sans); font-size: 13px; color: var(--critical); }
 
@@ -279,11 +281,13 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   .tb-body span { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); overflow-wrap: anywhere; }
   .tb-body em { font-style: normal; font-family: var(--font-sans); font-size: 12.5px; color: var(--ink-700); }
   .tb-act { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-  .tb-status { width: auto; padding: 6px 10px; font-size: 13px; }
+  .tb-status-wrap { flex: none; display: inline-block; }
+  .tb-status { width: auto; padding: 6px 30px 6px 10px; font-size: 13px; }
+  .tb-status-wrap .caret { right: 10px; }
   @media (max-width: 760px) {
     .tb-main { padding: 22px 16px 64px; }
     .page-header h1 { font-size: 26px; }
-    .page-header .lede { font-size: 15px; }
+    .page-header .lede { font-size: 15.5px; }
     .tb-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .tb-row { grid-template-columns: 72px minmax(0, 1fr); }
     .tb-act { grid-column: 1 / -1; justify-content: flex-start; }

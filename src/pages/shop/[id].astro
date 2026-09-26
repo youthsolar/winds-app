@@ -170,7 +170,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     .lp-empty { text-align: center; padding: 80px 20px; font-family: var(--font-serif); color: var(--text-muted); }
 
     .lp-hero { position: relative; overflow: hidden; padding: 48px 0 64px; }
-    .lp-hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(640px 460px at 12% 20%, var(--clay-100), transparent 62%), radial-gradient(520px 420px at 92% 80%, var(--tint-glow), transparent 58%); }
+    .lp-hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(640px 460px at 12% 20%, var(--tint-clay-hi), transparent 62%), radial-gradient(520px 420px at 92% 80%, var(--tint-glow), transparent 58%); }
     .lp-hero-grid { position: relative; display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
     .lp-hero-img { margin: 0; }
     .lp-hero-img img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); border: 1px solid var(--border-soft); background: var(--surface-card); }
@@ -197,7 +197,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 
     .lp-steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .lp-steps li { display: flex; gap: 12px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px; }
-    .lp-step-n { flex: none; width: 32px; height: 32px; border-radius: 999px; background: var(--clay-100); color: var(--clay-500); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-weight: var(--w-medium); }
+    .lp-step-n { flex: none; width: 32px; height: 32px; border-radius: 999px; background: var(--tint-clay-hi); color: var(--clay-500); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-weight: var(--w-medium); }
     .lp-steps b { display: block; font-family: var(--font-serif); font-size: 16px; font-weight: var(--w-medium); color: var(--ink-900); margin-bottom: 5px; }
     .lp-steps p { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 14px; line-height: 1.7; color: var(--text-secondary); margin: 0; }
 
@@ -214,6 +214,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     .lp-radio span { font-family: var(--font-serif); font-size: 16px; color: var(--ink-900); }
     .lp-radio em { font-style: normal; font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); }
     .lp-radio:has(input:checked) { border-color: var(--rose-300); background: var(--rose-50); }
+    .lp-radio:has(input:focus-visible) { box-shadow: 0 0 0 4px var(--focus-ring); }
     .lp-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .lp-form .wide { grid-column: 1 / -1; }
     .lp-cvs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }

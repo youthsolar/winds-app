@@ -58,11 +58,11 @@ import '../styles/global.css';
     .zf-nav-links > a:not(.zf-btn){font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:.03em;text-decoration:none}
     .zf-nav-links > a:not(.zf-btn):hover{color:var(--accent-press)}
     .zf-burger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:transparent;color:var(--ink-700);cursor:pointer}
-    .zf-theme-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:36px;height:36px;border:1px solid var(--border-soft);border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer;transition:background var(--dur-fast) var(--ease-soft)}
-    .zf-theme-btn:hover{background:var(--surface-sunken)}
-    .zf-theme-btn i{display:inline-flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
+    .zf-theme-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:44px;height:44px;border:none;border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer;padding:0}
+    .zf-theme-btn i{display:inline-flex;align-items:center;justify-content:center;font-size:19px;line-height:1}
     .zf-theme-btn:not(.m) i{display:flex;width:100%;height:100%}
-    .zf-theme-btn.m{width:100%;min-height:44px;margin-top:12px;padding:0 22px;box-sizing:border-box;border:1px solid var(--border-strong);border-radius:var(--radius-pill);background:var(--surface-card);justify-content:center;white-space:nowrap;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
+    .zf-theme-btn.m{display:flex;width:auto;height:auto;justify-content:flex-start;gap:10px;padding:12px 4px;border:none;border-bottom:1px solid var(--border-soft);border-radius:0;background:transparent;font-family:var(--font-serif);font-size:16px;font-weight:400;color:var(--ink-700);text-align:left}
+    .zf-theme-btn.m i{font-size:18px}
     .zf-theme-btn.m span{white-space:nowrap}
     .zf-burger i{font-size:24px;line-height:1}
     .zf-drawer{display:none;border-top:1px solid var(--border-soft);background:var(--surface-page);padding:8px 20px 18px}
@@ -81,17 +81,17 @@ import '../styles/global.css';
     .sp-tab.on{font-weight:500;color:var(--rose-600);border-bottom-color:var(--rose-400)}
 
     /* ===== 主容器 ===== */
-    .sp-wrap{flex:1;min-height:0;display:flex;flex-direction:column;max-width:680px;width:100%;margin:0 auto;box-sizing:border-box;padding:14px 24px 0;position:relative;overflow:hidden}
-    @media(max-width:760px){.sp-wrap{padding:10px 14px 0}}
+    .sp-wrap{flex:1;min-height:0;display:flex;flex-direction:column;max-width:680px;width:100%;margin:0 auto;box-sizing:border-box;padding:18px 24px 0;position:relative;overflow:hidden}
+    @media(max-width:760px){.sp-wrap{padding:12px 14px 0}}
 
     /* 命理小卡（可收合）*/
-    .sp-prof{flex:none;background:linear-gradient(168deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:14px 18px;margin-bottom:10px}
+    .sp-prof{flex:none;background:linear-gradient(168deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:16px 20px;margin-bottom:10px}
     .sp-prof-row{display:flex;gap:12px;align-items:center}
-    .sp-prof-av{flex:none;width:50px;height:50px;border-radius:999px;background:var(--rose-100);color:var(--rose-600);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:22px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
-    .sp-prof-name{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900)}
+    .sp-prof-av{flex:none;width:54px;height:54px;border-radius:999px;background:var(--rose-100);color:var(--rose-600);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:22.7px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
+    .sp-prof-name{font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900)}
     .sp-prof-tag{font-family:var(--font-sans);font-size:11px;color:var(--text-muted)}
     .sp-prof-sub{font-family:var(--font-sans);font-size:10.5px;color:var(--text-muted);margin-top:3px}
-    .sp-prof-toggle{all:unset;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:var(--font-sans);font-size:12px;color:var(--rose-600);flex:none;padding:4px 10px;background:var(--rose-50);border:1px solid var(--rose-100);border-radius:var(--radius-pill)}
+    .sp-prof-toggle{all:unset;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:var(--font-sans);font-size:12px;color:var(--rose-600);flex:none;padding:4px 8px;background:var(--rose-50);border:1px solid var(--rose-100);border-radius:var(--radius-pill)}
     .sp-prof-body{margin-top:12px;max-height:42vh;overflow:auto;-webkit-overflow-scrolling:touch}
     .sp-fact{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-family:var(--font-serif);font-size:13.5px;line-height:1.7}
     .sp-fact dt{color:var(--text-muted);white-space:nowrap}
@@ -108,7 +108,7 @@ import '../styles/global.css';
     .sp-count{flex:none;display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:8px}
     .sp-count .muted{font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)}
     .sp-count .num{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-sans);font-size:13px;font-weight:600;color:var(--rose-600)}
-    .sp-count .num.zero{color:var(--ink-400)}
+    .sp-count .num.zero{color:var(--ink-300)}
     .sp-count .unl{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-sans);font-size:12px;font-weight:500;color:var(--sage-500);background:var(--tint-sage-hi);border-radius:var(--radius-pill);padding:3px 10px}
     .sp-count .unlock{all:unset;cursor:pointer;font-family:var(--font-sans);font-size:12px;color:var(--accent-press);border-bottom:1px solid var(--rose-200);padding-bottom:1px}
 
@@ -116,7 +116,7 @@ import '../styles/global.css';
     .sp-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 0 16px}
     .sp-bubble{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px}
     .sp-bubble.user{justify-content:flex-end}
-    .sp-av{flex:none;width:32px;height:32px;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:13px;font-weight:500;color:var(--rose-600)}
+    .sp-av{flex:none;width:32px;height:32px;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:12.8px;font-weight:500;color:var(--rose-700, var(--rose-600))}
     .sp-bubble-in{max-width:calc(100% - 52px)}
     .sp-bubble-txt{padding:12px 16px;border-radius:18px 18px 18px 6px;background:var(--surface-card);border:1px solid var(--border-soft);box-shadow:var(--shadow-sm);font-family:var(--font-serif);font-size:16px;font-weight:300;line-height:1.75;color:var(--ink-900);margin:0;white-space:pre-line;word-break:normal;text-wrap:wrap}
     .sp-bubble.user .sp-bubble-txt{border-radius:18px 18px 6px 18px;background:var(--accent);border:none;color:var(--text-on-accent);font-weight:400}
@@ -142,10 +142,10 @@ import '../styles/global.css';
     /* paywall overlay */
     .sp-paywall{position:absolute;inset:0;display:none}
     .sp-paywall.show{display:block}
-    .sp-paywall-in{position:absolute;left:0;right:0;bottom:0;padding:24px 18px 28px;background:linear-gradient(180deg,transparent,var(--surface-page) 42%);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+    .sp-paywall-in{position:absolute;left:0;right:0;bottom:0;padding:20px 18px 28px;background:linear-gradient(180deg,transparent,var(--surface-page) 40%);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
     .sp-pw-disc{flex:none;width:48px;height:48px;border-radius:999px;background:var(--rose-50);border:1px solid var(--rose-200);display:flex;align-items:center;justify-content:center;color:var(--rose-500);font-size:24px}
-    .sp-pw-h{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)}
-    .sp-pw-p{font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--text-secondary);max-width:22em}
+    .sp-pw-h{font-family:var(--font-serif);font-size:21px;font-weight:500;color:var(--ink-900)}
+    .sp-pw-p{font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.8;color:var(--text-secondary);max-width:22em}
     .sp-pw-tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
     .sp-pw-tags span{font-family:var(--font-sans);font-size:12.5px;color:var(--rose-600);background:var(--rose-50);border-radius:var(--radius-pill);padding:4px 12px;border:1px solid var(--rose-100)}
     .sp-pw-close{all:unset;cursor:pointer;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);border-bottom:1px solid var(--border-strong);padding-bottom:2px}
@@ -155,6 +155,9 @@ import '../styles/global.css';
     .sp-gate-card{max-width:360px;text-align:center;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-xl);padding:32px 26px;box-shadow:var(--shadow-sm)}
     .sp-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink-900);color:var(--surface-card);font-family:var(--font-sans);font-size:13.5px;padding:10px 18px;border-radius:var(--radius-pill);box-shadow:var(--shadow-lg);opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
     .sp-toast.show{opacity:1}
+    /* DS SpiritApp 手機值（放最後，蓋過上方桌機值） */
+    @media(max-width:760px){.sp-prof{padding:12px 14px}.sp-prof-av{width:46px;height:46px;font-size:19.3px}.sp-prof-name{font-size:16px}.sp-pw-h{font-size:19px}.sp-pw-p{font-size:14.5px}}
+    .zf-drawer .zf-btn.full{margin-top:12px}
   </style>
 </head>
 <body>
@@ -169,7 +172,7 @@ import '../styles/global.css';
           <a href="/booking">老師介紹</a>
           <a href="/shop">法器選物</a>
           <a href="/divination" class="zf-btn ghost sm">占卜</a>
-          <button class="zf-theme-btn" id="zfThemeBtn" aria-label="切換深淺色"><i class="ph-thin ph-moon"></i></button>
+          <button class="zf-theme-btn" id="zfThemeBtn" aria-label="切換深淺色"><i class="ph-thin ph-moon-stars"></i></button>
           <div id="auth-button" class="zf-account"></div>
         </div>
         <button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>
@@ -181,7 +184,7 @@ import '../styles/global.css';
         <a href="/booking">老師介紹</a>
         <a href="/shop">法器選物</a>
         <a href="/divination" class="zf-btn primary md full">占卜</a>
-        <button class="zf-theme-btn m" id="zfThemeBtnM" aria-label="切換深淺色"><i class="ph-thin ph-moon"></i><span>深色模式</span></button>
+        <button class="zf-theme-btn m" id="zfThemeBtnM" aria-label="切換深淺色"><i class="ph-thin ph-moon-stars"></i><span>深色模式</span></button>
         <div id="auth-button-m" class="zf-account-m"></div>
       </div>
     </nav>
@@ -460,7 +463,7 @@ import '../styles/global.css';
         var dark=window.ZFTheme&&ZFTheme.isDark();
         ["zfThemeBtn","zfThemeBtnM"].forEach(function(id){
           var el=document.getElementById(id);if(!el)return;
-          var i=el.querySelector("i");if(i)i.className=dark?"ph-thin ph-sun":"ph-thin ph-moon";
+          var i=el.querySelector("i");if(i)i.className=dark?"ph-thin ph-sun":"ph-thin ph-moon-stars";
           var s=el.querySelector("span");if(s)s.textContent=dark?"淺色模式":"深色模式";
         });
       }

@@ -93,15 +93,15 @@ const jsonLd = [
 <BaseLayout title={title} description={description} ogImage={item.image || '/og-default.jpg'} jsonLd={jsonLd}>
   <div class="svc-detail">
     <nav class="sd-crumb" aria-label="麵包屑">
-      <a href="/">首頁</a><span>›</span><a href="/services/">預約項目</a><span>›</span>
+      <a href="/">首頁</a><i class="ph ph-caret-right sd-sep" aria-hidden="true"></i><a href="/services/">預約項目</a><i class="ph ph-caret-right sd-sep" aria-hidden="true"></i>
       <span class="cur">{item.name}</span>
     </nav>
 
     <article class="sd-main">
       <header class="sd-head">
         <div class="sd-tags">
-          <span class="sd-badge">{isSB ? '靈性諮詢' : '開光法器'}</span>
-          {durTxt && <span class="sd-tag">{durTxt}</span>}
+          <span class="zf-badge rose">{isSB ? '靈性諮詢' : '開光法器'}</span>
+          {durTxt && <span class="zf-badge neutral">{durTxt}</span>}
         </div>
         <h1>{item.name}</h1>
         {lede && <p class="sd-lede">{lede}</p>}
@@ -121,7 +121,7 @@ const jsonLd = [
       <section class="sd-book">
         <span class="sd-book-label">{isSB ? '預約這個項目' : '請這件法器'}</span>
         {priceTxt && <div class="sd-book-price">{priceTxt}</div>}
-        <a class="sd-btn" href={isSB ? '/booking' : (item.url || '/booking')}
+        <a class="zf-btn primary lg full sd-btn" href={isSB ? '/booking' : (item.url || '/booking')}
            {...(isSB ? {} : { target: '_blank', rel: 'noopener' })}>
           {isSB ? '預約老師' : '前往購買'}
         </a>
@@ -145,41 +145,47 @@ const jsonLd = [
   </div>
 
   <style>
-    .svc-detail { max-width: 760px; margin: 0 auto; padding: 28px 22px 72px; }
-    .sd-crumb { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 26px; }
+    /* 逐值對 DS blog-service-pages.jsx ServiceDetail／blog-components.jsx Breadcrumb（2026-09-26）；單欄結構維持 */
+    .svc-detail { max-width: 760px; margin: 0 auto; padding: 44px 32px 72px; }
+    .sd-crumb { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 24px; }
     .sd-crumb a { color: var(--text-muted); text-decoration: none; }
     .sd-crumb a:hover { color: var(--accent-press); }
-    .sd-crumb .cur { color: var(--ink-900); }
+    .sd-crumb .sd-sep { font-size: 11px; color: var(--rose-200); }
+    .sd-crumb .cur { color: var(--accent-press); }
+    .sd-head { padding-bottom: 28px; border-bottom: 1px solid var(--border-soft); }
     .sd-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-    .sd-badge, .sd-tag { font-family: var(--font-sans); font-size: 11.5px; border-radius: var(--radius-pill); padding: 3px 11px; border: 1px solid var(--border-soft); color: var(--text-secondary); }
-    .sd-badge { background: var(--accent-quiet); border-color: var(--accent-tint); color: var(--accent-press); }
-    .sd-head h1 { font-family: var(--font-serif); font-size: 34px; font-weight: 500; line-height: 1.35; color: var(--ink-900); margin: 0; word-break: normal; overflow-wrap: anywhere; }
-    .sd-lede { font-family: var(--font-serif); font-weight: 300; font-size: 16px; line-height: 1.9; color: var(--text-secondary); margin: 16px 0 0; }
-    .sd-meta { display: flex; align-items: baseline; gap: 9px; margin-top: 18px; font-family: var(--font-sans); font-size: 14px; color: var(--text-secondary); }
-    .sd-price { font-size: 21px; font-weight: 600; color: var(--accent-press); }
-    .sd-dot { color: var(--text-muted); }
-    .sd-section { margin-top: 40px; }
-    .sd-section h2 { font-family: var(--font-serif); font-size: 19px; font-weight: 500; color: var(--ink-900); margin: 0 0 12px; }
-    .sd-section p { font-family: var(--font-serif); font-weight: 300; font-size: 15.5px; line-height: 1.95; color: var(--ink-700); margin: 0; }
-    .sd-book { margin-top: 40px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 24px; background: var(--surface-sunken); }
-    .sd-book-label { font-family: var(--font-sans); font-size: 12px; letter-spacing: .08em; color: var(--text-muted); }
-    .sd-book-price { font-family: var(--font-serif); font-size: 27px; font-weight: 600; color: var(--accent-press); margin: 6px 0 16px; }
-    .sd-btn { display: block; text-align: center; background: var(--accent); color: #fff; font-family: var(--font-sans); font-size: 15px; font-weight: 500; padding: 13px 20px; border-radius: var(--radius-pill); text-decoration: none; }
-    .sd-btn:hover { background: var(--accent-hover); }
-    .sd-book-note { font-family: var(--font-sans); font-size: 12px; color: var(--text-muted); margin: 11px 0 0; text-align: center; }
+    .sd-head h1 { font-family: var(--font-serif); font-size: 38px; font-weight: 500; line-height: 1.3; color: var(--ink-900); margin: 0; word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+    .sd-lede { font-family: var(--font-serif); font-weight: 300; font-size: 17.5px; line-height: 1.9; color: var(--ink-700); margin: 16px 0 0; max-width: none; word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+    .sd-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 20px; font-family: var(--font-sans); font-size: 14px; color: var(--ink-500); }
+    .sd-price { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--accent-press); }
+    .sd-dot { color: var(--rose-200); }
+    .sd-section { margin-top: 36px; }
+    .sd-section h2 { font-family: var(--font-serif); font-size: 24px; font-weight: 500; color: var(--ink-900); margin: 0 0 16px; }
+    .sd-section p { font-family: var(--font-serif); font-weight: 300; font-size: 17.5px; line-height: 1.95; color: var(--ink-700); margin: 0; max-width: none; word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+    /* 預約卡＝DS 側欄 Card paper＋shadow-md */
+    .sd-book { margin-top: 36px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 26px; background: var(--surface-card); box-shadow: var(--shadow-md); }
+    .sd-book-label { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); }
+    .sd-book-price { font-family: var(--font-serif); font-size: 28px; font-weight: 500; color: var(--ink-900); margin: 6px 0 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-soft); }
+    .sd-btn { font-size: 17px; }
+    .sd-book-note { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); margin: 14px 0 0; text-align: center; }
     .sd-rel { list-style: none; padding: 0; margin: 0; }
-    .sd-rel li { padding: 9px 0; border-bottom: 1px solid var(--border-soft); font-family: var(--font-serif); font-size: 15px; }
+    .sd-rel li { padding: 16px 0; border-bottom: 1px solid var(--border-soft); font-family: var(--font-serif); font-size: 17px; font-weight: 500; }
     .sd-rel a { color: var(--ink-900); text-decoration: none; }
     .sd-rel a:hover { color: var(--accent-press); }
-    .sd-rel span { color: var(--text-muted); font-size: 13.5px; }
+    .sd-rel span { font-family: var(--font-sans); color: var(--text-muted); font-size: 13px; font-weight: 400; }
     .sd-back { display: inline-block; margin-top: 36px; font-family: var(--font-sans); font-size: 13.5px; color: var(--text-muted); text-decoration: none; }
     .sd-back:hover { color: var(--accent-press); }
-    @media (max-width: 760px) {
-      .svc-detail { padding: 20px 18px 56px; }
-      .sd-head h1 { font-size: 26px; }
-      .sd-book-price { font-size: 23px; }
-    }
-      .sd-alt { margin: 14px 0 0; font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); line-height: 1.7; text-align: center; }
+    .sd-alt { margin: 14px 0 0; font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); line-height: 1.7; text-align: center; }
     .sd-alt a { color: var(--rose-600); border-bottom: 1px solid var(--rose-200); }
+    @media (max-width: 760px) {
+      .svc-detail { padding: 28px 20px 56px; }
+      .sd-crumb { margin-bottom: 18px; }
+      .sd-head { padding-bottom: 22px; }
+      .sd-head h1 { font-size: 28px; }
+      .sd-lede, .sd-section p { font-size: 16px; }
+      .sd-section, .sd-book { margin-top: 28px; }
+      .sd-section h2 { font-size: 21px; }
+      .sd-book { padding: 22px 20px; }
+    }
   </style>
 </BaseLayout>

@@ -84,7 +84,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     /* 未登入 */
     .hr-unauth-wrap{width:100%;max-width:460px;position:relative;}
-    .hr-glow{position:absolute;inset:-60px 0 auto;height:240px;background:radial-gradient(420px 240px at 50% 0,var(--rose-100),transparent 68%);pointer-events:none;}
+    .hr-root{overflow-x:clip;}
+    .hr-glow{position:absolute;inset:-60px -40px auto;height:240px;background:radial-gradient(420px 240px at 50% 0,var(--rose-100),transparent 68%);pointer-events:none;}
     .hr-unauth-card{position:relative;box-shadow:var(--shadow-md);text-align:center;padding:44px 42px 36px;}
     .hr-icondisc{width:60px;height:60px;border-radius:999px;background:var(--rose-100);display:inline-flex;align-items:center;justify-content:center;margin:0 auto 20px;}
     .hr-icondisc i{font-size:30px;color:var(--rose-500);line-height:1;}
@@ -122,7 +123,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .hr-rec-mid{flex:1;min-width:0;}
     .hr-rec-tyrow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
     .hr-type{font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900);}
-    .hr-kong{display:inline-flex;align-items:center;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;line-height:1.4;border-radius:var(--radius-pill);padding:4px 11px;background:transparent;color:var(--rose-600);border:1px solid var(--rose-200);}
+    .hr-kong{display:inline-flex;align-items:center;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;line-height:1.4;border-radius:var(--radius-pill);padding:5px 13px;background:transparent;color:var(--rose-600);border:1px solid var(--rose-200);}
     .hr-when{display:flex;align-items:center;gap:7px;margin-top:5px;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted);}
     .hr-when i{font-size:13px;color:var(--rose-300);}
     .hr-badge{flex:none;display:inline-flex;align-items:center;gap:6px;padding:3px 10px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.04em;line-height:1.5;border-radius:var(--radius-pill);}
@@ -142,13 +143,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .hr-spin-sm{display:inline-block;flex:none;width:14px;height:14px;border-radius:999px;border:2px solid var(--tint-gold-hi);border-top-color:var(--gold-500);animation:hrSpin 1.1s linear infinite;box-sizing:border-box;}
 
     /* Btn */
-    .hr-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;text-decoration:none;font-family:var(--font-serif);font-weight:500;letter-spacing:0.04em;line-height:1;border-radius:var(--radius-pill);cursor:pointer;border:1px solid transparent;padding:8px 16px;font-size:14px;min-height:36px;transition:background var(--dur-fast) var(--ease-soft);}
+    .hr-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:none;text-decoration:none;font-family:var(--font-serif);font-weight:500;letter-spacing:0.04em;line-height:1;border-radius:var(--radius-pill);cursor:pointer;border:1px solid transparent;padding:8px 16px;font-size:14px;min-height:36px;transition:background var(--dur-fast) var(--ease-soft);}
     .hr-btn i{font-size:15px;}
     .hr-btn.primary{background:var(--accent);color:var(--text-on-accent);box-shadow:var(--shadow-sm);}
     .hr-btn.primary:hover{background:var(--accent-hover);}
     .hr-btn.secondary{background:var(--surface-card);color:var(--ink-900);border-color:var(--border-strong);box-shadow:var(--shadow-xs);}
     .hr-btn.secondary:hover{background:var(--rice-100);}
-    .hr-btn-lg{padding:15px 30px;font-size:18px;min-height:54px;gap:10px;}
+    .hr-btn-lg{padding:15px 30px;font-size:18px;min-height:54px;}
+    #hrEmptyBtn{margin-top:30px;}
     .hr-btn-lg i{font-size:18px;}
 
     /* 分頁（部落格式 44px 膠囊）*/
@@ -173,6 +175,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (max-width:760px){
       .hr-center{padding:48px 20px;}
       .hr-unauth-card{padding:34px 24px 30px;}
+      .hr-gbtn{margin-top:26px;}
+      #hrEmptyBtn{margin-top:26px;}
       .hr-cta-h1{font-size:23px;}
       .hr-cta-p{font-size:15.5px;}
       .hr-loading-tx{font-size:15.5px;}

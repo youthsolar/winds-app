@@ -130,7 +130,7 @@
 .zf-sh-eyebrow.no-seal::before{display:none}
 .zf-sh-title{margin:0;font-family:var(--font-serif);font-weight:var(--w-medium);font-size:var(--t-h2);line-height:var(--lh-tight);letter-spacing:var(--ls-heading);color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
 .zf-sh-lede{margin:0;font-family:var(--font-serif);font-weight:var(--w-light);font-size:var(--t-body-lg);line-height:1.7;color:var(--text-secondary);word-break:normal;overflow-wrap:anywhere}
-.zf-section-heading.center .zf-sh-lede{max-width:32rem;text-wrap:pretty}
+.zf-section-heading.center .zf-sh-lede{max-width:none;text-wrap:pretty}
 
 /* ===== Chip（DS components/chip；單一來源，取代 home/divination 各自手刻）===== */
 .zf-chip{cursor:pointer;white-space:nowrap;flex:none;font-family:var(--font-serif);font-size:16px;font-weight:var(--w-medium);letter-spacing:.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:11px 20px;box-shadow:none;transition:all var(--dur-fast) var(--ease-soft)}

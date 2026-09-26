@@ -93,11 +93,11 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     /* eyebrow（中文 → 不大寫、窄字距 0.02em，依新設計）*/
     .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:.02em;color:var(--accent-press)}
     .eyebrow .dot{width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none}
-    .lede{font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.8;color:var(--text-secondary);max-width:30em}
-    @media(max-width:760px){.lede{font-size:16px}}
+    .lede{font-family:var(--font-serif);font-weight:300;font-size:18px;line-height:1.8;color:var(--text-secondary)}
+    @media(max-width:760px){.lede{font-size:15.5px}}
     .step-intro{display:flex;flex-direction:column;gap:12px;margin-bottom:34px}
-    .step-intro h1{font-size:40px;font-weight:500;line-height:1.3;color:var(--ink-900);letter-spacing:.01em;word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
-    @media(max-width:760px){.step-intro{margin-bottom:24px}.step-intro h1{font-size:24px}}
+    .step-intro h1{font-size:38px;font-weight:500;line-height:1.3;color:var(--ink-900);letter-spacing:.01em;word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
+    @media(max-width:760px){.step-intro{margin-bottom:24px}.step-intro h1{font-size:26px}}
 
     /* btn/card/tag 全用 ds.css 的 zf-*（去重，不再本地手抄一份）。僅保留 card padding 對齊現行：
        DS zf-card 用 --space-6，這裡固定 24px / 手機 20px 18px，與改版前像素一致 */
@@ -109,6 +109,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     /* chips */
     .chip{all:unset;cursor:pointer;white-space:nowrap;font-family:var(--font-serif);font-size:16px;font-weight:500;letter-spacing:.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:11px 20px;transition:all var(--dur-fast) var(--ease-soft)}
     .chip.on{color:var(--text-on-accent);background:var(--accent);border-color:transparent;box-shadow:var(--shadow-sm)}
+    @media(max-width:760px){.chip{padding:10px 17px;font-size:15px}}
 
     /* fields */
     .f-label{display:block;margin-bottom:8px;font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--ink-700);letter-spacing:.02em}
@@ -119,8 +120,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .f-select-wrap{position:relative;flex:1 1 0;min-width:0}
     .f-select{padding-right:34px;appearance:none;-webkit-appearance:none}
     .f-select-wrap .caret{position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--rose-400)}
-    .hint{display:flex;align-items:flex-start;gap:8px;font-family:var(--font-sans);font-size:12px;line-height:1.7;color:var(--text-muted)}
-    .hint i{line-height:inherit}
+    .hint{display:flex;align-items:flex-start;gap:8px;font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)}
+    .hint i{line-height:inherit;font-size:13px;color:var(--rose-300)}
     /* info 表單格線：姓名/生日時間/手機email 各成對；性別/出生地整列 */
     .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
     .info-grid .fw{grid-column:1 / -1}
@@ -182,13 +183,13 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ph-num{width:24px;height:24px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:12px;font-weight:600;border:1px solid var(--border-strong);color:var(--ink-300)}
     .ph-step.cur .ph-num{background:var(--accent);color:var(--text-on-accent);border:none}
     .ph-step.done .ph-num{background:var(--rose-100);color:var(--rose-600);border:none}
-    .ph-lbl{font-family:var(--font-serif);font-size:14px;color:var(--ink-400)}
+    .ph-lbl{font-family:var(--font-serif);font-size:15px;color:var(--ink-400)}
     .ph-step.cur .ph-lbl{color:var(--ink-900);font-weight:500}
     .ph-step.done .ph-lbl{color:var(--ink-700)}
     .ph-sep{width:26px;height:1px;background:var(--border-strong)}
     .ph-bar{height:2px;background:var(--rice-200)}
     .ph-bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--rose-300),var(--rose-500));transition:width var(--dur-slow) var(--ease-soft)}
-    .ph-mob{display:none;font-family:var(--font-serif);font-size:14px;color:var(--ink-900);font-weight:500}
+    .ph-mob{display:none;font-family:var(--font-serif);font-size:15px;color:var(--ink-900);font-weight:500}
     .ph-mob b{color:var(--accent-press);font-weight:600}
     @media(max-width:760px){.ph-hdr .row{padding:0 16px;height:60px}.ph-steps{display:none}.ph-mob{display:inline}.ph-back span{display:none}}
 
@@ -196,21 +197,24 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .dir-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
     .dir-card{all:unset;cursor:pointer;box-sizing:border-box;display:flex;flex-direction:column;gap:18px;padding:26px 24px;border-radius:var(--radius-lg);background:var(--surface-card);border:1px solid var(--border-soft);box-shadow:var(--shadow-sm);transition:all var(--dur-base) var(--ease-soft);width:100%}
     .dir-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
-    .dir-mark{flex:none;width:56px;height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:30px;font-weight:500}
+    .dir-mark{flex:none;width:56px;height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:28px;font-weight:500}
     .dir-mark.rose{background:var(--rose-100);color:var(--rose-600);box-shadow:0 0 0 4px var(--surface-page),0 0 0 5px var(--rose-300)}
     .dir-mark.clay{background:var(--clay-200);color:var(--clay-500);box-shadow:0 0 0 4px var(--surface-page),0 0 0 5px var(--clay-300)}
     .dir-mark.sage{background:var(--sage-200);color:var(--sage-500);box-shadow:0 0 0 4px var(--surface-page),0 0 0 5px var(--sage-300)}
-    .dir-title{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900)}
-    .dir-sub{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.65;color:var(--text-secondary)}
-    @media(max-width:760px){.dir-grid{grid-template-columns:1fr;gap:12px}.dir-card{flex-direction:row;align-items:center;gap:16px;padding:18px}.dir-mark{width:48px;height:48px;font-size:24px}.dir-title{font-size:19px}}
+    .dir-title{font-family:var(--font-serif);font-size:22px;font-weight:500;color:var(--ink-900)}
+    .dir-sub{font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.65;color:var(--text-secondary)}
+    @media(max-width:760px){.dir-grid{grid-template-columns:1fr;gap:12px}.dir-card{flex-direction:row;align-items:center;gap:16px;padding:18px}.dir-mark{width:48px;height:48px;font-size:24px}.dir-title{font-size:19px}.dir-sub{font-size:14px}}
     .crumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
     .crumb{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:14px;color:var(--rose-600);background:var(--rose-50);border:1px solid var(--rose-100);border-radius:var(--radius-pill);padding:5px 12px}
     .q-list{display:flex;flex-direction:column;gap:10px;margin-bottom:30px}
-    .q-item{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font-serif);font-size:18px;line-height:1.6;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 20px;transition:all var(--dur-fast) var(--ease-soft)}
+    .q-item{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font-serif);font-size:17.5px;line-height:1.6;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 20px;transition:all var(--dur-fast) var(--ease-soft)}
     .q-item.on{background:var(--surface-tint);border-color:var(--rose-300)}
     .q-radio{flex:none;width:18px;height:18px;border-radius:999px;border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center}
     .q-item.on .q-radio{border-color:var(--accent);background:var(--accent);color:var(--text-on-accent)}
-    .section-q{font-family:var(--font-serif);font-size:20px;color:var(--ink-900);margin:0 0 16px}
+    .section-q{font-family:var(--font-serif);font-size:19px;color:var(--ink-900);margin:0 0 16px}
+    .section-q.c{margin-bottom:14px}
+    .q-desc{display:block;font-family:var(--font-sans);font-size:13px;line-height:1.55;color:var(--text-muted);margin-top:4px}
+    @media(max-width:760px){.section-q{font-size:17px}.q-item{font-size:16px;padding:14px 16px}.q-desc{font-size:12.5px}.go-btn{display:flex;width:100%}}
 
     /* interpreting */
     .interp{min-height:calc(100vh - 72px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 22px;position:relative;overflow:hidden}
@@ -269,7 +273,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .mmt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
     .mmt-card{position:relative;aspect-ratio:.62;border-radius:var(--radius-md);border:1px solid var(--rose-200);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 8px;text-align:center;overflow:hidden}
     .mmt-tag{position:absolute;top:7px;right:7px;z-index:2}
-    .mmt-disc{position:relative;display:inline-flex;width:52px;height:52px;border-radius:999px;background:var(--disc-frost-soft);border:1px solid var(--disc-frost-hair);align-items:center;justify-content:center;font-family:var(--font-serif);font-size:24px;line-height:1;margin-bottom:8px;flex-shrink:0}
+    .mmt-disc{position:relative;display:inline-flex;width:52px;height:52px;border-radius:999px;background:var(--disc-frost-soft);border:1px solid var(--disc-frost-hair);align-items:center;justify-content:center;font-family:var(--font-serif);font-size:26px;line-height:1;margin-bottom:8px;flex-shrink:0}
     .mmt-name{position:relative;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
     .mmt-rule{position:relative;width:18px;height:1px;background:var(--rose-200);margin:5px auto}
     .mmt-line{position:relative;font-family:var(--font-serif);font-weight:300;font-size:12px;line-height:1.6;color:var(--text-secondary);padding:0 4px}
@@ -278,20 +282,20 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .zw-card{background:linear-gradient(160deg,var(--tint-sage-disc),var(--paper) 78%);border:1px solid var(--sage-200);border-radius:var(--radius-lg);padding:26px 28px}
     .zw-top{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
     .zw-cell{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 16px}
-    .zw-k{font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-bottom:5px}
-    .zw-v{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);line-height:1.4}
+    .zw-k{font-family:var(--font-sans);font-size:11px;color:var(--text-muted);margin-bottom:5px}
+    .zw-v{font-family:var(--font-serif);font-size:16.5px;font-weight:500;color:var(--ink-900);line-height:1.4}
     .zw-year{margin-top:14px;padding:16px 18px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md)}
     .zw-yhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-    .zw-ytitle{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)}
-    .zw-ysub{font-family:var(--font-sans);font-size:12px;color:var(--text-secondary)}
+    .zw-ytitle{font-family:var(--font-serif);font-size:15.5px;font-weight:500;color:var(--ink-900)}
+    .zw-ysub{font-family:var(--font-sans);font-size:12.5px;color:var(--text-secondary)}
     .zw-muts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
-    .zw-mut{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-serif);font-size:13px;color:var(--ink-900);background:var(--surface-tint);border:1px solid var(--border-soft);border-radius:var(--radius-pill);padding:3px 10px 3px 8px}
-    .zw-mut-b{width:18px;height:18px;border-radius:999px;color:var(--paper);font-family:var(--font-sans);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+    .zw-mut{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-serif);font-size:13.5px;color:var(--ink-900);background:var(--surface-tint);border:1px solid var(--border-soft);border-radius:var(--radius-pill);padding:3px 10px 3px 8px}
+    .zw-mut-b{width:18px;height:18px;border-radius:999px;color:var(--paper);font-family:var(--font-sans);font-size:11px;font-weight:600;display:inline-flex;align-items:center;justify-content:center}
     .zw-ycards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
     .zw-ycard{display:flex;align-items:baseline;justify-content:space-between;gap:8px;background:var(--surface-tint);border-radius:var(--radius-md);padding:9px 12px}
-    .zw-yk{font-family:var(--font-sans);font-size:12px;color:var(--text-muted)}
-    .zw-yv{font-family:var(--font-serif);font-size:14px;font-weight:500;color:var(--ink-900)}
-    @media(max-width:760px){.zw-card{padding:20px 18px}.zw-top{grid-template-columns:1fr 1fr}.zw-ycards{grid-template-columns:1fr}}
+    .zw-yk{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
+    .zw-yv{font-family:var(--font-serif);font-size:14.5px;font-weight:500;color:var(--ink-900)}
+    @media(max-width:760px){.zw-card{padding:20px 18px}.zw-top{grid-template-columns:1fr 1fr}.zw-ycards{grid-template-columns:1fr}.zw-cell{padding:12px}.zw-v{font-size:15px}.zw-year{padding:14px}.zw-ytitle{font-size:14.5px}}
     /* 姓名學 */
     .nm-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
     .nm-full{font-family:var(--font-serif);font-size:40px;font-weight:500;color:var(--ink-900);letter-spacing:.14em}
@@ -374,7 +378,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .tal-caption{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-family:var(--font-sans);font-size:12px;color:var(--text-muted)}
     .hex-name{font-family:var(--font-serif);font-size:30px;font-weight:500;color:var(--ink-900)}
     @media(max-width:760px){.hex-name{font-size:24px}.tal-hero .hexcol{text-align:center}}
-    .hex-read{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--text-secondary);margin:12px 0 0;max-width:28em}
+    .hex-read{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--text-secondary);margin:12px 0 0;max-width:none}
+    @media(max-width:760px){.hex-read{max-width:28em;margin-inline:auto}}
     .season-tip{display:inline-flex;align-items:flex-start;gap:10px;margin-top:18px;padding:13px 18px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-md);text-align:left}
     .season-tip .t{font-family:var(--font-serif);font-size:14px;line-height:1.7;color:var(--ink-700)}
     .season-tip b{font-weight:500;color:var(--accent-press)}
@@ -426,8 +431,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .recs{margin-top:60px}
     .recs .head{text-align:center;margin-bottom:34px}
     .recs .head h2{font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.18;letter-spacing:.02em;color:var(--ink-900);margin:0 0 8px}
-    .recs .head p{font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary)}
-    .recs .head p{line-height:1.8;max-width:30em;margin:0 auto}.recs .head p+p{margin-top:10px}
+    .recs .head p{font-family:var(--font-serif);font-weight:300;font-size:var(--t-body-lg);color:var(--text-secondary)}
+    .recs .head p{line-height:1.7;max-width:30em;margin:0 auto}.recs .head p+p{margin-top:10px}
     .rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
     @media(max-width:760px){.recs{margin-top:44px}.rec-grid{grid-template-columns:1fr;gap:14px}}
     .rec{display:flex;flex-direction:column;height:100%;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;text-decoration:none;transition:all var(--dur-fast) var(--ease-soft)}
@@ -494,9 +499,13 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     body:not(.show-concierge) .wc-root{display:none!important}
 
     /* ===== 去表單化（2026-09-10）：水鏡起卦／老師逐題問／回訪一行——DS ui_kits/free-flow 逐值 ===== */
-    .ff .ff-h{font-size:24px;line-height:1.35;font-weight:500;margin:8px 0 6px;text-wrap:balance}
-    .ff .lede{font-size:14px;line-height:1.8}
-    .ff-p{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0 0 12px}
+    .ff .ff-h{font-size:22px;line-height:1.35;font-weight:500;margin:8px 0 6px;text-wrap:auto}
+    .ff .step-intro{gap:0;margin-bottom:0}
+    .ff .step-intro .lede{margin:0 0 12px}
+    .ff .eyebrow{font-size:11.5px;gap:7px;font-weight:400}
+    .ff .eyebrow .dot{width:5px;height:5px;background:var(--accent-press)}
+    .ff .lede{font-size:14.5px;line-height:1.8}
+    .ff-p{font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.8;color:var(--text-secondary);margin:0 0 12px}
     .ff-clock{text-align:center;font-family:var(--font-sans);font-size:12px;color:var(--text-muted);letter-spacing:.08em;font-variant-numeric:tabular-nums;min-height:18px}
     .ff-err{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:90;max-width:88vw;background:var(--surface-card);border:1px solid var(--border-accent);color:var(--text-primary);border-radius:var(--radius-pill);padding:10px 18px;font-family:var(--font-serif);font-size:14px;box-shadow:var(--shadow-md);display:none}
     /* 水鏡：純 CSS 鏡身——黑漆鏡緣（--mirror-rim）＋細金邊（--mirror-gold）＋五行水色鏡面（--water-*）；token 兩主題不翻 */
@@ -516,8 +525,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     @keyframes ffSheen{to{transform:translate(6%,4%);opacity:.75}}
     @keyframes ffTwinkle{to{opacity:.08}}
     .ff-hexc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
-    .ff-yaos{display:flex;flex-direction:column;gap:9px;width:86px}
-    .ff-mirror[style*="216"] .ff-yaos{width:78px}
+    .ff-yaos{display:flex;flex-direction:column;gap:9px;width:94px}
+    .ff-mirror[style*="216"] .ff-yaos{width:86px}
     .ff-yao{display:flex;gap:12px;height:8px;opacity:0;transform:translateY(14px);filter:blur(6px);transition:opacity .9s var(--ease-soft),transform .9s var(--ease-soft),filter .9s var(--ease-soft)}
     .ff-yao.yang{gap:0}
     .ff-yao.on{opacity:1;transform:none;filter:blur(0)}
@@ -536,9 +545,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-prog i{flex:1;height:3px;border-radius:999px;background:var(--border-soft)}
     .ff-prog i.on{background:var(--accent)}
     .ff-chat{display:grid;gap:12px}
-    .ff-who{display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;color:var(--text-muted)}
+    .ff-who{display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
     .ff-av{flex:none;width:26px;height:26px;border-radius:var(--radius-md);background:var(--paper,var(--surface-card));border:1px solid var(--rose-100);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:12px;color:var(--accent-press)}
-    .ff-bub{max-width:88%;padding:11px 14px;border-radius:18px;font-family:var(--font-serif);font-size:14px;line-height:1.7;background:var(--surface-card);border:1px solid var(--border-soft);border-top-left-radius:6px;color:var(--text-primary);font-weight:300;animation:ffIn .38s var(--ease-soft)}
+    .ff-bub{max-width:88%;padding:11px 14px;border-radius:18px;font-family:var(--font-serif);font-size:14.5px;line-height:1.7;background:var(--surface-card);border:1px solid var(--border-soft);border-top-left-radius:6px;color:var(--text-primary);font-weight:300;animation:ffIn .38s var(--ease-soft)}
     .ff-bub.me{background:var(--accent);color:var(--text-on-accent);justify-self:end;width:fit-content;white-space:nowrap;border-top-right-radius:6px;border-top-left-radius:18px;border-color:transparent;font-weight:500}
     @keyframes ffIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
     .ff-ctl{margin:16px 0 12px} /* 2026-09-26 Jeffery：問生日的圖形上下太擠，各留白 */
@@ -546,10 +555,10 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-petals{position:relative;width:200px;height:200px;margin:10px auto}
     .ff-petals button{position:absolute;width:40px;height:40px;border-radius:999px;transform:translate(-50%,-50%);border:1px solid var(--border-strong);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:13px;cursor:pointer}
     .ff-petals button.on{background:var(--accent);color:var(--text-on-accent);border-color:transparent}
-    .ff-petals .c{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-serif);font-size:16px;color:var(--text-primary);text-align:center;line-height:1.3}
-    .ff-petals .c small{display:block;font-size:12px;color:var(--text-muted);letter-spacing:.08em;font-family:var(--font-sans)}
+    .ff-petals .c{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-serif);font-size:15px;color:var(--text-primary);text-align:center;line-height:1.3}
+    .ff-petals .c small{display:block;font-size:11px;color:var(--text-muted);letter-spacing:.08em;font-family:var(--font-sans)}
     .ff-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-    .ff-days button{height:34px;border-radius:var(--radius-sm);border:1px solid var(--border-soft);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:13px;cursor:pointer;font-variant-numeric:tabular-nums}
+    .ff-days button{height:34px;border-radius:var(--radius-sm);border:1px solid var(--border-soft);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:13.5px;cursor:pointer;font-variant-numeric:tabular-nums}
     .ff-days button.on{background:var(--accent);color:var(--text-on-accent);border-color:transparent}
     .ff-arc svg{width:100%;height:192px;overflow:visible} /* 2026-09-26：弧頂圓點 y=-6、光暈 r18 原本凸出畫布頂到上面的泡泡；viewBox 上留 28、下留 14 */
     .ff-arc .horizon{stroke:var(--border-strong);stroke-dasharray:3 4}
@@ -560,7 +569,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-arc .dot.on circle:not(.halo){fill:var(--gold-400);stroke:var(--gold-500)}
     .ff-arc .dot text{font-family:var(--font-serif);font-size:9.5px;fill:var(--text-muted);text-anchor:middle;pointer-events:none}
     .ff-arc .dot.on text{fill:var(--ink-900);font-weight:600}
-    .ff-shilabel{font-family:var(--font-serif);font-size:14px;text-align:center;color:var(--text-primary);margin-top:8px}
+    .ff-shilabel{font-family:var(--font-serif);font-size:15px;text-align:center;color:var(--text-primary);margin-top:2px}
     .ff-shilabel small{color:var(--text-muted);font-size:12px;margin-left:6px}
     .ff-seals{display:flex;gap:10px;justify-content:center}
     .ff-seals button{width:64px;height:64px;border-radius:14px;border:1.5px solid var(--border-strong);background:var(--surface-card);color:var(--text-secondary);font-family:var(--font-serif);font-size:20px;cursor:pointer;transition:all .15s}
@@ -602,14 +611,15 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-inp{width:100%;box-sizing:border-box;padding:12px 16px;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);outline:none;transition:border-color .15s,box-shadow .15s}
     .ff-inp:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring,var(--accent-quiet))}
     .ff-inp.bad{border-color:var(--critical)}
-    .ff-hint{margin-top:7px;font-family:var(--font-sans);font-size:12px;color:var(--critical);min-height:1em}
+    .ff-hint{margin-top:7px;font-family:var(--font-sans);font-size:var(--t-caption);color:var(--critical);min-height:1em}
     .ff-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-pill);padding:8px 8px 8px 16px;font-family:var(--font-serif);font-size:14px;color:var(--text-primary)}
-    .ff-chip a{flex:none;font-family:var(--font-sans);font-size:12px;color:var(--accent-press);border:1px solid var(--border-accent);border-radius:999px;padding:3px 10px;text-decoration:none}
+    .ff-chip a{flex:none;font-family:var(--font-sans);font-size:12.5px;color:var(--accent-press);border:1px solid var(--border-accent);border-radius:999px;padding:3px 10px;text-decoration:none}
     /* 結果頁：主句＋傳給那個該看到的人 */
     .ff-main{font-family:var(--font-serif);font-weight:500;font-size:24px;line-height:1.35;color:var(--text-primary);margin:12px 0 6px;text-wrap:balance}
     .ff-share{margin-top:14px}
+    .ff-share.zf-card{padding:14px 16px}
     .ff-share .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:10px}
-    .ff-share .note{font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:8px;text-align:center}
+    .ff-share .note{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);margin-top:8px;text-align:center}
     @media (prefers-reduced-motion:reduce){.ff-sheen,.ff-rips span,.ff-bub{animation:none!important}.ff-rips span{opacity:0}}
     /* ===== 2026-09-26 DS 逐值對齊（真值 step4-result.jsx；對賬表見本日收工檔）。只改數值與手機斷點，不動結構；要調版面請改上面原規則或這裡 ===== */
     .res-note{font-size:14.5px}
@@ -695,6 +705,24 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
       .nm-sum{font-size:15px}
       .nm-pe{padding:16px}
       .nm-pe-b{font-size:14.5px}
+    }
+    /* ===== 2026-09-26 晚 DS 逐值對齊 v2（全站體檢 g3；真值 step4-result／flow-ui／step1-topic／free-flow page.jsx）===== */
+    .paid-card .body .fi-body p{font-size:17px}
+    .res-block > .zf-card.sunken:not(.tal-hero-card){padding:26px 28px}
+    .paywall .veil .lk i{font-size:22px}
+    .fog .lk i{font-size:15px}
+    .paid-card .body .ph-check-circle{font-size:20px;color:var(--accent-press)}
+    .tal-caption i{font-size:13px;color:var(--rose-400)}
+    .res-end{margin-top:54px}
+    .cool-p{font-size:17.5px}
+    @media(max-width:760px){
+      .paid-card .body .fi-body p{font-size:15.5px}
+      .res-block > .zf-card.sunken:not(.tal-hero-card){padding:20px 18px}
+      .banner{margin:22px 0}
+      .banner .cap{padding:26px 18px 16px}
+      .banner .cap span{font-size:16px}
+      .res-end{margin-top:40px}
+      .cool-p{font-size:16px}
     }
   </style>
 </head>
@@ -961,15 +989,15 @@ function viewTopic(){
   if(!dir){
     h+='<div class="dir-grid">'+TOPICS.map(function(t){
       return '<button class="dir-card" onclick="pickDir(\''+t.key+'\')"><span class="dir-mark '+t.tone+'">'+t.mark+'</span>'+
-        '<span><span class="dir-title">'+esc(t.title)+'</span><br><span class="dir-sub">'+esc(t.sub)+'</span></span></button>';
+        '<span style="display:flex;flex-direction:column;gap:5px"><span class="dir-title">'+esc(t.title)+'</span><span class="dir-sub">'+esc(t.sub)+'</span></span></button>';
     }).join("")+'</div>';
   } else if(!sub){
     h+='<div class="fade"><p class="section-q">關於「'+esc(dir.title)+'」，比較接近哪一種？</p><div style="display:flex;flex-wrap:wrap;gap:10px">'+
       dir.subs.map(function(s){return '<button class="chip" onclick="pickSub(\''+s.key+'\')">'+esc(s.name)+'</button>'}).join("")+'</div></div>';
   } else {
-    h+='<div class="fade"><p class="section-q">哪個狀況最接近你現在想問的問題？</p><div class="q-list">'+
+    h+='<div class="fade"><p class="section-q c">哪個狀況最接近你現在想問的問題？</p><div class="q-list">'+
       sub.qs.map(function(q){var on=STATE.q===q.q;
-        return '<button class="q-item'+(on?' on':'')+'" style="align-items:flex-start" onclick="pickQ(this,\''+esc(q.q).replace(/'/g,"\\'")+'\')"><span class="q-radio" style="margin-top:5px"></span><span><span style="display:block">'+esc(q.q)+'</span><span style="display:block;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);margin-top:3px">'+esc(q.desc||'')+'</span></span></button>';
+        return '<button class="q-item'+(on?' on':'')+'" style="align-items:flex-start" onclick="pickQ(this,\''+esc(q.q).replace(/'/g,"\\'")+'\')"><span class="q-radio" style="margin-top:3px"></span><span><span style="display:block">'+esc(q.q)+'</span><span class="q-desc">'+esc(q.desc||'')+'</span></span></button>';
       }).join("")+'</div>';
     if(STATE.q){
       h+='<div class="fade"><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">'+
@@ -978,7 +1006,7 @@ function viewTopic(){
         '<textarea class="f-textarea" maxlength="300" rows="'+Math.max(4,Math.min(10,Math.ceil(STATE.text.length/22)+1))+'" oninput="STATE.text=this.value;this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'" style="font-size:18px">'+esc(STATE.text)+'</textarea>'+
         '<p class="hint" style="margin-top:8px">'+ic("sparkle")+'占卜前，靜心默想一位神尊或天使做主。</p>'+
         '<p class="hint" style="margin-top:4px">'+ic("heart")+'一次問一件事，解讀會更清楚也更貼近你。</p>'+
-        '<div style="margin-top:28px"><button class="zf-btn primary lg" onclick="go(\'cast\')">就問這個 '+ic("arrow-right")+'</button></div></div>';
+        '<div style="margin-top:28px"><button class="zf-btn primary lg go-btn" onclick="go(\'cast\')">就問這個 '+ic("arrow-right")+'</button></div></div>';
     }
     h+='</div>';
   }
@@ -1286,7 +1314,7 @@ function tarotBlockFull(R){
   var F=STATE.full||{};var h='';
   var bm=F.ben_ming_tarots||[];
   if(bm.length){
-    h+='<div class="zf-card" style="margin-bottom:20px"><div style="font-family:var(--font-sans);font-size:12px;letter-spacing:.12em;color:var(--text-muted);margin-bottom:12px">本命塔羅牌組</div><div class="tarot-grid">'+
+    h+='<div class="zf-card" style="margin-bottom:20px"><div class="pf-lbl" style="margin-bottom:10px">本命塔羅牌組</div><div class="tarot-grid">'+
       bm.map(function(t){
         var face=t.image_url?'<img src="'+esc(t.image_url)+'" alt="'+esc(t.card_name||'')+'" style="width:100%;height:100%;object-fit:contain">':'<span class="nm">'+esc(t.card_name||'')+'</span>';
         return '<div><div class="tcard"><span class="tpos-tag zf-tag rose outline">'+esc(t.label||'')+'</span>'+face+'</div><div class="tline">'+esc(t.card_name||'')+'</div></div>';
@@ -1294,7 +1322,7 @@ function tarotBlockFull(R){
   }
   if(R.tarot&&R.tarot.length){
     var POS=["過去","現在","未來","建議","結果"];
-    h+='<div class="zf-card"><div style="font-family:var(--font-sans);font-size:12px;letter-spacing:.12em;color:var(--text-muted);margin-bottom:12px">這次的問題 · 五張牌陣</div><div class="tarot-grid">'+R.tarot.map(function(c,i){
+    h+='<div class="zf-card"><div class="pf-lbl" style="margin-bottom:10px">這次的問題 · 五張牌陣</div><div class="tarot-grid">'+R.tarot.map(function(c,i){
       var pol=c.is_reversed?"逆位":"正位";var img=c.image_url||c.image||"";
       var face=img?'<img src="'+esc(img)+'" alt="'+esc(c.card_name)+'" style="width:100%;height:100%;object-fit:contain">':'<span class="nm">'+esc(c.card_name)+'</span>';
       return '<div><div class="tcard"><span class="tpos-tag zf-tag rose outline">'+(POS[i]||("牌位"+(i+1)))+'</span>'+face+'</div>'+
@@ -1309,14 +1337,14 @@ function qianBlockFull(R){
   var qk='<div class="qk-grid">';
   if(oc){
     var fullLines=(R.oracleRaw||'').split('\n').slice(1).filter(function(l){return l.indexOf('詩：')!==0;}).join('\n');
-    qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">'+esc(oc.type)+' · 完整解讀</span>'+(oc.level?'<span class="zf-tag rose outline">'+esc(oc.level)+'</span>':'')+'</div>'+
+    qk+='<div class="zf-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">'+esc(oc.type)+' · 完整解讀</span>'+(oc.level?'<span class="zf-tag rose outline" style="font-size:12px">'+esc(oc.level)+'</span>':'')+'</div>'+
       (oc.no?'<div class="qno">'+esc(oc.no)+'</div>':'')+
       (oc.poem?'<div class="qpoem">'+oc.poem.split(/[，。、；;\s]+/).filter(Boolean).map(function(l){return '<span>'+esc(l)+'</span>'}).join("")+'</div>':'')+
       (fullLines?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+md(fullLines)+'</p>':'')+'</div>';
   }
   if(km&&km.curHex){
-    qk+='<div class="zf-card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數 · 完整解讀</span>'+(km.fortuneLevel?'<span class="zf-tag clay outline">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
-      '<div style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500);letter-spacing:.04em;margin-bottom:10px">'+esc(km.curHex)+(km.chgHex?' → '+esc(km.chgHex):'')+(km.trigger?' · 變爻 '+esc(km.trigger):'')+'</div>'+
+    qk+='<div class="zf-card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900)">孔明大易神數 · 完整解讀</span>'+(km.fortuneLevel?'<span class="zf-tag rose outline" style="font-size:12px">'+esc(km.fortuneLevel)+'</span>':'')+'</div>'+
+      '<div class="qno" style="font-family:var(--font-sans);color:var(--rose-500);letter-spacing:.06em;margin-bottom:10px">'+esc(km.curHex)+(km.chgHex?' → '+esc(km.chgHex):'')+(km.trigger?' · 變爻 '+esc(km.trigger):'')+'</div>'+
       (km.poem?'<p class="kpoem" style="font-weight:500">'+esc(km.poem)+'</p>':'')+
       (km.interp?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.7;color:var(--text-secondary);margin:10px 0 0">'+esc(km.interp)+'</p>':'')+'</div>';
   }
@@ -1334,11 +1362,11 @@ function viewReportPaid(R,q){
   h+=qianBlockFull(R);
   if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("風易揚老師的靈符解方","老師親手畫、依你這一卦配的靈符；每逢節氣解鎖一張，依序設成手機桌布。",hexCardHero(true)+hexTalismans(true),true);
   h+=recsSection();
-  h+='<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:54px">'+
+  h+='<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:14px">'+
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
     '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
     (F.purchased_at?'<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin:0">購買時間：'+esc(fmtPaidAt(F.purchased_at))+'</p>':'')+
-    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:16px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
+    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
 function viewResult(){
@@ -1375,10 +1403,10 @@ function viewResult(){
   if(LOVE)h+='<section class="recs" style="margin-top:44px"><div class="head"><h2>還有另一個人，或另一件放不下的事嗎？</h2>'+
     '<p>剛才那一卦之後，如果你心裡浮現的是另一個人、另一段關係，或另一個真正想知道的問題。</p>'+
     '<p>靜一下。<br>再為那件事，重新起一卦。</p></div></section>';
-  h+='<div style="display:flex;flex-direction:column;align-items:center;gap:22px;margin-top:54px">'+
+  h+='<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">'+
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
     '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
-    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:16px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">'+(LOVE?'重新起卦':'想再問一件別的事')+'</button></div>';
+    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">'+(LOVE?'重新起卦':'想再問一件別的事')+'</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
 function teacherFirstBlock(){
@@ -1457,13 +1485,13 @@ function profileCard(paid){
          '<div class="mmt-name">'+esc(t.name)+'</div><div class="mmt-rule"></div>'+(t.line?'<div class="mmt-line">'+esc(t.line)+'</div>':'')+'</div>'}).join("")+'</div></div>';
   var radar=radarSVG(IS_MOBILE()?168:188),season=seasonSVG(paid),lower='';
   if(radar){var mx=(R.wuxing||[]).slice().sort(function(a,b){return b.v-a.v});var topEl=mx[0]?mx[0].k:'',lowEl=mx.length?mx[mx.length-1].k:'';
-    lower+='<div class="mini-panel" style="align-items:center"><div style="align-self:flex-start;font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px">五行分布</div>'+radar+(topEl?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-secondary);text-align:center;margin-top:4px">'+topEl+'氣最旺、'+lowEl+'氣最弱</div>':'')+'</div>';}
+    lower+='<div class="mini-panel" style="align-items:center"><div style="align-self:flex-start;font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px">五行分布</div>'+radar+(topEl?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);text-align:center;margin-top:4px">'+topEl+'氣最旺、'+lowEl+'氣最弱</div>':'')+'</div>';}
   if(season){var fl=R.fortuneLine||[];var ax=fl.length>=3?[fl[0],fl[Math.floor((fl.length-1)/2)],fl[fl.length-1]].map(function(p){return esc(p.name)}):null;
     lower+='<div class="mini-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted)">節氣運勢 · 未來六節氣</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 後段付費</span>')+'</div>'+season+(ax?'<div style="display:flex;justify-content:space-between;font-family:var(--font-sans);font-size:11px;color:var(--text-muted);margin-top:6px"><span>'+ax[0]+'</span><span>'+ax[1]+'</span><span>'+ax[2]+'</span></div>':'')+'</div>';}
   if(lower)h+='<div class="profile-lower" style="margin-top:14px">'+lower+'</div>';
   /* 付費版：分靈體側寫併入命理檔案（FI-SYNC 對齊 delivery secProfile 尾段） */
-  if(paid&&R.profile)h+='<div class="zf-card" style="margin-top:14px"><div style="font-family:var(--font-sans);font-size:12px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:10px">分靈體側寫</div>'+
-    '<p style="font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--ink-700);margin:0">'+md(R.profile)+'</p></div>';
+  if(paid&&R.profile)h+='<div class="zf-card" style="margin-top:14px"><div class="pf-lbl" style="margin-bottom:10px">分靈體側寫</div>'+
+    '<p class="sp-p">'+md(R.profile)+'</p></div>';
   return h+'</div>';
 }
 /* ===== 紫微命盤摘要（逐值對齊 DS ZiweiSummaryBlock；示意待後端 /ziwei-chart）===== */
@@ -1560,7 +1588,7 @@ function spiritCard(paid){
 
   var h='<div class="zf-card tint"><div class="sp-row">'+
     '<div class="sp-av-col"><span class="sp-av">'+esc((sName||'').slice(0,1))+'</span><span class="sp-name">'+esc(sName)+'</span></div>'+
-    '<div class="sp-body"><div class="sp-traits">'+sTraits.map(function(t){return '<span class="zf-tag rose" style="font-size:12px">'+esc(t)+'</span>'}).join("")+'</div>'+
+    '<div class="sp-body"><div class="sp-traits">'+sTraits.map(function(t){return '<span class="zf-tag rose" style="font-size:12.5px">'+esc(t)+'</span>'}).join("")+'</div>'+
     '<p class="sp-p">'+md(body)+'</p>'+
     '<div style="margin-top:18px"><a class="zf-btn primary sm" href="/spirit" style="text-decoration:none">和祂聊聊 '+ic("chat-circle","thin")+'</a></div>'+
     '</div></div></div>';
@@ -1593,7 +1621,7 @@ function hexCardHero(paid){
     '</div></div>';
   /* 病毒環路（9/9 拍板）：把這一卦傳給那個該看到的人——圖（長按存）／連結（零登入收卡頁，縮圖＝同一張卡） */
   if(HC&&!HC.expired&&STATE.shareUrl)h+='<div class="zf-card ff-share"><span class="eyebrow"><span class="dot"></span>把這一卦傳給那個該看到的人</span>'+
-    '<p class="ff-p" style="margin:8px 0 0;font-size:13px">同一張卡、同一個卦。對方不用登入就看得到。</p>'+
+    '<p class="ff-p" style="margin:8px 0 0;font-size:13.5px">同一張卡、同一個卦。對方不用登入就看得到。</p>'+
     '<div class="row"><a class="zf-btn secondary md" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("image","thin")+'存成圖片</a>'+
     '<button class="zf-btn primary md" onclick="shareCard(this)">'+ic("link-simple","thin")+'複製連結</button></div>'+
     '<div class="note">連結的縮圖＝這張卦符卡</div></div>';
@@ -1797,7 +1825,7 @@ function viewCooldown(){
   var c=STATE.cooldown||{};var when=c.available_at?fmtWhen(c.available_at):'';
   return '<div class="cool"><div class="glow"></div><div class="zf-card"><span class="moon">'+ic("moon-stars","thin")+'</span>'+
     '<h1>我知道你很在意這件事。</h1>'+
-    '<p style="font-family:var(--font-serif);font-weight:300;font-size:17.5px;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
+    '<p class="cool-p" style="font-family:var(--font-serif);font-weight:300;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
     (when?'<div class="when">'+ic("clock")+'<span>這一題，<b>'+esc(when)+'</b>可以再問</span></div>':'')+
     (c.last_log_id
       ?'<div class="cool-btns"><button class="zf-btn primary md" id="unlockBtn" onclick="STATE.logId=String(STATE.cooldown.last_log_id);createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button><button class="zf-btn secondary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+
@@ -2091,8 +2119,13 @@ function shareCard(btn){
 function loadNaming(){
   var u=STATE.userName;if(!u||!u.surname||!u.given||!STATE.result)return;
   var R=STATE.result;
+  /* 2026-09-26（Codex 複審抓到，我線上實測確認可利用）：原本只送 full_access:!!STATE.paid——
+     由瀏覽器自己宣告有沒有付錢，伺服器照信。任何人用一行 curl 帶 full_access:true 就能免費拿到
+     付費版的三才、格局與生肖分析（實測 4,814 位元組 vs 免費版 614）。改成把付款後才拿得到的
+     delivery_token 一起送，由 worker 自己查這筆是不是真的付過。 */
+  var _dt=((R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/)||[])[1]||"";
   fetch(API.naming,{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({surname:u.surname,given_name:u.given,zodiac:R.zodiac||"",full_access:!!STATE.paid})})
+    body:JSON.stringify({surname:u.surname,given_name:u.given,zodiac:R.zodiac||"",full_access:!!STATE.paid,delivery_token:_dt})})
    .then(function(r){return r.json();}).then(function(d){
      var n=normName(d);if(!n||!STATE.result)return;
      STATE.result.name=n;

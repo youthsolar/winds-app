@@ -176,7 +176,7 @@ const homeJsonLd = {
           <p class="sf-line">{FEATURED.line}</p>
           <div class="sf-foot">
             <span><span class="meta">{FEATURED.duration} · 一對一</span><span class="price">{FEATURED.price}</span></span>
-            <span class="go">看介紹 <i class="ph ph-arrow-right"></i></span>
+            <span class="zf-btn primary md">看介紹 <i class="ph ph-arrow-right" style="font-size:15px"></i></span>
           </div>
         </a>
         )}
@@ -457,14 +457,13 @@ const homeJsonLd = {
   .social-line b { font-weight: 600; color: var(--ink-900); }
   /* 手機：社群證明頭像 32 / 文字 12（對齊 mockup SocialProof mobile）*/
   @media (max-width: 760px) {
-    .social { gap: 10px; }
     .social .av { width: 32px; height: 32px; font-size: 13.4px; }
     .social-line { font-size: 12px; }
   }
 
   /* card draw */
   .draw-zone { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
-  @media (max-width: 760px) { .draw-zone { gap: 26px; } }
+  @media (max-width: 760px) { .draw-zone { gap: 26px; margin-top: 24px; } }
   .cards { display: flex; gap: 18px; align-items: center; }
   @media (max-width: 760px) { .cards { gap: 12px; } }
   .card-slot { transition: transform var(--dur-slow) var(--ease-soft), opacity var(--dur-base) var(--ease-soft); }
@@ -479,7 +478,7 @@ const homeJsonLd = {
   .card-slot.flipped .card-inner { transform: rotateY(180deg); }
   .card-back, .card-front { position: absolute; inset: 0; backface-visibility: hidden; border-radius: var(--radius-md); border: 1px solid var(--rose-200); }
   .card-back { background: linear-gradient(160deg, var(--rose-300), var(--clay-400)); box-shadow: var(--shadow-md); display: flex; align-items: center; justify-content: center; }
-  .back-frame { width: 78%; height: 82%; border-radius: var(--radius-sm); border: 1px solid rgba(255,253,248,0.5); display: flex; align-items: center; justify-content: center; color: rgba(255,253,248,0.92); font-family: var(--font-serif); font-size: 30px; }
+  .back-frame { width: 78%; height: 82%; border-radius: var(--radius-sm); border: 1px solid var(--disc-frost-hair); display: flex; align-items: center; justify-content: center; color: rgba(255,253,248,0.92); font-family: var(--font-serif); font-size: 30px; }
   .card-front { transform: rotateY(180deg); background: var(--paper); box-shadow: var(--shadow-lg); padding: 14px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
   .cf-name { font-family: var(--font-serif); font-size: 26px; font-weight: 500; color: var(--accent-press); margin: 0 0 6px; }
   .cf-rule { width: 22px; height: 1px; background: var(--rose-200); margin: 2px 0 8px; }
@@ -515,17 +514,20 @@ const homeJsonLd = {
   @media (max-width: 760px) { .block { padding-top: 56px; } }
   .sh { margin-bottom: 30px; }
   @media (max-width: 760px) { .sh { margin-bottom: 22px; } }
+  #deepen { padding-bottom: 16px; }
+  #deepen .sh { margin-bottom: 44px; }
+  @media (max-width: 760px) { #deepen .sh { margin-bottom: 32px; } }
   /* sh-title/sh-lede → DS .zf-sh-title / .zf-sh-lede（.sh 僅留 margin-bottom 版面）*/
 
   /* glyph disc */
-  .disc { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: var(--radius-md); background: var(--paper); border: 1px solid var(--rose-100); font-family: var(--font-serif); font-size: 24px; line-height: 1; color: var(--accent-press); }
-  .disc.lg { width: 72px; height: 72px; border-radius: var(--radius-lg); font-size: 35px; }
-  .disc.sm { width: 46px; height: 46px; font-size: 22px; }
-  @media (max-width: 760px) { .disc.lg { width: 60px; height: 60px; font-size: 29px; } }
+  .disc { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: var(--radius-md); background: var(--paper); border: 1px solid var(--rose-200); font-family: var(--font-serif); font-size: 26px; line-height: 1; color: var(--accent-press); }
+  .disc.lg { width: 72px; height: 72px; border-radius: var(--radius-lg); font-size: 37.44px; }
+  .disc.sm { width: 46px; height: 46px; font-size: 22px; border-color: var(--rose-100); }
+  @media (max-width: 760px) { .disc.lg { width: 60px; height: 60px; font-size: 31.2px; } }
 
   /* badges */
-  .badge { display: inline-flex; align-items: center; font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--rose-600); background: var(--rose-50); border-radius: var(--radius-pill); padding: 4px 11px; white-space: nowrap; }
-  .badge.on-img { background: var(--surface-card); border: 1px solid var(--rose-300); }
+  .badge { display: inline-flex; align-items: center; font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--rose-600); background: var(--rose-50); border-radius: var(--radius-pill); padding: 3px 10px; letter-spacing: .04em; line-height: 1.5; white-space: nowrap; }
+  .badge.on-img, .shop-head .badge { border: 1px solid var(--rose-300); }
 
   /* 預約項目 */
   .svc-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; align-items: stretch; }
@@ -541,16 +543,17 @@ const homeJsonLd = {
   .sf-foot { margin-top: auto; padding-top: 18px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--rose-100); flex-wrap: wrap; gap: 12px; }
   .meta { font-family: var(--font-sans); font-size: 12px; color: var(--text-muted); display: block; }
   .price { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--ink-900); display: block; }
-  .go { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-serif); font-size: 14.5px; font-weight: 500; color: var(--accent-press); }
   .svc-small { display: flex; flex-direction: column; gap: 18px; }
   @media (max-width: 760px) { .svc-small { gap: 14px; } }
   .svc-card { display: flex; align-items: center; gap: 14px; height: 100%; padding: 20px 22px; text-decoration: none; color: inherit; }
+  @media (max-width: 760px) { .svc-card { padding: 18px; } }
   .sc-body { flex: 1; min-width: 0; }
   .sc-body h4 { margin: 0; font-family: var(--font-serif); font-size: 17px; font-weight: 500; color: var(--ink-900); }
   .sc-body p { margin: 4px 0 0; font-family: var(--font-serif); font-weight: 300; font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); }
   .sc-foot { margin-top: 8px; display: flex; align-items: center; gap: 10px; }
   .sc-foot .price { font-size: 16px; } .sc-foot .meta { display: inline; }
   .svc-all { text-align: center; margin-top: 28px; }
+  @media (max-width: 760px) { .svc-all { margin-top: 22px; } }
   .svc-all a { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 14px; color: var(--accent-press); border-bottom: 1px solid var(--rose-200); padding-bottom: 2px; text-decoration: none; }
 
   /* 預約對談 + 法器 */

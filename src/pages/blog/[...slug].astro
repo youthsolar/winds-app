@@ -112,7 +112,7 @@ const jsonLd = faqs.length > 0
       {post.data.tags.length > 0 && (
         <div class="tags">
           {post.data.tags.map((tag: string) => (
-            <a class="tag" href={`/blog/category/${post.data.category || '其他'}/`}>#{tag}</a>
+            <a class="zf-tag rose tag" href={`/blog/category/${post.data.category || '其他'}/`}>#{tag}</a>
           ))}
         </div>
       )}
@@ -150,8 +150,8 @@ const jsonLd = faqs.length > 0
         <p class="rc-line cjk-title">想更深入了解你的狀況？先抽一張牌</p>
         <p class="rc-sub">不用先決定什麼。抽一張牌，看看現在的自己；或由老師一對一，親自為你解惑。</p>
         <div class="rc-btns">
-          <a class="rc-btn primary" href="/">立即占卜</a>
-          <a class="rc-btn secondary" href="/services/"><i class="ph ph-phone"></i>預約諮詢</a>
+          <a class="zf-btn primary lg rc-btn" href="/">立即占卜</a>
+          <a class="zf-btn secondary lg rc-btn" href="/services/"><i class="ph-thin ph-phone" style="font-size:16px"></i>預約諮詢</a>
         </div>
       </section>
     </div>
@@ -192,7 +192,7 @@ const jsonLd = faqs.length > 0
     <div class="bottom-cta">
       <section class="reading-cta">
         <p class="rc-line cjk-title">想知道你現在的量能狀態？</p>
-        <div class="rc-btns"><a class="rc-btn primary" href="/">立即占卜</a></div>
+        <div class="rc-btns"><a class="zf-btn primary lg rc-btn" href="/">立即占卜</a></div>
       </section>
     </div>
   </main>
@@ -221,7 +221,7 @@ const jsonLd = faqs.length > 0
   .byline .dot { color: var(--rose-200); }
   .byline time { font-family: var(--font-sans); font-size: 13.5px; color: var(--text-muted); white-space: nowrap; }
   .tags { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-  .tag { font-family: var(--font-sans); font-size: 12.5px; color: var(--rose-600); background: var(--rose-50); border-radius: var(--radius-pill); padding: 4px 12px; text-decoration: none; white-space: nowrap; }
+  .tag { font-size: 12.5px; text-decoration: none; }
   .tag:hover { background: var(--rose-100); }
 
   /* TOC */
@@ -249,6 +249,7 @@ const jsonLd = faqs.length > 0
   .article-body :global(ul), .article-body :global(ol) { margin: 0 0 1.5em; padding-left: 1.4em; display: flex; flex-direction: column; gap: 8px; }
   .article-body :global(li) { font-family: var(--font-serif); font-weight: 300; font-size: 18px; line-height: 1.9; color: var(--ink-700); }
   .article-body :global(li::marker) { color: var(--rose-400); }
+  @media (max-width: 760px) { .article-body :global(blockquote) { padding: 16px 18px; } .article-body :global(blockquote p), .article-body :global(li) { font-size: 16.5px; } }
   .article-body :global(img) { max-width: 100%; height: auto; border-radius: var(--radius-lg); margin: 1.2em 0; }
   .article-body :global(hr) { border: none; border-top: 1px solid var(--border-soft); margin: 2em 0; }
 
@@ -260,20 +261,16 @@ const jsonLd = faqs.length > 0
   @media (max-width: 760px) { .reading-cta { padding: 30px 22px; } }
   .rc-line { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--ink-900); margin: 0; }
   @media (max-width: 760px) { .rc-line { font-size: 19px; } }
-  .rc-sub { font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin: 10px auto 0; max-width: 32em; text-wrap: pretty; }
+  .rc-sub { font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin: 10px auto 0; max-width: 32rem; text-wrap: pretty; }
   .rc-btns { margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .rc-btn { display: inline-flex; align-items: center; gap: 8px; padding: 15px 30px; font-family: var(--font-serif); font-size: 17px; font-weight: 500; letter-spacing: 0.04em; border-radius: var(--radius-pill); text-decoration: none; transition: background var(--dur-fast) var(--ease-soft); }
-  .rc-btn.primary { color: var(--text-on-accent); background: var(--accent); box-shadow: var(--shadow-sm); }
-  .rc-btn.primary:hover { background: var(--accent-hover); text-decoration: none; }
-  .rc-btn.secondary { color: var(--ink-900); background: var(--surface-card); border: 1px solid var(--border-strong); }
-  .rc-btn.secondary:hover { background: var(--rice-100); text-decoration: none; }
+  .rc-btn { font-size: 17px; }
 
   /* panels（延伸閱讀 / 為你推薦）*/
   .panel { border-radius: var(--radius-lg); padding: 28px 30px; }
   @media (max-width: 760px) { .panel { padding: 22px 20px; } }
   .panel.paper { margin-top: 48px; background: var(--surface-card); border: 1px solid var(--border-soft); box-shadow: var(--shadow-sm); }
   @media (max-width: 760px) { .panel.paper { margin-top: 36px; } }
-  .panel.tint { margin-top: 24px; background: var(--surface-tint); border: 1px solid var(--rose-100); }
+  .panel.tint { margin-top: 24px; background: var(--surface-tint); border: 1px solid var(--rose-100); box-shadow: var(--shadow-sm); }
   @media (max-width: 760px) { .panel.tint { margin-top: 20px; } }
   .panel h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--accent-press); margin: 0 0 8px; }
   @media (max-width: 760px) { .panel h2 { font-size: 20px; } }

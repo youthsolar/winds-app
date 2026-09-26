@@ -25,7 +25,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .lg-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:40px 40px 34px;text-align:center;}
     .lg-h1{margin:0;font-family:var(--font-serif);font-size:29px;font-weight:500;color:var(--ink-900);letter-spacing:0.02em;}
     .lg-sub{margin:14px auto 0;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.7;color:var(--text-secondary);}
-    .lg-gmount{margin-top:30px;display:flex;justify-content:center;min-height:44px;}
+    .lg-gmount{margin-top:32px;display:flex;justify-content:center;min-height:44px;}
     .lg-hint{display:inline-flex;align-items:center;gap:8px;margin:16px 0 0;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
     .lg-gbtn{width:100%;margin-top:32px;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap;padding:14px 20px;min-height:54px;cursor:pointer;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
     .lg-gbtn:hover{background:var(--rice-100);}
@@ -33,11 +33,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .lg-gbtn-default,.lg-gbtn-loading{display:inline-flex;align-items:center;gap:12px;}
     .lg-spinner{display:inline-block;flex:none;width:18px;height:18px;border-radius:999px;border:2px solid var(--rose-200);border-top-color:var(--rose-500);animation:lgSpin 1.1s linear infinite;box-sizing:border-box;}
     @keyframes lgSpin{to{transform:rotate(360deg)}}
-    /* GSI 渲染不出來時的外開引導（Threads/IG/FB 內建瀏覽器常見） */
-    .lg-fb{text-align:center;}
-    .lg-fb-t{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);}
-    .lg-fb-d{margin:8px auto 14px;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.75;color:var(--text-secondary);}
-    .lg-fb-btn{display:inline-block;margin:0 4px;padding:11px 20px;cursor:pointer;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);text-decoration:none;}
+    /* GSI 渲染不出來時的外開引導（Threads/IG/FB 內建瀏覽器常見）；innerHTML 注入 → 要 :global */
+    :global(.lg-fb){text-align:center;}
+    :global(.lg-fb-t){font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);}
+    :global(.lg-fb-d){margin:8px auto 14px;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.75;color:var(--text-secondary);}
+    /* 按鈕本體走 ds.css zf-btn secondary md，這裡只留左右間距 */
+    :global(.lg-fb-btn){margin:0 4px;}
     .lg-terms{text-align:center;margin:20px auto 0;font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);}
     .lg-terms a{color:var(--rose-500);text-decoration:none;}
     .lg-terms a:hover{text-decoration:underline;}
@@ -46,6 +47,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .lg-card{padding:30px 24px 28px;}
       .lg-h1{font-size:25px;}
       .lg-gbtn{margin-top:26px;}
+      .lg-gmount{margin-top:26px;}
     }
   </style>
 
@@ -98,9 +100,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           '<div class="lg-fb">' +
             '<p class="lg-fb-t">這個瀏覽器不支援 Google 登入</p>' +
             '<p class="lg-fb-d">請點右上角「⋯」選「在瀏覽器開啟」，用 Safari 或 Chrome 進來就可以登入了。</p>' +
-            '<button type="button" class="lg-fb-btn" id="lgCopy">複製網址</button>' +
+            '<button type="button" class="zf-btn secondary md lg-fb-btn" id="lgCopy">複製網址</button>' +
             (/Android/i.test(navigator.userAgent)
-              ? '<a class="lg-fb-btn" href="intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end">用 Chrome 開啟</a>'
+              ? '<a class="zf-btn secondary md lg-fb-btn" href="intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end">用 Chrome 開啟</a>'
               : '') +
           '</div>';
         var b = document.getElementById('lgCopy');

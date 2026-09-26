@@ -20,14 +20,21 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', mo
 </article>
 
 <style>
-  .es-page { max-width: var(--container); margin: 0 auto; padding: 32px 20px 72px; }
-  .crumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-500); }
-  .crumbs a { color: var(--ink-500); text-decoration: none; }
-  .crumbs a:hover { color: var(--rose-600); }
-  .art-head { max-width: var(--measure-prose); margin: 28px auto 0; }
-  .art-head h1 { font-family: var(--font-serif); font-size: 32px; font-weight: 500; line-height: 1.4; color: var(--ink-900); margin: 0 0 12px; }
-  .byline { font-size: 14px; color: var(--ink-500); }
-  @media (max-width: 760px) { .art-head h1 { font-size: 25px; } }
+  /* 頁頭逐值對 DS blog-service-pages.jsx ArticlePage／blog-components.jsx Breadcrumb（2026-09-26） */
+  .es-page { max-width: var(--container-narrow); margin: 0 auto; padding: 44px 32px 72px; }
+  .crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+  .crumbs .ph { font-size: 11px; color: var(--rose-200); }
+  .crumbs a { color: var(--text-muted); text-decoration: none; }
+  .crumbs a:hover { color: var(--accent-press); }
+  .art-head { padding-bottom: 26px; border-bottom: 1px solid var(--border-soft); }
+  .art-head h1 { font-family: var(--font-serif); font-size: 37px; font-weight: 500; line-height: 1.32; letter-spacing: 0.01em; color: var(--ink-900); margin: 0; word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+  .byline { margin-top: 18px; font-family: var(--font-sans); font-size: 13.5px; color: var(--text-muted); white-space: nowrap; }
+  @media (max-width: 760px) {
+    .es-page { padding: 28px 20px 56px; }
+    .crumbs { margin-bottom: 18px; }
+    .art-head { padding-bottom: 20px; }
+    .art-head h1 { font-size: 27px; }
+  }
   .article-body { max-width: var(--measure-prose); margin: 40px auto 0; }
   @media (max-width: 760px) { .article-body { max-width: none; margin-top: 28px; } }
   .article-body :global(h2) { font-family: var(--font-serif); font-size: 24px; font-weight: 500; line-height: 1.5; letter-spacing: 0.01em; color: var(--ink-900); margin: 1.8em 0 0.7em; }
@@ -40,6 +47,7 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', mo
   .article-body :global(ul), .article-body :global(ol) { margin: 0 0 1.5em; padding-left: 1.4em; display: flex; flex-direction: column; gap: 8px; }
   .article-body :global(li) { font-family: var(--font-serif); font-weight: 300; font-size: 18px; line-height: 1.9; color: var(--ink-700); }
   .article-body :global(li::marker) { color: var(--rose-400); }
+  @media (max-width: 760px) { .article-body :global(li) { font-size: 16.5px; } }
   .article-body :global(img) { max-width: 100%; height: auto; border-radius: var(--radius-lg); margin: 1.2em 0; }
   .article-body :global(table) { width: 100%; border-collapse: collapse; margin: 0 0 1.5em; font-size: 16px; }
   .article-body :global(td), .article-body :global(th) { border: 1px solid var(--border-soft); padding: 8px 10px; vertical-align: top; }

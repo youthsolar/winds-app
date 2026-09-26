@@ -213,7 +213,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     .lp-empty { text-align: center; padding: 80px 20px; font-family: var(--font-serif); color: var(--text-muted); }
 
     .lp-hero { position: relative; overflow: hidden; padding: 48px 0 64px; }
-    .lp-hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(640px 460px at 12% 20%, var(--clay-100), transparent 62%), radial-gradient(520px 420px at 92% 80%, var(--tint-glow), transparent 58%); }
+    .lp-hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(640px 460px at 12% 20%, var(--tint-clay-hi), transparent 62%), radial-gradient(520px 420px at 92% 80%, var(--tint-glow), transparent 58%); }
     .lp-hero-grid { position: relative; display: grid; grid-template-columns: .9fr 1.1fr; gap: 48px; align-items: center; }
     .lp-hero-img { margin: 0; }
     .lp-hero-img img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); border: 1px solid var(--border-soft); background: var(--surface-card); }
@@ -221,7 +221,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     .lp-lede { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 20px; line-height: 1.7; color: var(--text-secondary); margin: 14px 0 0; }
     .lp-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
     .lp-price { display: flex; align-items: baseline; gap: 12px; margin-top: 24px; }
-    .lp-price b { font-family: var(--font-serif); font-size: 34px; font-weight: var(--w-semibold); color: var(--accent-press); }
+    .lp-price b { font-family: var(--font-serif); font-size: 34px; font-weight: var(--w-medium); color: var(--accent-press); }
     .lp-price span { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); }
     .lp-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
     .lp-meta { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin: 14px 0 0; display: flex; align-items: center; gap: 6px; }
@@ -239,8 +239,8 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     .lp-hint { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin: 14px 0 0; }
 
     .lp-steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .lp-steps li { display: flex; gap: 12px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px; }
-    .lp-step-n { flex: none; width: 32px; height: 32px; border-radius: 999px; background: var(--clay-100); color: var(--clay-500); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-weight: var(--w-medium); }
+    .lp-steps li { display: flex; gap: 12px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-sm); }
+    .lp-step-n { flex: none; width: 32px; height: 32px; border-radius: 999px; background: var(--tint-clay-hi); color: var(--clay-500); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-weight: var(--w-medium); }
     .lp-steps b { display: block; font-family: var(--font-serif); font-size: 16px; font-weight: var(--w-medium); color: var(--ink-900); margin-bottom: 5px; }
     .lp-steps p { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 14px; line-height: 1.7; color: var(--text-secondary); margin: 0; }
 
@@ -269,11 +269,6 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     .lp-total { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 0 14px; padding: 14px 16px; background: var(--surface-tint); border-radius: var(--radius-md); font-family: var(--font-serif); }
     .lp-total b { font-size: 24px; color: var(--accent-press); }
     .lp-paynote { font-family: var(--font-sans); font-size: 12px; line-height: 1.7; color: var(--text-muted); text-align: center; margin: 12px 0 0; }
-    .lp-paid { text-align: center; padding: 20px 0; font-family: var(--font-serif); color: var(--ink-900); }
-    .lp-paid i { font-size: 40px; color: var(--positive); }
-    .lp-paid h3 { font-size: 24px; font-weight: var(--w-medium); margin: 10px 0 8px; }
-    .lp-paid p { font-weight: var(--w-light); color: var(--text-secondary); line-height: 1.8; margin: 0; }
-    .lp-paid code { font-family: ui-monospace, monospace; font-size: 13px; color: var(--ink-700); }
 
     .lp-faq { padding-bottom: 72px; }
     .lp-faq details { border-bottom: 1px solid var(--border-soft); }
@@ -293,6 +288,14 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       .lp-wrap { padding: 0 18px; }
       .lp-block { padding-top: 48px; }
     }
+  </style>
+  <!-- .lp-paid 是 innerHTML 注入的節點，scoped style 套不上，所以放 is:global -->
+  <style is:global>
+    .lp-paid { text-align: center; padding: 20px 0; font-family: var(--font-serif); color: var(--ink-900); }
+    .lp-paid i { font-size: 40px; color: var(--positive); }
+    .lp-paid h3 { font-size: 24px; font-weight: var(--w-medium); margin: 10px 0 8px; }
+    .lp-paid p { font-weight: var(--w-light); color: var(--text-secondary); line-height: 1.8; margin: 0; }
+    .lp-paid code { font-family: ui-monospace, monospace; font-size: 13px; color: var(--ink-700); }
   </style>
 
   <script is:inline>
