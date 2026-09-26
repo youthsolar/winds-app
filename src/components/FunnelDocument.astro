@@ -645,7 +645,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     @media (max-width:899px){
       .lc{width:auto;margin-left:0;padding:40px 2px}
       .lc-eyebrow{margin-bottom:24px}
-      .lc-grid{display:flex;flex-direction:column;gap:40px}
+      .lc-grid{display:flex;flex-direction:column;gap:40px;align-items:stretch} /* 桌機的 align-items:start 在單欄會讓短選項欄縮窄 */
       .lc-side{position:static}
       .lc-opts2{grid-template-columns:1fr}
       .lc-num{margin-top:1px}
@@ -819,7 +819,7 @@ var HOME=(document.body.getAttribute("data-mode")==="home");
 var HOME_SITU=[{k:"unsettled",l:"住得不太順"},{k:"moved",l:"新家剛入住"},{k:"keep",l:"想替家裡常備一張"},{k:"choosing",l:"房子還在挑"}];
 function homeSitu(k){return HOME_SITU.find(function(x){return x.k===k})||null;}
 /* 落地頁選狀況：只切換按鈕，不重畫整頁（重畫會跳回頁首，9/25 Jeffery 真機抓到） */
-function hgPick(k,btn){STATE.data.home=k;var ch=document.getElementById("hgChips");if(ch)Array.prototype.forEach.call(ch.querySelectorAll(".chip"),function(b){b.classList.toggle("on",b===btn);});var e=document.getElementById("ffErr");if(e)e.style.display="none";}
+function hgPick(k,btn){STATE.data.home=k;var ch=document.getElementById("hgChips");if(ch)Array.prototype.forEach.call(ch.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});var e=document.getElementById("ffErr");if(e)e.style.display="none";lcSync();}
 /* 2026-09-26（Codex 唯讀複審抓到）：STATE.data.home 只活在記憶體，後端也沒把問題字串帶回前端，
    所以付款跳回或用 ?log_id= 回訪時會是空字串，結果頁標題就從「家裡的符・新家剛入住」掉成只剩
    「家裡的符」。做法與 love 模式相同：存進瀏覽器、按這一卦的編號取回，取回時驗過才用。不動後端。 */
@@ -886,9 +886,9 @@ function lcStep(n,id,title,sub,done){
     '<h3>'+esc(title)+'</h3>'+(sub?'<p>'+esc(sub)+'</p>':'')+'</div></div>';
 }
 function lcSync(){
-  var a=document.getElementById("lcN1");if(a)a.classList.toggle("done",!!STATE.data.loveWho);
+  var a=document.getElementById("lcN1");if(a)a.classList.toggle("done",HOME?!!STATE.data.home:!!STATE.data.loveWho);
   var b=document.getElementById("lcN2");if(b)b.classList.toggle("done",!!STATE.data.loveAngle);
-  var c=document.getElementById("hgCast");if(c)c.classList.toggle("ready",lvReady());
+  var c=document.getElementById("hgCast");if(c)c.classList.toggle("ready",HOME?!!STATE.data.home:lvReady());
 }
 
 /* ===== 前端漏斗內容（TOPICS 48 題＝新設計 shared-fortune-data.jsx 權威版；含 service 軟性提示）===== */
@@ -1115,7 +1115,7 @@ function ffMirror(mode,o){
     ? ffDialTicks(inner,o.year)+'<div class="ff-dialtxt"><div class="ff-dial-k">轉輪鏡</div><div class="ff-dial-y" id="ffDialY">'+o.year+'</div><div class="ff-dial-m" id="ffDialM">民國 '+(o.year-1911)+'</div></div>'
     : '<div class="ff-hexc" id="ffYaos">'+ffYaos(o.code,o.rising||0)+'</div>';
   return '<div class="ff-mirrorwrap">'+
-    '<div class="ff-mirror'+(mode==="dial"?' dial':mode==="cast"?' cast':'')+'" id="ffMirror" style="width:'+size+'px;height:'+size+'px" role="'+(mode==="dial"?'slider':'button')+'" aria-label="'+(mode==="dial"?'轉輪鏡選年份':'按住水面')+'">'+
+    '<div class="ff-mirror'+(mode==="dial"?' dial':mode==="cast"?' cast':'')+'" id="ffMirror" style="width:'+size+'px;height:'+size+'px" role="'+(mode==="dial"?'slider':'button')+'" aria-label="'+(mode==="dial"?'轉輪鏡選年份':esc(o.hint||'按住水面'))+'">'+
     ffStars(inner)+'<span class="ff-sheen"></span><div class="ff-rips" id="ffRips"></div>'+body+'</div>'+
     (mode!=="dial"?'<div class="ff-hexname'+((o.rising||0)>=6&&o.name?' on':'')+'" id="ffHexName">'+esc(o.name||'')+'</div>':'')+
     '</div>';
@@ -1141,12 +1141,17 @@ function viewLanding(){
       '<div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來以後，我會先留一張這一卦的【卦符】給你。</p><p>先放在手機裡，陪著你和家裡七天。</p><p>不用貼在牆上，不用擺供桌，也不用燒。</p><p>就存成手機桌布帶著。</p><p>七天以後，如果你覺得這個家還有一些事情想繼續看，我再照著你的卦，往後解五張五行符。</p><p>不用急著決定。</p><p>先起一卦，就知道了。</p></div>'+
     '</section>'+
     '<section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮觀修 · 符令親繪</span></div></section>'+
-    '<section class="hg-cast" id="hgCast"><span class="eyebrow"><span class="dot"></span>起卦</span><p class="hg-guide">把手放在水鏡上。</p><p class="hg-guide">按著三秒，不要急著放開。</p><p class="hg-guide">卦會自己浮上來。</p><p class="hg-guide hg-q">你現在比較像哪一種？</p>'+
-      /* 2026-09-25 Jeffery：先選狀況再按水鏡起卦（原本卦出來後才問） */
-      '<div class="hg-chips" id="hgChips">'+HOME_SITU.map(function(x){return '<button type="button" class="chip'+(STATE.data.home===x.k?' on':'')+'" onclick="hgPick(\''+x.k+'\',this)">'+esc(x.l)+'</button>'}).join("")+'</div>'+
-      '<p class="hg-guide">選一個。然後，把手放到水鏡上。</p>'+
-      ffMirror("cast",{code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
-      '<div class="ff-clock" id="ffClock"></div>'+
+    /* 2026-09-26 Jeffery 選項卡：/love 的 DS 起卦區塊（love-cast.jsx）同一套套到家裡的符——兩步：① 選狀況 ② 水鏡卡（選了才亮） */
+    '<section class="lc'+(STATE.data.home?' ready':'')+'" id="hgCast"><span class="lc-eyebrow"><i></i>起卦</span>'+
+      '<div class="lc-grid"><div class="lc-qs">'+
+        '<section class="lc-sec">'+lcStep(1,"lcN1","你現在比較像哪一種？","",!!STATE.data.home)+
+          '<div class="lc-opts lc-opts2" role="group" id="hgChips">'+HOME_SITU.map(function(x){return lcOpt(STATE.data.home===x.k,"hgPick('"+x.k+"',this)",x.l,"")}).join("")+'</div></section>'+
+      '</div>'+
+      '<div class="lc-side"><div class="lc-card">'+lcStep(2,"lcN3","把手放在水鏡上。","按著三秒，不要急著放開。卦會自己浮上來。",false)+
+        '<div class="lc-guide"><p class="hg-guide">選一個。然後，把手放到水鏡上。</p></div>'+
+        '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
+        '<div class="ff-clock" id="ffClock"></div></div>'+
+      '</div></div></div>'+
       '</section>'+
     '<footer class="hg-foot">'+
       '<div class="hg-links"><a href="https://home.winds.tw/">找風問好窩</a><a href="/divination">問別的事</a><a href="/terms">使用條款</a><a href="/privacy">隱私權政策</a></div>'+
@@ -1183,7 +1188,7 @@ function viewLoveLanding(){
       '</div>'+
       '<div class="lc-side"><div class="lc-card">'+lcStep(3,"lcN3","把手放在水鏡上。","按著三秒，不要急著放開。卦會自己浮上來。",false)+
         '<div class="lc-guide" id="lvGuide">'+lvGuideHtml()+'</div>'+
-        '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
+        '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
         '<div class="ff-clock" id="ffClock"></div></div>'+
       '</div></div></div>'+
       '</section>'+
