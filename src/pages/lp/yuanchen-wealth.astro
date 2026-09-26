@@ -358,6 +358,12 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
           } else {
             box.innerHTML = '<div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>付款尚未完成</h3><p>訂單 <code>' + esc(no) + '</code> 狀態：' + esc((d && d.status) || '未知') + '。若你已完成付款，稍等一下再重新整理；仍有問題請聯絡我們。</p></div>';
           }
+        }).catch(function () {
+          /* 2026-09-26（同 shop/[id] dc8110c）：原本沒有 catch，隱藏訂購表單又在 then 裡面。
+             狀態查詢斷線或回非 JSON 時整條中斷，已付款的人會看到訂購表單還開著，可能再付一次。
+             失敗時一律收起表單並說清楚錢沒有白花。 */
+          var box = document.getElementById('paidBox'); box.hidden = false; form.hidden = true;
+          box.innerHTML = '<div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>訂單狀態查不到</h3><p>訂單 <code>' + esc(no) + '</code> 的狀態暫時查詢不到，這不代表付款沒成功，請不要重複下單。<br>稍等一下重新整理這一頁，或直接聯絡我們幫你確認。</p></div>';
         });
         return;
       }
