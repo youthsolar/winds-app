@@ -604,6 +604,59 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .hg-cast{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding-top:6px}
     .hg-guide{font-family:var(--font-serif);font-size:16px;line-height:1.7;color:var(--text-secondary);margin:0}
     .hg-situ{font-family:var(--font-sans);font-size:12px;color:var(--text-muted);line-height:1.8;margin:8px 0 0}
+
+    /* ===== 起卦區塊（DS ui_kits/free-flow/love-cast.jsx 逐值；手機＝寬 <900，DS 自己的斷點）===== */
+    .lc{width:min(1120px,calc(100vw - 64px));margin-left:calc((100% - min(1120px,calc(100vw - 64px)))/2);padding:96px 0;background:var(--surface-page);text-align:left}
+    .lc-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;letter-spacing:.02em;color:var(--accent-press);margin-bottom:40px}
+    .lc-eyebrow i{width:5px;height:5px;border-radius:999px;background:var(--accent-press)}
+    .lc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:64px;align-items:start}
+    .lc-side{position:sticky;top:96px}
+    .lc-qs{display:flex;flex-direction:column;gap:40px}
+    .lc-sec{display:flex;flex-direction:column;gap:16px;animation:lcIn var(--dur-slow,.42s) var(--ease-soft)}
+    .lc-opts{display:flex;flex-direction:column;gap:8px}
+    .lc-opts2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .lc-step{display:flex;gap:12px;align-items:flex-start}
+    .lc-num{flex:none;width:26px;height:26px;margin-top:3px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--font-sans);font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--accent-press);background:transparent;border:1px solid var(--rose-300);transition:all var(--dur-fast) var(--ease-soft)}
+    .lc-num.done{color:var(--text-on-accent);background:var(--accent);border-color:transparent}
+    .lc-step-txt{min-width:0}
+    .lc-step-txt h3{margin:0;font-family:var(--font-serif);font-size:22px;font-weight:500;line-height:1.4;color:var(--text-primary)}
+    .lc-step-txt p{margin:8px 0 0;font-family:var(--font-serif);font-size:16px;font-weight:300;line-height:1.8;color:var(--text-secondary);max-width:none}
+    .lc-opt{cursor:pointer;box-sizing:border-box;width:100%;text-align:left;display:flex;align-items:center;gap:12px;font-family:var(--font-serif);font-size:17.5px;font-weight:400;line-height:1.6;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 20px;transition:all var(--dur-fast) var(--ease-soft);-webkit-appearance:none;appearance:none;margin:0}
+    .lc-opt.has-desc{align-items:flex-start}
+    .lc-opt.on{background:var(--surface-tint);border-color:var(--rose-300)}
+    .lc-radio{flex:none;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:18px;height:18px;border-radius:999px;border:1px solid var(--border-strong);background:transparent}
+    .lc-opt.has-desc .lc-radio{margin-top:3px}
+    .lc-radio i{display:none;font-size:11px;line-height:1;color:var(--text-on-accent)}
+    .lc-opt.on .lc-radio{border-color:var(--accent);background:var(--accent)}
+    .lc-opt.on .lc-radio i{display:block}
+    .lc-opt-txt{display:flex;flex-direction:column;gap:0;min-width:0}
+    .lc-opt.has-desc .lc-opt-txt{gap:4px}
+    .lc-opt-desc{font-family:var(--font-sans);font-size:13px;font-weight:400;line-height:1.55;color:var(--text-muted)}
+    .lc-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:32px 32px 24px;display:flex;flex-direction:column;gap:24px}
+    .lc-guide{background:var(--accent-quiet);border-radius:var(--radius-md);padding:16px 20px;display:flex;flex-direction:column;gap:4px}
+    .lc-guide .hg-guide{margin:0!important;font-family:var(--font-serif);font-size:16px;font-weight:300;line-height:1.8;color:var(--text-secondary);text-align:left;max-width:none}
+    .lc.ready .lc-guide .hg-guide{color:var(--text-primary)}
+    .lc-mirror{display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.4;filter:saturate(.5);pointer-events:none;transition:opacity var(--dur-slow,.42s) var(--ease-soft),filter var(--dur-slow,.42s) var(--ease-soft)}
+    .lc.ready .lc-mirror{opacity:1;filter:none;pointer-events:auto}
+    .lc-mirror .ff-mirrorwrap{margin-top:0}
+    .lc-mirror .ff-clock{min-height:18px;font-size:12px;letter-spacing:.08em}
+    @keyframes lcIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion:reduce){.lc-sec{animation:none}}
+    @media (max-width:899px){
+      .lc{width:auto;margin-left:0;padding:40px 2px}
+      .lc-eyebrow{margin-bottom:24px}
+      .lc-grid{display:flex;flex-direction:column;gap:40px}
+      .lc-side{position:static}
+      .lc-opts2{grid-template-columns:1fr}
+      .lc-num{margin-top:1px}
+      .lc-step-txt h3{font-size:19px}
+      .lc-step-txt p{font-size:15px}
+      .lc-opt{font-size:16px;padding:14px 16px}
+      .lc-opt-desc{font-size:12.5px}
+      .lc-card{padding:24px 20px}
+      .lc-guide{padding:16px}
+      .lc-guide .hg-guide{font-size:15px}
+    }
     .hg-foot{margin-top:56px;padding-top:22px;border-top:1px solid var(--border-soft);text-align:center}
     .hg-foot p{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0 0 12px}
     .hg-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;font-family:var(--font-sans);font-size:13px}
@@ -782,7 +835,7 @@ function hgRestore(){
    刻意不新增資料庫欄位、不改 worker：A／B 一律只切前端文字（Jeffery 規格：不為文案需求重構程式）。
    五張符的叫法沿用站上現行的【卦名 靈符】（拍板），不改成規格初稿的「節靈符」。 */
 var LOVE=(document.body.getAttribute("data-mode")==="love");
-var LOVE_WHO=[{k:"someone",l:"有，我心裡有一個人"},{k:"single",l:"沒有，想看自己的桃花"}];
+var LOVE_WHO=[{k:"someone",l:"有，我心裡有一個人",d:"曖昧、交往、冷淡、分手、復合，或是一個始終放不下的人。"},{k:"single",l:"沒有，想看自己的桃花",d:"目前沒有特定對象，想看看最近的感情機會與桃花狀態。"}];
 var LOVE_ANGLE={
   someone:[{k:"where",l:"你們現在站在哪裡"},{k:"heart",l:"他的心離你多遠"},{k:"stuck",l:"真正卡住的地方"},{k:"next",l:"接下來會往哪裡走"}],
   single:[{k:"where",l:"我的桃花走到哪裡"},{k:"heart",l:"機會離我多遠"},{k:"stuck",l:"為什麼一直沒有開始"},{k:"next",l:"下一段正在靠近嗎"}]
@@ -793,16 +846,17 @@ function lvSingle(){return STATE.data.loveWho==="single";}
 function lvReady(){return !!(STATE.data.loveWho&&STATE.data.loveAngle);}
 function lvAngleChips(){
   var who=STATE.data.loveWho;if(!who)return '';
-  return (LOVE_ANGLE[who]||[]).map(function(x){return '<button type="button" class="chip'+(STATE.data.loveAngle===x.k?' on':'')+'" onclick="lvPickAngle(\''+x.k+'\',this)">'+esc(x.l)+'</button>'}).join("");
+  return (LOVE_ANGLE[who]||[]).map(function(x){return lcOpt(STATE.data.loveAngle===x.k,"lvPickAngle('"+x.k+"',this)",x.l,"")}).join("");
 }
 /* 第一排換了，第二排整排文字要跟著換（關係版／桃花版兩組不同），所以這顆重畫第二排；同 hgPick 不重畫整頁（重畫會跳回頁首） */
 function lvPickWho(k,btn){
   STATE.data.loveWho=k;STATE.data.loveAngle="";
-  var r1=document.getElementById("lvWho");if(r1)Array.prototype.forEach.call(r1.querySelectorAll(".chip"),function(b){b.classList.toggle("on",b===btn);});
+  var r1=document.getElementById("lvWho");if(r1)Array.prototype.forEach.call(r1.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-checked",on?"true":"false");});
   var r2=document.getElementById("lvAngle");if(r2)r2.innerHTML=lvAngleChips();
   var w=document.getElementById("lvAngleWrap");if(w)w.style.display="";
   var g=document.getElementById("lvGuide");if(g)g.innerHTML=lvGuideHtml();
   var e=document.getElementById("ffErr");if(e)e.style.display="none";
+  lcSync();
 }
 /* 2026-09-26（Codex 唯讀複審抓到）：兩個選擇只活在記憶體，後端也沒把問題字串帶回前端，
    所以付款跳回、重新整理或用 ?log_id= 回訪時會空掉，選「沒有對象」的人會被當成有對象、
@@ -815,8 +869,26 @@ function lvRestore(){
 }
 function lvPickAngle(k,btn){
   STATE.data.loveAngle=k;
-  var r2=document.getElementById("lvAngle");if(r2)Array.prototype.forEach.call(r2.querySelectorAll(".chip"),function(b){b.classList.toggle("on",b===btn);});
+  var r2=document.getElementById("lvAngle");if(r2)Array.prototype.forEach.call(r2.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-checked",on?"true":"false");});
   var e=document.getElementById("ffErr");if(e)e.style.display="none";
+  var g=document.getElementById("lvGuide");if(g)g.innerHTML=lvGuideHtml();
+  lcSync();
+}
+/* ===== 起卦區塊（DS ui_kits/free-flow/love-cast.jsx，2026-09-26 Jeffery「這一段的設計有一點亂」→ DS 重出稿）=====
+   三步：① 問題一 ② 問題二（選完①才出現）③ 水鏡卡（兩題都選才亮、可按）。選項＝DS OptionRow。 */
+function lcOpt(on,click,title,desc){
+  return '<button type="button" role="radio" aria-checked="'+(on?'true':'false')+'" class="lc-opt'+(on?' on':'')+(desc?' has-desc':'')+'" onclick="'+click+'">'+
+    '<span class="lc-radio" aria-hidden="true"><i class="ph-bold ph-check"></i></span>'+
+    '<span class="lc-opt-txt"><span>'+esc(title)+'</span>'+(desc?'<span class="lc-opt-desc">'+esc(desc)+'</span>':'')+'</span></button>';
+}
+function lcStep(n,id,title,sub,done){
+  return '<div class="lc-step"><span class="lc-num'+(done?' done':'')+'" id="'+id+'" aria-hidden="true">'+n+'</span><div class="lc-step-txt">'+
+    '<h3>'+esc(title)+'</h3>'+(sub?'<p>'+esc(sub)+'</p>':'')+'</div></div>';
+}
+function lcSync(){
+  var a=document.getElementById("lcN1");if(a)a.classList.toggle("done",!!STATE.data.loveWho);
+  var b=document.getElementById("lcN2");if(b)b.classList.toggle("done",!!STATE.data.loveAngle);
+  var c=document.getElementById("hgCast");if(c)c.classList.toggle("ready",lvReady());
 }
 
 /* ===== 前端漏斗內容（TOPICS 48 題＝新設計 shared-fortune-data.jsx 權威版；含 service 軟性提示）===== */
@@ -1102,19 +1174,18 @@ function viewLoveLanding(){
       '<div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來以後，我會先留一張這一卦的【卦符】給你。</p><p>先放在手機裡，陪著你七天。</p><p>不用貼在牆上，不用擺供桌，也不用燒。</p><p>就存成手機桌布帶著。</p><p>七天以後，如果這段感情還有一些事情想繼續看，我再照著你的卦，往後解五張靈符。</p><p>不用急著決定。</p><p>先起一卦，就知道了。</p></div>'+
     '</section>'+
     '<section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮觀修 · 符令親繪</span></div></section>'+
-    '<section class="hg-cast" id="hgCast"><span class="eyebrow"><span class="dot"></span>起卦</span>'+
-      '<p class="hg-guide">把手放在水鏡上。</p><p class="hg-guide">按著三秒，不要急著放開。</p><p class="hg-guide">卦會自己浮上來。</p>'+
-      '<p class="hg-guide hg-q">現在的你，心裡有特定的人嗎？</p>'+
-      '<div class="hg-chips" id="lvWho">'+LOVE_WHO.map(function(x){return '<button type="button" class="chip'+(STATE.data.loveWho===x.k?' on':'')+'" onclick="lvPickWho(\''+x.k+'\',this)">'+esc(x.l)+'</button>'}).join("")+'</div>'+
-      '<p class="hg-situ">有一個人＝曖昧、交往、冷淡、分手、復合，或是一個始終放不下的人。</p>'+
-      '<p class="hg-situ">沒有＝目前沒有特定對象，想看看最近的感情機會與桃花狀態。</p>'+
-      '<div id="lvAngleWrap"'+(STATE.data.loveWho?'':' style="display:none"')+'>'+
-        '<p class="hg-guide hg-q">那，你最想先知道哪一件？</p>'+
-        '<div class="hg-chips" id="lvAngle">'+lvAngleChips()+'</div>'+
+    '<section class="lc'+(lvReady()?' ready':'')+'" id="hgCast"><span class="lc-eyebrow"><i></i>起卦</span>'+
+      '<div class="lc-grid"><div class="lc-qs">'+
+        '<section class="lc-sec">'+lcStep(1,"lcN1","現在的你，心裡有特定的人嗎？","",!!STATE.data.loveWho)+
+          '<div class="lc-opts" role="radiogroup" id="lvWho">'+LOVE_WHO.map(function(x){return lcOpt(STATE.data.loveWho===x.k,"lvPickWho('"+x.k+"',this)",x.l,x.d)}).join("")+'</div></section>'+
+        '<section class="lc-sec" id="lvAngleWrap"'+(STATE.data.loveWho?'':' style="display:none"')+'>'+lcStep(2,"lcN2","那，你最想先知道哪一件？","",!!STATE.data.loveAngle)+
+          '<div class="lc-opts lc-opts2" role="radiogroup" id="lvAngle">'+lvAngleChips()+'</div></section>'+
       '</div>'+
-      '<div id="lvGuide">'+lvGuideHtml()+'</div>'+
-      ffMirror("cast",{code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
-      '<div class="ff-clock" id="ffClock"></div>'+
+      '<div class="lc-side"><div class="lc-card">'+lcStep(3,"lcN3","把手放在水鏡上。","按著三秒，不要急著放開。卦會自己浮上來。",false)+
+        '<div class="lc-guide" id="lvGuide">'+lvGuideHtml()+'</div>'+
+        '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
+        '<div class="ff-clock" id="ffClock"></div></div>'+
+      '</div></div></div>'+
       '</section>'+
     '<footer class="hg-foot">'+
       '<div class="hg-links"><a href="/home-gua">家裡的符</a><a href="/divination">問別的事</a><a href="/terms">使用條款</a><a href="/privacy">隱私權政策</a></div>'+
