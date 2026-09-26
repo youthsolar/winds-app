@@ -235,6 +235,9 @@ const jsonLd = faqs.length > 0
 
   /* article body（語意 prose；欄寬 measure-prose 置中） */
   .article-body { max-width: var(--measure-prose); margin: 40px auto 0; }
+  /* 文章內表格（2026-09-26）：手機欄位太窄會把詞硬切（「主要徵／狀」）→ 表格自己橫向捲動、格內詞組不硬切 */
+  .article-body :global(table) { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .article-body :global(td.cjk), .article-body :global(th.cjk), .article-body :global(td .cjk), .article-body :global(th .cjk) { overflow-wrap: normal !important; }
   @media (max-width: 760px) { .article-body { max-width: none; margin-top: 28px; } }
   .article-body :global(h2) { font-family: var(--font-serif); font-size: 24px; font-weight: 500; line-height: 1.5; letter-spacing: 0.01em; color: var(--ink-900); margin: 1.8em 0 0.7em; scroll-margin-top: 80px; }
   .article-body :global(h2:first-child) { margin-top: 0; }
