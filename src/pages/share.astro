@@ -15,9 +15,9 @@ import '../styles/global.css';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>命理報告 · 找風問幸福</title>
-  <meta name="description" content="易經 × 塔羅 × 量能靈符——抽一張牌，看你的五行分佈與專屬靈符。" />
+  <meta name="description" content="易經、塔羅、五行分佈，還有風易揚老師親手畫的靈符。抽一張牌，看看你的命理報告。" />
   <meta property="og:title" content="找風問幸福 — 一份命理報告" />
-  <meta property="og:description" content="抽一張牌，看你的本命塔羅、五行分佈與量能靈符 ✨" />
+  <meta property="og:description" content="抽一張牌，就能看到本命塔羅、五行分佈，以及風易揚老師親手畫的靈符。" />
   <meta property="og:image" content="https://winds.tw/assets/og-share.png" />
   <meta property="og:type" content="website" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -120,10 +120,10 @@ import '../styles/global.css';
         (first?tarotCard(first):lockCard)+lockCard+lockCard+lockCard+'</div></div>';
       // 鎖：五行 + 靈符
       h+=lockPanel("抽完牌就解鎖","即可解鎖你的五行量能分佈",wuxingInner);
-      h+=lockPanel("風易揚老師的靈符解方","抽完牌即可解鎖",fuluInner,10);
+      h+=lockPanel("風易揚老師親手畫的靈符解方","抽完牌即可解鎖",fuluInner,10);
       // CTA
       h+='<div class="sh-cta"><div class="sh-cta-h">看看你的是什麼</div>'+
-        '<div class="sh-cta-p">抽一張牌，看完整五行分佈和你的量能靈符。只需要填 6 個基本資料，30 秒出結果。</div>'+
+        '<div class="sh-cta-p">抽一張牌，就能看五行分佈，也會拿到風易揚老師親手畫的靈符。填 6 個基本資料，大概 30 秒就能看到結果。</div>'+
         '<a href="/divination" class="zf-btn primary lg full">'+ic("cards","thin")+'抽牌，看我的</a></div>';
       // 品牌
       h+='<div class="sh-foot"><a href="/"><img src="/assets/logo.png" alt="找風問幸福"></a><p>選擇比努力更重要，命理是對自己的溫柔。</p></div>';

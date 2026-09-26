@@ -16,7 +16,7 @@ import '../styles/global.css';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>預約老師 · 找風問幸福</title>
-  <meta name="description" content="跟小幫手聊聊，邊聊邊把老師預約約好——推薦對症老師、查真實時段、線上完成。" />
+  <meta name="description" content="跟小幫手說說你想問的事。我幫你找合適的老師、查時段，再把預約約好。" />
   <meta name="robots" content="noindex" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -178,13 +178,13 @@ import '../styles/global.css';
     <div class="sp-wrap">
       <div class="sp-intro">
         <h1>預約老師</h1>
-        <p>跟小幫手聊聊你的狀況，我幫你推薦對症的老師、查真實時段、完成預約 ✨</p>
+        <p>跟小幫手說說你的狀況。我幫你看看哪位老師合適，再查時間。</p>
       </div>
       <div class="sp-msgs" id="msgs">
         <!-- 靜態版（2026-09-24）：不跑 JavaScript 的抓取工具只看得到這一段；boot 時先清空再接對話 -->
         <div class="sp-static" style="font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.85;color:var(--text-secondary);padding:8px 4px">
           <p style="margin:0 0 10px">這裡是風小編。你不用先想好要約什麼，把最近在意的事說一說就好。</p>
-          <p style="margin:0 0 10px">聽完，我會推薦最接近你狀況的老師與項目，查老師真實的空檔，幫你把時間定下來。台北現場或遠端視訊都可以。</p>
+          <p style="margin:0 0 10px">我先聽你說，再幫你看看哪位老師、哪個項目比較合適。時間也可以直接在這裡查。台北現場或遠端視訊都可以。</p>
           <p style="margin:0 0 10px">預約項目有三大類：通靈水鏡法問事、元辰宮代觀，還有依狀況才做的法科項目。想先自己看，可以到<a href="/services/">預約項目</a>逐項讀。</p>
           <p style="margin:0">對話需要瀏覽器執行程式。請用手機或電腦瀏覽器開啟這一頁，下面的輸入框就能打字，或按電話圖示直接講。</p>
         </div>
@@ -412,7 +412,7 @@ import '../styles/global.css';
     taEl.addEventListener('input', function(){ taEl.style.height='auto'; taEl.style.height=Math.min(taEl.scrollHeight,120)+'px'; });
 
     // 開場白 / rehydrate（修「點連結離頁→回來對話消失」：對話存 D1，重載時用 token 撈回整段）
-    function greet(){ addBubble('bot','嗨 👋 歡迎來到「找風問幸福」。我可以幫你預約老師諮詢——先跟我說說你最近在意的事，或想處理什麼吧 🌙'); }
+    function greet(){ addBubble('bot','你好，這裡是找風問幸福。最近有什麼事放在心上？先說給我聽，我再幫你找老師、約時間。'); }
     (function rehydrateOrGreet(){
       var auth=getAuth();
       // 無本機 token：訪客→直接開場白；已登入→仍查 history（跨裝置接回最近一段對話）

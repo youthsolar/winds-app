@@ -6,7 +6,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const pageTitle = '紫微斗數命盤 — 人生藍圖｜找風問幸福';
-const pageDesc = '免費生成紫微斗數命盤，支援真太陽時校正（海外華人準確）。 12 宮主星副星完整、深度命理解讀，作為你的人生藍圖參考。';
+const pageDesc = '免費排紫微斗數命盤，列出 12 宮主星與副星。海外出生可選真太陽時校正，也能接著看完整命理解讀。';
 
 // 生日改三欄下拉（2026-08-02 Jeffery 指示：與占卜站正流程一致；原生 input[type=date] 手機體驗差）
 // 範圍與 divination.astro 相同（2026→1940）
@@ -20,16 +20,16 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     <header class="page-header">
       <span class="eyebrow"><span class="dot"></span>紫微斗數</span>
       <h1>紫微斗數命盤</h1>
-      <p class="lede">傳統 12 宮排盤 · 深度命理解讀 · 真太陽時校正（海外華人準確）</p>
+      <p class="lede">傳統 12 宮排盤。海外出生可選真太陽時校正，也能接著看完整命理解讀。</p>
     </header>
 
     <!-- 登入閘（未登入時顯示）-->
     <section class="auth-gate" id="auth-gate" hidden>
       <div class="auth-card">
         <h2>請先登入</h2>
-        <p class="auth-desc">紫微命盤是個人深度產品，需要登入後才能生成。<br/>每位使用者終身只能算一次，請慎重填寫。</p>
+        <p class="auth-desc">紫微命盤要用你的出生資料，請先登入。<br/>每個人終身只能排一次，送出前請再確認。</p>
         <div id="g_id_signin_ziwei"></div>
-        <p class="auth-note">登入即代表同意 <a href="/privacy">隱私權政策</a> 與 <a href="/terms">服務條款</a></p>
+        <p class="auth-note">登入即代表同意 <a href="/privacy">隱私權政策</a> 與 <a href="/terms">使用條款</a></p>
       </div>
     </section>
 
@@ -683,10 +683,10 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     mount.innerHTML = `<section class="ds-trend" style="margin-top:34px;max-width:760px;margin-left:auto;margin-right:auto">`
       + `<div class="ds-heading" style="margin-bottom:18px"><span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-press)"><span style="width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none"></span>紫微斗數 · 進階盤法</span>`
       + `<h2 style="font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--ink-900);margin:10px 0 0;line-height:1.3">運勢走勢</h2>`
-      + `<p style="font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--text-secondary);margin:8px 0 0;max-width:34em">大限為十年一運、流年為單一年。走勢分數由星曜廟旺與該運四化推算，僅作輔助參考——實際吉凶以星曜四化的命理邏輯為主。</p></div>`
+      + `<p style="font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--text-secondary);margin:8px 0 0;max-width:34em">大限看十年，流年看一年。分數依星曜廟旺和該運四化推算，只拿來看起伏。實際吉凶仍以星曜四化的命理邏輯為主。</p></div>`
       + `<div class="ds-trend-toggle" style="display:flex;gap:8px;justify-content:center;margin:18px 0 12px"><button class="ds-tog is-active" data-t="decadal">大限 · 一生</button><button class="ds-tog" data-t="yearly">流年 · 本大限</button></div>`
       + `<div style="background:var(--paper);border:1px solid var(--rose-100);border-radius:var(--radius-md);padding:16px 10px 8px"><div id="trend-chart"></div></div>`
-      + `<div style="display:flex;align-items:flex-start;gap:8px;margin:12px 2px 0"><span style="flex:none;margin-top:2px;display:inline-flex;color:var(--rose-300)">${ICON_INFO}</span><span style="font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)">分數僅為走勢的輔助呈現，幫你看出起伏的節奏；實際的吉凶與建議，以星曜四化的命理邏輯為主。</span></div>`
+      + `<div style="display:flex;align-items:flex-start;gap:8px;margin:12px 2px 0"><span style="flex:none;margin-top:2px;display:inline-flex;color:var(--rose-300)">${ICON_INFO}</span><span style="font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)">這些分數只用來看走勢起伏。吉凶與建議，仍以星曜四化的命理邏輯為主。</span></div>`
       + `<div style="margin-top:14px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:22px 18px"><h3 style="font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);margin:0 0 14px">走勢總述</h3><div style="position:relative"><div class="interp-text loading" data-palace="trend" style="font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.95;color:var(--ink-800);white-space:pre-wrap;margin:0">走勢總述生成中…</div>${paid ? '' : '<div style="position:absolute;bottom:0;left:0;right:0;height:64px;background:linear-gradient(transparent,var(--surface-card));pointer-events:none"></div>'}</div>${paid ? '' : `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:13px 16px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-md);flex-wrap:wrap;gap:12px"><div style="font-family:var(--font-serif);font-weight:300;font-size:14px;color:var(--text-secondary)">完整走勢總述隨占卜完整解讀一併解鎖。</div><button class="ds-unlock-btn" data-unlock style="cursor:pointer;background:var(--accent);color:var(--text-on-accent);border:1px solid transparent;padding:11px 22px;border-radius:var(--radius-pill);font-family:var(--font-serif);font-weight:500;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow-sm)">${ICON_LOCK_OPEN}<span>隨完整解讀解鎖 · NT$ 360</span></button></div>`}</div>`
       + `</section>`;
     const box = mount.querySelector('#trend-chart') as HTMLElement;
@@ -758,7 +758,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     mount.innerHTML = `<section class="ds-sihua" style="margin-top:34px;max-width:760px;margin-left:auto;margin-right:auto">`
       + `<div class="ds-heading" style="margin-bottom:18px"><span style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-press)"><span style="width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none"></span>紫微斗數 · 進階盤法</span>`
       + `<h2 style="font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--ink-900);margin:10px 0 0;line-height:1.3">四化飛星</h2>`
-      + `<p style="font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--text-secondary);margin:8px 0 0;max-width:34em">每一宮的天干各自引動祿、權、科、忌，飛入被引動星所在的宮位——呈現宮與宮之間主動的能量牽引；化星落回本宮即為「自化」。</p></div>`
+      + `<p style="font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--text-secondary);margin:8px 0 0;max-width:34em">每一宮的天干都會引動祿、權、科、忌，再飛入相關星曜所在的宮位。化星回到本宮，就叫「自化」。</p></div>`
       + sihuaLegend()
       + `<div class="ds-flight-list" style="margin-top:14px;display:flex;flex-direction:column;gap:10px">${cards}</div>`
       + `<div style="display:flex;align-items:flex-start;gap:8px;margin:12px 2px 0"><span style="flex:none;margin-top:2px;display:inline-flex;color:var(--rose-300)">${ICON_INFO}</span><span style="font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)">完整 12 宮飛星依你的命盤帶入（十干四化表與盤面生年四化同源）。</span></div>`

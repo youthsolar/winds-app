@@ -189,9 +189,9 @@ import '../styles/global.css';
     <div id="spRoot" class="sp-gate"><div class="sp-gate-card">
       <!-- 靜態版（2026-09-24）：不跑 JavaScript 的抓取工具只看得到這一段；render() 用 outerHTML 整塊換掉 -->
       <div style="font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900);margin-bottom:6px">分靈體對話</div>
-      <p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0 0 10px">與你靈魂深處的另一個自己對話。不預測、不評判，把你說的話說回給你聽。</p>
-      <p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0 0 10px">有兩種聊法。自己的分靈體：把心裡卡住的事說出來，它陪你把話說完。對象的分靈體：填對方的基本資料，聽聽那個人此刻可能怎麼想。</p>
-      <p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0 0 10px">每天可以先聊幾句。想更深入，隨風易揚老師的靈符解方（NT$360 完整報告）一起解鎖，七天內每天三十句，隨時都能來說。</p>
+      <p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0 0 10px">分靈體不替你預測，也不評論對錯。你說什麼，它就陪你往下聊。</p>
+      <p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0 0 10px">想聊自己，就把卡在心裡的話說出來。想問某個人，就填他的基本資料，看看他現在可能怎麼想。</p>
+      <p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0 0 10px">每天可以先聊幾句。想繼續聊，拿到風易揚老師親手畫的靈符解方（NT$360 完整報告）後，七天內每天可以聊三十句。</p>
       <p style="font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0">對話需要登入。請用手機或電腦瀏覽器開啟這一頁，登入後就能開始。聊完想讓老師親自看，隨時可以<a href="/booking-chat/">預約老師</a>。</p>
     </div></div>
   </div>
@@ -426,7 +426,7 @@ import '../styles/global.css';
       el.innerHTML='<div class="sp-paywall-in">'+
         '<span class="sp-pw-disc">'+ic(isTarget?"sparkle":"chat-circle-dots","fill")+'</span>'+
         '<div class="sp-pw-h">解鎖分靈體對話</div>'+
-        '<p class="sp-pw-p">'+(isTarget?"隨風易揚老師的靈符解方一起解鎖，7 天內每天 30 句，隨時感應他（可隨時更換對象）。":"自己，就是最好的老師。隨風易揚老師的靈符解方一起解鎖，7 天內每天 30 句，讓這面鏡子隨時陪你。")+'</p>'+
+        '<p class="sp-pw-p">'+(isTarget?"拿到風易揚老師親手畫的靈符解方，也會開通對話。7 天內每天 30 句，想問對方時就來聊，對象隨時可以換。":"拿到風易揚老師親手畫的靈符解方，也會開通分靈體對話。7 天內每天 30 句，想說話時就來聊。")+'</p>'+
         '<div class="sp-pw-tags">'+(isTarget?["感應對象狀態","可隨時換對象","每天 30 句"]:["深夜說說話","陪你把話說清楚","每天 30 句"]).map(function(t){return '<span>'+t+'</span>'}).join("")+'</div>'+
         '<a class="zf-btn primary lg" href="/divination">'+ic("sparkle")+'拿到靈符解方 · NT$360</a>'+
         '<button class="sp-pw-close" onclick="closePaywall()">先用今天的次數</button></div>';
