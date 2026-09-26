@@ -851,7 +851,7 @@ function lvAngleChips(){
 /* 第一排換了，第二排整排文字要跟著換（關係版／桃花版兩組不同），所以這顆重畫第二排；同 hgPick 不重畫整頁（重畫會跳回頁首） */
 function lvPickWho(k,btn){
   STATE.data.loveWho=k;STATE.data.loveAngle="";
-  var r1=document.getElementById("lvWho");if(r1)Array.prototype.forEach.call(r1.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-checked",on?"true":"false");});
+  var r1=document.getElementById("lvWho");if(r1)Array.prototype.forEach.call(r1.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});
   var r2=document.getElementById("lvAngle");if(r2)r2.innerHTML=lvAngleChips();
   var w=document.getElementById("lvAngleWrap");if(w)w.style.display="";
   var g=document.getElementById("lvGuide");if(g)g.innerHTML=lvGuideHtml();
@@ -869,7 +869,7 @@ function lvRestore(){
 }
 function lvPickAngle(k,btn){
   STATE.data.loveAngle=k;
-  var r2=document.getElementById("lvAngle");if(r2)Array.prototype.forEach.call(r2.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-checked",on?"true":"false");});
+  var r2=document.getElementById("lvAngle");if(r2)Array.prototype.forEach.call(r2.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});
   var e=document.getElementById("ffErr");if(e)e.style.display="none";
   var g=document.getElementById("lvGuide");if(g)g.innerHTML=lvGuideHtml();
   lcSync();
@@ -877,7 +877,7 @@ function lvPickAngle(k,btn){
 /* ===== 起卦區塊（DS ui_kits/free-flow/love-cast.jsx，2026-09-26 Jeffery「這一段的設計有一點亂」→ DS 重出稿）=====
    三步：① 問題一 ② 問題二（選完①才出現）③ 水鏡卡（兩題都選才亮、可按）。選項＝DS OptionRow。 */
 function lcOpt(on,click,title,desc){
-  return '<button type="button" role="radio" aria-checked="'+(on?'true':'false')+'" class="lc-opt'+(on?' on':'')+(desc?' has-desc':'')+'" onclick="'+click+'">'+
+  return '<button type="button" aria-pressed="'+(on?'true':'false')+'" class="lc-opt'+(on?' on':'')+(desc?' has-desc':'')+'" onclick="'+click+'">'+
     '<span class="lc-radio" aria-hidden="true"><i class="ph-bold ph-check"></i></span>'+
     '<span class="lc-opt-txt"><span>'+esc(title)+'</span>'+(desc?'<span class="lc-opt-desc">'+esc(desc)+'</span>':'')+'</span></button>';
 }
@@ -1177,9 +1177,9 @@ function viewLoveLanding(){
     '<section class="lc'+(lvReady()?' ready':'')+'" id="hgCast"><span class="lc-eyebrow"><i></i>起卦</span>'+
       '<div class="lc-grid"><div class="lc-qs">'+
         '<section class="lc-sec">'+lcStep(1,"lcN1","現在的你，心裡有特定的人嗎？","",!!STATE.data.loveWho)+
-          '<div class="lc-opts" role="radiogroup" id="lvWho">'+LOVE_WHO.map(function(x){return lcOpt(STATE.data.loveWho===x.k,"lvPickWho('"+x.k+"',this)",x.l,x.d)}).join("")+'</div></section>'+
+          '<div class="lc-opts" role="group" id="lvWho">'+LOVE_WHO.map(function(x){return lcOpt(STATE.data.loveWho===x.k,"lvPickWho('"+x.k+"',this)",x.l,x.d)}).join("")+'</div></section>'+
         '<section class="lc-sec" id="lvAngleWrap"'+(STATE.data.loveWho?'':' style="display:none"')+'>'+lcStep(2,"lcN2","那，你最想先知道哪一件？","",!!STATE.data.loveAngle)+
-          '<div class="lc-opts lc-opts2" role="radiogroup" id="lvAngle">'+lvAngleChips()+'</div></section>'+
+          '<div class="lc-opts lc-opts2" role="group" id="lvAngle">'+lvAngleChips()+'</div></section>'+
       '</div>'+
       '<div class="lc-side"><div class="lc-card">'+lcStep(3,"lcN3","把手放在水鏡上。","按著三秒，不要急著放開。卦會自己浮上來。",false)+
         '<div class="lc-guide" id="lvGuide">'+lvGuideHtml()+'</div>'+
@@ -1311,7 +1311,7 @@ function viewRet(){
     '<div class="ff-next"><button class="zf-btn primary sm" onclick="submitFree()">就用這個</button></div></div></main>';
 }
 function ffEditRet(){var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);
-  STATE.data={year:+ymd[0]||1990,month:+ymd[1]||null,day:+ymd[2]||null,shi:isNaN(hh)?6:Math.floor(((hh+1)%24)/2),gender:r.gender||"",name:(r.last_name||"")+(r.first_name||""),email:r.email||"",home:STATE.data.home||""};
+  STATE.data={year:+ymd[0]||1990,month:+ymd[1]||null,day:+ymd[2]||null,shi:isNaN(hh)?6:Math.floor(((hh+1)%24)/2),gender:r.gender||"",name:(r.last_name||"")+(r.first_name||""),email:r.email||"",home:STATE.data.home||"",loveWho:STATE.data.loveWho||"",loveAngle:STATE.data.loveAngle||""}; /* 2026-09-26 Codex 抓到：原本只留 home，好愛兩題被清掉 → 送出時被踢回重選 */
   STATE.ret=false;STATE.ask=0;go("ask");}
 /* 稱呼拆姓名：中文 2～4 字＝首字（複姓兩字）為姓；其餘整串當名 */
 function splitName(s){s=String(s||"").trim();if(!s)return{surname:"",given:""};var dbl=["歐陽","司馬","諸葛","上官","司徒","東方","皇甫","尉遲","公孫","慕容","端木","夏侯","令狐"];

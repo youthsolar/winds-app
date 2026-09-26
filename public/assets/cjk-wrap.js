@@ -8,7 +8,7 @@
  *      「不沒還也都就才再又很在把被讓給跟和與對向從」黏後面，單字不落單，保護詞（風易揚老師…）不拆。
  *   4. 在允許的斷點插 <wbr data-cjk>（不是 ​：textContent 不會多出隱形字），
  *      父元素加 .cjk（word-break:keep-all）→ 只准在 <wbr>／標點／空白換行。
- *   5. JS 後來才畫的內容用 MutationObserver 補；視窗寬度改變、字型載完就依新寬度重算。
+ *   5. JS 後來才畫的內容用 MutationObserver 補；視窗寬度改變就依新寬度重算。
  * 需要先載 /assets/budoux-zh-hant.min.js（沒有也能跑：長句退回逐字斷）。 */
 (function () {
   var KEEP = ['風易揚老師','風易揚','找風問幸福','找風問好愛','通靈水鏡法','元辰宮代觀','元辰宮','分靈體','完整解讀','7 天'];
@@ -175,7 +175,7 @@
       if (Math.abs(window.innerWidth - lastW) < 8) return;
       lastW = window.innerWidth; clearTimeout(rt); rt = setTimeout(redo, 150);
     });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(redo);
+    /* 不在 fonts.ready 重算：一行字數只看區塊寬度與字級，字型晚到不改變這兩個值（Codex 複審：省掉載入時第二次全頁重算） */
   }
 
   function boot() {
