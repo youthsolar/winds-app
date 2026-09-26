@@ -738,6 +738,14 @@ var HOME_SITU=[{k:"unsettled",l:"住得不太順"},{k:"moved",l:"新家剛入住
 function homeSitu(k){return HOME_SITU.find(function(x){return x.k===k})||null;}
 /* 落地頁選狀況：只切換按鈕，不重畫整頁（重畫會跳回頁首，9/25 Jeffery 真機抓到） */
 function hgPick(k,btn){STATE.data.home=k;var ch=document.getElementById("hgChips");if(ch)Array.prototype.forEach.call(ch.querySelectorAll(".chip"),function(b){b.classList.toggle("on",b===btn);});var e=document.getElementById("ffErr");if(e)e.style.display="none";}
+/* 2026-09-26（Codex 唯讀複審抓到）：STATE.data.home 只活在記憶體，後端也沒把問題字串帶回前端，
+   所以付款跳回或用 ?log_id= 回訪時會是空字串，結果頁標題就從「家裡的符・新家剛入住」掉成只剩
+   「家裡的符」。做法與 love 模式相同：存進瀏覽器、按這一卦的編號取回，取回時驗過才用。不動後端。 */
+function hgRemember(){try{if(HOME&&STATE.logId&&STATE.data.home)localStorage.setItem("winds_home_"+STATE.logId,STATE.data.home);}catch(e){}}
+function hgRestore(){
+  if(!HOME||STATE.data.home||!STATE.logId)return;
+  try{var v=localStorage.getItem("winds_home_"+STATE.logId)||"";if(homeSitu(v))STATE.data.home=v;}catch(e){}
+}
 
 /* ===== 活動頁「找風問好愛」love 模式（2026-09-26 文案規格 V1，Jeffery 定稿；選項卡四題拍板）=====
    沿用 home 模式同一條流程、同一個後端、同一套 DS：差別只在落地文案與結果頁的字。
@@ -774,7 +782,7 @@ function lvRemember(){try{if(LOVE&&STATE.logId&&STATE.data.loveWho)localStorage.
 function lvRestore(){
   if(!LOVE||STATE.data.loveWho||!STATE.logId)return;
   try{var v=(localStorage.getItem("winds_love_"+STATE.logId)||"").split("|");
-    if(v[0]){STATE.data.loveWho=v[0];STATE.data.loveAngle=v[1]||"";}}catch(e){}
+    if(LOVE_ANGLE[v[0]]){STATE.data.loveWho=v[0];STATE.data.loveAngle=loveAngle(v[0],v[1])?v[1]:"";}}catch(e){}
 }
 function lvPickAngle(k,btn){
   STATE.data.loveAngle=k;
@@ -2054,7 +2062,7 @@ function pollStatus(logId,alreadyWarm){
 function finishResult(d,logId){
   STATE.submitting=false;
   STATE.logId=d.log_id||d.reading_id||logId||"";
-  lvRestore();lvRemember();   /* 好愛：回訪先取回兩個選擇，新的一卦則把選擇記下來（見 lvRestore 註解） */
+  lvRestore();lvRemember();hgRestore();hgRemember();   /* 兩個活動頁：回訪先取回使用者選的狀況，新的一卦則記下來（見 lvRestore／hgRestore 註解） */
   STATE.shareUrl=d.share_url||"";
   if(d.next_action)STATE.talismanName=d.next_action.talisman_name||STATE.talismanName;
   STATE.result=buildResult(d);
