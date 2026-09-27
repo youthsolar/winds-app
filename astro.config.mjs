@@ -11,11 +11,13 @@ import sitemap from '@astrojs/sitemap';
  * 這段跟新版文章頁模板的「為你推薦 / 文末 CTA」面板重複，且含 emoji/「免費」/外連紅線。
  * build 時從 mdast 移除：找含「相關推薦」的標題（或免費占卜 CTA 段），連同其前的 --- 砍到文末。
  * 不改 346 個 source 檔、可逆；pipeline 之後若再加也會在 build 被剝。
+ * 例外：文末純 #關鍵字段（SEO/GEO/AEO）不剝，會搬回文末保留。
  */
 function remarkStripTrailingPromo() {
   const EMOJI = /\p{Extended_Pictographic}/u;               // 任何 emoji（真案例內文不會有）
   const KW = ['相關推薦', '立即預約', '立即開始', '免費占卜', '預約諮詢', '想更深入了解', '走到了瓶頸', '一對一靈性諮詢'];
   const PROMO_HOST = /(?:app\.)?winds\.tw|easy\.co|zijiawangzijia|easystore/i;
+  const TAGS_ONLY = /^(?:#[^#\s]+){3,}$/;                  // 文末 #關鍵字段（SEO/GEO 用，不剝）
   return (tree) => {
     const ch = tree.children || [];
     const flat = (n, acc) => {
@@ -24,8 +26,11 @@ function remarkStripTrailingPromo() {
       (n.children || []).forEach((c) => flat(c, acc));
       return acc;
     };
+    const isTags = (n) =>
+      n.type === 'paragraph' && TAGS_ONLY.test(flat(n, { text: '', urls: [] }).text.replace(/\s+/g, ''));
     const isPromo = (n) => {
       if (n.type !== 'heading' && n.type !== 'paragraph') return false;
+      if (isTags(n)) return false;
       const a = flat(n, { text: '', urls: [] });
       return EMOJI.test(a.text) || KW.some((k) => a.text.includes(k)) || a.urls.some((u) => PROMO_HOST.test(u));
     };
@@ -34,8 +39,20 @@ function remarkStripTrailingPromo() {
     if (cut >= 0) {
       let start = cut;
       if (start > 0 && ch[start - 1].type === 'thematicBreak') start -= 1;
-      ch.splice(start);
+      const tags = ch.splice(start).filter(isTags);
+      if (tags.length) ch.push(...tags);   // 促銷剝掉，文末標籤段搬回來
     }
+    ch.forEach((n) => {                    // 標籤段：掛 class 給樣式用；data-nocjk 讓 cjk-wrap.js 別插 <wbr>
+      if (!isTags(n)) return;
+      const list = flat(n, { text: '', urls: [] }).text.split(/\s+/).filter(Boolean);
+      n.data = n.data || {};
+      n.data.hProperties = { className: ['post-tags'], 'data-nocjk': 'true' };
+      // 每個標籤各自包一層 span：Chrome 的 keep-all 不擋「# 接中文」的斷點，只有 nowrap 擋得住
+      n.data.hChildren = list.flatMap((t, i) => {
+        const el = { type: 'element', tagName: 'span', properties: {}, children: [{ type: 'text', value: t }] };
+        return i ? [{ type: 'text', value: ' ' }, el] : [el];
+      });
+    });
   };
 }
 
