@@ -143,7 +143,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
       window.addEventListener('zf-theme-change', function () {
         var mount = document.getElementById('lgGoogle');
-        if (mount && window.google && google.accounts && google.accounts.id) {
+        // 已換成外開引導（data-fb）就別重畫：這時 SDK 沒 initialize，畫出來的按鈕按了也沒用，還會把引導蓋掉
+        if (mount && !mount.getAttribute('data-fb') && window.google && google.accounts && google.accounts.id) {
           mount.innerHTML = '';
           google.accounts.id.renderButton(mount, { theme: (window.ZFTheme&&ZFTheme.isDark())?'filled_black':'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
         }

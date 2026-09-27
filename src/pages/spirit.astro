@@ -207,7 +207,7 @@ import '../styles/global.css';
     var WORKER_API="https://api.winds.tw";
     var API={status:WORKER_API+"/spirit-status",chat:WORKER_API+"/spirit-chat",history:WORKER_API+"/spirit-history"};
 
-    var S={mode:"self",userId:"",idToken:"",sessionId:null,sending:false,
+    var S={mode:"self",userId:"",idToken:"",sessionId:null,sending:false,hydGen:0,hydrating:false,
       subscribed:false,lockedBirthday:null,freeRemaining:null,roundsSelf:null,roundsTarget:null,dailyRounds:30,profileExpanded:false,astro:null,
       spiritName:"",spiritTraits:null,
       targetDate:"",targetTime:"",targetConfirmed:false,hasMsg:false};
@@ -383,22 +383,30 @@ import '../styles/global.css';
     }
     function showWelcome(){document.getElementById("spMsgs").innerHTML="";appendMsg("spirit",welcomeText(),nowHM())}
     /* 撈回整段對話。失敗（session 被清、換帳號、斷線）就維持開場白，不要讓畫面卡住。 */
+    /* 2026-09-28（Codex 複審）：撈回來之前就送訊息，回來時 innerHTML="" 會把剛送的那句清掉；
+       撈的途中切頁籤，舊頁籤的對話會被塞進新頁籤、失敗時還會刪掉新頁籤存的編號。
+       改成：每次撈都記下是第幾次、屬於哪個模式，回來不是最新那次就丟掉；撈的期間不准送出。 */
     function rehydrate(){
+      var gen=++S.hydGen;S.hydrating=false;
+      var mode=S.mode;
       var id=S.sessionId||loadSess();
       if(!id){S.sessionId=null;return}
       S.sessionId=id;
       var box=document.getElementById("spMsgs");if(!box)return;
+      S.hydrating=true;
       fetch(API.history+"?sessionId="+encodeURIComponent(id),{headers:{"X-Google-Id-Token":S.idToken||""}})
         .then(function(r){return r.ok?r.json():null})
         .then(function(d){
-          if(!d||!d.success&&!d.messages){saveSess(null);S.sessionId=null;return}
+          if(gen!==S.hydGen||S.mode!==mode)return;
+          if(!d||!d.success&&!d.messages){try{localStorage.removeItem("winds_spirit_session_"+mode)}catch(e){}S.sessionId=null;return}
           var ms=d.messages||[];
           if(!ms.length)return;
           box.innerHTML="";
           ms.forEach(function(m){appendMsg(m.role==="user"?"user":"spirit",m.content,m.timestamp?hmOf(m.timestamp):"")});
           S.hasMsg=true;
         })
-        .catch(function(){});
+        .catch(function(){})
+        .finally(function(){if(gen===S.hydGen)S.hydrating=false});
     }
     function hmOf(ts){try{var d=new Date(ts);if(isNaN(d))return "";return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}catch(e){return ""}}
 
@@ -421,6 +429,7 @@ import '../styles/global.css';
     /* ===== send（金流/錯誤路原樣保留）===== */
     function send(){
       if(S.sending)return;
+      if(S.hydrating){toast("正在接回先前的對話，稍等一下");return}
       var ta=document.getElementById("spText");var msg=ta.value.trim();if(!msg)return;
       if(S.mode==="target"&&!S.targetConfirmed&&!S.lockedBirthday){toast("請先輸入對象生日");return}
       var targetBirthday=null;
