@@ -283,10 +283,16 @@ const pageDesc =
         renderList(items);
       }
 
-      Promise.all([
-        fetch(WORKER_API + '/sb-services').then(function (r) { return r.json(); }),
-        fetch(WORKER_API + '/shop-products').then(function (r) { return r.json(); }),
-      ]).then(function (res) {
+      /* 2026-09-27：原本沒看 r.ok，其中一支回 4xx／5xx 帶 JSON 時會被當成空清單，
+         畫面只剩另一半（例如預約項目全消失、只剩法器），客人以為沒這個項目＝漏單。
+         改成任一支不 ok 就走 fail()，顯性顯示載入失敗。 */
+      var getJson = function (path) {
+        return fetch(WORKER_API + path).then(function (r) {
+          if (!r.ok) throw new Error(path + ' ' + r.status);
+          return r.json();
+        });
+      };
+      Promise.all([getJson('/sb-services'), getJson('/shop-products')]).then(function (res) {
         var sb = ((res[0] && res[0].services) || []).map(function (s) {
           return { source: 'sb', id: s.id, name: s.name, price: Number(s.price) || 0, duration: s.duration || null, image: s.image || '', desc: s.desc || '', llm: (s.llm || '').trim(), category: s.category || '', seo_title: s.seo_title || '' };
         });

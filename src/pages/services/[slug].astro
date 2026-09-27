@@ -18,14 +18,13 @@ const strip = (h: string) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/\
 export async function getStaticPaths() {
   const API = 'https://api.winds.tw';
   const strip = (h: string) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  /* 2026-09-27：原本 catch 掉回空陣列，API 抖一下就不產任何靜態頁＝所有項目頁上線變 404，
+     而且 API 恢復也不會自己好。改成讓 build 失敗，deploy 當場紅掉重跑。 */
   const j = async (p: string) => {
-    try {
-      const r = await fetch(API + p);
-      const d = await r.json();
-      return Array.isArray(d) ? d : (d.services || d.products || d.items || d.data || []);
-    } catch {
-      return [];
-    }
+    const r = await fetch(API + p);
+    if (!r.ok) throw new Error(`build 中斷：${p} 回 ${r.status}，不要讓項目頁整批變 404`);
+    const d = await r.json();
+    return Array.isArray(d) ? d : (d.services || d.products || d.items || d.data || []);
   };
   const [sb, es] = await Promise.all([j('/sb-services'), j('/shop-products')]);
   const items = [

@@ -132,8 +132,21 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
     current = key; renderList();
     const box = $('crm-detail'); box.hidden = false;
     box.innerHTML = '<div class="crm-detail-loading"><span class="zf-spinner"></span></div>';
-    const r = await fetch(WORKER_API + '/admin/crm/person?key=' + encodeURIComponent(key), { headers: headers() });
-    const d = await r.json();
+    /* 2026-09-27 兩件事：
+       ① 切換客戶時不檢查回應還屬不屬於現在選的人——快速點 A 再點 B，A 比較晚回來的話，
+          列表選中 B、畫面卻是 A 的個資，備註也會存到 A 身上。用 current !== key 把舊回應丟掉。
+       ② 原本 fetch／json 沒有 try/catch，斷線或回非 JSON 會讓詳情永遠停在載入中。 */
+    let d: any;
+    try {
+      const r = await fetch(WORKER_API + '/admin/crm/person?key=' + encodeURIComponent(key), { headers: headers() });
+      if (!r.ok) throw new Error('伺服器回 ' + r.status);
+      d = await r.json();
+    } catch (e: any) {
+      if (current !== key) return;
+      box.innerHTML = `<p class="crm-empty">讀不到這個人的資料（${esc(e?.message || '連線失敗')}），重新點一次看看。</p>`;
+      return;
+    }
+    if (current !== key) return;
     if (!d.ok) { box.innerHTML = `<p class="crm-empty">${esc(d.error || '讀不到')}</p>`; return; }
     const p: P = d.person; const evs: { ts: string; kind: string; title: string; amount?: number; status?: string; note?: string }[] = d.events;
     const KIND: Record<string, string> = { pay: '付款', unlock: '免費解鎖', booking: '預約', cancel: '取消預約', order: '下單未付', divination: '占卜', click: '點信', join: '加入' };
@@ -168,8 +181,15 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
       ev.preventDefault();
       const f = (ev.target as HTMLFormElement).elements as any; const st = $('note-status'); st.textContent = '儲存中…';
       const tags = String(f.tags.value).split(/[,，]/).map((s: string) => s.trim()).filter(Boolean);
-      const r2 = await fetch(WORKER_API + '/admin/crm/note', { method: 'POST', headers: headers({ 'Content-Type': 'application/json' }), body: JSON.stringify({ key, note: f.note.value, tags }) });
-      const d2 = await r2.json();
+      let d2: any;
+      try {
+        const r2 = await fetch(WORKER_API + '/admin/crm/note', { method: 'POST', headers: headers({ 'Content-Type': 'application/json' }), body: JSON.stringify({ key, note: f.note.value, tags }) });
+        if (!r2.ok) throw new Error('伺服器回 ' + r2.status);
+        d2 = await r2.json();
+      } catch (e: any) {
+        st.textContent = '沒存成：' + (e?.message || '連線失敗');   // 原本沒接住，會永遠停在「儲存中…」讓人分不出存了沒
+        return;
+      }
       if (d2.ok) { st.textContent = '已存'; const me = people.find((x) => x.key === key); if (me) { me.tags = tags; me.note = f.note.value; } renderList(); }
       else st.textContent = '沒存成：' + (d2.error || d2.message || '');
     });

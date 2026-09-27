@@ -205,12 +205,20 @@ import '../styles/global.css';
 
   <script is:inline>
     var WORKER_API="https://api.winds.tw";
-    var API={status:WORKER_API+"/spirit-status",chat:WORKER_API+"/spirit-chat"};
+    var API={status:WORKER_API+"/spirit-status",chat:WORKER_API+"/spirit-chat",history:WORKER_API+"/spirit-history"};
 
     var S={mode:"self",userId:"",idToken:"",sessionId:null,sending:false,
       subscribed:false,lockedBirthday:null,freeRemaining:null,roundsSelf:null,roundsTarget:null,dailyRounds:30,profileExpanded:false,astro:null,
       spiritName:"",spiritTraits:null,
       targetDate:"",targetTime:"",targetConfirmed:false,hasMsg:false};
+
+    /* 2026-09-27：sessionId 原本只活在記憶體。重新整理、返回這一頁或切頁籤就整段訊息消失，
+       後端會開新 session，分靈體也失去前面的脈絡——這是付費商品（NT$360／7 天），不該這樣掉。
+       做法照 booking-chat 那頁已驗證的同一套：sessionId 存 localStorage（自己／對象各一份），
+       開頁時用 /spirit-history 撈回整段。ownership 由後端驗 token，存在本機的只有一個 session 編號。 */
+    function sessKey(){return "winds_spirit_session_"+S.mode}
+    function loadSess(){try{return localStorage.getItem(sessKey())||null}catch(e){return null}}
+    function saveSess(id){try{if(id)localStorage.setItem(sessKey(),String(id));else localStorage.removeItem(sessKey())}catch(e){}}
 
     function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
     function ic(n,w){return '<i class="ph'+(w?'-'+w:'')+' ph-'+n+'"></i>'}
@@ -253,12 +261,13 @@ import '../styles/global.css';
       renderProfile();renderTarget();renderCount();renderPaywall();
       bindInput();
       showWelcome();
+      rehydrate();
       if(S.mode==="self")fetchAstroLazy();
     }
     function tabBtn(k,label,icon){
       return '<button class="sp-tab'+(S.mode===k?' on':'')+'" onclick="switchMode(\''+k+'\')">'+ic(icon,S.mode===k?"fill":"")+(k==="self"?"自己的分靈體":"對象的分靈體")+'</button>';
     }
-    function switchMode(m){if(m===S.mode)return;S.mode=m;S.sessionId=null;S.astro=null;S.hasMsg=false;S.profileExpanded=false;render()}
+    function switchMode(m){if(m===S.mode)return;S.mode=m;S.astro=null;S.hasMsg=false;S.profileExpanded=false;S.sessionId=loadSess();render()}   /* 切頁籤不再清掉 session，改成讀這個模式自己存的那一段 */
 
     /* ===== profile card ===== */
     function renderProfile(){
@@ -367,6 +376,26 @@ import '../styles/global.css';
       return "先把對象的生日告訴我，我才能接收他的頻率。";
     }
     function showWelcome(){document.getElementById("spMsgs").innerHTML="";appendMsg("spirit",welcomeText(),nowHM())}
+    /* 撈回整段對話。失敗（session 被清、換帳號、斷線）就維持開場白，不要讓畫面卡住。 */
+    function rehydrate(){
+      var id=S.sessionId||loadSess();
+      if(!id){S.sessionId=null;return}
+      S.sessionId=id;
+      var box=document.getElementById("spMsgs");if(!box)return;
+      fetch(API.history+"?sessionId="+encodeURIComponent(id),{headers:{"X-Google-Id-Token":S.idToken||""}})
+        .then(function(r){return r.ok?r.json():null})
+        .then(function(d){
+          if(!d||!d.success&&!d.messages){saveSess(null);S.sessionId=null;return}
+          var ms=d.messages||[];
+          if(!ms.length)return;
+          box.innerHTML="";
+          ms.forEach(function(m){appendMsg(m.role==="user"?"user":"spirit",m.content,m.timestamp?hmOf(m.timestamp):"")});
+          S.hasMsg=true;
+        })
+        .catch(function(){});
+    }
+    function hmOf(ts){try{var d=new Date(ts);if(isNaN(d))return "";return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)}catch(e){return ""}}
+
     function avGlyph(){if(S.mode==="self")return S.spiritName?esc(S.spiritName.slice(0,1)):"靈";return "緣"}
     function appendMsg(role,text,time){
       var box=document.getElementById("spMsgs");if(!box)return null;
@@ -409,7 +438,7 @@ import '../styles/global.css';
            if(d.error==="ai_failed"){if(userEl&&userEl.parentNode)userEl.parentNode.removeChild(userEl);ta.value=msg;autoResize(ta);toast(d.message||"分靈體暫時無法回應，請稍後再試");return}
            toast(d.message||d.error||"對話失敗，請稍後再試");return;
          }
-         if(d.session_id)S.sessionId=d.session_id;
+         if(d.session_id){S.sessionId=d.session_id;saveSess(d.session_id)}
          if(d.locked_birthday&&S.mode==="target"){S.lockedBirthday=d.locked_birthday;renderTarget()}
          if(d.has_subscription){S.subscribed=true}
          if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;

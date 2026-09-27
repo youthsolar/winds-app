@@ -240,7 +240,7 @@ import { PERSONAS } from '../data/booking-teachers';
       function sn(base){return W.multiLoc?base+1:base;}   // 有地點步驟時各步 +1
       function pad2(n){return String(n).padStart(2,'0');}
       function ymd(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
-      function wizClose(){mount.innerHTML='';document.body.style.overflow='';}
+      function wizClose(){mount.innerHTML='';document.body.style.overflow='';W=null;}   /* 2026-09-27：也要清掉 W，否則慢回來的時段請求會把精靈自己彈回來 */
       function shell(step, title, inner, footer){
         var nn=W.nSteps||4, arr=[]; for(var i=1;i<=nn;i++)arr.push(i);
         var dots=arr.map(function(n){return '<span class="bw-dot'+(n<=step?' on':'')+'"></span>';}).join('');
@@ -288,13 +288,18 @@ import { PERSONAS } from '../data/booking-teachers';
       function stepTime(){
         shell(sn(2),'選時間','<div class="bw-loading"><span class="bw-spin"></span>載入可預約時段…</div>');
         var from=new Date(); from.setDate(from.getDate()+1); var to=new Date(); to.setDate(to.getDate()+28);
+        /* 2026-09-27：時段請求沒綁這一次精靈。在載入中途關掉、改開另一位老師的話，舊老師的回應會用
+           現在的 W 渲染——畫面上是新老師、時段是舊老師的，送出時還會拿新項目 ID 配舊項目的時間。
+           req 記住這次是哪一輪（openWiz 會換成新物件、wizClose 會設成 null），對不上就把回應丟掉。 */
+        var req=W;
         fetch(WORKER_API+'/sb-slots?service='+encodeURIComponent(W.svc.id)+'&provider='+encodeURIComponent(W.prov.id)+'&from='+ymd(from)+'&to='+ymd(to))
           .then(function(r){return r.json();}).then(function(d){
+            if(req!==W) return;
             var slots=(d&&d.slots)||{}; var dates=Object.keys(slots).sort();
             if(!dates.length){shell(sn(2),'選時間','<p class="bw-none">這位老師近 30 天暫無可預約時段，換個老師或稍後再試。</p>');return;}
             W.date=W.date&&slots[W.date]?W.date:dates[0]; W.time=null;
             renderTime(slots,dates);
-          }).catch(function(){shell(sn(2),'選時間','<p class="bw-none">時段載入失敗，請稍後再試。</p>');});
+          }).catch(function(){if(req!==W) return;shell(sn(2),'選時間','<p class="bw-none">時段載入失敗，請稍後再試。</p>');});
       }
       function renderTime(slots,dates){
         function dlabel(s){var p=s.split('-');return (+p[1])+'/'+(+p[2]);}

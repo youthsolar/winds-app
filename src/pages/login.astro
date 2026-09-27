@@ -73,8 +73,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         var hint = document.getElementById('lgHint'); if (hint) hint.hidden = false;
         location.replace(ret());
       }
+      /* 2026-09-27：原本 init() 每 150ms 無限重試，3.5 秒後就算已經換成外開引導也不會停；
+         Google SDK 若很晚才載入（或永遠被擋），init() 會把引導清掉、換回一顆在這個瀏覽器按不動的
+         Google 按鈕，副標也還是藏著＝畫面自相矛盾。改成：逾時就停止輪詢，且引導出來後不再蓋回去。 */
+      var GSI_DEADLINE = Date.now() + 3500;   // 與下面 setTimeout(fallback, 3500) 同一個時間點
       function init() {
-        if (!(window.google && google.accounts && google.accounts.id)) { setTimeout(init, 150); return; }
+        if (!(window.google && google.accounts && google.accounts.id)) {
+          if (Date.now() > GSI_DEADLINE) return;
+          setTimeout(init, 150); return;
+        }
+        if ((document.getElementById('lgGoogle') || {}).getAttribute && document.getElementById('lgGoogle').getAttribute('data-fb')) return;
         google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential, auto_select: false, context: 'signin' });
         var mount = document.getElementById('lgGoogle');
         if (mount) {

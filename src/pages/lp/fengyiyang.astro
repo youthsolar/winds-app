@@ -10,11 +10,16 @@ const API = 'https://api.winds.tw';
 const PROVIDER_ID = '1';
 let prov: any = null;
 let locations: any[] = [];
-try {
-  const d = await (await fetch(API + '/sb-providers')).json();
+/* 2026-09-27：原本 catch 掉就發一個「老師資料載入失敗」的空殼頁上線，預約與付款入口整條失效，
+   而且 API 恢復也不會自己好。改成讓 build 失敗。 */
+const provResp = await fetch(API + '/sb-providers');
+if (!provResp.ok) throw new Error(`build 中斷：/sb-providers 回 ${provResp.status}，不要把空殼落地頁發上線`);
+{
+  const d = await provResp.json();
   prov = (d.providers || []).find((p: any) => String(p.id) === PROVIDER_ID) || null;
   locations = (d.locations || []).filter((l: any) => (prov?.locations || []).includes(String(l.id)));
-} catch { /* build 時抓不到就整頁空殼，不擋 build */ }
+}
+if (!prov) throw new Error(`build 中斷：/sb-providers 裡找不到老師 ${PROVIDER_ID}`);
 
 const services: any[] = (prov?.services || []).filter((s: any) => Number(s.price) > 0);
 
@@ -437,9 +442,13 @@ const jsonLd = prov ? [
         });
       });
 
-      // 付完訂金回來（/pay-booking 的 ClientBackURL 目前回 liff.winds.tw/booking，這裡先留接口）
+      /* 付完訂金回來（/pay-booking 的 ClientBackURL 目前回 liff.winds.tw/booking，這裡先留接口）。
+         2026-09-27：原本只要網址有任何非空的 paid 參數就顯示「已收到訂金、時段保留給你了」，
+         沒有核對單號、付款狀態或簽章——打 ?paid=0 或用舊連結回來的人會以為付款成功，其實後端沒有這筆。
+         目前沒有可以查預約單狀態的端點，所以這裡不再宣告付款結果，只說「以確認信為準」並給一個看得到
+         真實狀態的出口。要真的顯示成功，得先加一支只回狀態的查詢端點再接回來。 */
       if (new URLSearchParams(location.search).get('paid')) {
-        card.innerHTML = '<div class="bw-body"><div class="bw-done"><i class="ph ph-check-circle" style="font-size:36px;color:var(--positive)"></i><p>已收到訂金，時段保留給你了。確認信會寄到你的 Gmail。</p></div></div>';
+        card.innerHTML = '<div class="bw-body"><div class="bw-done"><i class="ph ph-envelope-simple" style="font-size:36px;color:var(--rose-600)"></i><p>你剛從付款頁回來。這一筆的狀態以收到的確認信為準；也可以到<a href="/bookings">我的預約</a>看這筆現在的狀態。</p></div></div>';
       } else {
         stepLocation();
       }

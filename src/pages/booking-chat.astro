@@ -318,7 +318,9 @@ import '../styles/global.css';
     }
 
     function sendText(msg){
-      if(!msg||S.sending) return;
+      /* 2026-09-27 加 S.hydrating：撈歷史對話時輸入框原本還能送，兩邊會同時跑、又共用同一個
+         id="typing" 節點——歷史訊息會接在剛送出的新訊息後面，或「輸入中」被另一邊提早移掉。 */
+      if(!msg||S.sending||S.hydrating) return;
       S.sending=true; sendEl.disabled=true;
       addBubble('user', msg); showTyping();
       var auth=getAuth();
@@ -424,14 +426,16 @@ import '../styles/global.css';
       var url=HISTORY+'?'+qs.join('&');
       var h={}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
       showTyping();
+      S.hydrating=true; sendEl.disabled=true; taEl.disabled=true;   // 撈歷史期間不准送，避免兩邊打架
+      function hydrateDone(){ S.hydrating=false; sendEl.disabled=false; taEl.disabled=false; }
       fetch(url,{headers:h}).then(function(r){return r.json()}).then(function(d){
-        hideTyping();
+        hideTyping(); hydrateDone();
         // 跨裝置接回：後端回了最近對話的 token → 認領存本機，之後續聊接同一段
         if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} }
         var ms=(d&&d.messages)||[];
         if(ms.length){ ms.forEach(function(m){ addBubble(m.role==='user'?'user':'bot', m.content); }); }
         else { greet(); }
-      }).catch(function(){ hideTyping(); greet(); });
+      }).catch(function(){ hideTyping(); hydrateDone(); greet(); });
     })();
 
     // 漢堡選單

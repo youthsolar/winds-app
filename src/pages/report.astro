@@ -14,7 +14,11 @@
     (function () {
       var p = new URLSearchParams(location.search);
       var id = p.get('log_id') || p.get('id') || '';
-      location.replace(id ? ('/divination?log_id=' + encodeURIComponent(id)) : '/account');
+      /* 2026-09-27：原本只帶 log_id，把報告憑證 k 丟掉了。從付款跳回、提醒信或換一台裝置點
+         /report?log_id=…&k=… 進來的人，轉到 /divination 就證明不了存取權，已付費的報告看不到。 */
+      var k = p.get('k') || '';
+      var q = 'log_id=' + encodeURIComponent(id) + (k ? '&k=' + encodeURIComponent(k) : '');
+      location.replace(id ? ('/divination?' + q) : '/account');
     })();
   </script>
 </head>

@@ -869,6 +869,7 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const pwdForm = document.getElementById('pwd-form') as HTMLFormElement;
   const pwdInput = document.getElementById('pwd-input') as HTMLInputElement;
   const pwdError = document.getElementById('pwd-error') as HTMLElement;
+  const PWD_ERROR_DEFAULT = pwdError?.textContent || '密碼錯誤，請再試一次';   // 其他分支改過文字後要還原，不然下次輸錯會顯示上一次的錯誤
   if (pwdForm) {
     pwdForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -885,11 +886,20 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
           body: JSON.stringify({}),
         });
         if (r.status === 401) {
+          pwdError.textContent = PWD_ERROR_DEFAULT;
           pwdError.hidden = false;
           btn.disabled = false;
           return;
         }
-        // 任何非 401（400 缺欄位 / 200）都代表密碼正確
+        /* 2026-09-27：原本「任何非 401 都代表密碼正確」，403／404／429／500 或中間層的錯誤頁
+           也會被當成通過、密碼還寫進 localStorage，老師填完客人資料才在排盤那一步失敗，
+           而且錯誤頁沒有回密碼閘的路。改成只有 400（缺生日＝密碼是對的）或 200 才算過。 */
+        if (r.status !== 400 && !r.ok) {
+          pwdError.textContent = `現在沒辦法驗密碼（伺服器回 ${r.status}），請稍後再試`;
+          pwdError.hidden = false;
+          btn.disabled = false;
+          return;
+        }
         setTeacherSecret(val);
         hideAllSections();
         formSection.hidden = false;

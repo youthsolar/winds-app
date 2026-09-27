@@ -118,13 +118,20 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
     const from = addDays(anchor, -((dow + 6) % 7)); return { from, to: addDays(from, 6) };   // 週一起
   }
 
+  /* 2026-09-27：換日期／換週期／換老師會同時發出多個 load()，原本沒有版本檢查——舊的請求最後才回來
+     就會用舊資料蓋掉新資料，再依現在的日期渲染，常常變成「這天沒有預約」或少了幾筆，老師會誤判空檔。
+     loadSeq 記住這是第幾次請求，回來時不是最新一次就整個丟掉。 */
+  let loadSeq = 0;
   async function load() {
+    const mySeq = ++loadSeq;
     const { from, to } = range();
     $('tb-range').textContent = view === 'day' ? mdLabel(from) : `${mdLabel(from)} – ${mdLabel(to)}`;
     try {
-      data = await api(`/teacher/bookings?from=${from}&to=${to}${provider ? '&provider=' + provider : ''}`);
+      const fresh = await api(`/teacher/bookings?from=${from}&to=${to}${provider ? '&provider=' + provider : ''}`);
+      if (mySeq !== loadSeq) return;
+      data = fresh;
       render();
-    } catch (e: any) { if (e.message !== 'unauthorized') { hideAll(); errorSection.hidden = false; $('error-text').textContent = '讀不到預約：' + e.message; } }
+    } catch (e: any) { if (mySeq !== loadSeq) return; if (e.message !== 'unauthorized') { hideAll(); errorSection.hidden = false; $('error-text').textContent = '讀不到預約：' + e.message; } }
   }
 
   function provName(id: any) { const p = catalog.providers.find((x: any) => String(x.id) === String(id)); return p ? p.name : `老師 #${id}`; }

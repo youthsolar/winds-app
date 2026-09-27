@@ -4,8 +4,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 // 法器選物：目錄從 worker /shop-products（D1 service_catalog）build 時抓，每件連到自售頁 /shop/<id>/。
 // 2026-09-03 起不再連 EasyStore、不做購物袋（單件結帳）。
 const API = 'https://api.winds.tw';
-let products: any[] = [];
-try { products = (await (await fetch(API + '/shop-products')).json()).products || []; } catch { /* build 時抓不到就空目錄 */ }
+/* 2026-09-27：原本 catch 掉就發一個空目錄上線，API 恢復也不會自己好（要再 deploy 一次才會）。
+   改成讓 build 失敗——空商店等於整站無法導購，寧可 deploy 當場紅掉重跑，也不要靜默上線空頁。
+   注意：API 回 200 但商品真的是空的，照舊發布（那是 API 的事實，不是故障）。 */
+const shopResp = await fetch(API + '/shop-products');
+if (!shopResp.ok) throw new Error(`build 中斷：/shop-products 回 ${shopResp.status}，不要把空商店發上線`);
+const products: any[] = (await shopResp.json()).products || [];
 
 const nf = (n: number) => 'NT$ ' + (Number(n) || 0).toLocaleString('en-US');
 const cleanName = (s: string) => String(s).split('/')[0].replace(/[【】]/g, '').trim();
