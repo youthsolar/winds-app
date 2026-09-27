@@ -388,12 +388,15 @@ import '../styles/global.css';
        改成：每次撈都記下是第幾次、屬於哪個模式，回來不是最新那次就丟掉；撈的期間不准送出。 */
     function rehydrate(){
       var gen=++S.hydGen;S.hydrating=false;
+      if(S.booting)return;   // 開頁還在等 status：等正式那次再撈
       var mode=S.mode;
       var id=S.sessionId||loadSess();
       if(!id){S.sessionId=null;return}
       S.sessionId=id;
       var box=document.getElementById("spMsgs");if(!box)return;
       S.hydrating=true;
+      /* 撈太久（15 秒）就放棄：解鎖讓他能送，並讓晚到的回應作廢，免得回來又把新訊息蓋掉 */
+      setTimeout(function(){if(gen===S.hydGen&&S.hydrating){S.hydGen++;S.hydrating=false;}},15000);
       fetch(API.history+"?sessionId="+encodeURIComponent(id),{headers:{"X-Google-Id-Token":S.idToken||""}})
         .then(function(r){return r.ok?r.json():null})
         .then(function(d){
@@ -429,7 +432,7 @@ import '../styles/global.css';
     /* ===== send（金流/錯誤路原樣保留）===== */
     function send(){
       if(S.sending)return;
-      if(S.hydrating){toast("正在接回先前的對話，稍等一下");return}
+      if(S.hydrating||S.booting){toast("正在接回先前的對話，稍等一下");return}
       var ta=document.getElementById("spText");var msg=ta.value.trim();if(!msg)return;
       if(S.mode==="target"&&!S.targetConfirmed&&!S.lockedBirthday){toast("請先輸入對象生日");return}
       var targetBirthday=null;
@@ -526,7 +529,10 @@ import '../styles/global.css';
     /* ===== boot ===== */
     (function boot(){
       readToken();
-      fetchStatus().then(function(){render();renderPaywall()});
+      /* 2026-09-28（Codex 複核）：原本先畫一次＋status 回來再畫一次，兩次都撈歷史；第二次會把中間送出的訊息清掉。
+         改成 status 回來前只畫殼、不撈歷史也不准送出，回來後才正式畫＋撈一次。 */
+      S.booting=true;
+      fetchStatus().then(function(){S.booting=false;render();renderPaywall()});
       render(); // 先畫（含登入 gate / 殼），status 回來後 render 再更新次數
     })();
   </script>

@@ -16,6 +16,7 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 <BaseLayout
   title={`${data.posted_label} 的${topic.label}卦・${data.hex.name} · 找風問幸福`}
   description={`${data.posted_long}起的${topic.label}卦，走「${data.hex.char}」。${data.line} 風易揚老師的解卦。`}
+  ogImage={data.og_url || undefined}
 >
   <TopicGua data={data} topic={topic} isCurrent={isCurrent} />
 </BaseLayout>

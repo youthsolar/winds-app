@@ -1651,10 +1651,10 @@ function genSpirit(){
    .catch(function(){STATE.spiritGenerating=false;render();alert("網路錯誤，請稍後再試");});
 }
 function pollSpirit(tok,n){
-  if(n>=30){STATE.spiritGenerating=false;render();return;}
+  if(n>=30){STATE.spiritGenerating=false;STATE.spiritPolling=false;render();return;}
   setTimeout(function(){
     fetch(WORKER_API+"/delivery-content?token="+tok+kParam(),{headers:authHeaders()}).then(function(r){return r.json()}).then(function(d){
-      if(d&&d.personality_profile){if(STATE.result){STATE.result.profile=d.personality_profile;STATE.result.profileGenerating=false;}STATE.spiritGenerating=false;render();}
+      if(d&&d.personality_profile){if(STATE.result){STATE.result.profile=d.personality_profile;STATE.result.profileGenerating=false;}STATE.spiritGenerating=false;STATE.spiritPolling=false;render();}
       else pollSpirit(tok,n+1);
     }).catch(function(){pollSpirit(tok,n+1)});
   },10000);
@@ -1789,7 +1789,9 @@ function loadFullContent(retry){
   STATE.fullLoading=true;STATE.fullError=false;STATE.fullNeedLogin=false;STATE.fullGenerating=false;STATE.fullToken=m[1];
   fetch(WORKER_API+"/delivery-content?token="+m[1]+kParam(),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
     STATE.fullLoading=false;
-    if(d&&d.ok&&d.hexagram_content){STATE.full=d;STATE.fullGenerating=false;}
+    if(d&&d.ok&&d.hexagram_content){STATE.full=d;STATE.fullGenerating=false;
+      /* 2026-09-28（Codex 複核）：分靈體側寫生成途中重新整理，只會顯示「還在整理」卻不再輪詢，好了也不會出現 */
+      if(STATE.result&&STATE.result.profileGenerating&&!STATE.spiritPolling&&STATE.fullToken){STATE.spiritPolling=true;pollSpirit(STATE.fullToken,0);}}
     else if(d&&d.ok&&!d.summary_mode){
       /* Paid 但解讀還在生成（press/gift 免費解鎖＝fulfillPaidOrder 背景履約，LLM 要幾十秒）→ 輪詢等它寫完，不是失敗 */
       STATE.fullPolls=(STATE.fullPolls||0)+1;
@@ -1817,7 +1819,7 @@ function paywall(paid){
         ?'<div class="fi-body">'+mdFull(STATE.full.hexagram_content)+'</div>'
         :'<div style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+(STATE.fullError
           ?(STATE.fullNeedLogin
-            ?'完整解讀要本人才看得到：請從付款後收到的信裡的連結打開，或用付款時的 Google 帳號登入。'
+            ?'完整解讀要本人才看得到：請從付款後收到的信裡的連結打開，或<a href="/login?return='+encodeURIComponent(location.pathname+location.search)+'" style="color:var(--rose-600)">用付款時的 Google 帳號登入</a>。 <button class="zf-btn ghost sm" onclick="STATE.fullPolls=0;loadFullContent(true)">再試一次</button>'
             :'<button class="zf-btn ghost sm" onclick="STATE.fullPolls=0;loadFullContent(true)">完整解讀載入失敗，點我重試</button>')
           :STATE.fullGenerating
           ?ic("circle-notch")+'老師的完整解讀正在為你寫，一會兒就好…（這頁會自己更新）'
@@ -2165,7 +2167,10 @@ function pollStatus(logId,alreadyWarm){
      .then(function(r){return r.json();}).then(function(d){
        if(d.warm_urls&&d.warm_urls.length&&!warmed){warmed=true;warmCards(d.warm_urls.slice());}
        if(d.ready&&d.summary){clearInterval(timer);finishResult(d,logId);}
-       else if(attempts>=max){clearInterval(timer);STATE.submitting=false;go(STATE.k?"hex":"info");setTimeout(function(){showFfErr("老師還在寫，稍後再回來這一頁看。");},60);}
+       else if(attempts>=max){clearInterval(timer);STATE.submitting=false;
+         /* 2026-09-28（Codex 複核）：回看報告、沒 k 也沒登入＝永遠讀不到；原本跳去不存在的 info 頁、畫面上也沒有登入鈕。改帶去登入頁，登入後回到這一頁。 */
+         if(STATE.reportMode&&!STATE.k&&!STATE.userId){location.href="/login?return="+encodeURIComponent(location.pathname+location.search);return;}
+         go(STATE.k?"hex":"info");setTimeout(function(){showFfErr("老師還在寫，稍後再回來這一頁看。");},60);}
      }).catch(function(){if(attempts>=max){clearInterval(timer);STATE.submitting=false;go(STATE.k?"hex":"info");setTimeout(function(){showFfErr("連線中斷，稍後再回來這一頁看。");},60);}});
   },4000);
 }
@@ -2315,6 +2320,7 @@ function handleGoogleCredential(resp){
   doPrefill();
   /* 回看報告途中才登入：輪詢已經逾時就重新讀一次（還在輪詢的話，下一次查詢會自動帶上新身分） */
   if(STATE.reportMode&&!STATE.result&&STATE.reportLogId&&STATE.step!=="interpreting"){go("interpreting");pollStatus(STATE.reportLogId);return;}
+  if(STATE.result&&STATE.result.purchased&&STATE.fullNeedLogin){STATE.fullPolls=0;loadFullContent(true);}   /* 剛才只拿到摘要，登入後重抓全文 */
   if(STATE.step==="info")render();
 }
 function initGoogleGIS(){
@@ -2374,7 +2380,8 @@ function boot(){
   if(rid&&kk){STATE.k=kk;STATE.reportMode=true;STATE.step="interpreting";render();pollStatus(rid);return;}
   if(!kk&&rid){try{var sk=localStorage.getItem("winds_ff_log")||"",skk=localStorage.getItem("winds_ff_k")||"";if(sk===String(rid)&&skk)STATE.k=skk;}catch(e){}}
   if(rid||pending){
-    if(pending&&!rid){try{pending_k=localStorage.getItem("winds_ff_log")===pending?(localStorage.getItem("winds_ff_k")||""):"";if(pending_k)STATE.k=pending_k;}catch(e){}try{sessionStorage.removeItem("winds_pending_log_id");}catch(e){}}
+    if(pending&&!rid){try{pending_k=localStorage.getItem("winds_ff_log")===pending?(localStorage.getItem("winds_ff_k")||""):"";if(pending_k)STATE.k=pending_k;}catch(e){}}
+    if(pending){try{sessionStorage.removeItem("winds_pending_log_id");}catch(e){}}   /* 2026-09-28（Codex 複核）：清理不能跟著 !rid 被跳過，否則殘留的 pending 會在下次進 /divination 接管 */
     STATE.reportMode=true;   // 完整報告：回訪既有占卜 → 結果頁套站台 Nav/Footer
     STATE.step="interpreting";render();pollStatus(rid||pending);
     if(!STATE.userId&&!STATE.k)initGoogleGIS();
