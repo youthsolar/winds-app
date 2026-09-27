@@ -7,7 +7,9 @@ import { TOPICS, fetchTopicGua } from '../../data/topics';
 const topic = TOPICS['love'];
 const id = String(Astro.params.id || '').replace(/[^0-9]/g, '');
 if (!id) return Astro.redirect(`/${topic.path}/`, 302);
-const { data, isCurrent } = await fetchTopicGua('love', id);
+const { data, isCurrent, failed } = await fetchTopicGua('love', id);
+// 故障時不要跳去最新篇（那是另一卦），回 503 讓他重整
+if (failed) return new Response('暫時讀不到這一卦，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
 if (!data) return Astro.redirect(`/${topic.path}/`, 302);
 Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 ---

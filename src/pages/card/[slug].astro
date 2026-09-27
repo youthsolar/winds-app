@@ -8,6 +8,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 const API = 'https://api.winds.tw';
 const slug = String(Astro.params.slug || '');
 const m = slug.match(/^(\d{1,10})-([a-f0-9]{20})$/);
+let failed = false;   // 2026-09-28（Codex 體檢）：worker 5xx／連線失敗＝暫時故障，不是連結壞掉
 let data: { id: number; hex_name: string; line: string; image_url: string; expired: boolean; paid?: boolean; valid_until_label: string; from_name: string } | null = null;
 if (m) {
   try {
@@ -19,12 +20,12 @@ if (m) {
         Referer: Astro.request.headers.get('referer') || '',
       },
     });
-    const j = await r.json() as any;
-    if (j && j.success) data = j;
-  } catch { data = null; }
+    if (r.status >= 500) failed = true;
+    else { const j = await r.json() as any; if (j && j.success) data = j; }
+  } catch { data = null; failed = true; }
 }
 Astro.response.headers.set('Cache-Control', 'private, no-store');
-if (!data) Astro.response.status = 404;
+if (!data) Astro.response.status = failed ? 503 : 404;
 
 const from = data && data.from_name ? data.from_name : '有人';
 const castUrl = data ? `/divination/?ref=${data.id}&utm_source=card&utm_medium=share&utm_content=${data.id}` : '/divination/';
@@ -47,9 +48,9 @@ const desc = data ? `${data.hex_name}。${data.line}${data.line ? '。' : ''}風
       </div>
     ) : (
       <div class="rc">
-        <span class="rc-eyebrow"><i></i>找不到這一卦</span>
-        <h1 class="rc-h">這張卦符的連結不完整</h1>
-        <p class="rc-p">請對方再傳一次，或你自己起一卦。</p>
+        <span class="rc-eyebrow"><i></i>{failed ? '稍等一下' : '找不到這一卦'}</span>
+        <h1 class="rc-h">{failed ? '暫時讀不到這張卦符' : '這張卦符的連結不完整'}</h1>
+        <p class="rc-p">{failed ? '連結沒問題，是我們這邊暫時讀不到，過一下重新整理就好。' : '請對方再傳一次，或你自己起一卦。'}</p>
         <a class="zf-btn primary lg rc-cta" href="/divination/"><i class="ph-thin ph-sparkle"></i>我也起一卦</a>
       </div>
     )}

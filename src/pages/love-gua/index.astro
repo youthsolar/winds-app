@@ -5,8 +5,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import TopicGua from '../../components/TopicGua.astro';
 import { TOPICS, fetchTopicGua } from '../../data/topics';
 const topic = TOPICS['love'];
-const { data } = await fetchTopicGua('love');
-Astro.response.headers.set('Cache-Control', 'public, max-age=60');
+const { data, failed } = await fetchTopicGua('love');
+Astro.response.headers.set('Cache-Control', failed ? 'no-store' : 'public, max-age=60');   // 故障時的空狀態不能被快取
 ---
 <BaseLayout
   title={data ? `${topic.label}卦・${data.hex.name} · 找風問幸福` : `${topic.label}卦 · 找風問幸福`}

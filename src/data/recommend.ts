@@ -53,9 +53,10 @@ const CAT_THEME: Record<string, string[]> = {
 // 取文章對應推薦（最多 3 筆，去重）
 export function pickRecs(category?: string, max = 3): Rec[] {
   const themes = (category && CAT_THEME[category]) || ['fate', 'love'];
+  // 2026-09-28（Codex 體檢）：用 name 去重——不同預約項目共用同一個預約入口網址，用 url 去重會把該推的項目刪掉、補進不相干的商品
   const out: Rec[] = []; const seen = new Set<string>();
-  for (const th of themes) for (const r of (T[th] || [])) { if (!seen.has(r.url)) { seen.add(r.url); out.push(r); } }
+  for (const th of themes) for (const r of (T[th] || [])) { if (!seen.has(r.name)) { seen.add(r.name); out.push(r); } }
   // 補滿
-  if (out.length < max) for (const th of ['love', 'wealth', 'fate']) for (const r of (T[th] || [])) { if (out.length >= max) break; if (!seen.has(r.url)) { seen.add(r.url); out.push(r); } }
+  if (out.length < max) for (const th of ['love', 'wealth', 'fate']) for (const r of (T[th] || [])) { if (out.length >= max) break; if (!seen.has(r.name)) { seen.add(r.name); out.push(r); } }
   return out.slice(0, max);
 }

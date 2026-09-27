@@ -1213,7 +1213,7 @@ function viewCast(){
 }
 function ffCastWire(){
   var m=document.getElementById("ffMirror");if(!m)return;
-  FF_CAST={t:null,rising:0,busy:false};ffRipStart(false);
+  FF_CAST={t:null,rising:0,busy:false,req:(FF_CAST&&FF_CAST.req)||0};ffRipStart(false);
   function draw(){var y=document.getElementById("ffYaos");if(y&&STATE.cast)y.innerHTML=ffYaos(STATE.cast.code,FF_CAST.rising);var n=document.getElementById("ffHexName");if(n&&STATE.cast){n.textContent=STATE.cast.name;n.classList.toggle("on",FF_CAST.rising>=6);}}
   function stop(){if(FF_CAST.t&&FF_CAST.t!=="done"){clearInterval(FF_CAST.t);FF_CAST.t=null;FF_CAST.rising=0;FF_CAST.busy=false;STATE.cast=null;draw();ffRipStart(false);var c=document.getElementById("ffClock");if(c)c.textContent="";m.classList.remove("busy");}}
   function start(e){
@@ -1224,9 +1224,11 @@ function ffCastWire(){
     if(LOVE&&!lvReady()){var lc=document.getElementById(STATE.data.loveWho?"lvAngle":"lvWho");if(lc)lc.scrollIntoView({behavior:"smooth",block:"center"});showFfErr(STATE.data.loveWho?"再選一件你最想先知道的事。":"先選一個，再按水鏡。");return;}
     FF_CAST.busy=true;m.classList.add("busy");ffRipStart(true);
     FF_CAST.t="pending";
+    /* 2026-09-28（Codex 體檢）：按 A 放開再按 B，A 較晚回來會被當成 B。每次按下帶序號，只收最新那次。 */
+    var myReq=FF_CAST.req=(FF_CAST.req||0)+1;
     /* 按下去那一刻起卦：後端用此刻的時間起卦（同 /gua），零資料 */
     fetch(WORKER_API+"/free-cast",{method:"POST"}).then(function(r){return r.json();}).then(function(d){
-      if(FF_CAST.t!=="pending")return;               /* 已放開 */
+      if(FF_CAST.t!=="pending"||myReq!==FF_CAST.req)return;   /* 已放開，或已經是下一次按的 */
       if(!d||!d.success){FF_CAST.t=null;stop();showFfErr("起卦沒成功，再按一次。");return;}
       STATE.cast={code:d.code,name:d.name,line:d.line,castAt:d.cast_at,castLabel:d.cast_label||""};
       var c=document.getElementById("ffClock");if(c)c.textContent=STATE.cast.castLabel+" 起卦";
@@ -1234,7 +1236,7 @@ function ffCastWire(){
         FF_CAST.rising++;draw();
         if(FF_CAST.rising>=6){clearInterval(FF_CAST.t);FF_CAST.t="done";FF_CAST.busy=false;ffRipStart(false);setTimeout(function(){if(STATE.step==="cast"||STATE.step==="landing")go("hex");},1700);}
       },520);
-    }).catch(function(){FF_CAST.t=null;stop();showFfErr("連線不穩，再按一次。");});
+    }).catch(function(){if(myReq!==FF_CAST.req)return;FF_CAST.t=null;stop();showFfErr("連線不穩，再按一次。");});
   }
   function release(){if(FF_CAST.t==="pending"){FF_CAST.t=null;stop();return;}stop();}
   m.addEventListener("pointerdown",start);m.addEventListener("pointerup",release);m.addEventListener("pointercancel",release);
@@ -1440,6 +1442,9 @@ function viewReportPaid(R,q){
     '</div>';
   h+=block("完整解讀","",paywall(true));
   h+=block("你的命理檔案","",profileCard(true));
+  /* 2026-09-28（Codex 體檢）：付費版原本沒有 spiritCard＝沒有「生成我的分靈體」按鈕，後端付款時也不會自動生成。
+     已有側寫時 profileCard 會顯示，只在還沒有時補這一塊，避免重複。 */
+  if(!(R.profile&&R.profile.trim()))h+=block("你的分靈體","",spiritCard(true));
   h+=tarotBlockFull(R);
   h+=qianBlockFull(R);
   if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("風易揚老師的靈符解方","老師親手畫、依你這一卦配的靈符；每逢節氣解鎖一張，依序設成手機桌布。",hexCardHero(true)+hexTalismans(true),true);
@@ -2137,9 +2142,12 @@ function submitFree(){
 function warmCards(list){if(!list.length)return;var im=new Image();im.onload=im.onerror=function(){warmCards(list);};im.src=list.shift();}
 function pollStatus(logId,alreadyWarm){
   var attempts=0,max=23,warmed=!!alreadyWarm; /* 2026-09-25：等解卦時先把卦符卡＋五張模糊卡抓一次，結果頁一開圖就在 */
-  var ident=STATE.k?("&k="+encodeURIComponent(STATE.k)):("&google_sub="+encodeURIComponent(STATE.userId||""));
-  var timer=setInterval(function(){
+  /* 2026-09-28（Codex 體檢）：身分原本在開始時就固定，途中登入也不會換，報告永遠讀不到。改成每次查詢時才算。 */
+  STATE.reportLogId=logId;
+  if(STATE.pollTimer)clearInterval(STATE.pollTimer);
+  var timer=STATE.pollTimer=setInterval(function(){
     attempts++;
+    var ident=STATE.k?("&k="+encodeURIComponent(STATE.k)):("&google_sub="+encodeURIComponent(STATE.userId||""));
     fetch(API.status+"?log_id="+encodeURIComponent(logId)+ident,{headers:authHeaders()})
      .then(function(r){return r.json();}).then(function(d){
        if(d.warm_urls&&d.warm_urls.length&&!warmed){warmed=true;warmCards(d.warm_urls.slice());}
@@ -2236,6 +2244,9 @@ function createOrder(){
 
 /* ===== 分享（Web Share API / 剪貼簿）===== */
 function shareResult(btn){
+  /* 2026-09-28（Codex 體檢）：沒登入就付款的人 userId 是空的，原本會組出打不開的 share?uid=。
+     這時改用這一卦自己的收卡頁連結（shareCard，零登入可開）；兩個都沒有就請他登入。 */
+  if(!STATE.userId){if(STATE.shareUrl){shareCard(btn);}else{alert("登入 Google 後才能產生分享頁。");}return;}
   var orig=btn?btn.innerHTML:"";
   if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'生成分享圖中…';}
   var done=function(){if(btn){btn.disabled=false;btn.innerHTML=orig;}};
@@ -2289,6 +2300,8 @@ function handleGoogleCredential(resp){
   /* 量測：Lead＝此瀏覽器第一次登入/綁定（重複登入不重送） */
   if(firstLogin){try{if(window.fbq)fbq('track','Lead');if(window.gtag)gtag('event','sign_up',{method:'google'});}catch(e){}}
   doPrefill();
+  /* 回看報告途中才登入：輪詢已經逾時就重新讀一次（還在輪詢的話，下一次查詢會自動帶上新身分） */
+  if(STATE.reportMode&&!STATE.result&&STATE.reportLogId&&STATE.step!=="interpreting"){go("interpreting");pollStatus(STATE.reportLogId);return;}
   if(STATE.step==="info")render();
 }
 function initGoogleGIS(){
@@ -2348,7 +2361,7 @@ function boot(){
   if(rid&&kk){STATE.k=kk;STATE.reportMode=true;STATE.step="interpreting";render();pollStatus(rid);return;}
   if(!kk&&rid){try{var sk=localStorage.getItem("winds_ff_log")||"",skk=localStorage.getItem("winds_ff_k")||"";if(sk===String(rid)&&skk)STATE.k=skk;}catch(e){}}
   if(rid||pending){
-    if(pending){try{pending_k=localStorage.getItem("winds_ff_log")===pending?(localStorage.getItem("winds_ff_k")||""):"";if(pending_k)STATE.k=pending_k;}catch(e){}try{sessionStorage.removeItem("winds_pending_log_id");}catch(e){}}
+    if(pending&&!rid){try{pending_k=localStorage.getItem("winds_ff_log")===pending?(localStorage.getItem("winds_ff_k")||""):"";if(pending_k)STATE.k=pending_k;}catch(e){}try{sessionStorage.removeItem("winds_pending_log_id");}catch(e){}}
     STATE.reportMode=true;   // 完整報告：回訪既有占卜 → 結果頁套站台 Nav/Footer
     STATE.step="interpreting";render();pollStatus(rid||pending);
     if(!STATE.userId&&!STATE.k)initGoogleGIS();

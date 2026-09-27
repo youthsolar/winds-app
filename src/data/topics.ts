@@ -57,18 +57,21 @@ export interface GuaData {
 const API = 'https://api.winds.tw';
 
 // 即時讀最新一卦（或指定篇）。讀不到（還沒發、worker 掛了）回 null，頁面走空狀態但抽一卦的鈕照常。
-export async function fetchTopicGua(topicKey: string, id?: string): Promise<{ data: GuaData | null; isCurrent: boolean }> {
+// 2026-09-28（Codex 體檢）：多回 failed——worker 故障不能當成「還沒發」（首頁會把空狀態公開快取、單篇會被轉去最新篇）
+export async function fetchTopicGua(topicKey: string, id?: string): Promise<{ data: GuaData | null; isCurrent: boolean; failed?: boolean }> {
   try {
     const url = `${API}/topic-gua?topic=${encodeURIComponent(topicKey)}${id ? `&id=${encodeURIComponent(id)}` : ''}`;
     const r = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!r.ok) return { data: null, isCurrent: !id, failed: true };
     const j = await r.json() as { ok: boolean; item: any; prev: any; latest_id: number | null };
-    if (!j.ok || !j.item) return { data: null, isCurrent: !id };
+    if (!j.ok) return { data: null, isCurrent: !id, failed: true };
+    if (!j.item) return { data: null, isCurrent: !id };
     const it = j.item;
     return {
       data: { id: String(it.id), posted_label: it.posted_label, posted_long: it.posted_long, status: it.status, hex: it.hex, h1: it.h1, lede: it.lede, line: it.line, tags: it.tags || [], states: it.states || [], quote: it.quote, og_url: it.og_url || null, prev: j.prev ? { id: String(j.prev.id), label: j.prev.label } : null },
       isCurrent: !id || Number(id) === Number(j.latest_id),
     };
   } catch {
-    return { data: null, isCurrent: !id };
+    return { data: null, isCurrent: !id, failed: true };
   }
 }
