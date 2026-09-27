@@ -547,9 +547,16 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-prog i.on{background:var(--accent)}
     .ff-chat{display:grid;gap:12px}
     .ff-who{display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
+    /* 老師開口泡泡＝分靈體對話同值（spirit.astro .sp-bubble／.sp-av／.sp-bubble-txt） */
+    .ff-chat > .ff-who{padding-left:40px}
+    .ff-row{display:flex;align-items:flex-end;gap:8px}
+    .ff-row.me{justify-content:flex-end}
+    .ff-row+.ff-row{margin-top:2px}
+    .ff-bav{flex:none;width:32px;height:32px;box-sizing:border-box;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:12.8px;font-weight:500;color:var(--rose-700, var(--rose-600))}
+    .ff-bsp{flex:none;width:32px}
     .ff-av{flex:none;width:26px;height:26px;border-radius:var(--radius-md);background:var(--paper,var(--surface-card));border:1px solid var(--rose-100);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:12px;color:var(--accent-press)}
-    .ff-bub{max-width:88%;padding:11px 14px;border-radius:18px;font-family:var(--font-serif);font-size:14.5px;line-height:1.7;background:var(--surface-card);border:1px solid var(--border-soft);border-top-left-radius:6px;color:var(--text-primary);font-weight:300;animation:ffIn .38s var(--ease-soft)}
-    .ff-bub.me{background:var(--accent);color:var(--text-on-accent);justify-self:end;width:fit-content;white-space:nowrap;border-top-right-radius:6px;border-top-left-radius:18px;border-color:transparent;font-weight:500}
+    .ff-bub{max-width:calc(100% - 52px);padding:12px 16px;border-radius:18px 18px 18px 6px;font-family:var(--font-serif);font-size:16px;line-height:1.75;background:var(--surface-card);border:1px solid var(--border-soft);box-shadow:var(--shadow-sm);color:var(--ink-900);font-weight:300;margin:0;animation:ffIn .38s var(--ease-soft)}
+    .ff-bub.me{border-radius:18px 18px 6px 18px;background:var(--accent);border:none;color:var(--text-on-accent);font-weight:400}
     @keyframes ffIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
     .ff-ctl{margin:16px 0 12px} /* 2026-09-26 Jeffery：問生日的圖形上下太擠，各留白 */
     .ff-next{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
@@ -1257,8 +1264,10 @@ function viewHex(){
 }
 
 /* ── 4 老師開口問（一次一題，每題一個可以玩的控制項）── */
-function ffWho(){return '<div class="ff-who"><span class="ff-av">風</span>風易揚老師</div>';}
-function ffBub(t,me){return '<div class="ff-bub'+(me?' me':'')+'">'+t+'</div>';}
+/* 2026-09-28 Jeffery：老師開口的泡泡跟分靈體對話同一套（spirit.astro .sp-bubble／DS SpiritAvatar）：
+   每則老師泡泡左邊帶頭像、底部對齊；使用者泡泡靠右、右邊留頭像寬的空位 */
+function ffWho(){return '<div class="ff-who">風易揚老師</div>';}
+function ffBub(t,me){return '<div class="ff-row'+(me?' me':'')+'">'+(me?'':'<span class="ff-bav" aria-hidden="true">風</span>')+'<div class="ff-bub'+(me?' me':'')+'">'+t+'</div>'+(me?'<span class="ff-bsp"></span>':'')+'</div>';}
 function shiName(i){return SHI[i][0]+"時";}
 function viewAsk(){
   var k=ASK[STATE.ask],d=STATE.data;
