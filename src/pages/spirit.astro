@@ -267,7 +267,13 @@ import '../styles/global.css';
     function tabBtn(k,label,icon){
       return '<button class="sp-tab'+(S.mode===k?' on':'')+'" onclick="switchMode(\''+k+'\')">'+ic(icon,S.mode===k?"fill":"")+(k==="self"?"自己的分靈體":"對象的分靈體")+'</button>';
     }
-    function switchMode(m){if(m===S.mode)return;S.mode=m;S.astro=null;S.hasMsg=false;S.profileExpanded=false;S.sessionId=loadSess();render()}   /* 切頁籤不再清掉 session，改成讀這個模式自己存的那一段 */
+    /* 送出中不准換頁籤：回應處理讀的是「現在的」S.mode，切換發生在請求完成前會把回覆與狀態寫到另一個模式。
+       切頁籤也不再清掉 session，改成讀這個模式自己存的那一段（2026-09-27）。 */
+    function switchMode(m){
+      if(m===S.mode)return;
+      if(S.sending){toast("等分靈體回完這句再換");return}
+      S.mode=m;S.astro=null;S.hasMsg=false;S.profileExpanded=false;S.sessionId=loadSess();render();
+    }
 
     /* ===== profile card ===== */
     function renderProfile(){
@@ -423,6 +429,7 @@ import '../styles/global.css';
       var userEl=appendMsg("user",msg,nowHM());
       var send_=document.getElementById("spSend");send_.setAttribute("disabled","");S.sending=true;
       showTyping();
+      var sentMode=S.mode;   // 這則訊息屬於哪個模式
       /* 2026-09-26（Codex 複審抓到）：原本只送 lineUserId，token 存了沒用，worker 直接信任呼叫方給的身分，
          知道別人 Google 編號的人就能用掉對方的額度、讀到對方的資料。改成把 token 一起送，worker 端驗身分。 */
       fetch(API.chat,{method:"POST",headers:{"Content-Type":"application/json","X-Google-Id-Token":S.idToken||""},
@@ -430,6 +437,7 @@ import '../styles/global.css';
        .then(function(resp){return resp.json().then(function(d){return{status:resp.status,d:d}})})
        .then(function(o){
          removeTyping();var d=o.d;
+         if(S.mode!==sentMode)return;   // 保險：真的被換掉就整份丟掉
          if(o.status===403&&d.needSubscribe){openPaywall();return}
          if(!d.success){
            if(d.error==="no_profile"){appendMsg("spirit","我還不認識你呢——先拿到老師的靈符解方，讓我感應你的靈魂頻率，回來我們再好好聊。",nowHM());setTimeout(function(){location.href="/divination"},3000);return}
