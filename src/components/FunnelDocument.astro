@@ -1644,7 +1644,7 @@ function genSpirit(){
 function pollSpirit(tok,n){
   if(n>=30){STATE.spiritGenerating=false;render();return;}
   setTimeout(function(){
-    fetch(WORKER_API+"/delivery-content?token="+tok,{headers:authHeaders()}).then(function(r){return r.json()}).then(function(d){
+    fetch(WORKER_API+"/delivery-content?token="+tok+kParam(),{headers:authHeaders()}).then(function(r){return r.json()}).then(function(d){
       if(d&&d.personality_profile){if(STATE.result){STATE.result.profile=d.personality_profile;STATE.result.profileGenerating=false;}STATE.spiritGenerating=false;render();}
       else pollSpirit(tok,n+1);
     }).catch(function(){pollSpirit(tok,n+1)});
@@ -1770,13 +1770,15 @@ function mdFull(t){
   flush();
   return out.join('');
 }
+/* 2026-09-28 Jeffery 拍板：這一卦的連結憑證 k 也算本人——沒登入就付款的人一小時後回來也看得到完整解讀與分靈體 */
+function kParam(){return STATE.k?"&k="+encodeURIComponent(STATE.k):"";}
 function loadFullContent(retry){
   var R=STATE.result||{};
   if(!R.purchased||STATE.full||(STATE.fullLoading&&!retry))return;
   var m=(R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/);
   if(!m)return;
-  STATE.fullLoading=true;STATE.fullError=false;STATE.fullGenerating=false;STATE.fullToken=m[1];
-  fetch(WORKER_API+"/delivery-content?token="+m[1],{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
+  STATE.fullLoading=true;STATE.fullError=false;STATE.fullNeedLogin=false;STATE.fullGenerating=false;STATE.fullToken=m[1];
+  fetch(WORKER_API+"/delivery-content?token="+m[1]+kParam(),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
     STATE.fullLoading=false;
     if(d&&d.ok&&d.hexagram_content){STATE.full=d;STATE.fullGenerating=false;}
     else if(d&&d.ok&&!d.summary_mode){
@@ -1785,7 +1787,7 @@ function loadFullContent(retry){
       if(STATE.fullPolls<=20){STATE.fullGenerating=true;setTimeout(function(){STATE.fullLoading=false;loadFullContent(true);},6000);}
       else{STATE.fullError=true;}
     }
-    else{STATE.fullError=true;}
+    else{STATE.fullError=true;STATE.fullNeedLogin=!!(d&&d.ok&&d.summary_mode);}
     if(STATE.step==="result")render();
   }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result")render();});
 }
@@ -1805,7 +1807,9 @@ function paywall(paid){
       (STATE.full&&STATE.full.hexagram_content
         ?'<div class="fi-body">'+mdFull(STATE.full.hexagram_content)+'</div>'
         :'<div style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+(STATE.fullError
-          ?'<button class="zf-btn ghost sm" onclick="STATE.fullPolls=0;loadFullContent(true)">完整解讀載入失敗，點我重試</button>'
+          ?(STATE.fullNeedLogin
+            ?'完整解讀要本人才看得到：請從付款後收到的信裡的連結打開，或用付款時的 Google 帳號登入。'
+            :'<button class="zf-btn ghost sm" onclick="STATE.fullPolls=0;loadFullContent(true)">完整解讀載入失敗，點我重試</button>')
           :STATE.fullGenerating
           ?ic("circle-notch")+'老師的完整解讀正在為你寫，一會兒就好…（這頁會自己更新）'
           :ic("circle-notch")+'完整解讀載入中…')+'</div>')+

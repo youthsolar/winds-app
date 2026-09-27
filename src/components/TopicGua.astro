@@ -9,7 +9,8 @@ const { data, topic, isCurrent } = Astro.props;
 // 個人化入口：/gua 零登入起卦，topic 換口吻、src 帶進往占卜站的 utm（api.winds.tw gua.ts）；
 // 頁尾 script 會再把這頁的 utm_source（平台）接到 src 後面。
 const guaUrl = `https://api.winds.tw/gua?topic=${topic.key}&src=${topic.path}`;
-const shareUrl = isCurrent || !data ? `https://winds.tw/${topic.path}/` : `https://winds.tw/${topic.path}/${data.id}/`;
+// 2026-09-28 Jeffery 拍板：分享固定在這一卦（原本最新篇分享主題首頁，下一篇發了收到的人會看到別卦、跟分享文字對不上）
+const shareUrl = !data ? `https://winds.tw/${topic.path}/` : `https://winds.tw/${topic.path}/${data.id}/`;
 const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，點一下就能抽自己的一卦。`;
 ---
 <div class="lw-wrap">
