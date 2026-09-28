@@ -100,14 +100,21 @@ function remarkStripTrailingPromo() {
          本身沒有關鍵字或表情符號、過不了 isPromo。只在同一塊裡另有明確促銷段時才一起剝；
          一般正文帶站內連結（詳細數據請見[研究附錄](/research/)。）、標題連結都不算。 */
       const ACTION = /點此|點我|點這|立即|馬上|現在就|開始|前往|預約|占卜|試試|了解更多|看更多/;
+      // 「整段只有一個連結」看結構不看文字：除了空白與換行，只能有一個連結（可包在粗體／斜體裡）；
+      // 連結外有圖片或別的內容就不算（flat 不收圖片，比文字會把「圖片＋連結」看成純連結）（gpt-6-astra 剝除器第十輪複核）
+      const soleLink = (n) => {
+        const kids = (n.children || []).filter((c) => c.type !== 'break' && !(c.type === 'text' && !String(c.value).trim()));
+        if (kids.length !== 1) return null;
+        const k = kids[0];
+        if (k.type === 'link' || k.type === 'linkReference') return k;
+        return k.type === 'strong' || k.type === 'emphasis' ? soleLink(k) : null;
+      };
       const isActionLinkPara = (n) => {
         if (n.type !== 'paragraph' || isTags(n) || isPromo(n)) return false;
-        const a = flat(n, { text: '', urls: [] });
-        if (a.urls.length !== 1 || !(PROMO_HOST.test(a.urls[0]) || isRelative(a.urls[0]))) return false;
-        let linkText = '';
-        const walk = (x) => { if (x.type === 'link' || x.type === 'linkReference') { linkText += flat(x, { text: '', urls: [] }).text; return; } (x.children || []).forEach(walk); };
-        walk(n);
-        return a.text.trim() === linkText.trim() && ACTION.test(linkText);
+        const l = soleLink(n);
+        if (!l) return false;
+        const a = flat(l, { text: '', urls: [] });
+        return a.urls.length === 1 && (PROMO_HOST.test(a.urls[0]) || isRelative(a.urls[0])) && ACTION.test(a.text);
       };
       const actionOk = (nodes) => !nodes.some(isActionLinkPara) || nodes.some(isPromo);   // 有純行動連結段時，同一塊要另有明確促銷段
       let end = ch.length;
