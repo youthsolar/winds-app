@@ -193,6 +193,8 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
       if (noteVal.length > 2000 || tags.length > 20) { st.textContent = `備註最多 2000 字（現在 ${noteVal.length}）、標籤最多 20 個（現在 ${tags.length}）`; return; }
       const saveBtn = (ev.target as HTMLFormElement).querySelector('button[type=submit]') as HTMLButtonElement | null;
       // 依客戶鎖（不是只鎖按鈕）：等待儲存時關掉再打開同一位客戶，會是新的按鈕，照樣要擋（gpt-6-astra 複核）
+      // 存完時，這位客人如果被關掉又重開過，畫面上是新的表單：狀態字要寫到「現在」那張，不是舊的（gpt-6-astra 複核）
+      const setSt = (m: string) => { st.textContent = m; if (current === key) { const cur = document.getElementById('note-status'); if (cur && cur !== st) cur.textContent = m; } };
       if (savingKeys.has(key)) { st.textContent = '上一次還在存，稍等一下'; return; }
       savingKeys.add(key);
       if (saveBtn) saveBtn.disabled = true;
@@ -202,16 +204,16 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
         if (!r2.ok) throw new Error('伺服器回 ' + r2.status);
         d2 = await r2.json();
       } catch (e: any) {
-        st.textContent = '沒存成：' + (e?.message || '連線失敗');   // 原本沒接住，會永遠停在「儲存中…」讓人分不出存了沒
+        setSt('沒存成：' + (e?.message || '連線失敗'));   // 原本沒接住，會永遠停在「儲存中…」讓人分不出存了沒
         savingKeys.delete(key);
         if (saveBtn) saveBtn.disabled = false;
         return;
       }
       savingKeys.delete(key);
       if (saveBtn) saveBtn.disabled = false;
-      const tagsNow = String(f.tags.value).split(/[,，]/).map((s: string) => s.trim()).filter(Boolean).join('|');
-      if (d2.ok) { st.textContent = String(f.note.value) === noteVal && tagsNow === tags.join('|') ? '已存' : '已存（之後改的還沒存）'; const me = people.find((x) => x.key === key); if (me) { me.tags = tags; me.note = noteVal; } renderList(); }
-      else st.textContent = '沒存成：' + (d2.error || d2.message || '');
+      const tagsNow = JSON.stringify(String(f.tags.value).split(/[,，]/).map((s: string) => s.trim()).filter(Boolean));   // 逐元素比（用 | 串起來會把 a|b,c 跟 a,b|c 當成一樣）
+      if (d2.ok) { setSt(String(f.note.value) === noteVal && tagsNow === JSON.stringify(tags) ? '已存' : '已存（之後改的還沒存）'); const me = people.find((x) => x.key === key); if (me) { me.tags = tags; me.note = noteVal; } renderList(); }
+      else setSt('沒存成：' + (d2.error || d2.message || ''));
     });
     if (window.innerWidth < 900) window.scrollTo({ top: box.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' });   // 手機：留 90px 給固定導覽列（scrollIntoView 不一定吃 scroll-margin）
   }

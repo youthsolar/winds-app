@@ -358,6 +358,8 @@ import '../styles/global.css';
       }
       renderTarget();
     }
+    /* 目前「對象」是誰（跟後端存的格式一樣：YYYY-MM-DD HH:mm）：訂閱鎖定優先，其次是客人確認過的；都沒有就是還沒選 */
+    function curTargetKey(){if(S.lockedBirthday)return String(S.lockedBirthday);if(S.targetConfirmed&&S.targetDate)return S.targetDate+" "+(S.targetTime||"12:00");return ""}
     function editTarget(){if(S.sending){toast("等分靈體回完這句再換對象");return}S.targetConfirmed=false;renderTarget()}
 
     /* ===== count row ===== */
@@ -421,7 +423,13 @@ import '../styles/global.css';
           if(gen!==S.hydGen||S.mode!==mode)return;
           if(d&&d.gone){try{localStorage.removeItem("winds_spirit_session_"+mode)}catch(e){}S.sessionId=null;return}
           if(!d||!d.success&&!d.messages)return;
-          if(mode==="target"&&d.target_birthday)S.histTarget=String(d.target_birthday);
+          /* 2026-09-28（gpt-6-astra 複核）總規則：對象頁籤撈回來的對話，一定先核對屬於哪個生日；跟目前對象不同就不顯示、也不接著用
+             （本機編號留著，換回那個人時還接得回來）。切頁籤、慢回應、被後端鎖定改回來，全部走這一道 */
+          if(mode==="target"&&d.target_birthday){
+            var cur=curTargetKey();
+            if(cur&&String(d.target_birthday)!==cur){S.sessionId=null;return}
+            S.histTarget=String(d.target_birthday);
+          }
           var ms=d.messages||[];
           if(!ms.length)return;
           box.innerHTML="";
@@ -568,7 +576,7 @@ import '../styles/global.css';
       var booted=false;
       function finishBoot(){if(booted)return;booted=true;S.booting=false;
         /* 2026-09-28（gpt-6-astra 體檢）：正式畫這次會重建輸入區，客人等待期間已經打的字、選的生日要放回去 */
-        var keep={};["spText","tgYear","tgMonth","tgDay","tgTime"].forEach(function(id){var el=document.getElementById(id);if(el&&el.value)keep[id]=el.value;});
+        var keep={};["spText","tgYear","tgMonth","tgDay","tgTime"].forEach(function(id){var el=document.getElementById(id);if(el&&(id!=="spText"||el.value))keep[id]=el.value;});   // 生日欄連空值（時辰「不確定」）一起記
         render();renderPaywall();
         Object.keys(keep).forEach(function(id){var el=document.getElementById(id);if(el&&(id==="spText"?!el.value:true)){el.value=keep[id];if(id==="spText")autoResize(el);}});   // 生日以客人最後選的為準（重畫時會先填回已確認的舊值）
       }
