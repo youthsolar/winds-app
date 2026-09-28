@@ -366,8 +366,9 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       function reqIdFor(payload) {
         var fp = JSON.stringify(payload), st = null;
         try { st = JSON.parse(sessionStorage.getItem(REQ_KEY) || 'null'); } catch (e) {}
-        if (!st) st = memReq;
-        if (st && st.fp === fp && Date.now() - st.t < 3600000) return st.id;
+        // 暫存和記憶體兩邊都看，用對得上（同資料、一小時內）的那一份——暫存裡是舊資料、寫入又失敗時，記憶體才是最新的（gpt-6-astra 複核）
+        var hit = [memReq, st].filter(function (x) { return x && x.fp === fp && Date.now() - x.t < 3600000; })[0];
+        if (hit) { memReq = hit; return hit.id; }
         memReq = { fp: fp, id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''), t: Date.now() };
         try { sessionStorage.setItem(REQ_KEY, JSON.stringify(memReq)); } catch (e) {}
         return memReq.id;
@@ -407,7 +408,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
             if (d && d.ok && d.payment_url) {
               /* 記下「這張單對應哪一份草稿、哪一版」：付款成功回到訂單頁時只清這一份，而且客人之後沒再改過才清（gpt-6-astra 複核） */
               var ver = Date.now(); save(ver);
-              try { if (d.trade_no) sessionStorage.setItem('shop-order-owner-' + d.trade_no, JSON.stringify({ key: KEY, v: ver, reqKey: REQ_KEY })); } catch (e) {}
+              try { if (d.trade_no) sessionStorage.setItem('shop-order-owner-' + d.trade_no, JSON.stringify({ key: KEY, v: ver, reqKey: REQ_KEY, reqId: payload.client_req_id })); } catch (e) {}
               location.href = d.payment_url; return;
             }
             unlock();

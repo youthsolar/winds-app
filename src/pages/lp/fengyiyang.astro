@@ -443,8 +443,9 @@ const jsonLd = prov ? [
           /* 識別碼存在這個分頁的 sessionStorage：重新整理後資料沒改、一小時內還是同一個（gpt-6-astra 金流第五輪複核） */
           var REQ_KEY = 'winds-req-lp-fengyiyang', fp = JSON.stringify(payload), st = null, rid = '';
           try { st = JSON.parse(sessionStorage.getItem(REQ_KEY) || 'null'); } catch (e) {}
-          if (!st) st = W.memReq || null;   // sessionStorage 被擋時退回記憶體（gpt-6-astra 金流第六輪複核）
-          if (st && st.fp === fp && Date.now() - st.t < 3600000) rid = st.id;
+          // 暫存和記憶體兩邊都看，用對得上的那一份（gpt-6-astra 複核）
+          var hit = [W.memReq, st].filter(function (x) { return x && x.fp === fp && Date.now() - x.t < 3600000; })[0];
+          if (hit) { W.memReq = hit; rid = hit.id; }
           else { rid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); W.memReq = { fp: fp, id: rid, t: Date.now() }; try { sessionStorage.setItem(REQ_KEY, JSON.stringify(W.memReq)); } catch (e) {} }
           payload.expected_amount = dep; payload.client_req_id = rid;
           fetch(API + '/sb-book', { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' },

@@ -46,7 +46,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           try {
             var ownKey = 'shop-order-owner-' + no, own = JSON.parse(sessionStorage.getItem(ownKey) || 'null');
             if (own && own.key) { var dr = JSON.parse(sessionStorage.getItem(own.key) || 'null'); if (dr && dr._v === own.v) sessionStorage.removeItem(own.key); }
-            if (own && own.reqKey) sessionStorage.removeItem(own.reqKey);   // 這張已付款：之後再買一份一樣的會是新的一張（gpt-6-astra 金流第六輪複核）
+            // 這張已付款：之後再買一份一樣的會是新的一張。只清「這張單自己的」識別碼——客人可能已經在填另一張（gpt-6-astra 金流第七輪複核）
+            if (own && own.reqKey) { var cur = JSON.parse(sessionStorage.getItem(own.reqKey) || 'null'); if (cur && own.reqId && cur.id === own.reqId) sessionStorage.removeItem(own.reqKey); }
             sessionStorage.removeItem(ownKey);
           } catch (e) {}
           box.innerHTML = '<div class="lp-paid"><i class="ph ph-check-circle"></i><h3>已收到你的訂單</h3><p>' + esc(d.product_name) + '（' + esc(d.variant) + '）· ' + ntd(d.amount) + '<br>老師會依你的生辰親繪開光後，寄到 ' + esc(d.cvs_store_name || '你選的門市') + '。<br>到店會另行通知。訂單編號 <code>' + esc(no) + '</code>' + (d.sandbox ? '<br><span style="color:var(--text-muted)">（測試訂單，未實際扣款）</span>' : '') + '</p></div>';
