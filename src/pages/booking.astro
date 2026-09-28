@@ -375,10 +375,15 @@ import { PERSONAS } from '../data/booking-teachers';
              expected_amount，後端算好要收的金額、開單佔時段之前比對，不一樣就回 price_changed、不開單；這裡更新畫面請客人再按一次。
              20 秒沒回應就解鎖，不會卡在建單中。 */
           var ac=new AbortController(),to=setTimeout(function(){ac.abort();},20000);
+          /* 送單冪等（gpt-6-astra 金流第四輪複核）：同一份預約資料重送帶同一個識別碼——逾時後重按會拿回原本那張單，
+             不會多開一張、也不會被自己保留的時段擋住；資料有改就換新的 */
+          var payload={service:W.svc.id,provider:W.prov.id,datetime:W.date+' '+W.time+':00',location:W.loc?W.loc.id:null,
+              name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null,note:W.fields.note||null};
+          var fp=JSON.stringify(payload);
+          if(W.reqFp!==fp){W.reqFp=fp;W.reqId=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2,12));}
+          payload.expected_amount=dep;payload.client_req_id=W.reqId;
           fetch(WORKER_API+'/sb-book',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({service:W.svc.id,provider:W.prov.id,datetime:W.date+' '+W.time+':00',
-              location:W.loc?W.loc.id:null,expected_amount:dep,
-              name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null,note:W.fields.note||null})})
+            body:JSON.stringify(payload)})
            .then(function(r){return r.json().then(function(d){return{st:r.status,d:d};});}).then(function(o){var d=o.d;clearTimeout(to);
              if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
              else if(d&&d.error==='price_changed'&&d.amount){
@@ -390,7 +395,7 @@ import { PERSONAS } from '../data/booking-teachers';
              /* 時段被別人約走（409）：後端把原因放在 error，原本只讀 message 被吞掉 → 說清楚並帶回去重選 */
              else if(o.st===409){unlockGo();W.date=null;W.time=null;W.notice=(d&&(d.error||d.message))||'這個時段剛被約走了，請重選一個時間。';stepTime();}
              else{unlockGo();showErr(document.getElementById('wzErr2'),d&&(d.message||d.error)||'建立預約失敗，請稍後再試。');}
-           }).catch(function(){clearTimeout(to);unlockGo();showErr(document.getElementById('wzErr2'),'網路錯誤或太久沒回應，請再試一次。');});
+           }).catch(function(){clearTimeout(to);unlockGo();showErr(document.getElementById('wzErr2'),'網路太久沒回應。資料沒改的話直接再按一次，不會重複開單。');});
         });
       }
       function row(k,v){return '<div class="bw-row"><span class="bw-k">'+esc(k)+'</span><span class="bw-v">'+esc(v)+'</span></div>';}
