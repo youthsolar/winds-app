@@ -54,7 +54,8 @@ function remarkStripTrailingPromo() {
        另有 4 篇被砍掉一半以上。改成只剝「明確標記」的文末區塊：
          ① 有「相關推薦」標題 → 從那裡剝（Content-Alchemy 的固定格式）
          ② 否則從文末往回，只剝最後面連在一起的促銷段落／站內連結清單／分隔線，碰到一般正文就停
-       全站比對：432 篇結果不變；24 篇不同＝8 篇救回被誤砍的正文、16 篇保留作者自己的結語段。 */
+       全站比對：432 篇結果不變；24 篇不同＝8 篇救回被誤砍的正文、16 篇保留作者自己的結語段。
+       （同日複核再修：往回找遇到分隔線就停、清單只在分隔線圍起的區塊內才剝，見下方） */
     const isPromoList = (n) => {
       if (n.type !== 'list') return false;
       const a = flat(n, { text: '', urls: [] });
@@ -65,9 +66,20 @@ function remarkStripTrailingPromo() {
       if (ch[i].type === 'heading' && flat(ch[i], { text: '', urls: [] }).text.includes('相關推薦')) { cut = i; break; }
     }
     if (cut < 0) {
-      let i = ch.length;
-      while (i > 0) { const n = ch[i - 1]; if (isTags(n) || n.type === 'thematicBreak' || isPromo(n) || isPromoList(n)) i--; else break; }
-      if (ch.slice(i).some((n) => isPromo(n) || isPromoList(n))) cut = i;
+      /* 從文末往回：碰到分隔線 --- 就停（分隔線算進促銷區塊，前面作者自己的結語不動——blog-120／180／330 曾被越界剝掉）。
+         站內連結清單只在「被分隔線圍起來的區塊」裡才算促銷；沒有分隔線時清單一律當正文（gpt-6-astra 複核） */
+      const run = (allowList) => {
+        let i = ch.length;
+        while (i > 0) {
+          const n = ch[i - 1];
+          if (n.type === 'thematicBreak') return { i: i - 1, bounded: true };
+          if (isTags(n) || isPromo(n) || (allowList && isPromoList(n))) i--; else break;
+        }
+        return { i, bounded: false };
+      };
+      let r = run(true);
+      if (!r.bounded) r = run(false);
+      if (ch.slice(r.i).some((n) => isPromo(n) || isPromoList(n))) cut = r.i;
     }
     if (cut >= 0) {
       let start = cut;
