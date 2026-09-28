@@ -49,8 +49,26 @@ function remarkStripTrailingPromo() {
       const a = flat(n, { text: '', urls: [] });
       return EMOJI.test(a.text) || KW.some((k) => a.text.includes(k)) || a.urls.some((u) => PROMO_HOST.test(u));
     };
+    /* 2026-09-28（gpt-6-astra 體檢）：原本「第一個像促銷的段落」就開始往後砍到文末——正文裡出現「想更深入了解」
+       「預約諮詢」或任何表情符號（💡、😂）就被當成起點，blog-257／258／275／marriagerestoration 正文幾乎全空，
+       另有 4 篇被砍掉一半以上。改成只剝「明確標記」的文末區塊：
+         ① 有「相關推薦」標題 → 從那裡剝（Content-Alchemy 的固定格式）
+         ② 否則從文末往回，只剝最後面連在一起的促銷段落／站內連結清單／分隔線，碰到一般正文就停
+       全站比對：432 篇結果不變；24 篇不同＝8 篇救回被誤砍的正文、16 篇保留作者自己的結語段。 */
+    const isPromoList = (n) => {
+      if (n.type !== 'list') return false;
+      const a = flat(n, { text: '', urls: [] });
+      return a.urls.length > 0 && a.urls.every((u) => PROMO_HOST.test(u));
+    };
     let cut = -1;
-    for (let i = 0; i < ch.length; i++) { if (isPromo(ch[i])) { cut = i; break; } }
+    for (let i = 0; i < ch.length; i++) {
+      if (ch[i].type === 'heading' && flat(ch[i], { text: '', urls: [] }).text.includes('相關推薦')) { cut = i; break; }
+    }
+    if (cut < 0) {
+      let i = ch.length;
+      while (i > 0) { const n = ch[i - 1]; if (isTags(n) || n.type === 'thematicBreak' || isPromo(n) || isPromoList(n)) i--; else break; }
+      if (ch.slice(i).some((n) => isPromo(n) || isPromoList(n))) cut = i;
+    }
     if (cut >= 0) {
       let start = cut;
       if (start > 0 && ch[start - 1].type === 'thematicBreak') start -= 1;

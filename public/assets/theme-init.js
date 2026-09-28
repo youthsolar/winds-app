@@ -21,17 +21,22 @@
     if (mode === "dark") document.documentElement.setAttribute("data-theme", "dark");
     else document.documentElement.removeAttribute("data-theme");
   }
-  apply(resolve());
+  /* 2026-09-28（gpt-6-astra 體檢）：get／isDark／toggle 原本每次重算 resolve()，跟畫面上實際套用的不一定一樣——
+     沒選過主題、頁面開著跨過 07:00／19:00 時第一次點沒反應；localStorage 寫不進去時切一次就切不回來。
+     改成記住「目前套用的」，三者都看它；localStorage 只負責存起來給下次開頁用。 */
+  var current = resolve();
+  apply(current);
 
   window.ZFTheme = {
-    get: resolve,
-    isDark: function () { return resolve() === "dark"; },
+    get: function () { return current; },
+    isDark: function () { return current === "dark"; },
     set: function (mode) {
       try { localStorage.setItem(KEY, mode); } catch (e) {}
+      current = mode;
       apply(mode);
       window.dispatchEvent(new CustomEvent("zf-theme-change", { detail: { mode: mode } }));
     },
-    toggle: function () { this.set(resolve() === "dark" ? "light" : "dark"); },
-    clear: function () { try { localStorage.removeItem(KEY); } catch (e) {} apply(resolve()); }
+    toggle: function () { this.set(current === "dark" ? "light" : "dark"); },
+    clear: function () { try { localStorage.removeItem(KEY); } catch (e) {} current = resolve(); apply(current); }
   };
 })();
