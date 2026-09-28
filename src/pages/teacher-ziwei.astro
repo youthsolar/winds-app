@@ -275,6 +275,10 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
     errorMsg.textContent = msg;
     hideAllSections();
     errorSection.hidden = false;
+    // 2026-09-28（Codex 體檢）：原本只剩錯誤文字、表單被收掉，要重新整理才能改或重試 → 表單與輸入留著
+    formSection.hidden = false;
+    setLoading(false);
+    errorSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   function resetUI() {
@@ -331,7 +335,8 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
       if (pos) grid[pos[0] * 4 + pos[1]] = p;
     }
 
-    const currentAge = calcVirtualAge(chart.meta.solarDate);
+    // 2026-09-28（Codex 體檢）：用西元年相減，農曆年前出生的人會差一歲、標錯大限 → 有後端算的虛歲就用它
+    const currentAge = horoscope?.age?.nominalAge ?? calcVirtualAge(chart.meta.solarDate);
     // 找當前大限所在的 palace index
     let currentDecadalIndex = -1;
     for (const p of chart.palaces) {
@@ -355,6 +360,8 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
       for (const s of horoscope.sihua.selfTransforms) (selfMark[s.palaceIndex] = selfMark[s.palaceIndex] || []).push(s.type);
     }
 
+    // 2026-09-28（Codex 體檢）：姓名是客人輸入、API 原樣回傳，直接進 innerHTML＝XSS
+    const zwEsc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>)[c]);
     const cells = grid.map((cell, i) => {
       const row = Math.floor(i / 4);
       const col = i % 4;
@@ -366,7 +373,7 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
         const yearStr = horoscope ? horoscope.date.split('-')[0] : String(new Date().getFullYear());
         const emphB = `font-family:var(--font-serif);font-weight:500;color:var(--ink-900)`;
         const nameLine = m.name
-          ? `<div style="font-family:var(--font-serif);font-size:${mobile ? 15 : 21}px;font-weight:600;color:var(--ink-900);text-align:center">${m.name}</div>`
+          ? `<div style="font-family:var(--font-serif);font-size:${mobile ? 15 : 21}px;font-weight:600;color:var(--ink-900);text-align:center">${zwEsc(m.name)}</div>`
           : '';
         return `<div style="grid-row: 2 / 4; grid-column: 2 / 4;background:linear-gradient(155deg, var(--rose-50), var(--paper));border:1px solid var(--rose-100);border-radius:${mobile ? 10 : 14}px;padding:${mobile ? '10px 9px' : '16px 18px'};display:flex;flex-direction:column;justify-content:center">
           ${nameLine}
@@ -458,7 +465,7 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
     // 手機點宮位 → 底部詳情卡（對齊 DS ziwei-page.jsx ZiweiSheet）
     mount.addEventListener('click', (ev) => {
-      if (!window.matchMedia('(max-width:480px)').matches) return;
+      if (!window.matchMedia('(max-width:760px)').matches) return;   // 2026-09-28（Codex 體檢）：與 CSS 收合雜曜的 760px 同一個斷點
       const cellEl = (ev.target as HTMLElement).closest<HTMLElement>('.palace-cell');
       if (!cellEl || cellEl.classList.contains('empty')) return;
       const idx = Number(cellEl.dataset.palaceIndex);
@@ -627,15 +634,18 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
       mount.querySelectorAll('.ds-tog').forEach((x) => x.classList.toggle('is-active', x === b));
       draw((b as HTMLElement).dataset.t || 'decadal');
     }));
-    const loadNarr = () => fetchPalace(chart, 'trend', 'natal').then((t) => renderPalaceText('trend', t, mount));
+    // 2026-09-28（Codex 體檢）：mount 跨客人共用——addEventListener 每位客人多掛一個（重試會替歷史客人送請求），
+    // 前一位的慢回應也會蓋掉這一位。改成 onclick 覆蓋＋回應核對是不是同一批。
+    const gen = resultGen;
+    const loadNarr = () => fetchPalace(chart, 'trend', 'natal').then((t) => { if (gen === resultGen) renderPalaceText('trend', t, mount); });
     loadNarr();
-    mount.addEventListener('click', (ev) => {
+    mount.onclick = (ev) => {
       if ((ev.target as HTMLElement).closest('[data-unlock]')) { window.location.href = '/divination'; return; }
       if (!(ev.target as HTMLElement).closest('.retry-palace')) return;
       const blk = mount.querySelector('[data-palace="trend"]');
       if (blk) { blk.className = 'interp-text loading'; (blk as HTMLElement).style.cssText = 'font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.95;color:var(--ink-800);white-space:pre-wrap;margin:0'; blk.setAttribute('data-palace', 'trend'); blk.textContent = '走勢總述生成中…'; }
       loadNarr();
-    });
+    };
   }
 
   // 一顆四化星：MutChip + 星名 + 飛向（自化以記號標示）
@@ -690,15 +700,18 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
       + `<div style="display:flex;align-items:flex-start;gap:8px;margin:12px 2px 0"><span style="flex:none;margin-top:2px;display:inline-flex;color:var(--rose-300)">${ICON_INFO}</span><span style="font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)">完整 12 宮飛星依你的命盤帶入（十干四化表與盤面生年四化同源）。</span></div>`
       + `<div style="margin-top:14px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-xs);padding:22px 18px"><h3 style="font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);margin:0 0 14px">四化飛星解讀</h3><div style="position:relative"><div class="interp-text loading" data-palace="sihua" style="font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.95;color:var(--ink-800);white-space:pre-wrap;margin:0">四化飛星解讀生成中…</div>${paid ? '' : '<div style="position:absolute;bottom:0;left:0;right:0;height:64px;background:linear-gradient(transparent,var(--surface-card));pointer-events:none"></div>'}</div>${paid ? '' : `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:13px 16px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-md);flex-wrap:wrap;gap:12px"><div style="font-family:var(--font-serif);font-weight:300;font-size:14px;color:var(--text-secondary)">完整四化飛星解讀隨占卜完整解讀一併解鎖。</div><button class="ds-unlock-btn" data-unlock style="cursor:pointer;background:var(--accent);color:var(--text-on-accent);border:1px solid transparent;padding:11px 22px;border-radius:var(--radius-pill);font-family:var(--font-serif);font-weight:500;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow-sm)">${ICON_LOCK_OPEN}<span>隨完整解讀解鎖 · NT$ 360</span></button></div>`}</div>`
       + `</section>`;
-    const loadNarr = () => fetchPalace(chart, 'sihua', 'natal').then((t) => renderPalaceText('sihua', t, mount));
+    // 2026-09-28（Codex 體檢）：mount 跨客人共用——addEventListener 每位客人多掛一個（重試會替歷史客人送請求），
+    // 前一位的慢回應也會蓋掉這一位。改成 onclick 覆蓋＋回應核對是不是同一批。
+    const gen = resultGen;
+    const loadNarr = () => fetchPalace(chart, 'sihua', 'natal').then((t) => { if (gen === resultGen) renderPalaceText('sihua', t, mount); });
     loadNarr();
-    mount.addEventListener('click', (ev) => {
+    mount.onclick = (ev) => {
       if ((ev.target as HTMLElement).closest('[data-unlock]')) { window.location.href = '/divination'; return; }
       if (!(ev.target as HTMLElement).closest('.retry-palace')) return;
       const blk = mount.querySelector('[data-palace="sihua"]');
       if (blk) { blk.className = 'interp-text loading'; (blk as HTMLElement).style.cssText = 'font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.95;color:var(--ink-800);white-space:pre-wrap;margin:0'; blk.setAttribute('data-palace', 'sihua'); blk.textContent = '四化飛星解讀生成中…'; }
       loadNarr();
-    });
+    };
   }
 
   function showResult(chartData: any) {
@@ -735,6 +748,8 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
     const chartMount = document.getElementById('chart-mount') as HTMLElement;
     const interpMount = document.getElementById('interpretation-mount') as HTMLElement;
     let currentMode: 'natal' | 'yearly' = 'natal';
+    // 2026-09-28（Codex 體檢）：換下一位客人時畫面回到本命盤，按鈕也要跟著回到「本命盤」
+    chartToggle?.querySelectorAll('.toggle-btn').forEach((b) => b.classList.toggle('is-active', (b as HTMLElement).dataset.mode === 'natal'));
 
     // client-side 解讀 cache：避免來回切換重複 fetch
     const interpCache: { natal: Record<string, string | null>; yearly: Record<string, string | null> } = {
@@ -800,10 +815,12 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
         if (!block) return;
         block.className = 'interp-text loading';
         block.textContent = '重試中…';
-        const text = await fetchPalace(chartData.chart as Chart, palace, currentMode, currentMode === 'yearly' ? yearlyApiCtx ?? undefined : undefined);
+        // 2026-09-28（Codex 體檢）：送出時就固定模式——等待期間切到流年，本命的回應不能存進流年、也不能畫上去
+        const reqMode = currentMode;
+        const text = await fetchPalace(chartData.chart as Chart, palace, reqMode, reqMode === 'yearly' ? yearlyApiCtx ?? undefined : undefined);
         if (myGen !== resultGen) return;   // 等待期間老師已經換客人了，這份不要畫上去
-        interpCache[currentMode][palace] = text;
-        renderPalaceText(palace, text, interpMount);
+        interpCache[reqMode][palace] = text;
+        if (currentMode === reqMode) renderPalaceText(palace, text, interpMount);
       }
     };
     interpMount.addEventListener('click', retryHandler);
@@ -901,6 +918,7 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
           return;
         }
         setTeacherSecret(val);
+        btn.disabled = false;   // 2026-09-28（Codex 體檢）：成功也要恢復，否則之後被 401 送回密碼閘時按鈕按不下去
         hideAllSections();
         formSection.hidden = false;
       } catch {
