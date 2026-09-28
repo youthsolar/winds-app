@@ -346,20 +346,23 @@ import '../styles/global.css';
       var chk=new Date(v+"T12:00:00");if(isNaN(chk)||chk.toISOString().slice(0,10)!==v){toast("這一天不存在，請再確認");return}
       /* 2026-09-28（gpt-6-astra 體檢）：換成另一個生日＝另一個人，前一位的對話與命盤不能留在畫面上、也不能接著用同一段對話 */
       var nt=(t&&t.value)||"";
-      /* 重開頁時 S.targetDate 是空的，要拿「接回來的那段對話屬於哪個生日」來比（gpt-6-astra 複核） */
-      var prev=S.targetDate?(S.targetDate+" "+(S.targetTime||"12:00")):(S.histTarget||"");
-      var changed=!!prev&&prev!==(v+" "+(nt||"12:00"));
       S.targetDate=v;S.targetTime=nt;S.targetConfirmed=true;
-      if(changed){
-        /* 本機的對話編號先不刪：後端若回「訂閱期間已鎖定對象」，要能把原本那段接回來；新對話成功後 saveSess 會自然換掉 */
-        S.sessionId=null;S.histTarget="";S.astro=null;S.hasMsg=false;
-        S.hydGen++;S.hydrating=false;   // 讓進行中的撈歷史作廢，也要解鎖，否則會一直卡在「正在接回」
-        showWelcome();renderProfile();
-      }
+      revalidateTarget();   // 畫面上那段對話如果屬於別的生日（含重開頁接回來的、按「修改」前的），清掉
       renderTarget();
     }
     /* 目前「對象」是誰（跟後端存的格式一樣：YYYY-MM-DD HH:mm）：訂閱鎖定優先，其次是客人確認過的；都沒有就是還沒選 */
-    function curTargetKey(){if(S.lockedBirthday)return String(S.lockedBirthday);if(S.targetConfirmed&&S.targetDate)return S.targetDate+" "+(S.targetTime||"12:00");return ""}
+    function curTargetKey(){if(S.lockedBirthday)return String(S.lockedBirthday);if(S.targetDate)return S.targetDate+" "+(S.targetTime||"12:00");return ""}   // 按「修改」期間仍以上一次確認的為準，不回空字串放行
+    /* 對象一有變動（確認、被鎖定、晚到的狀態換了鎖）就重新核對：畫面上那段對話屬於別的生日就清掉、改開新的一段
+       （本機的對話編號留著，換回那個人時還接得回來）。gpt-6-astra 會員第三輪複核 */
+    function revalidateTarget(){
+      if(S.mode!=="target")return;
+      var cur=curTargetKey();
+      if(cur&&S.histTarget&&S.histTarget!==cur){
+        S.sessionId=null;S.histTarget="";S.astro=null;S.hasMsg=false;
+        S.hydGen++;S.hydrating=false;   // 進行中的撈歷史作廢並解鎖
+        showWelcome();renderProfile();
+      }
+    }
     function editTarget(){if(S.sending){toast("等分靈體回完這句再換對象");return}S.targetConfirmed=false;renderTarget()}
 
     /* ===== count row ===== */
@@ -484,7 +487,7 @@ import '../styles/global.css';
          if(!d.success){
            if(d.error==="no_profile"){appendMsg("spirit","我還不認識你呢——先拿到老師的靈符解方，讓我感應你的靈魂頻率，回來我們再好好聊。",nowHM());setTimeout(function(){location.href="/divination"},3000);return}
            if(d.error==="daily_limit"){appendMsg("spirit",d.message||"今天聊得夠多了，讓彼此沉澱一下，明天再來。",nowHM());ta.disabled=true;ta.placeholder="分靈體已休息，明天再來";return}
-           if(d.error==="target_locked"){toast("訂閱期間已鎖定對象（"+d.locked_birthday+"）");S.lockedBirthday=d.locked_birthday;renderTarget();
+           if(d.error==="target_locked"){toast("訂閱期間已鎖定對象（"+d.locked_birthday+"）");S.lockedBirthday=d.locked_birthday;renderTarget();revalidateTarget();
              if(!S.sessionId&&loadSess()){S.sessionId=loadSess();rehydrate();}   // 剛才換人時清掉的那段對話接回來
              return}
            if(d.error==="ai_failed"){if(userEl&&userEl.parentNode)userEl.parentNode.removeChild(userEl);ta.value=msg;autoResize(ta);toast(d.message||"分靈體暫時無法回應，請稍後再試");return}
@@ -492,6 +495,7 @@ import '../styles/global.css';
          }
          if(sentMode==="target")S.chatVerTarget=(S.chatVerTarget||0)+1;else S.chatVerSelf=(S.chatVerSelf||0)+1;
          if(d.session_id){S.sessionId=d.session_id;saveSess(d.session_id)}
+         if(sentMode==="target"&&d.target_birthday)S.histTarget=String(d.target_birthday);
          if(d.locked_birthday&&S.mode==="target"){S.lockedBirthday=d.locked_birthday;renderTarget()}
          if(d.has_subscription){S.subscribed=true}
          if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;
@@ -582,7 +586,7 @@ import '../styles/global.css';
       }
       setTimeout(finishBoot,10000);
       var lbBefore=null,subBefore=null;setTimeout(function(){lbBefore=S.lockedBirthday;subBefore=S.subscribed;},10000);
-      fetchStatus().then(function(){if(booted){renderCount();renderPaywall();renderProfile();if(S.lockedBirthday!==lbBefore||(S.targetConfirmed&&S.subscribed!==subBefore))renderTarget()}else finishBoot()});   // 鎖定對象變了才重畫對象區塊，否則會清掉客人還沒送出的生日草稿   // 晚到也要同步對象區塊：鎖定的生日以後端為準，畫面不能還顯示客人剛填的另一個
+      fetchStatus().then(function(){if(booted){renderCount();renderPaywall();renderProfile();if(S.lockedBirthday!==lbBefore||(S.targetConfirmed&&S.subscribed!==subBefore))renderTarget();if(S.lockedBirthday!==lbBefore)revalidateTarget()}else finishBoot()});   // 鎖定對象變了才重畫對象區塊，否則會清掉客人還沒送出的生日草稿   // 晚到也要同步對象區塊：鎖定的生日以後端為準，畫面不能還顯示客人剛填的另一個
       render(); // 先畫（含登入 gate / 殼），status 回來後 render 再更新次數
     })();
   </script>

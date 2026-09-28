@@ -194,7 +194,17 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
       const saveBtn = (ev.target as HTMLFormElement).querySelector('button[type=submit]') as HTMLButtonElement | null;
       // 依客戶鎖（不是只鎖按鈕）：等待儲存時關掉再打開同一位客戶，會是新的按鈕，照樣要擋（gpt-6-astra 複核）
       // 存完時，這位客人如果被關掉又重開過，畫面上是新的表單：狀態字要寫到「現在」那張，不是舊的（gpt-6-astra 複核）
-      const setSt = (m: string) => { st.textContent = m; if (current === key) { const cur = document.getElementById('note-status'); if (cur && cur !== st) cur.textContent = m; } };
+      /* 狀態字：每張表單各自拿「自己的欄位」跟這次送出的內容比——重開過的新表單可能已經打了還沒存的字，不能直接標「已存」（gpt-6-astra 複核） */
+      const formMsg = (form: HTMLFormElement | null, okMsg: string) => {
+        if (!form) return okMsg;
+        const el = form.elements as any;
+        const tagsHere = JSON.stringify(String(el.tags?.value || '').split(/[,，]/).map((x: string) => x.trim()).filter(Boolean));
+        return String(el.note?.value || '') === noteVal && tagsHere === JSON.stringify(tags) ? okMsg : '已存（之後改的還沒存）';
+      };
+      const setSt = (m: string, saved = false) => {
+        st.textContent = saved ? formMsg(st.closest('form') as HTMLFormElement | null, m) : m;
+        if (current === key) { const cur = document.getElementById('note-status'); if (cur && cur !== st) cur.textContent = saved ? formMsg(cur.closest('form') as HTMLFormElement | null, m) : m; }
+      };
       if (savingKeys.has(key)) { st.textContent = '上一次還在存，稍等一下'; return; }
       savingKeys.add(key);
       if (saveBtn) saveBtn.disabled = true;
@@ -211,8 +221,8 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
       }
       savingKeys.delete(key);
       if (saveBtn) saveBtn.disabled = false;
-      const tagsNow = JSON.stringify(String(f.tags.value).split(/[,，]/).map((s: string) => s.trim()).filter(Boolean));   // 逐元素比（用 | 串起來會把 a|b,c 跟 a,b|c 當成一樣）
-      if (d2.ok) { setSt(String(f.note.value) === noteVal && tagsNow === JSON.stringify(tags) ? '已存' : '已存（之後改的還沒存）'); const me = people.find((x) => x.key === key); if (me) { me.tags = tags; me.note = noteVal; } renderList(); }
+      // 各表單自己比對（逐元素比標籤，a|b,c 跟 a,b|c 不會被當成一樣）
+      if (d2.ok) { setSt('已存', true); const me = people.find((x) => x.key === key); if (me) { me.tags = tags; me.note = noteVal; } renderList(); }
       else setSt('沒存成：' + (d2.error || d2.message || ''));
     });
     if (window.innerWidth < 900) window.scrollTo({ top: box.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' });   // 手機：留 90px 給固定導覽列（scrollIntoView 不一定吃 scroll-margin）
