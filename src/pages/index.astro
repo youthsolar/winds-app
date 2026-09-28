@@ -336,7 +336,7 @@ const homeJsonLd = {
   /* 法器選物：接真實 ES 商品（/shop-products），覆蓋 SSR 佔位 */
   (function(){
     var box = document.getElementById('homeShopList'); if(!box) return;
-    function none(msg){ box.innerHTML = '<p class="si-line" style="padding:12px 0;margin:0">'+msg+'</p>'; }
+    function none(msg){ var p = box.querySelector('p'); if (p) { p.textContent = msg; return; } box.innerHTML = '<p style="padding:12px 0;margin:0;font-family:var(--font-serif);font-weight:300;font-size:13px;line-height:1.6;color:var(--text-secondary)">'+msg+'</p>'; }   // 更新頁面原本那一行（有 Astro scope 樣式），不另外塞新節點（gpt-6-astra 複核）
     fetch('https://api.winds.tw/shop-products').then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();}).then(function(d){
       var ps = (d && d.products) || []; if(!ps.length){ none('選物正在整理中，點下面看全部選物。'); return; }
       box.innerHTML = ps.slice(0,4).map(function(p,idx){
