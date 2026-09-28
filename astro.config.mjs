@@ -31,17 +31,27 @@ const SERVICE_PAGES = await servicePages();
 function remarkStripTrailingPromo() {
   const EMOJI = /\p{Extended_Pictographic}/u;               // 任何 emoji（真案例內文不會有）
   const KW = ['相關推薦', '立即預約', '立即開始', '免費占卜', '預約諮詢', '想更深入了解', '走到了瓶頸', '一對一靈性諮詢'];
-  const PROMO_HOST = /(?:app\.)?winds\.tw|easy\.co|zijiawangzijia|easystore/i;
+  // 本站連結：解析網址看網域（原本比對「網址裡有沒有出現這幾個字」，winds.tw.example.org 這種外站也會中）（gpt-6-astra 剝除器第七輪複核）
+  const isSiteHost = (u) => {
+    try {
+      const h = new URL(String(u || '')).hostname.toLowerCase();
+      return /(^|\.)winds\.tw$/.test(h) || /(^|\.)easy\.co$/.test(h) || /(^|\.)easystore\.co$/.test(h) || h.includes('zijiawangzijia');
+    } catch { return false; }
+  };
+  const isRelative = (u) => /^\/(?!\/)/.test(String(u || ''));
+  const PROMO_HOST = { test: isSiteHost };   // 沿用原本的呼叫方式
   const TAGS_ONLY = /^(?:#[^#\s]+){3,}$/;                  // 文末 #關鍵字段（SEO/GEO 用，不剝）
   return (tree) => {
     const ch = tree.children || [];
     // 參照式連結（[文字][id] ＋ [id]: 網址）要先查定義才知道指向哪裡（gpt-6-astra 剝除器第五輪複核）
-    const defs = {};
-    ch.forEach((n) => { if (n.type === 'definition' && n.identifier) { const k = String(n.identifier).toLowerCase(); if (!(k in defs)) defs[k] = n.url; } });   // 重複定義以第一筆為準（跟 renderer 一致）
+    // 走遍整棵樹找定義（縮排在清單裡的也算）；用 Map，重複定義以第一筆為準（跟 renderer 一致），也不會被 constructor 這類名稱騙到（gpt-6-astra 剝除器第七輪複核）
+    const defs = new Map();
+    const collectDefs = (n) => { if (n.type === 'definition' && n.identifier) { const k = String(n.identifier).toLowerCase(); if (!defs.has(k)) defs.set(k, n.url); } (n.children || []).forEach(collectDefs); };
+    ch.forEach(collectDefs);
     const flat = (n, acc) => {
       if (n.value) acc.text += n.value;
       if (n.type === 'link' && n.url) acc.urls.push(n.url);
-      if (n.type === 'linkReference' && n.identifier && defs[String(n.identifier).toLowerCase()]) acc.urls.push(defs[String(n.identifier).toLowerCase()]);
+      if (n.type === 'linkReference' && n.identifier && defs.has(String(n.identifier).toLowerCase())) acc.urls.push(defs.get(String(n.identifier).toLowerCase()));
       (n.children || []).forEach((c) => flat(c, acc));
       return acc;
     };
@@ -77,10 +87,10 @@ function remarkStripTrailingPromo() {
          全站 456 篇與上一版結果完全相同；8 個合成情境（含複核抓到的引用句＋參考清單）皆正確。 */
       const isCTA = (n) => {
         const a = flat(n, { text: '', urls: [] });
-        const siteLink = a.urls.some((u) => PROMO_HOST.test(u) || /^\/(?!\/)/.test(u));   // 站內相對路徑（/booking/）也算本站連結
+        const siteLink = a.urls.some((u) => PROMO_HOST.test(u) || isRelative(u));   // 站內相對路徑（/booking/）也算本站連結
         if ((n.type === 'paragraph' || n.type === 'heading') && !isTags(n)) return siteLink;
         // 促銷連結寫在清單裡（- [🔮 立即預約](…)）：全是本站連結、而且有促銷字樣或表情符號才算，一般參考清單不算
-        if (n.type === 'list') return isPromoList(n) && (EMOJI.test(a.text) || KW.some((k) => a.text.includes(k)));
+        if (n.type === 'list') return a.urls.length > 0 && a.urls.every((u) => PROMO_HOST.test(u) || isRelative(u)) && (EMOJI.test(a.text) || KW.some((k) => a.text.includes(k)));
         return false;
       };
       let end = ch.length;
@@ -88,7 +98,7 @@ function remarkStripTrailingPromo() {
       let i = end;
       while (i > 0 && ch[i - 1].type !== 'thematicBreak') i--;
       const block = ch.slice(i, end);
-      if (i > 0 && block.length && block.every((n) => isPromo(n) || isPromoList(n) || n.type === 'definition') && block.some(isCTA)) {
+      if (i > 0 && block.length && block.every((n) => isPromo(n) || isPromoList(n) || isCTA(n) || n.type === 'definition') && block.some(isCTA)) {
         cut = i - 1;
       } else {
         let k = end;
@@ -100,8 +110,10 @@ function remarkStripTrailingPromo() {
       let start = cut;
       if (start > 0 && ch[start - 1].type === 'thematicBreak') start -= 1;
       const removed = ch.splice(start);
-      // 網址定義（[id]: 網址）不能跟著剝——正文裡的參照式連結／圖片還要靠它（gpt-6-astra 剝除器第六輪複核）
-      const keepDefs = removed.filter((n) => n.type === 'definition');
+      // 網址定義（[id]: 網址）不能跟著剝——正文裡的參照式連結／圖片還要靠它；縮排在被剝清單裡的也要撈出來，照原本順序留（gpt-6-astra 剝除器第六、七輪複核）
+      const keepDefs = [];
+      const grabDefs = (n) => { if (n.type === 'definition') keepDefs.push(n); else (n.children || []).forEach(grabDefs); };
+      removed.forEach(grabDefs);
       const tags = removed.filter(isTags);
       if (keepDefs.length) ch.push(...keepDefs);
       if (tags.length) ch.push(...tags);   // 促銷剝掉，文末標籤段搬回來
