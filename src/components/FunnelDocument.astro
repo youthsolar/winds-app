@@ -2127,6 +2127,10 @@ function submitFree(){
     if(!d.month||!d.day||!d.gender||!validGmail(d.email)){showFfErr("老師還有幾題沒問完。");go("ask");return;}
     var nm=splitName(d.name);
     payload={date_of_birth:d.year+"-"+pad2(d.month)+"-"+pad2(d.day)+" "+SHI[d.shi][2],last_name:nm.surname,first_name:nm.given,gender:d.gender,email:d.email};
+    /* 2026-09-29 Jeffery 拍板：有分靈體的人按「改」換了生日或時辰，先確認——後端看到生日不同會清掉側寫、重新產生分靈體
+       （名字和個性會變）。比對方式跟後端一樣：完整「YYYY-MM-DD HH:mm」字串不同就算換了。按取消就停在這一步。 */
+    var rOld=STATE.retInfo;
+    if(rOld&&rOld.has_spirit&&rOld.date_of_birth&&payload.date_of_birth!==rOld.date_of_birth&&!confirm("改了生日或時辰，你的分靈體會重新認識你，名字和個性都會跟著變。確定要改嗎？"))return;
     STATE.userName={surname:nm.surname,given:nm.given};
   }
   payload.free_flow=true;payload.question=STATE.text;payload.divination_method="雙占卜";
@@ -2322,7 +2326,7 @@ function doPrefill(){
      if(!d||!d.found)return;
      /* Google 老用戶：資料還在就走「回訪一行」，不再看表單 */
      var em=String(d.email||""),at=em.indexOf("@");
-     if(d.date_of_birth){STATE.retInfo={last_name:d.last_name||"",first_name:d.first_name||"",date_of_birth:d.date_of_birth||"",gender:d.gender||"",email:em,email_masked:at>0?em.slice(0,Math.min(2,at))+"***"+em.slice(at):""};STATE.ret=true;}
+     if(d.date_of_birth){STATE.retInfo={last_name:d.last_name||"",first_name:d.first_name||"",date_of_birth:d.date_of_birth||"",gender:d.gender||"",has_spirit:!!d.personality_profile,email:em,email_masked:at>0?em.slice(0,Math.min(2,at))+"***"+em.slice(at):""};STATE.ret=true;}
      if(STATE.step==="hex")render();
    }).catch(function(){});
 }
