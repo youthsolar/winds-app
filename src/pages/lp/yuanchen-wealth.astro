@@ -360,8 +360,16 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       function shownAmount() { var sel = fields().variant; var vv = (D.variants || []).filter(function (x) { return x.title === sel; })[0]; return vv ? Number(vv.price) : 0; }
       /* 送單冪等（gpt-6-astra 金流第四輪複核）：同一份資料重送帶同一個識別碼，逾時後重按後端會把原本那張單還回來、不會多開；
          資料有改就換新的識別碼（不會拿到舊資料的單）。 */
-      var reqFp = '', reqId = '';
-      function reqIdFor(payload) { var fp = JSON.stringify(payload); if (fp !== reqFp) { reqFp = fp; reqId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2, 12)); } return reqId; }
+      /* 識別碼存在這個分頁的 sessionStorage：重新整理後、資料沒改、一小時內，還是同一個（gpt-6-astra 金流第五輪複核） */
+      var REQ_KEY = 'winds-req-' + 'lp-yuanchen';
+      function reqIdFor(payload) {
+        var fp = JSON.stringify(payload), st = null;
+        try { st = JSON.parse(sessionStorage.getItem(REQ_KEY) || 'null'); } catch (e) {}
+        if (st && st.fp === fp && Date.now() - st.t < 3600000) return st.id;
+        var id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+        try { sessionStorage.setItem(REQ_KEY, JSON.stringify({ fp: fp, id: id, t: Date.now() })); } catch (e) {}
+        return id;
+      }
       function lockForm(on) {
         form.querySelectorAll('input,select,textarea,button').forEach(function (el) { el.disabled = on; });
         document.querySelectorAll('[data-cvs],#storeChange').forEach(function (el) { el.disabled = on; });
@@ -401,6 +409,8 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
             }
             unlock();
             if (d && d.error === 'price_changed' && d.amount) { setShownPrice(f.variant, Number(d.amount)); fail('價格剛更新為 ' + ntd(d.amount) + '（頁面原本顯示 ' + ntd(shown) + '），確認沒問題再按一次付款。'); return; }
+            if (d && d.error === 'already_paid') { if (d.trade_no) { location.href = '/shop/order/?no=' + encodeURIComponent(d.trade_no); return; } fail(d.message || '這筆訂單已經付款完成。'); return; }
+            if (d && d.error === 'req_conflict') { try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} }   // 換新的識別碼，下一次當成新的送單
             fail((d && (d.message || d.error)) || '建立訂單失敗，請稍後再試。');
           }).catch(function () { clearTimeout(to); unlock(); fail('網路太久沒回應。資料沒改的話直接再按一次付款，不會重複開單。'); });
       });
