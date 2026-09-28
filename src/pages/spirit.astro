@@ -497,8 +497,8 @@ import '../styles/global.css';
       el.innerHTML='<div class="sp-paywall-in">'+
         '<span class="sp-pw-disc">'+ic(isTarget?"sparkle":"chat-circle-dots","fill")+'</span>'+
         '<div class="sp-pw-h">解鎖分靈體對話</div>'+
-        '<p class="sp-pw-p">'+(isTarget?"拿到風易揚老師親手畫的靈符解方，也會開通對話。7 天內每天 30 句，想問對方時就來聊，對象隨時可以換。":"拿到風易揚老師親手畫的靈符解方，也會開通分靈體對話。7 天內每天 30 句，想說話時就來聊。")+'</p>'+
-        '<div class="sp-pw-tags">'+(isTarget?["感應對象狀態","可隨時換對象","每天 30 句"]:["深夜說說話","陪你把話說清楚","每天 30 句"]).map(function(t){return '<span>'+t+'</span>'}).join("")+'</div>'+
+        '<p class="sp-pw-p">'+(isTarget?"拿到風易揚老師親手畫的靈符解方，也會開通對話。7 天內每天 30 句，這 7 天陪你看同一個人。":"拿到風易揚老師親手畫的靈符解方，也會開通分靈體對話。7 天內每天 30 句，想說話時就來聊。")+'</p>'+
+        '<div class="sp-pw-tags">'+(isTarget?["感應對象狀態","7 天鎖定一位","每天 30 句"]:["深夜說說話","陪你把話說清楚","每天 30 句"]).map(function(t){return '<span>'+t+'</span>'}).join("")+'</div>'+
         '<a class="zf-btn primary lg" href="/divination">'+ic("sparkle")+'拿到靈符解方 · NT$360</a>'+
         '<button class="sp-pw-close" onclick="closePaywall()">先用今天的次數</button></div>';
     }
