@@ -382,16 +382,18 @@ import { PERSONAS } from '../data/booking-teachers';
           /* 識別碼存在這個分頁的 sessionStorage：重新整理、關掉精靈再開，資料沒改、一小時內還是同一個（gpt-6-astra 金流第五輪複核） */
           var REQ_KEY='winds-req-booking',fp=JSON.stringify(payload),st=null,rid='';
           try{st=JSON.parse(sessionStorage.getItem(REQ_KEY)||'null');}catch(e){}
+          if(!st)st=window.__windsReqBooking||null;   /* sessionStorage 被擋時退回記憶體（gpt-6-astra 金流第六輪複核） */
           if(st&&st.fp===fp&&Date.now()-st.t<3600000)rid=st.id;
           else{rid=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)),function(x){return('0'+x.toString(16)).slice(-2);}).join('');
-            try{sessionStorage.setItem(REQ_KEY,JSON.stringify({fp:fp,id:rid,t:Date.now()}));}catch(e){}}
+            window.__windsReqBooking={fp:fp,id:rid,t:Date.now()};
+            try{sessionStorage.setItem(REQ_KEY,JSON.stringify(window.__windsReqBooking));}catch(e){}}
           payload.expected_amount=dep;payload.client_req_id=rid;
           fetch(WORKER_API+'/sb-book',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},
             body:JSON.stringify(payload)})
            .then(function(r){return r.json().then(function(d){return{st:r.status,d:d};});}).then(function(o){var d=o.d;clearTimeout(to);
              if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
-             else if(d&&d.error==='already_paid'){unlockGo();showErr(document.getElementById('wzErr2'),d.message||'這筆預約已經付款完成，我們會為你安排。');}
-             else if(d&&d.error==='req_conflict'){unlockGo();try{sessionStorage.removeItem('winds-req-booking');}catch(e){}showErr(document.getElementById('wzErr2'),d.message||'資料跟上一次不一樣，請再按一次。');}
+             else if(d&&d.error==='already_paid'){unlockGo();window.__windsReqBooking=null;try{sessionStorage.removeItem('winds-req-booking');}catch(e){}showErr(document.getElementById('wzErr2'),d.message||'這筆預約已經付款完成，我們會為你安排。');}
+             else if(d&&d.error==='req_conflict'){unlockGo();window.__windsReqBooking=null;try{sessionStorage.removeItem('winds-req-booking');}catch(e){}showErr(document.getElementById('wzErr2'),d.message||'資料跟上一次不一樣，請再按一次。');}
              else if(d&&d.error==='price_changed'&&d.amount){
                unlockGo();
                if(Number(W.svc.deposit)>0)W.svc.deposit=Number(d.amount);else W.svc.price=Number(d.amount);

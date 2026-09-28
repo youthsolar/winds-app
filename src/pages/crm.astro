@@ -82,7 +82,7 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
     return new Date(d.getTime() + 8 * 3600000).toISOString().slice(0, 10);
   };
   const TIER: Record<string, [string, string]> = { paid: ['付過錢', 'rose'], booked: ['預約過', 'clay'], engaged: ['有互動', 'sage'], lead: ['只有名單', 'neutral'] };
-  const STATUS: Record<string, string> = { Pending: '未付款', pending: '未付款', Failed: '付款失敗', canceled: '已取消', unpaid: '未付款' };
+  const STATUS: Record<string, string> = { Pending: '未付款', pending: '未付款', Failed: '付款失敗', canceled: '已取消', unpaid: '未付款', Expired: '保留過期' };
 
   type P = { key: string; name: string; email: string; phone: string; birth: string; sources: string[]; tier: string; spend: number; paid_count: number; event_count: number; last_activity: string; alive_at: string; last_sent_at: string; last_click_at: string; tags: string[]; note: string };
   let people: P[] = [], tier = '', query = '', current = '', page = 1;

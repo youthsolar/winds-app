@@ -336,14 +336,17 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
          資料有改就換新的識別碼（不會拿到舊資料的單）。 */
       /* 識別碼存在這個分頁的 sessionStorage：重新整理後、資料沒改、一小時內，還是同一個（gpt-6-astra 金流第五輪複核） */
       var REQ_KEY = 'winds-req-' + 'shop-' + D.id;
+      var memReq = null;   // sessionStorage 被擋（無痕、權限）時退回記憶體，同頁重試仍是同一個識別碼（gpt-6-astra 金流第六輪複核）
       function reqIdFor(payload) {
         var fp = JSON.stringify(payload), st = null;
         try { st = JSON.parse(sessionStorage.getItem(REQ_KEY) || 'null'); } catch (e) {}
+        if (!st) st = memReq;
         if (st && st.fp === fp && Date.now() - st.t < 3600000) return st.id;
-        var id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
-        try { sessionStorage.setItem(REQ_KEY, JSON.stringify({ fp: fp, id: id, t: Date.now() })); } catch (e) {}
-        return id;
+        memReq = { fp: fp, id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''), t: Date.now() };
+        try { sessionStorage.setItem(REQ_KEY, JSON.stringify(memReq)); } catch (e) {}
+        return memReq.id;
       }
+      function dropReq() { memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} }
       function lockForm(on) {
         form.querySelectorAll('input,select,textarea,button').forEach(function (el) { el.disabled = on; });
         document.querySelectorAll('[data-cvs],#storeChange').forEach(function (el) { el.disabled = on; });
@@ -378,13 +381,14 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
             if (d && d.ok && d.payment_url) {
               /* 記下「這張單對應哪一份草稿、哪一版」：付款成功回到訂單頁時只清這一份，而且客人之後沒再改過才清（gpt-6-astra 複核） */
               var ver = Date.now(); save(ver);
-              try { if (d.trade_no) sessionStorage.setItem('shop-order-owner-' + d.trade_no, JSON.stringify({ key: KEY, v: ver })); } catch (e) {}
+              try { if (d.trade_no) sessionStorage.setItem('shop-order-owner-' + d.trade_no, JSON.stringify({ key: KEY, v: ver, reqKey: REQ_KEY })); } catch (e) {}
               location.href = d.payment_url; return;
             }
             unlock();
             if (d && d.error === 'price_changed' && d.amount) { setShownPrice(f.variant, Number(d.amount)); fail('價格剛更新為 ' + ntd(d.amount) + '（頁面原本顯示 ' + ntd(shown) + '），確認沒問題再按一次付款。'); return; }
-            if (d && d.error === 'already_paid') { if (d.trade_no) { location.href = '/shop/order/?no=' + encodeURIComponent(d.trade_no); return; } fail(d.message || '這筆訂單已經付款完成。'); return; }
-            if (d && d.error === 'req_conflict') { try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} }   // 換新的識別碼，下一次當成新的送單
+            /* 同一份資料剛剛已經付過款：告訴客人，清掉識別碼——要再買一份，再按一次就是新的一張（明確的第二個動作） */
+            if (d && d.error === 'already_paid') { dropReq(); fail('你剛剛已經用同樣的資料買過一份' + (d.trade_no ? '（訂單 ' + d.trade_no + '）' : '') + '。要再買一份，請再按一次付款。'); return; }
+            if (d && d.error === 'req_conflict') { dropReq(); }   // 換新的識別碼，下一次當成新的送單
             fail((d && (d.message || d.error)) || '建立訂單失敗，請稍後再試。');
           }).catch(function () { clearTimeout(to); unlock(); fail('網路太久沒回應。資料沒改的話直接再按一次付款，不會重複開單。'); });
       });
