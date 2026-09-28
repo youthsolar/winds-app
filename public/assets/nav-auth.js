@@ -18,7 +18,7 @@
 
   function decode(token) {
     try {
-      var p = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      var p = JSON.parse(decodeURIComponent(escape(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))));   // UTF-8：中文姓名才不會變亂碼
       if (p.exp && p.exp * 1000 <= Date.now()) return null;
       return p;
     } catch (e) { return null; }
@@ -39,7 +39,14 @@
     Array.prototype.forEach.call(root.querySelectorAll('.nav-logout'), function (b) {
       b.addEventListener('click', function (e) {
         e.preventDefault(); e.stopPropagation();
-        try { localStorage.removeItem('winds_google_token'); } catch (er) {}
+        /* 2026-09-28（gpt-6-astra 體檢）：原本只清 Google token，同一台裝置下一個人打開占卜頁
+           還會用 winds_ff_log／k 撈到前一個人的姓名、生日、信箱。跟會員中心登出同一套：清掉所有 winds_ 開頭的鍵。 */
+        try {
+          var kill = [];
+          for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0) kill.push(k); }
+          kill.forEach(function (k) { localStorage.removeItem(k); });
+        } catch (er) {}
+        try { sessionStorage.removeItem('winds_pending_log_id'); } catch (er) {}
         location.href = LOGOUT_URL;
       });
     });

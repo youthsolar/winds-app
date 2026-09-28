@@ -44,7 +44,7 @@ import '../styles/global.css';
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
-  <script src="/assets/nav-auth.js?v=4" defer></script>
+  <script src="/assets/nav-auth.js?v=5" defer></script>
 
   <style is:global>
     html,body{height:100%}
@@ -344,9 +344,14 @@ import '../styles/global.css';
       if(!y||!y.value||!m.value||!d.value){toast("請先選對象生日");return}
       var v=y.value+"-"+("0"+m.value).slice(-2)+"-"+("0"+d.value).slice(-2);
       var chk=new Date(v+"T12:00:00");if(isNaN(chk)||chk.toISOString().slice(0,10)!==v){toast("這一天不存在，請再確認");return}
-      S.targetDate=v;S.targetTime=(t&&t.value)||"";S.targetConfirmed=true;renderTarget();
+      /* 2026-09-28（gpt-6-astra 體檢）：換成另一個生日＝另一個人，前一位的對話與命盤不能留在畫面上、也不能接著用同一段對話 */
+      var nt=(t&&t.value)||"";
+      var changed=(S.targetDate&&(S.targetDate!==v||S.targetTime!==nt));
+      S.targetDate=v;S.targetTime=nt;S.targetConfirmed=true;
+      if(changed){S.sessionId=null;saveSess(null);S.astro=null;S.hasMsg=false;S.hydGen++;showWelcome();}
+      renderTarget();
     }
-    function editTarget(){S.targetConfirmed=false;renderTarget()}
+    function editTarget(){if(S.sending){toast("等分靈體回完這句再換對象");return}S.targetConfirmed=false;renderTarget()}
 
     /* ===== count row ===== */
     function renderCount(){
@@ -373,7 +378,7 @@ import '../styles/global.css';
     }
     function bindInput(){}
     function autoResize(el){el.style.height="auto";el.style.height=Math.min(120,el.scrollHeight)+"px"}
-    function onKey(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}
+    function onKey(e){if(e.isComposing||e.keyCode===229)return;if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}   // 注音／拼音選字時的 Enter 不能送出（會用掉句數）
 
     /* ===== messages ===== */
     function welcomeText(){
@@ -398,10 +403,17 @@ import '../styles/global.css';
       /* 撈太久（15 秒）就放棄：解鎖讓他能送，並讓晚到的回應作廢，免得回來又把新訊息蓋掉 */
       setTimeout(function(){if(gen===S.hydGen&&S.hydrating){S.hydGen++;S.hydrating=false;}},15000);
       fetch(API.history+"?sessionId="+encodeURIComponent(id),{headers:{"X-Google-Id-Token":S.idToken||""}})
-        .then(function(r){return r.ok?r.json():null})
+        .then(function(r){
+          /* 2026-09-28（gpt-6-astra 體檢）：只有「確定不存在／不是你的」（404、403）才刪本機的對話編號；
+             500／502 這種暫時錯誤刪了，舊對話就再也接不回來 */
+          if(r.status===404||r.status===403)return {gone:true};
+          if(!r.ok)throw new Error("http "+r.status);
+          return r.json();
+        })
         .then(function(d){
           if(gen!==S.hydGen||S.mode!==mode)return;
-          if(!d||!d.success&&!d.messages){try{localStorage.removeItem("winds_spirit_session_"+mode)}catch(e){}S.sessionId=null;return}
+          if(d&&d.gone){try{localStorage.removeItem("winds_spirit_session_"+mode)}catch(e){}S.sessionId=null;return}
+          if(!d||!d.success&&!d.messages)return;
           var ms=d.messages||[];
           if(!ms.length)return;
           box.innerHTML="";
@@ -442,6 +454,7 @@ import '../styles/global.css';
       var send_=document.getElementById("spSend");send_.setAttribute("disabled","");S.sending=true;
       showTyping();
       var sentMode=S.mode;   // 這則訊息屬於哪個模式
+      var sentTarget=S.mode==="target"?(S.targetDate+"|"+S.targetTime):"";
       /* 2026-09-26（Codex 複審抓到）：原本只送 lineUserId，token 存了沒用，worker 直接信任呼叫方給的身分，
          知道別人 Google 編號的人就能用掉對方的額度、讀到對方的資料。改成把 token 一起送，worker 端驗身分。 */
       fetch(API.chat,{method:"POST",headers:{"Content-Type":"application/json","X-Google-Id-Token":S.idToken||""},
@@ -450,6 +463,7 @@ import '../styles/global.css';
        .then(function(o){
          removeTyping();var d=o.d;
          if(S.mode!==sentMode)return;   // 保險：真的被換掉就整份丟掉
+         if(sentMode==="target"&&(S.targetDate+"|"+S.targetTime)!==sentTarget)return;   // 等待期間換了對象：舊對象的回覆不能進新對象的畫面
          if(o.status===403&&d.needSubscribe){openPaywall();return}
          if(!d.success){
            if(d.error==="no_profile"){appendMsg("spirit","我還不認識你呢——先拿到老師的靈符解方，讓我感應你的靈魂頻率，回來我們再好好聊。",nowHM());setTimeout(function(){location.href="/divination"},3000);return}
@@ -542,7 +556,12 @@ import '../styles/global.css';
       S.booting=true;
       /* status 卡住（請求一直沒結束）也不能把整頁鎖死：10 秒就先正式畫；晚到的 status 只更新次數／付費牆，不再整頁重畫（會清掉新訊息） */
       var booted=false;
-      function finishBoot(){if(booted)return;booted=true;S.booting=false;render();renderPaywall()}
+      function finishBoot(){if(booted)return;booted=true;S.booting=false;
+        /* 2026-09-28（gpt-6-astra 體檢）：正式畫這次會重建輸入區，客人等待期間已經打的字、選的生日要放回去 */
+        var keep={};["spText","tgYear","tgMonth","tgDay","tgTime"].forEach(function(id){var el=document.getElementById(id);if(el&&el.value)keep[id]=el.value;});
+        render();renderPaywall();
+        Object.keys(keep).forEach(function(id){var el=document.getElementById(id);if(el&&!el.value){el.value=keep[id];if(id==="spText")autoResize(el);}});
+      }
       setTimeout(finishBoot,10000);
       var lbBefore=null;setTimeout(function(){lbBefore=S.lockedBirthday;},10000);
       fetchStatus().then(function(){if(booted){renderCount();renderPaywall();renderProfile();if(S.lockedBirthday!==lbBefore)renderTarget()}else finishBoot()});   // 鎖定對象變了才重畫對象區塊，否則會清掉客人還沒送出的生日草稿   // 晚到也要同步對象區塊：鎖定的生日以後端為準，畫面不能還顯示客人剛填的另一個

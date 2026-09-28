@@ -11,7 +11,7 @@ const BASE = 'https://winds.tw';
 /* 純文字版（2026-09-24）：任何頁面網址尾巴加 /text/ → 取同一頁的伺服器輸出，拆掉 script／style／nav／svg／iframe 只留文案，
    給不跑 JavaScript 的讀取端（ChatGPT 的網頁工具連 winds.tw 4KB 純頁都說 not accessible，先備一條穩的路＋供合成 MD）。
    noindex、canonical 指回原頁，不搶索引。原頁若不是 HTML 或非 200 就原樣回。 */
-const TEXT_RE = /^(\/.*?)\/text\/?$/;
+const TEXT_RE = /^(\/.*?)?\/text\/?$/;   // 2026-09-28（gpt-6-astra 體檢）：前綴可為空，首頁 /text/ 才對得到
 function stripBlock(h: string, open: string): string {
   const i = h.indexOf(open); if (i < 0) return h;
   const re = /<div\b|<\/div>/gi; re.lastIndex = i; let depth = 0; let m: RegExpExecArray | null;

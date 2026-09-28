@@ -57,7 +57,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       // 與全站一致的 public Google client id（divination/history 也用這顆；client id 公開無風險）
       var CLIENT_ID = '35219881811-2rnl87e0qmb9vsuhuqnfooo0a0af5ggd.apps.googleusercontent.com';
       function ret() {
-        try { return new URLSearchParams(location.search).get('return') || '/'; } catch (e) { return '/'; }
+        /* 2026-09-28（gpt-6-astra 體檢）：原本直接交給 location.replace()，return=javascript:… 會在本站執行、偷走登入憑證。
+           只准回到本站的網址（同源、http/https），不合格一律回首頁。 */
+        try {
+          var u = new URL(new URLSearchParams(location.search).get('return') || '/', location.origin);
+          if (u.origin !== location.origin || !/^https?:$/.test(u.protocol)) return '/';
+          return u.pathname + u.search + u.hash;
+        } catch (e) { return '/'; }
       }
       // 已登入直接回轉址目標
       try {

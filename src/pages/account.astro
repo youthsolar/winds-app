@@ -100,7 +100,7 @@ const entries = [
       var user = null;
       if (token) {
         try {
-          var p = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          var p = JSON.parse(decodeURIComponent(escape(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))));   // UTF-8：中文姓名才不會變亂碼
           if (p.exp && p.exp * 1000 > Date.now()) {
             user = { name: p.name || p.given_name || '朋友', email: p.email || '', picture: p.picture || '' };
           }
