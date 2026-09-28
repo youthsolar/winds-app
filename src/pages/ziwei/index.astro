@@ -299,13 +299,15 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 
   const form = document.getElementById('ziwei-form') as HTMLFormElement;
   // 選了經度才顯示「實際出生時間」並設為必填（真太陽時校正要用實際時間）
-  {
-    const lonSel = document.getElementById('longitude') as HTMLSelectElement | null;
+  // disabled 才能讓隱藏時只填一半的時間欄退出表單驗證（hidden／不必填擋不住 badInput）；form.reset() 後也要再同步一次
+  function syncBt() {
+    const on = !!(document.getElementById('longitude') as HTMLSelectElement | null)?.value;
     const btRow = document.getElementById('birth-time-row') as HTMLElement | null;
     const btIn = document.getElementById('birthTime') as HTMLInputElement | null;
-    const syncBt = () => { const on = !!lonSel?.value; if (btRow) btRow.hidden = !on; if (btIn) btIn.required = on; };
-    lonSel?.addEventListener('change', syncBt); syncBt();
+    if (btRow) btRow.hidden = !on;
+    if (btIn) { btIn.required = on; btIn.disabled = !on; }
   }
+  document.getElementById('longitude')?.addEventListener('change', syncBt); syncBt();
   const authGate = document.getElementById('auth-gate') as HTMLElement;
   const loadingSection = document.getElementById('loading-section') as HTMLElement;
   const formSection = document.getElementById('form-section') as HTMLElement;
