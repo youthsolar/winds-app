@@ -129,6 +129,13 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
           </div>
         </div>
 
+        <!-- 2026-09-28 Jeffery 拍板：選了經度（要做真太陽時校正）就要填實際幾點幾分。
+             只選時辰時拿時辰起點去校正，可能校正到前一個時辰、整張盤排錯。 -->
+        <div class="row" id="birth-time-row" hidden>
+          <label for="birthTime">實際出生時間（幾點幾分）</label>
+          <input type="time" id="birthTime" name="birthTime" />
+        </div>
+
         <button type="submit" class="submit-btn">
           <span class="btn-default">生成命盤</span>
           <span class="btn-loading" hidden>計算中…</span>
@@ -291,6 +298,14 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
   }
 
   const form = document.getElementById('ziwei-form') as HTMLFormElement;
+  // 選了經度才顯示「實際出生時間」並設為必填（真太陽時校正要用實際時間）
+  {
+    const lonSel = document.getElementById('longitude') as HTMLSelectElement | null;
+    const btRow = document.getElementById('birth-time-row') as HTMLElement | null;
+    const btIn = document.getElementById('birthTime') as HTMLInputElement | null;
+    const syncBt = () => { const on = !!lonSel?.value; if (btRow) btRow.hidden = !on; if (btIn) btIn.required = on; };
+    lonSel?.addEventListener('change', syncBt); syncBt();
+  }
   const authGate = document.getElementById('auth-gate') as HTMLElement;
   const loadingSection = document.getElementById('loading-section') as HTMLElement;
   const formSection = document.getElementById('form-section') as HTMLElement;
@@ -957,6 +972,14 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     if (hour) payload.hour = Number(hour);
     const lon = fd.get('longitude');
     if (lon) payload.longitude = Number(lon);
+    // 校正要用實際時間；只有時辰就不能冒充精確時間
+    const bt = String(fd.get('birthTime') || '');
+    if (lon) {
+      const m = bt.match(/^(\d{1,2}):(\d{2})/);
+      if (!m) { showError('選了出生地經度（真太陽時校正）就要填實際出生時間；只知道時辰的話，經度請選「不校正」。'); return; }
+      payload.hour = Number(m[1]);
+      payload.minute = Number(m[2]);
+    }
 
     let chartData: any;
     try {
@@ -1186,6 +1209,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     flex-direction: column;
     gap: 7px;
   }
+  .ziwei-form .row[hidden] { display: none; }   /* display:flex 會蓋掉 hidden（實際出生時間欄） */
   .ziwei-form .row.two-col {
     display: grid;
     grid-template-columns: 1fr 1fr;
