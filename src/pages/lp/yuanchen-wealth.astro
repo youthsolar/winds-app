@@ -8,11 +8,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const API = 'https://api.winds.tw';
 const PRODUCT_ID = '9920676';
+// 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓＝調價後頁面還是舊價（後端照現價收）、API 一抖就發殘缺頁且不會自己好。
+// 改成每次請求即時讀＋邊緣快取 5 分鐘；讀不到回 503 讓人重整。
+export const prerender = false;
 let prod: any = null;
+let failed = false;
 try {
-  const d = await (await fetch(API + '/shop-products')).json();
+  const r = await fetch(API + '/shop-products');
+  if (!r.ok) throw new Error(String(r.status));
+  const d = await r.json();
   prod = (d.products || d || []).find((p: any) => String(p.id) === PRODUCT_ID) || null;
-} catch { /* build 時抓不到就整頁空殼 */ }
+} catch { failed = true; }
+if (failed) return new Response('暫時讀不到資料，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
+Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 
 const ntd = (n: number) => 'NT$ ' + Number(n).toLocaleString('en-US');
 const name = prod ? String(prod.name).split('/')[0].replace(/[【】]/g, '').trim() : '元辰運財與防破符令';

@@ -5,12 +5,15 @@
 // 表單與流程沿用 /lp/yuanchen-wealth.astro（那頁是手寫版樣板，之後可退役）。
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-export async function getStaticPaths() {
-  let products: any[] = [];
-  try { products = (await (await fetch('https://api.winds.tw/shop-products')).json()).products || []; } catch { /* build 抓不到＝沒有商品頁 */ }
-  return products.map((p) => ({ params: { id: String(p.id) }, props: { prod: p } }));
-}
-const { prod } = Astro.props as { prod: any };
+// 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓＝調價後頁面還是舊價（後端照現價收）、API 一抖就發殘缺頁且不會自己好。
+// 改成每次請求即時讀＋邊緣快取 5 分鐘；讀不到回 503 讓人重整。
+export const prerender = false;
+let products: any[] | null = null;
+try { const r = await fetch('https://api.winds.tw/shop-products'); if (r.ok) products = (await r.json()).products || []; } catch { products = null; }
+if (!products) return new Response('暫時讀不到資料，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
+const prod: any = products.find((p: any) => String(p.id) === String(Astro.params.id || ''));
+if (!prod) return new Response(null, { status: 404 });
+Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 const PRODUCT_ID = String(prod.id);
 
 const ntd = (n: number) => 'NT$ ' + Number(n).toLocaleString('en-US');
@@ -161,7 +164,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     </section>
   </div>
 
-  <script type="application/json" id="lpData" set:html={JSON.stringify({ id: PRODUCT_ID, name, variants })} />
+  <script type="application/json" id="lpData" set:html={JSON.stringify({ id: PRODUCT_ID, name, variants, price: Number(prod.price) || 0 })} />
 
   <style>
     .lp { --lp-max: 1040px; }
@@ -308,8 +311,10 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       });
       document.getElementById('storeChange').addEventListener('click', function () { showStore(null); save(); });
       form.addEventListener('change', function () {
-        var v = form.querySelector('[name=variant]:checked'); var vv = (D.variants || []).filter(function (x) { return x.title === (v && v.value); })[0];
-        document.getElementById('totalTxt').textContent = ntd(vv ? vv.price : 0);
+        /* 2026-09-28（gpt-6-astra 體檢）：單款商品的款式是隱藏欄位、沒有 :checked，原本找不到就顯示 NT$ 0（實際照原價收） */
+        var sel = fields().variant; var vv = (D.variants || []).filter(function (x) { return x.title === sel; })[0];
+        if (!vv && (D.variants || []).length === 1) vv = D.variants[0];
+        document.getElementById('totalTxt').textContent = ntd(vv ? vv.price : (D.price || 0));
       });
 
       document.querySelectorAll('[data-thumb]').forEach(function (t) {
@@ -324,6 +329,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       // 付完款回來
       if (qs.get('paid')) {
         var no = qs.get('paid');
+        form.hidden = true;   // 2026-09-28（gpt-6-astra 體檢）：查單期間表單還開著、submit 攔截又還沒掛，按付款會用原生 GET 把個資寫進網址
         fetch(API + '/shop-order/' + encodeURIComponent(no)).then(function (r) { return r.json(); }).then(function (d) {
           var box = document.getElementById('paidBox'); box.hidden = false; form.hidden = true;
           if (d && d.ok && d.status === 'Paid') {

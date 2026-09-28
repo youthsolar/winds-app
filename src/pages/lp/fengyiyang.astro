@@ -12,14 +12,19 @@ let prov: any = null;
 let locations: any[] = [];
 /* 2026-09-27：原本 catch 掉就發一個「老師資料載入失敗」的空殼頁上線，預約與付款入口整條失效，
    而且 API 恢復也不會自己好。改成讓 build 失敗。 */
-const provResp = await fetch(API + '/sb-providers');
-if (!provResp.ok) throw new Error(`build 中斷：/sb-providers 回 ${provResp.status}，不要把空殼落地頁發上線`);
+// 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓＝調價後頁面還是舊價（後端照現價收）、API 一抖就發殘缺頁且不會自己好。
+// 改成每次請求即時讀＋邊緣快取 5 分鐘；讀不到回 503 讓人重整。
+export const prerender = false;
+let provResp: Response | null = null;
+try { provResp = await fetch(API + '/sb-providers'); } catch { provResp = null; }
+if (!provResp || !provResp.ok) return new Response('暫時讀不到資料，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
+Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 {
   const d = await provResp.json();
   prov = (d.providers || []).find((p: any) => String(p.id) === PROVIDER_ID) || null;
   locations = (d.locations || []).filter((l: any) => (prov?.locations || []).includes(String(l.id)));
 }
-if (!prov) throw new Error(`build 中斷：/sb-providers 裡找不到老師 ${PROVIDER_ID}`);
+if (!prov) return new Response('暫時讀不到資料，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
 
 const services: any[] = (prov?.services || []).filter((s: any) => Number(s.price) > 0);
 
@@ -112,7 +117,7 @@ const jsonLd = prov ? [
           </div>
           <div class="lp-two">
             <div class="zf-prose ink"><p>{prov.desc}</p></div>
-            <div class="zf-prose"><p class="lp-skillmain">{LP_SKILL_MAIN}</p><p>{prov.style.split('・').map((t: string) => <span class="zf-tag rose outline" style="margin:0 6px 6px 0">{t}</span>)}</p></div>
+            <div class="zf-prose"><p class="lp-skillmain">{LP_SKILL_MAIN}</p><p>{String(prov.style || '').split('・').filter(Boolean).map((t: string) => <span class="zf-tag rose outline" style="margin:0 6px 6px 0">{t}</span>)}</p></div>
           </div>
         </section>
 
@@ -335,8 +340,6 @@ const jsonLd = prov ? [
       function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
       function clean(n) { return String(n || '').replace(/^【/, '').replace(/】$/, ''); }
       function ntd(n) { return 'NT$ ' + (Number(n) || 0).toLocaleString('en-US'); }
-      function pad2(n) { return String(n).padStart(2, '0'); }
-      function ymd(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
       function shell(step, title, inner, footer) {
         var dots = ''; for (var i = 1; i <= 5; i++) dots += '<span class="bw-dot' + (i <= step ? ' on' : '') + '"></span>';
         var sub = [W.loc && W.loc.name, W.svc && clean(W.svc.name), W.date && W.time && (W.date + ' ' + W.time)].filter(Boolean).join(' · ');
@@ -372,14 +375,18 @@ const jsonLd = prov ? [
       }
       function stepTime() {
         shell(3, '選時間', '<div class="bw-loading"><span class="zf-spinner" style="width:18px;height:18px;vertical-align:middle;margin-right:8px"></span>載入老師未來四週的空檔…</div>');
-        var from = new Date(); from.setDate(from.getDate() + 1); var to = new Date(); to.setDate(to.getDate() + 28);
-        fetch(API + '/sb-slots?service=' + encodeURIComponent(W.svc.id) + '&provider=' + encodeURIComponent(prov.id) + '&from=' + ymd(from) + '&to=' + ymd(to))
-          .then(function (r) { return r.json(); }).then(function (d) {
+        /* 2026-09-28（gpt-6-astra 體檢）：連點兩個項目時舊回應會蓋掉新項目的時段 → 記下這次是哪個項目，對不上就丟；
+           502 不能當成「沒有空檔」；日期用台北時間 */
+        var reqSvc = W.svc;
+        var tpe = function (n) { return new Date(Date.now() + 8 * 3600000 + n * 86400000).toISOString().slice(0, 10); };
+        fetch(API + '/sb-slots?service=' + encodeURIComponent(W.svc.id) + '&provider=' + encodeURIComponent(prov.id) + '&from=' + tpe(1) + '&to=' + tpe(28))
+          .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); }).then(function (d) {
+            if (W.svc !== reqSvc) return;
             var slots = (d && d.slots) || {}; var dates = Object.keys(slots).sort();
             if (!dates.length) { shell(3, '選時間', '<p class="bw-none">老師近四週暫無可預約時段，請稍後再試。</p>', '<button class="zf-btn md secondary" data-back type="button">上一步</button>'); on('[data-back]', stepService); return; }
             W.date = W.date && slots[W.date] ? W.date : dates[0]; W.time = null;
             renderTime(slots, dates);
-          }).catch(function () { shell(3, '選時間', '<p class="bw-none">時段載入失敗，請稍後再試。</p>', '<button class="zf-btn md secondary" data-back type="button">上一步</button>'); on('[data-back]', stepService); });
+          }).catch(function () { if (W.svc !== reqSvc) return; shell(3, '選時間', '<p class="bw-none">時段載入失敗，請稍後再試。</p>', '<button class="zf-btn md secondary" data-back type="button">上一步</button>'); on('[data-back]', stepService); });
       }
       function renderTime(slots, dates) {
         function dl(s) { var p = s.split('-'); return (+p[1]) + '/' + (+p[2]); }

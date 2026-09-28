@@ -85,6 +85,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <button type="submit" class="gf-cta gf-cta-btn"><i class="ph-thin ph-envelope-simple"></i>明天有名額告訴我</button>
           </form>
           <div class="gf-note" id="gfWaitNote">只寄這一封領取信，不會拿你的 email 做其他用途。</div>
+          <button type="button" class="gf-note" id="gfFullLogin" style="all:unset;cursor:pointer;display:block;margin-top:12px;text-align:center;text-decoration:underline;color:var(--text-muted);font-size:13px">已經領過了？登入取回你的連結</button>
         </div>
       </div>
 
@@ -196,7 +197,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         hint.hidden = false;
         claimBtn.disabled = true;
         fetch(WORKER_API + '/gift/claim', { method: 'POST', headers: { 'X-Google-Id-Token': idToken } })
-          .then(function (r) { return r.json(); })
+          .then(function (r) { if (r.status === 401) { reLogin(); throw 'auth'; } return r.json(); })
           .then(function (d) {
             hint.hidden = true;
             if (d && d.full) { show('full'); return; }
@@ -208,7 +209,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             claimBtn.disabled = false;
             alert((d && d.error) || '暫時領取不到，請稍後再試');
           })
-          .catch(function () { hint.hidden = true; claimBtn.disabled = false; alert('連線失敗，請稍後再試'); });
+          .catch(function (e) { hint.hidden = true; claimBtn.disabled = false; if (e !== 'auth') alert('連線失敗，請稍後再試'); });
+      }
+      /* 2026-09-28（gpt-6-astra 體檢）：登入憑證過期後按領取原本一直重送舊 token、只跳警告；
+         改成清掉失效憑證、換回 Google 登入鈕，登入後自動接著領 */
+      function reLogin() {
+        try { localStorage.removeItem('winds_google_token'); } catch (e) {}
+        claimBtn.hidden = true; claimBtn.disabled = false; hint.hidden = true;
+        gmount.hidden = false; show('open'); initGsi();
       }
 
       function onCredential(resp) {
@@ -278,7 +286,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if (tk) {
         gmount.hidden = true;
         claimBtn.hidden = false;
-        claimBtn.addEventListener('click', function () { claim(tk); });
+        claimBtn.addEventListener('click', function () { var t = storedToken(); if (!t) { reLogin(); return; } claim(t); });   // 每次按都重新檢查憑證
       } else if (window.ZFInApp && window.ZFInApp()) {
         // App 內嵌瀏覽器：Google 直接封鎖 OAuth，按鈕就算渲染出來也登不進去 → 不掛 GSI，直接出引導
         fallback(true);
@@ -291,9 +299,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       // 每日閥門：問後端今天還開不開
       fetch(WORKER_API + '/gift/status')
         .then(function (r) { return r.json(); })
-        .then(function (d) { show(d && d.open === false ? 'full' : 'open'); })
+        .then(function (d) {
+          if (d && d.open === false) {
+            /* 2026-09-28（gpt-6-astra 體檢）：額滿不能連已領過的人一起擋——後端 /gift/claim 會把既有連結還給他，不受當日額度限制。
+               已登入就直接問一次；沒登入就在額滿卡上給「已經領過？登入取回」 */
+            var t = storedToken();
+            if (t) { claim(t); } else { show('full'); }
+            return;
+          }
+          show('open');
+        })
         .catch(function () { show('open'); });
 
+      var fullLogin = document.getElementById('gfFullLogin');
+      if (fullLogin) fullLogin.addEventListener('click', function () { var t = storedToken(); if (t) { claim(t); } else { show('open'); } });
       // waitlist
       document.getElementById('gfWaitForm').addEventListener('submit', function (ev) {
         ev.preventDefault();

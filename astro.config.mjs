@@ -5,7 +5,7 @@ import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
-// 2026-09-28：/services/[slug] 改成每次請求即時讀（prerender=false），sitemap 外掛不會自動收它 →
+// 2026-09-28：/services/[slug]、/shop/、/shop/[id] 改成每次請求即時讀（prerender=false），sitemap 外掛不會自動收它 →
 // build 時抓一次目錄補進 customPages。抓不到就讓 build 失敗（跟原本 getStaticPaths 抓不到一樣顯性），不發一份少了項目頁的 sitemap。
 async function servicePages() {
   const get = async (p) => { const r = await fetch('https://api.winds.tw' + p); if (!r.ok) throw new Error(`sitemap：${p} 回 ${r.status}`); return r.json(); };
@@ -13,6 +13,9 @@ async function servicePages() {
   return [
     ...(sb.services || []).filter((x) => x && x.name).map((x) => `https://winds.tw/services/sb-${x.id}/`),
     ...(es.products || []).filter((x) => x && x.name).map((x) => `https://winds.tw/services/es-${x.id}/`),
+    // /shop/ 與 /shop/<id>/ 同日也改成即時讀，一起補
+    'https://winds.tw/shop/',
+    ...(es.products || []).filter((x) => x && x.name).map((x) => `https://winds.tw/shop/${x.id}/`),
   ];
 }
 const SERVICE_PAGES = await servicePages();
