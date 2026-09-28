@@ -13,7 +13,7 @@ let locations: any[] = [];
 /* 2026-09-27：原本 catch 掉就發一個「老師資料載入失敗」的空殼頁上線，預約與付款入口整條失效，
    而且 API 恢復也不會自己好。改成讓 build 失敗。 */
 // 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓＝調價後頁面還是舊價（後端照現價收）、API 一抖就發殘缺頁且不會自己好。
-// 改成每次請求即時讀＋邊緣快取 5 分鐘；讀不到回 503 讓人重整。
+// 改成每次請求即時讀＋瀏覽器快取 5 分鐘（Workers 回應不經邊緣快取，實測無 cf-cache-status）；讀不到回 503 讓人重整。
 export const prerender = false;
 let provResp: Response | null = null;
 try { provResp = await fetch(API + '/sb-providers'); } catch { provResp = null; }
@@ -341,6 +341,7 @@ const jsonLd = prov ? [
       function clean(n) { return String(n || '').replace(/^【/, '').replace(/】$/, ''); }
       function ntd(n) { return 'NT$ ' + (Number(n) || 0).toLocaleString('en-US'); }
       function shell(step, title, inner, footer) {
+        W.step = step;   // 記住目前在第幾步：時段請求回來時不在「選時間」就丟掉（gpt-6-astra 複核）
         var dots = ''; for (var i = 1; i <= 5; i++) dots += '<span class="bw-dot' + (i <= step ? ' on' : '') + '"></span>';
         var sub = [W.loc && W.loc.name, W.svc && clean(W.svc.name), W.date && W.time && (W.date + ' ' + W.time)].filter(Boolean).join(' · ');
         card.innerHTML = '<div class="bw-head"><div class="bw-prog">' + dots + '</div><div class="bw-title">' + esc(title) + '</div><div class="bw-sub">' + esc(sub || prov.name) + '</div></div>' +
@@ -377,16 +378,16 @@ const jsonLd = prov ? [
         shell(3, '選時間', '<div class="bw-loading"><span class="zf-spinner" style="width:18px;height:18px;vertical-align:middle;margin-right:8px"></span>載入老師未來四週的空檔…</div>');
         /* 2026-09-28（gpt-6-astra 體檢）：連點兩個項目時舊回應會蓋掉新項目的時段 → 記下這次是哪個項目，對不上就丟；
            502 不能當成「沒有空檔」；日期用台北時間 */
-        var reqSvc = W.svc;
+        var reqSvc = W.svc, seq = W.slotSeq = (W.slotSeq || 0) + 1;   // 同一項目重選（A→B→A）也要分得出是哪一次
         var tpe = function (n) { return new Date(Date.now() + 8 * 3600000 + n * 86400000).toISOString().slice(0, 10); };
         fetch(API + '/sb-slots?service=' + encodeURIComponent(W.svc.id) + '&provider=' + encodeURIComponent(prov.id) + '&from=' + tpe(1) + '&to=' + tpe(28))
           .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); }).then(function (d) {
-            if (W.svc !== reqSvc) return;
+            if (W.svc !== reqSvc || seq !== W.slotSeq || W.step !== 3) return;
             var slots = (d && d.slots) || {}; var dates = Object.keys(slots).sort();
             if (!dates.length) { shell(3, '選時間', '<p class="bw-none">老師近四週暫無可預約時段，請稍後再試。</p>', '<button class="zf-btn md secondary" data-back type="button">上一步</button>'); on('[data-back]', stepService); return; }
             W.date = W.date && slots[W.date] ? W.date : dates[0]; W.time = null;
             renderTime(slots, dates);
-          }).catch(function () { if (W.svc !== reqSvc) return; shell(3, '選時間', '<p class="bw-none">時段載入失敗，請稍後再試。</p>', '<button class="zf-btn md secondary" data-back type="button">上一步</button>'); on('[data-back]', stepService); });
+          }).catch(function () { if (W.svc !== reqSvc || seq !== W.slotSeq || W.step !== 3) return; shell(3, '選時間', '<p class="bw-none">時段載入失敗，請稍後再試。</p>', '<button class="zf-btn md secondary" data-back type="button">上一步</button>'); on('[data-back]', stepService); });
       }
       function renderTime(slots, dates) {
         function dl(s) { var p = s.split('-'); return (+p[1]) + '/' + (+p[2]); }
@@ -428,15 +429,27 @@ const jsonLd = prov ? [
           '<p class="bw-note">' + (online ? '遠端視訊，預約後自動開啟線上會議室連結。' : '實體面談：' + esc(W.loc.note || W.loc.name) + '。') + ' 付訂金後即為你保留時段，餘額' + (online ? '依老師指示' : '現場') + '結清。</p>' +
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
         shell(5, '確認預約', inner, '<button class="zf-btn md secondary" data-back type="button">上一步</button><button class="zf-btn md primary" data-go type="button">確認並付訂金</button>');
-        on('[data-back]', stepInfo);
+        on('[data-back]', function () { if (W.creating) return; W.pendingPay = null; stepInfo(); });   // 建單中不准回上一步；回去改了東西就不能再付舊那張
+        var dep0 = dep;
         on('[data-go]', function (btn) {
-          btn.disabled = true; btn.textContent = '建立訂單中…';
+          if (W.pendingPay) { location.href = W.pendingPay; return; }
+          if (btn.disabled) return;
+          btn.disabled = true; btn.textContent = '建立訂單中…'; W.creating = true;
           fetch(API + '/sb-book', { method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ service: W.svc.id, provider: prov.id, datetime: W.date + ' ' + W.time + ':00', location: W.loc.id, name: W.fields.name, phone: W.fields.phone, email: W.fields.email, topic: W.fields.topic || null, note: W.fields.note || null }) })
             .then(function (r) { return r.json(); }).then(function (d) {
-              if (d && d.ok && d.payment_url) { location.href = d.payment_url; return; }
-              var e = document.getElementById('wzErr2'); e.textContent = (d && (d.message || d.error)) || '建立預約失敗，請稍後再試。'; e.hidden = false; btn.disabled = false; btn.textContent = '確認並付訂金';
-            }).catch(function () { var e = document.getElementById('wzErr2'); e.textContent = '網路錯誤，請稍後再試。'; e.hidden = false; btn.disabled = false; btn.textContent = '確認並付訂金'; });
+              W.creating = false;
+              if (d && d.ok && d.payment_url) {
+                /* 2026-09-28（gpt-6-astra 複核）：頁面訂金可能是幾分鐘前的，後端照現價收；不同就先停下來確認，按下去用同一張單付款（時段已保留） */
+                if (d.amount != null && dep0 && Number(d.amount) !== dep0) {
+                  W.pendingPay = d.payment_url; btn.disabled = false; btn.textContent = '以 ' + ntd(d.amount) + ' 付訂金';
+                  var e0 = document.getElementById('wzErr2'); if (e0) { e0.textContent = '訂金剛更新：實際是 ' + ntd(d.amount) + '（頁面原本顯示 ' + ntd(dep0) + '）。確認沒問題再按一次。'; e0.hidden = false; }
+                  return;
+                }
+                location.href = d.payment_url; return;
+              }
+              var e = document.getElementById('wzErr2'); if (e) { e.textContent = (d && (d.message || d.error)) || '建立預約失敗，請稍後再試。'; e.hidden = false; } btn.disabled = false; btn.textContent = '確認並付訂金';
+            }).catch(function () { W.creating = false; var e = document.getElementById('wzErr2'); if (e) { e.textContent = '網路錯誤，請稍後再試。'; e.hidden = false; } btn.disabled = false; btn.textContent = '確認並付訂金'; });
         });
       }
 

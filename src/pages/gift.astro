@@ -193,23 +193,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         return null;
       }
 
-      function claim(idToken) {
+      /* existingOnly：只取回已經領過的那一顆、絕不新建（額滿時自動查、額滿卡「登入取回」用）。
+         查不到、查失敗都回到額滿卡——那裡有候補表單和「登入取回」可以再試，不會留下空白（gpt-6-astra 複核） */
+      function claim(idToken, existingOnly) {
         hint.hidden = false;
         claimBtn.disabled = true;
-        fetch(WORKER_API + '/gift/claim', { method: 'POST', headers: { 'X-Google-Id-Token': idToken } })
+        fetch(WORKER_API + '/gift/claim' + (existingOnly ? '?existing=1' : ''), { method: 'POST', headers: { 'X-Google-Id-Token': idToken } })
           .then(function (r) { if (r.status === 401) { reLogin(); throw 'auth'; } return r.json(); })
           .then(function (d) {
             hint.hidden = true;
-            if (d && d.full) { show('full'); return; }
+            if (d && (d.full || d.none)) { claimBtn.disabled = false; show('full'); return; }
             if (d && d.ok && d.url) {
               document.getElementById('gfGoBtn').href = d.url;
               show('done');
               return;
             }
             claimBtn.disabled = false;
+            if (existingOnly) { show('full'); return; }
             alert((d && d.error) || '暫時領取不到，請稍後再試');
           })
-          .catch(function (e) { hint.hidden = true; claimBtn.disabled = false; if (e !== 'auth') alert('連線失敗，請稍後再試'); });
+          .catch(function (e) { hint.hidden = true; claimBtn.disabled = false; if (e === 'auth') return; if (existingOnly) { show('full'); return; } alert('連線失敗，請稍後再試'); });
       }
       /* 2026-09-28（gpt-6-astra 體檢）：登入憑證過期後按領取原本一直重送舊 token、只跳警告；
          改成清掉失效憑證、換回 Google 登入鈕，登入後自動接著領 */
@@ -304,7 +307,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             /* 2026-09-28（gpt-6-astra 體檢）：額滿不能連已領過的人一起擋——後端 /gift/claim 會把既有連結還給他，不受當日額度限制。
                已登入就直接問一次；沒登入就在額滿卡上給「已經領過？登入取回」 */
             var t = storedToken();
-            if (t) { claim(t); } else { show('full'); }
+            if (t) { claim(t, true); } else { show('full'); }
             return;
           }
           show('open');
@@ -312,7 +315,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         .catch(function () { show('open'); });
 
       var fullLogin = document.getElementById('gfFullLogin');
-      if (fullLogin) fullLogin.addEventListener('click', function () { var t = storedToken(); if (t) { claim(t); } else { show('open'); } });
+      if (fullLogin) fullLogin.addEventListener('click', function () { var t = storedToken(); if (t) { claim(t, true); } else { reLogin(); } });   // 憑證過期就換回登入鈕
       // waitlist
       document.getElementById('gfWaitForm').addEventListener('submit', function (ev) {
         ev.preventDefault();

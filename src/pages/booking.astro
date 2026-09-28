@@ -241,6 +241,7 @@ import { PERSONAS } from '../data/booking-teachers';
       function wizClose(){if(W&&W.creating)return;   /* 2026-09-28（gpt-6-astra 體檢）：建單中不准關，否則舊回應會把新流程導去舊老師／項目的付款頁 */
         mount.innerHTML='';document.body.style.overflow='';W=null;}   /* 2026-09-27：也要清掉 W，否則慢回來的時段請求會把精靈自己彈回來 */
       function shell(step, title, inner, footer){
+        W.step=step;   /* 記住目前在第幾步：時段請求回來時已經不在「選時間」就丟掉（gpt-6-astra 複核） */
         var nn=W.nSteps||4, arr=[]; for(var i=1;i<=nn;i++)arr.push(i);
         var dots=arr.map(function(n){return '<span class="bw-dot'+(n<=step?' on':'')+'"></span>';}).join('');
         mount.innerHTML='<div class="bw-scrim" data-wclose></div><div class="bw-panel"><div class="bw-head">'+
@@ -292,15 +293,15 @@ import { PERSONAS } from '../data/booking-teachers';
         /* 2026-09-27：時段請求沒綁這一次精靈。在載入中途關掉、改開另一位老師的話，舊老師的回應會用
            現在的 W 渲染——畫面上是新老師、時段是舊老師的，送出時還會拿新項目 ID 配舊項目的時間。
            req 記住這次是哪一輪（openWiz 會換成新物件、wizClose 會設成 null），對不上就把回應丟掉。 */
-        var req=W;
+        var req=W, seq=W.slotSeq=(W.slotSeq||0)+1;   /* 同一精靈裡重選項目（A→B→A）也要分得出是哪一次 */
         fetch(WORKER_API+'/sb-slots?service='+encodeURIComponent(W.svc.id)+'&provider='+encodeURIComponent(W.prov.id)+'&from='+tpe(1)+'&to='+tpe(28))
           .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();}).then(function(d){   /* 502 不能當成「沒有空檔」 */
-            if(req!==W) return;
+            if(req!==W||seq!==W.slotSeq||W.step!==sn(2)) return;
             var slots=(d&&d.slots)||{}; var dates=Object.keys(slots).sort();
             if(!dates.length){shell(sn(2),'選時間','<p class="bw-none">這位老師近 30 天暫無可預約時段，換個老師或稍後再試。</p>');return;}
             W.date=W.date&&slots[W.date]?W.date:dates[0]; W.time=null;
             renderTime(slots,dates);
-          }).catch(function(){if(req!==W) return;shell(sn(2),'選時間','<p class="bw-none">時段載入失敗，請稍後再試。</p>');});
+          }).catch(function(){if(req!==W||seq!==W.slotSeq||W.step!==sn(2)) return;shell(sn(2),'選時間','<p class="bw-none">時段載入失敗，請稍後再試。</p>');});
       }
       function renderTime(slots,dates){
         function dlabel(s){var p=s.split('-');return (+p[1])+'/'+(+p[2]);}
@@ -361,9 +362,10 @@ import { PERSONAS } from '../data/booking-teachers';
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-go type="button">確認並付訂金</button>';
         shell(sn(4),'確認預約',inner,foot);
-        mount.querySelector('[data-back]').addEventListener('click',function(){if(W&&W.creating)return;stepInfo();});   /* 建單中不准回上一步（gpt-6-astra 複核） */
+        mount.querySelector('[data-back]').addEventListener('click',function(){if(W&&W.creating)return;if(W)W.pendingPay=null;stepInfo();});   /* 建單中不准回上一步；回去改了東西就不能再付舊那張（gpt-6-astra 複核） */
         mount.querySelector('[data-go]').addEventListener('click',function(){
           var btn=this;
+          if(W.pendingPay){location.href=W.pendingPay;return;}
           /* 2026-09-26（Codex 複審抓到）：原本只加 CSS class，鈕其實沒被停用——鍵盤 Enter／Space
              還會再觸發，第一次回應前連按會建出多筆預約與多張付款單，其中幾筆會占住時段變成孤兒單。
              改成真的設 disabled 屬性並在入口擋掉重入；成功會跳轉離開，所以只在失敗時解鎖。 */
@@ -375,7 +377,11 @@ import { PERSONAS } from '../data/booking-teachers';
               location:W.loc?W.loc.id:null,
               name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null,note:W.fields.note||null})})
            .then(function(r){return r.json().then(function(d){return{st:r.status,d:d};});}).then(function(o){var d=o.d;
-             if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
+             if(d&&d.ok&&d.payment_url){
+               /* 2026-09-28（gpt-6-astra 複核）：頁面訂金可能是幾分鐘前的，後端照現價收；不同就先停下來確認，按下去用同一張單付款（時段已保留） */
+               if(d.amount!=null&&dep&&Number(d.amount)!==dep){unlockGo();W.pendingPay=d.payment_url;btn.textContent='以 NT$ '+Number(d.amount).toLocaleString('en-US')+' 付訂金';showErr(document.getElementById('wzErr2'),'訂金剛更新：實際是 NT$ '+Number(d.amount).toLocaleString('en-US')+'（頁面原本顯示 NT$ '+dep.toLocaleString('en-US')+'）。確認沒問題再按一次。');}
+               else location.href=d.payment_url;
+             }
              /* 時段被別人約走（409）：後端把原因放在 error，原本只讀 message 被吞掉 → 說清楚並帶回去重選 */
              else if(o.st===409){unlockGo();W.date=null;W.time=null;W.notice=(d&&(d.error||d.message))||'這個時段剛被約走了，請重選一個時間。';stepTime();}
              else{unlockGo();showErr(document.getElementById('wzErr2'),d&&(d.message||d.error)||'建立預約失敗，請稍後再試。');}

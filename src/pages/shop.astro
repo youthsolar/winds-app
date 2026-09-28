@@ -8,7 +8,7 @@ const API = 'https://api.winds.tw';
    改成讓 build 失敗——空商店等於整站無法導購，寧可 deploy 當場紅掉重跑，也不要靜默上線空頁。
    注意：API 回 200 但商品真的是空的，照舊發布（那是 API 的事實，不是故障）。 */
 // 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓＝調價後頁面還是舊價（後端照現價收）、API 一抖就發殘缺頁且不會自己好。
-// 改成每次請求即時讀＋邊緣快取 5 分鐘；讀不到回 503 讓人重整。
+// 改成每次請求即時讀＋瀏覽器快取 5 分鐘（Workers 回應不經邊緣快取，實測無 cf-cache-status）；讀不到回 503 讓人重整。
 export const prerender = false;
 let shopResp: Response | null = null;
 try { shopResp = await fetch(API + '/shop-products'); } catch { shopResp = null; }

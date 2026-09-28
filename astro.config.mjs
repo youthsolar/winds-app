@@ -102,6 +102,8 @@ export default defineConfig({
         '/crm/',
         // 一頁式 dev 預覽（2026-09-03），noindex
         '/lp/',
+        // 訂單狀態頁（2026-09-28）：個人訂單查詢，noindex
+        '/shop/order/',
       ].some((x) => page.includes(x)),
     }),
   ],

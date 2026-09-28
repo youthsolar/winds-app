@@ -1,0 +1,44 @@
+---
+// 訂單狀態頁（2026-09-28，gpt-6-astra 複核）：商品頁與元辰財庫頁改成即時讀商品目錄後，
+// 付款回來那一刻若商品剛好下架或目錄讀不到，原頁會 404／503，客人看不到自己的付款結果。
+// 這頁只查訂單（/shop-order/<no>），不依賴商品目錄；原頁遇到這種情況會把 ?paid= 導來這裡。
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="訂單狀態｜找風問幸福" description="查看你的法器訂單付款狀態。" noindex={true}>
+  <main class="od-wrap">
+    <div class="od-card" id="odBox">
+      <div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>正在查詢訂單…</h3></div>
+    </div>
+    <p class="od-back"><a href="/shop/">回法器選物</a></p>
+  </main>
+  <style>
+    .od-wrap { max-width: 640px; margin: 0 auto; padding: 64px 16px 80px; }
+    .od-card { background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 28px 20px; }
+    .od-back { text-align: center; margin: 20px 0 0; font-family: var(--font-sans); font-size: 14px; }
+    .od-back a { color: var(--text-muted); }
+    .lp-paid { text-align: center; padding: 20px 0; font-family: var(--font-serif); color: var(--ink-900); }
+    .lp-paid i { font-size: 40px; color: var(--positive); }
+    .lp-paid h3 { font-size: 24px; font-weight: var(--w-medium); margin: 10px 0 8px; }
+    .lp-paid p { font-weight: var(--w-light); color: var(--text-secondary); line-height: 1.8; margin: 0; }
+    .lp-paid code { font-family: ui-monospace, monospace; font-size: 13px; color: var(--ink-700); }
+  </style>
+  <script is:inline>
+    (function () {
+      var API = 'https://api.winds.tw';
+      var box = document.getElementById('odBox');
+      function ntd(n) { return 'NT$ ' + (Number(n) || 0).toLocaleString('en-US'); }
+      function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+      var no = new URLSearchParams(location.search).get('no') || '';
+      if (!no) { box.innerHTML = '<div class="lp-paid"><h3>沒有訂單編號</h3><p>請從付款完成後的頁面或信件連結進來。</p></div>'; return; }
+      fetch(API + '/shop-order/' + encodeURIComponent(no)).then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.ok && d.status === 'Paid') {
+          box.innerHTML = '<div class="lp-paid"><i class="ph ph-check-circle"></i><h3>已收到你的訂單</h3><p>' + esc(d.product_name) + '（' + esc(d.variant) + '）· ' + ntd(d.amount) + '<br>老師會依你的生辰親繪開光後，寄到 ' + esc(d.cvs_store_name || '你選的門市') + '。<br>到店會另行通知。訂單編號 <code>' + esc(no) + '</code>' + (d.sandbox ? '<br><span style="color:var(--text-muted)">（測試訂單，未實際扣款）</span>' : '') + '</p></div>';
+        } else {
+          box.innerHTML = '<div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>付款尚未完成</h3><p>訂單 <code>' + esc(no) + '</code> 狀態：' + esc((d && d.status) || '未知') + '。若你已完成付款，稍等一下再重新整理；仍有問題請聯絡我們。</p></div>';
+        }
+      }).catch(function () {
+        box.innerHTML = '<div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>訂單狀態查不到</h3><p>訂單 <code>' + esc(no) + '</code> 的狀態暫時查詢不到，這不代表付款沒成功，請不要重複下單。<br>稍等一下重新整理這一頁，或直接聯絡我們幫你確認。</p></div>';
+      });
+    })();
+  </script>
+</BaseLayout>

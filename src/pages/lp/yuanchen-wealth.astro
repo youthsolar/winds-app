@@ -9,7 +9,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 const API = 'https://api.winds.tw';
 const PRODUCT_ID = '9920676';
 // 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓＝調價後頁面還是舊價（後端照現價收）、API 一抖就發殘缺頁且不會自己好。
-// 改成每次請求即時讀＋邊緣快取 5 分鐘；讀不到回 503 讓人重整。
+// 改成每次請求即時讀＋瀏覽器快取 5 分鐘（Workers 回應不經邊緣快取，實測無 cf-cache-status）；讀不到回 503 讓人重整。
 export const prerender = false;
 let prod: any = null;
 let failed = false;
@@ -19,6 +19,9 @@ try {
   const d = await r.json();
   prod = (d.products || d || []).find((p: any) => String(p.id) === PRODUCT_ID) || null;
 } catch { failed = true; }
+// 付款回來（?paid=）不能被目錄擋住：讀不到目錄或商品剛下架，改去只查訂單的狀態頁（gpt-6-astra 複核）
+const paidNo = Astro.url.searchParams.get('paid');
+if ((failed || !prod) && paidNo) return Astro.redirect('/shop/order/?no=' + encodeURIComponent(paidNo), 302);
 if (failed) return new Response('暫時讀不到資料，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
 Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 
@@ -330,6 +333,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
           var f = form.elements; f.name.value = s.name || ''; f.phone.value = s.phone || ''; var b = String(s.bdate || '').split('-'); f.byear.value = b[0] ? String(+b[0]) : ''; f.bmonth.value = b[1] ? String(+b[1]) : ''; f.bday.value = b[2] ? String(+b[2]) : ''; f.bhour.value = s.bhour || '不確定'; f.email.value = s.email || ''; f.note.value = s.note || '';
           var r = form.querySelector('[name=variant][value="' + (s.variant || '').replace(/"/g, '') + '"]'); if (r) r.checked = true;
           if (s.store) showStore(s.store);
+          form.dispatchEvent(new Event('change'));   // 還原款式後總計要跟著重算（原本停在第一款的價格）
         } catch (e) {}
       }
       function save() { try { var o = fields(); o.store = store; sessionStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
@@ -358,6 +362,9 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       // 付完款回來
       if (qs.get('paid')) {
         var no = qs.get('paid');
+        /* 2026-09-28（gpt-6-astra 複核）：查單期間表單還開著、下面的 submit 攔截又被 return 跳過，按付款會用原生 GET 把個資寫進網址 */
+        form.hidden = true;
+        form.addEventListener('submit', function (e) { e.preventDefault(); });
         fetch(API + '/shop-order/' + encodeURIComponent(no)).then(function (r) { return r.json(); }).then(function (d) {
           var box = document.getElementById('paidBox'); box.hidden = false; form.hidden = true;
           if (d && d.ok && d.status === 'Paid') {
@@ -376,8 +383,13 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         return;
       }
 
+      /* 2026-09-28（gpt-6-astra 複核）：頁面價格可能是幾分鐘前的，後端照現價建單；金額不同先停下來確認，按下去用同一張訂單付款 */
+      var pendingPay = null;
+      function shownAmount() { var sel = fields().variant; var vv = (D.variants || []).filter(function (x) { return x.title === sel; })[0]; return vv ? Number(vv.price) : 0; }
+      form.addEventListener('change', function () { if (pendingPay) { pendingPay = null; document.getElementById('payBtn').innerHTML = '確認並付款<i class="ph ph-lock-key"></i>'; } });
       form.addEventListener('submit', function (ev) {
         ev.preventDefault(); err.hidden = true;
+        if (pendingPay) { save(); location.href = pendingPay; return; }
         var f = fields();
         if (!f.variant) return fail('請選擇款式。');
         if (!f.name) return fail('請輸入本人姓名。');
@@ -390,7 +402,16 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         fetch(API + '/shop-order', { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ product_id: D.id, variant: f.variant, name: f.name, birth: f.bdate + ' ' + f.bhour, phone: f.phone, email: f.email, cvs_type: store.type, cvs_store_id: store.id, cvs_store_name: store.name, cvs_address: store.addr, note: f.note, back_url: pageUrl }) })
           .then(function (r) { return r.json(); }).then(function (d) {
-            if (d && d.ok && d.payment_url) { save(); location.href = d.payment_url; return; }
+            if (d && d.ok && d.payment_url) {
+              var exp = shownAmount();
+              if (d.amount != null && exp && Number(d.amount) !== exp) {
+                pendingPay = d.payment_url; btn.disabled = false; btn.textContent = '以 ' + ntd(d.amount) + ' 付款';
+                document.getElementById('totalTxt').textContent = ntd(d.amount);
+                fail('價格剛更新：實際金額是 ' + ntd(d.amount) + '（頁面原本顯示 ' + ntd(exp) + '）。確認沒問題再按一次付款。');
+                return;
+              }
+              save(); location.href = d.payment_url; return;
+            }
             fail((d && (d.message || d.error)) || '建立訂單失敗，請稍後再試。'); btn.disabled = false; btn.innerHTML = '確認並付款<i class="ph ph-lock-key"></i>';
           }).catch(function () { fail('網路錯誤，請稍後再試。'); btn.disabled = false; btn.innerHTML = '確認並付款<i class="ph ph-lock-key"></i>'; });
       });
