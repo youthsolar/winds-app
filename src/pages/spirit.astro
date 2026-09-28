@@ -458,7 +458,7 @@ import '../styles/global.css';
            if(d.error==="ai_failed"){if(userEl&&userEl.parentNode)userEl.parentNode.removeChild(userEl);ta.value=msg;autoResize(ta);toast(d.message||"分靈體暫時無法回應，請稍後再試");return}
            toast(d.message||d.error||"對話失敗，請稍後再試");return;
          }
-         S.chatVer=(S.chatVer||0)+1;
+         if(sentMode==="target")S.chatVerTarget=(S.chatVerTarget||0)+1;else S.chatVerSelf=(S.chatVerSelf||0)+1;
          if(d.session_id){S.sessionId=d.session_id;saveSess(d.session_id)}
          if(d.locked_birthday&&S.mode==="target"){S.lockedBirthday=d.locked_birthday;renderTarget()}
          if(d.has_subscription){S.subscribed=true}
@@ -496,14 +496,17 @@ import '../styles/global.css';
       if(!S.userId)return Promise.resolve();
       /* 2026-09-28（Codex 複核）：status 可能晚到（10 秒放行後）。送出前記下聊天版本，期間聊過天，
          剩餘句數就以聊天回應為準，不能被舊快照蓋回去 */
-      var ver=S.chatVer||0;
+      /* 版本分模式記：只保護被聊天更新過的那個模式，另一個模式的句數照 status 補上（Codex 複核） */
+      var vSelf=S.chatVerSelf||0,vTarget=S.chatVerTarget||0;
       return fetch(API.status+"?lineUserId="+encodeURIComponent(S.userId),{headers:{"X-Google-Id-Token":S.idToken||""}}).then(function(r){return r.ok?r.json():null}).then(function(d){
-        if(d&&(S.chatVer||0)!==ver){S.subscribed=S.subscribed||!!d.subscribed;if(d.locked_birthday)S.lockedBirthday=d.locked_birthday;return;}
-        if(d){S.subscribed=!!d.subscribed;S.lockedBirthday=d.locked_birthday||null;
-          if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;
-          if(d.daily_rounds!=null)S.dailyRounds=d.daily_rounds;
-          if(d.remaining_rounds!=null)S.roundsSelf=d.remaining_rounds;
-          if(d.remaining_rounds_target!=null)S.roundsTarget=d.remaining_rounds_target;}
+        if(d){var chSelf=(S.chatVerSelf||0)!==vSelf,chTarget=(S.chatVerTarget||0)!==vTarget;
+          S.subscribed=S.subscribed||!!d.subscribed;
+          if(!chSelf&&!chTarget){S.subscribed=!!d.subscribed;S.lockedBirthday=d.locked_birthday||null;
+            if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;
+            if(d.daily_rounds!=null)S.dailyRounds=d.daily_rounds;}
+          else if(d.locked_birthday)S.lockedBirthday=d.locked_birthday;
+          if(!chSelf&&d.remaining_rounds!=null)S.roundsSelf=d.remaining_rounds;
+          if(!chTarget&&d.remaining_rounds_target!=null)S.roundsTarget=d.remaining_rounds_target;}
       }).catch(function(){});
     }
     /* self 模式：尚未對話前不打 LLM；命理檔案於首次回應 d.astro 帶入。此處保留接口（暫不額外打）。*/
@@ -541,7 +544,8 @@ import '../styles/global.css';
       var booted=false;
       function finishBoot(){if(booted)return;booted=true;S.booting=false;render();renderPaywall()}
       setTimeout(finishBoot,10000);
-      fetchStatus().then(function(){if(booted){renderCount();renderPaywall();renderProfile();renderTarget()}else finishBoot()});   // 晚到也要同步對象區塊：鎖定的生日以後端為準，畫面不能還顯示客人剛填的另一個
+      var lbBefore=null;setTimeout(function(){lbBefore=S.lockedBirthday;},10000);
+      fetchStatus().then(function(){if(booted){renderCount();renderPaywall();renderProfile();if(S.lockedBirthday!==lbBefore)renderTarget()}else finishBoot()});   // 鎖定對象變了才重畫對象區塊，否則會清掉客人還沒送出的生日草稿   // 晚到也要同步對象區塊：鎖定的生日以後端為準，畫面不能還顯示客人剛填的另一個
       render(); // 先畫（含登入 gate / 殼），status 回來後 render 再更新次數
     })();
   </script>
