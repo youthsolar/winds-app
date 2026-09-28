@@ -785,7 +785,13 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
       .res-end{margin-top:40px}
       .cool-p{font-size:16px}
     }
-  </style>
+      /* 2026-09-28 Jeffery：「排版有置左有置中，沒有統一」→ 付款區整塊靠左（原本外框置中、兩句與清單靠左、中段置中，三種混在一起） */
+    .paywall .veil{align-items:stretch;text-align:left}
+    .paywall .veil h3,.paywall .veil p,.paywall .veil .ns-line,.paywall .veil .veil-alt{text-align:left;max-width:none;margin-left:0;margin-right:0}
+    .paywall .veil .gets{max-width:none;margin:14px 0 20px}
+    .tname{white-space:nowrap}
+    .get b .tname{display:inline;font:inherit;color:inherit;margin:0;letter-spacing:inherit} /* .get span 是說明行樣式，名稱不吃它 */
+</style>
 </head>
 <body data-mode={mode}>
 <div id="root">{mode === 'home' && (
@@ -1523,20 +1529,20 @@ function getsList(){
   var items=LOVE
     ?(lvSingle()
       ?[['這次桃花起卦的完整解讀',''],['你目前的桃花狀態',''],['近期值得留意的感情機會',''],['真正影響感情開始的阻礙',''],
-        ['接下來的桃花發展方向',''],['依照這次解方，由風易揚老師親書並開光的五張 '+talismanName(),''],
+        ['接下來的桃花發展方向',''],['依照這次解方，由風易揚老師親書並開光的五張'+talismanName(),''],
         ['完整節氣與桃花狀態分析',''],['專屬分靈體 7 天陪伴','']]
       :[['這次感情起卦的完整解讀',''],['你們目前的關係狀態',''],['對方目前在這段關係中的位置',''],['真正影響你們的感情阻礙',''],
-        ['這段關係接下來的發展方向',''],['依照這次解方，由風易揚老師親書並開光的五張 '+talismanName(),''],
+        ['這段關係接下來的發展方向',''],['依照這次解方，由風易揚老師親書並開光的五張'+talismanName(),''],
         ['完整節氣與感情狀態分析',''],['專屬分靈體 7 天陪伴','']])
     :[['這次起卦的完整解讀','把前面還沒說完的卦象與提醒，完整看清楚。'],
-      ['五張為這次解方親書的 '+talismanName(),'由我依照這次起卦所呈現的狀態親自書寫並開光。'],
+      ['五張為這次解方親書的'+talismanName(),'由我依照這次起卦所呈現的狀態親自書寫並開光。'],
       ['你的節氣運勢與完整分析','看見目前所處的位置，以及接下來值得留意的變化。'],
       ['專屬分靈體・陪伴 7 天','解方完成後生成，這 7 天裡，有想不通的地方可以再和祂聊聊。']];
   return '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>'+
     items.map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b>'+(x[1]?'<span>'+x[1]+'</span>':'')+'</div></div>';}).join('')+'</div>'+
     (LOVE?'<p class="veil-alt" style="margin-top:10px">一次 NT$ '+TALISMAN_PRICE+'，沒有訂閱，也不會自動續費。</p>':'');
 }
-function talismanName(){var R=STATE.result||{};return R.hexName?'【'+esc(R.hexName)+' 靈符】':'靈符';}
+function talismanName(){var R=STATE.result||{};return R.hexName?'<span class="tname">【'+esc(R.hexName)+' 靈符】</span>':'靈符';} /* 9/28：整組不換行（原本「【」會掉在行尾） */
 function block(title,note,inner,noteTag){return '<section class="res-block"><h3 class="res-h3">'+title+'</h3>'+(note?(noteTag?'<div class="res-note-tag"><span class="zf-tag rose outline">'+esc(note)+'</span></div>':'<p class="res-note">'+ic("sparkle")+esc(note)+'</p>'):'')+inner+'</section>'}
 function fact(l,v,s){return '<div class="fact"><div class="l">'+l+'</div><div class="v">'+v+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>'}
 /* ===== 完整命理檔案（逐值對齊 DS step4-result.jsx ProfileCard；real 有則用、缺則示意待後端）===== */
@@ -1838,11 +1844,11 @@ function paywall(paid){
        '<p>'+(lvSingle()
          ?'前面的卦象、你目前的桃花狀態、感情阻礙與接下來的機會，都會影響最後出現的解方。'
          :'前面的卦象、你們目前的關係、彼此之間的阻礙，以及這段感情正在發展的方向，都會影響最後出現的解方。')+'</p>'+
-       '<p>所以出現在這裡的五張 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>，不是從一堆符令裡隨機挑五張給你。<br>'+
+       '<p>所以出現在這裡的五張<strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>，不是從一堆符令裡隨機挑五張給你。<br>'+
          '而是依照這次起卦呈現的狀態，找出'+(lvSingle()?'目前':'目前這段關係')+'需要調整與處理的位置。</p>'+
-       '<p>我會依照這次的解方，親手為你書寫五張 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong> 並開光。節氣到了開一張。不做折扣，也沒有加購。</p>'+
+       '<p>我會依照這次的解方，親手為你書寫五張<strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>並開光。節氣到了開一張。不做折扣，也沒有加購。</p>'+
        '<p>你拿到的，不只是五張靈符。<br>而是這一卦看完'+(lvSingle()?'你的桃花狀態':'你們的關係')+'之後，接下來給你的解方。</p>'
-      :'<p>我會依照這次的解方，親手為你書寫五張 <strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>。節氣到了開一張。不做折扣，也沒有加購。</p><p>這五張靈符，是風易揚老師看完這一卦後，親手畫給你的解方。</p>')+
+      :'<p>我會依照這次的解方，親手為你書寫五張<strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>。節氣到了開一張。不做折扣，也沒有加購。</p><p>這五張靈符，是風易揚老師看完這一卦後，親手畫給你的解方。</p>')+
     getsList()+
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
