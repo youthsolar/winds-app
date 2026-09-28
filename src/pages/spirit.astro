@@ -563,8 +563,8 @@ import '../styles/global.css';
         Object.keys(keep).forEach(function(id){var el=document.getElementById(id);if(el&&!el.value){el.value=keep[id];if(id==="spText")autoResize(el);}});
       }
       setTimeout(finishBoot,10000);
-      var lbBefore=null;setTimeout(function(){lbBefore=S.lockedBirthday;},10000);
-      fetchStatus().then(function(){if(booted){renderCount();renderPaywall();renderProfile();if(S.lockedBirthday!==lbBefore)renderTarget()}else finishBoot()});   // 鎖定對象變了才重畫對象區塊，否則會清掉客人還沒送出的生日草稿   // 晚到也要同步對象區塊：鎖定的生日以後端為準，畫面不能還顯示客人剛填的另一個
+      var lbBefore=null,subBefore=null;setTimeout(function(){lbBefore=S.lockedBirthday;subBefore=S.subscribed;},10000);
+      fetchStatus().then(function(){if(booted){renderCount();renderPaywall();renderProfile();if(S.lockedBirthday!==lbBefore||(S.targetConfirmed&&S.subscribed!==subBefore))renderTarget()}else finishBoot()});   // 鎖定對象變了才重畫對象區塊，否則會清掉客人還沒送出的生日草稿   // 晚到也要同步對象區塊：鎖定的生日以後端為準，畫面不能還顯示客人剛填的另一個
       render(); // 先畫（含登入 gate / 殼），status 回來後 render 再更新次數
     })();
   </script>
