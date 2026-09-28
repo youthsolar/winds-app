@@ -382,6 +382,9 @@ import '../styles/global.css';
       }
     }
     function editTarget(){if(S.sending){toast("等分靈體回完這句再換對象");return}S.targetConfirmed=false;S.unlockedFrom="";renderTarget()}
+    /* 客人動過對象生日欄位＝自己在選人：取消「解鎖後照舊對話還原」的記號，晚到的舊對話不能蓋掉草稿、也不能替他確認
+       （表單沒確認時會直接顯示，不必先按「修改」，editTarget 清記號涵蓋不到）。gpt-6-astra 會員第九輪複核 */
+    document.addEventListener("change",function(e){var id=e.target&&e.target.id;if(id==="tgYear"||id==="tgMonth"||id==="tgDay"||id==="tgTime")S.unlockedFrom="";},true);
 
     /* ===== count row ===== */
     function renderCount(){

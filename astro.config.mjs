@@ -34,9 +34,10 @@ function remarkStripTrailingPromo() {
   // 本站連結：解析網址看網域（原本比對「網址裡有沒有出現這幾個字」，winds.tw.example.org 這種外站也會中）（gpt-6-astra 剝除器第七輪複核）
   const isSiteHost = (u) => {
     try {
-      // 協定相對網址（//winds.tw/…）補上 https: 才解析得出網域；網域尾端的點（winds.tw.）跟沒點是同一個站（gpt-6-astra 剝除器第八輪複核）
+      // 協定相對網址（//winds.tw/…）補上 https: 才解析得出網域；網域尾端的一個點（winds.tw.）跟沒點是同一個站（gpt-6-astra 剝除器第八輪複核）
+      // 只去掉一個點：winds.tw.. 這種錯誤網址不能被當成本站（第九輪複核）
       const s = String(u || '');
-      const h = new URL(s.startsWith('//') ? 'https:' + s : s).hostname.toLowerCase().replace(/\.+$/, '');
+      const h = new URL(s.startsWith('//') ? 'https:' + s : s).hostname.toLowerCase().replace(/\.$/, '');
       return /(^|\.)winds\.tw$/.test(h) || /(^|\.)easy\.co$/.test(h) || /(^|\.)easystore\.co$/.test(h) || h.includes('zijiawangzijia');
     } catch { return false; }
   };
@@ -95,18 +96,33 @@ function remarkStripTrailingPromo() {
         if (n.type === 'list') return a.urls.length > 0 && a.urls.every((u) => PROMO_HOST.test(u) || isRelative(u)) && (EMOJI.test(a.text) || KW.some((k) => a.text.includes(k)));
         return false;
       };
+      /* 純行動連結段（gpt-6-astra 剝除器第九輪複核）：整段只有一個站內連結、連結文字是行動用語（[點此開始](/divination/)），
+         本身沒有關鍵字或表情符號、過不了 isPromo。只在同一塊裡另有明確促銷段時才一起剝；
+         一般正文帶站內連結（詳細數據請見[研究附錄](/research/)。）、標題連結都不算。 */
+      const ACTION = /點此|點我|點這|立即|馬上|現在就|開始|前往|預約|占卜|試試|了解更多|看更多/;
+      const isActionLinkPara = (n) => {
+        if (n.type !== 'paragraph' || isTags(n) || isPromo(n)) return false;
+        const a = flat(n, { text: '', urls: [] });
+        if (a.urls.length !== 1 || !(PROMO_HOST.test(a.urls[0]) || isRelative(a.urls[0]))) return false;
+        let linkText = '';
+        const walk = (x) => { if (x.type === 'link' || x.type === 'linkReference') { linkText += flat(x, { text: '', urls: [] }).text; return; } (x.children || []).forEach(walk); };
+        walk(n);
+        return a.text.trim() === linkText.trim() && ACTION.test(linkText);
+      };
+      const actionOk = (nodes) => !nodes.some(isActionLinkPara) || nodes.some(isPromo);   // 有純行動連結段時，同一塊要另有明確促銷段
       let end = ch.length;
       while (end > 0 && (isTags(ch[end - 1]) || ch[end - 1].type === 'thematicBreak' || ch[end - 1].type === 'definition')) end--;
       let i = end;
       while (i > 0 && ch[i - 1].type !== 'thematicBreak') i--;
       const block = ch.slice(i, end);
       // 放行條件裡的 isCTA 只給清單用（站內相對網址的促銷清單）；段落／標題仍要過 isPromo，一般正文帶個站內連結不能被當促銷（gpt-6-astra 剝除器第八輪複核）
-      if (i > 0 && block.length && block.every((n) => isPromo(n) || isPromoList(n) || (n.type === 'list' && isCTA(n)) || n.type === 'definition') && block.some(isCTA)) {
+      if (i > 0 && block.length && block.every((n) => isPromo(n) || isPromoList(n) || (n.type === 'list' && isCTA(n)) || isActionLinkPara(n) || n.type === 'definition') && block.some(isCTA) && actionOk(block)) {
         cut = i - 1;
       } else {
         let k = end;
-        while (k > i && isPromo(ch[k - 1])) k--;
-        if (k < end && ch.slice(k, end).some(isCTA)) cut = k;
+        while (k > i && (isPromo(ch[k - 1]) || isActionLinkPara(ch[k - 1]))) k--;
+        while (k < end && isActionLinkPara(ch[k])) k++;   // 最前面的純連結段前面沒有促銷段帶著，不算
+        if (k < end && ch.slice(k, end).some(isCTA) && actionOk(ch.slice(k, end))) cut = k;
       }
     }
     if (cut >= 0) {
