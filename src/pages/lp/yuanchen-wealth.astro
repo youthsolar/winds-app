@@ -5,12 +5,16 @@
 // → 綠界收銀台（dev 網域自動用綠界測試商店，可走完整流程不扣真錢）；超商門市走綠界電子地圖。
 // 內容文案取自 EasyStore 現有商品頁（49 天版），署名依鐵則改「風易揚老師親繪」。
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { retryPage } from '../../data/retry-page';
 
 const API = 'https://api.winds.tw';
 const PRODUCT_ID = '9920676';
 // 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓＝調價後頁面還是舊價（後端照現價收）、API 一抖就發殘缺頁且不會自己好。
 // 改成每次請求即時讀＋瀏覽器快取 5 分鐘（Workers 回應不經邊緣快取，實測無 cf-cache-status）；讀不到回 503 讓人重整。
 export const prerender = false;
+// 付款回來（?paid=）一律先去只查訂單的狀態頁：不讀目錄、跟訂單頁同一套狀態判斷（gpt-6-astra 複核）
+const paidNo = Astro.url.searchParams.get('paid');
+if (paidNo) return Astro.redirect('/shop/order/?no=' + encodeURIComponent(paidNo), 302);
 let prod: any = null;
 let failed = false;
 { const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 8000);   // 目錄一直沒回應也不能把頁面（含付款返回）卡住（gpt-6-astra 複核）
@@ -20,10 +24,7 @@ try {
   const d = await r.json();
   prod = (d.products || d || []).find((p: any) => String(p.id) === PRODUCT_ID) || null;
 } catch { failed = true; } finally { clearTimeout(t); } }
-// 付款回來（?paid=）不能被目錄擋住：讀不到目錄或商品剛下架，改去只查訂單的狀態頁（gpt-6-astra 複核）
-const paidNo = Astro.url.searchParams.get('paid');
-if ((failed || !prod) && paidNo) return Astro.redirect('/shop/order/?no=' + encodeURIComponent(paidNo), 302);
-if (failed) return new Response('暫時讀不到資料，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
+if (failed) return retryPage();   // 選完門市回來剛好讀不到也講清楚資料還在＋重新整理鈕
 Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 
 const ntd = (n: number) => 'NT$ ' + Number(n).toLocaleString('en-US');
@@ -149,7 +150,6 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
             <h2 class="zf-sh-title">就在這裡，選門市、付款，完成</h2>
           </div>
           <div class="zf-card lp-order" id="orderCard">
-            <div id="paidBox" hidden></div>
             <form id="orderForm" novalidate>
               <fieldset class="lp-fs">
                 <legend class="zf-field-label">款式</legend>
@@ -301,14 +301,6 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       .lp-block { padding-top: 48px; }
     }
   </style>
-  <!-- .lp-paid 是 innerHTML 注入的節點，scoped style 套不上，所以放 is:global -->
-  <style is:global>
-    .lp-paid { text-align: center; padding: 20px 0; font-family: var(--font-serif); color: var(--ink-900); }
-    .lp-paid i { font-size: 40px; color: var(--positive); }
-    .lp-paid h3 { font-size: 24px; font-weight: var(--w-medium); margin: 10px 0 8px; }
-    .lp-paid p { font-weight: var(--w-light); color: var(--text-secondary); line-height: 1.8; margin: 0; }
-    .lp-paid code { font-family: ui-monospace, monospace; font-size: 13px; color: var(--ink-700); }
-  </style>
 
   <script is:inline>
     (function () {
@@ -360,44 +352,22 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         showStore({ type: qs.get('cvs_type') || '', id: qs.get('cvs_store_id'), name: qs.get('cvs_store_name') || '', addr: qs.get('cvs_address') || '' }); save();
         history.replaceState(null, '', pageUrl + '#order');
       }
-      // 付完款回來
-      if (qs.get('paid')) {
-        var no = qs.get('paid');
-        /* 2026-09-28（gpt-6-astra 複核）：查單期間表單還開著、下面的 submit 攔截又被 return 跳過，按付款會用原生 GET 把個資寫進網址 */
-        form.hidden = true;
-        form.addEventListener('submit', function (e) { e.preventDefault(); });
-        fetch(API + '/shop-order/' + encodeURIComponent(no)).then(function (r) { return r.json(); }).then(function (d) {
-          var box = document.getElementById('paidBox'); box.hidden = false; form.hidden = true;
-          if (d && d.ok && d.status === 'Paid') {
-            box.innerHTML = '<div class="lp-paid"><i class="ph ph-check-circle"></i><h3>已收到你的訂單</h3><p>' + esc(d.product_name) + '（' + esc(d.variant) + '）· ' + ntd(d.amount) + '<br>老師會依你的生辰親繪開光後，寄到 ' + esc(d.cvs_store_name || '你選的門市') + '。<br>到店會另行通知。訂單編號 <code>' + esc(no) + '</code>' + (d.sandbox ? '<br><span style="color:var(--text-muted)">（測試訂單，未實際扣款）</span>' : '') + '</p></div>';
-            try { sessionStorage.removeItem(KEY); } catch (e) {}
-          } else {
-            box.innerHTML = '<div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>付款尚未完成</h3><p>訂單 <code>' + esc(no) + '</code> 狀態：' + esc((d && d.status) || '未知') + '。若你已完成付款，稍等一下再重新整理；仍有問題請聯絡我們。</p></div>';
-          }
-        }).catch(function () {
-          /* 2026-09-26（同 shop/[id] dc8110c）：原本沒有 catch，隱藏訂購表單又在 then 裡面。
-             狀態查詢斷線或回非 JSON 時整條中斷，已付款的人會看到訂購表單還開著，可能再付一次。
-             失敗時一律收起表單並說清楚錢沒有白花。 */
-          var box = document.getElementById('paidBox'); box.hidden = false; form.hidden = true;
-          box.innerHTML = '<div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>訂單狀態查不到</h3><p>訂單 <code>' + esc(no) + '</code> 的狀態暫時查詢不到，這不代表付款沒成功，請不要重複下單。<br>稍等一下重新整理這一頁，或直接聯絡我們幫你確認。</p></div>';
-        });
-        return;
-      }
+      // 付完款回來：SSR 已經導到 /shop/order/（跟訂單頁同一套狀態判斷），這頁不會再帶著 ?paid= 載入（gpt-6-astra 複核）
 
-      /* 2026-09-28（gpt-6-astra 複核第二輪）：同商品頁——建單「之前」先抓最新價格比對，不一樣就更新畫面請客人再按一次（還沒開單，
-         沒有舊單可以付錯）；送單期間鎖住表單。上一版「建單後停下、再用同一張單付款」會在改款式／門市後付到舊單。 */
+      /* 2026-09-28（gpt-6-astra 金流複核第三輪）：前端先查價擋不住（查價後、建單前剛好調價；查價失敗照樣送）。
+         改成送單時帶「畫面上的金額」expected_amount，後端開單前用同一份價格比對，不一樣就回 price_changed、不開單；
+         這裡把新價格寫回畫面（款式標價、總計）請客人再按一次。送單期間鎖住整張表單，20 秒沒回應就解鎖讓人重試。 */
       function shownAmount() { var sel = fields().variant; var vv = (D.variants || []).filter(function (x) { return x.title === sel; })[0]; return vv ? Number(vv.price) : 0; }
       function lockForm(on) {
         form.querySelectorAll('input,select,textarea,button').forEach(function (el) { el.disabled = on; });
         document.querySelectorAll('[data-cvs],#storeChange').forEach(function (el) { el.disabled = on; });
       }
-      function freshPrice(sel) {
-        return fetch(API + '/shop-products?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
-          var p = d && (d.products || []).filter(function (x) { return String(x.id) === String(D.id); })[0]; if (!p) return null;
-          var vs = (p.variants || []).filter(function (v) { return v && v.id; });
-          var v = vs.filter(function (x) { return x.title === sel; })[0];
-          return v ? { price: Number(v.price), variants: vs } : null;
-        }).catch(function () { return null; });
+      function setShownPrice(sel, amount) {
+        var vv = (D.variants || []).filter(function (x) { return x.title === sel; })[0];
+        if (!vv && (D.variants || []).length === 1) vv = D.variants[0];
+        if (vv) vv.price = amount; else D.price = amount;
+        form.querySelectorAll('input[type=radio][name=variant]').forEach(function (r) { if (vv && r.value === vv.title) { var em = r.parentNode && r.parentNode.querySelector('em'); if (em) em.textContent = ntd(amount); } });
+        document.getElementById('totalTxt').textContent = ntd(amount);
       }
       form.addEventListener('submit', function (ev) {
         ev.preventDefault(); err.hidden = true;
@@ -411,24 +381,18 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         if (!store) return fail('請先選取貨門市。');
         var btn = document.getElementById('payBtn');
         var shown = shownAmount();
-        lockForm(true); btn.textContent = '確認價格中…';
+        lockForm(true); btn.textContent = '建立訂單中…';
         function unlock() { lockForm(false); btn.innerHTML = '確認並付款<i class="ph ph-lock-key"></i>'; }
-        freshPrice(f.variant).then(function (fp) {
-          if (fp && fp.price && fp.price !== shown) {
-            D.variants = fp.variants;
-            document.getElementById('totalTxt').textContent = ntd(fp.price);
+        var ac = new AbortController(), to = setTimeout(function () { ac.abort(); }, 20000);
+        fetch(API + '/shop-order', { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product_id: D.id, variant: f.variant, name: f.name, birth: f.bdate + ' ' + f.bhour, phone: f.phone, email: f.email, cvs_type: store.type, cvs_store_id: store.id, cvs_store_name: store.name, cvs_address: store.addr, note: f.note, back_url: pageUrl, expected_amount: shown }) })
+          .then(function (r) { return r.json(); }).then(function (d) {
+            clearTimeout(to);
+            if (d && d.ok && d.payment_url) { save(); location.href = d.payment_url; return; }
             unlock();
-            fail('價格剛更新為 ' + ntd(fp.price) + '（頁面原本顯示 ' + ntd(shown) + '），確認沒問題再按一次付款。');
-            return;
-          }
-          btn.textContent = '建立訂單中…';
-          return fetch(API + '/shop-order', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ product_id: D.id, variant: f.variant, name: f.name, birth: f.bdate + ' ' + f.bhour, phone: f.phone, email: f.email, cvs_type: store.type, cvs_store_id: store.id, cvs_store_name: store.name, cvs_address: store.addr, note: f.note, back_url: pageUrl }) })
-            .then(function (r) { return r.json(); }).then(function (d) {
-              if (d && d.ok && d.payment_url) { save(); location.href = d.payment_url; return; }
-              unlock(); fail((d && (d.message || d.error)) || '建立訂單失敗，請稍後再試。');
-            });
-        }).catch(function () { unlock(); fail('網路錯誤，請稍後再試。'); });
+            if (d && d.error === 'price_changed' && d.amount) { setShownPrice(f.variant, Number(d.amount)); fail('價格剛更新為 ' + ntd(d.amount) + '（頁面原本顯示 ' + ntd(shown) + '），確認沒問題再按一次付款。'); return; }
+            fail((d && (d.message || d.error)) || '建立訂單失敗，請稍後再試。');
+          }).catch(function () { clearTimeout(to); unlock(); fail('網路錯誤或太久沒回應，請再試一次。'); });
       });
     })();
   </script>

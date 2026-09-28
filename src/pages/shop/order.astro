@@ -42,6 +42,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         }
         if (!d || !d.ok || !d.status) throw new Error('bad response');
         if (d.status === 'Paid') {
+          // 付款成功：清掉各商品頁存的訂購草稿（原本各頁自己查單時會清，現在付款返回統一到這頁）
+          try { Object.keys(sessionStorage).forEach(function (k) { if (k.indexOf('shop-order-draft-') === 0 || k === 'lp-order-draft') sessionStorage.removeItem(k); }); } catch (e) {}
           box.innerHTML = '<div class="lp-paid"><i class="ph ph-check-circle"></i><h3>已收到你的訂單</h3><p>' + esc(d.product_name) + '（' + esc(d.variant) + '）· ' + ntd(d.amount) + '<br>老師會依你的生辰親繪開光後，寄到 ' + esc(d.cvs_store_name || '你選的門市') + '。<br>到店會另行通知。訂單編號 <code>' + esc(no) + '</code>' + (d.sandbox ? '<br><span style="color:var(--text-muted)">（測試訂單，未實際扣款）</span>' : '') + '</p></div>';
         } else {
           box.innerHTML = '<div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>付款尚未完成</h3><p>訂單 <code>' + esc(no) + '</code> 狀態：' + esc((d && d.status) || '未知') + '。若你已完成付款，稍等一下再重新整理；仍有問題請聯絡我們。</p></div>';
