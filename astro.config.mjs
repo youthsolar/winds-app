@@ -37,7 +37,7 @@ function remarkStripTrailingPromo() {
     const ch = tree.children || [];
     // 參照式連結（[文字][id] ＋ [id]: 網址）要先查定義才知道指向哪裡（gpt-6-astra 剝除器第五輪複核）
     const defs = {};
-    ch.forEach((n) => { if (n.type === 'definition' && n.identifier) defs[String(n.identifier).toLowerCase()] = n.url; });
+    ch.forEach((n) => { if (n.type === 'definition' && n.identifier) { const k = String(n.identifier).toLowerCase(); if (!(k in defs)) defs[k] = n.url; } });   // 重複定義以第一筆為準（跟 renderer 一致）
     const flat = (n, acc) => {
       if (n.value) acc.text += n.value;
       if (n.type === 'link' && n.url) acc.urls.push(n.url);
@@ -75,8 +75,14 @@ function remarkStripTrailingPromo() {
          ③ 區塊內全部是促銷段落／站內連結清單，而且至少有一段「帶本站連結」的促銷（CTA）才剝——只有關鍵字或只有清單都不算
          ④ 沒有起始分隔線時，只剝最後連續的促銷段落（不含清單），同樣要有 CTA
          全站 456 篇與上一版結果完全相同；8 個合成情境（含複核抓到的引用句＋參考清單）皆正確。 */
-      const isCTA = (n) => (n.type === 'paragraph' || n.type === 'heading') && !isTags(n)
-        && flat(n, { text: '', urls: [] }).urls.some((u) => PROMO_HOST.test(u) || /^\/(?!\/)/.test(u));   // 站內相對路徑（/booking/）也算本站連結
+      const isCTA = (n) => {
+        const a = flat(n, { text: '', urls: [] });
+        const siteLink = a.urls.some((u) => PROMO_HOST.test(u) || /^\/(?!\/)/.test(u));   // 站內相對路徑（/booking/）也算本站連結
+        if ((n.type === 'paragraph' || n.type === 'heading') && !isTags(n)) return siteLink;
+        // 促銷連結寫在清單裡（- [🔮 立即預約](…)）：全是本站連結、而且有促銷字樣或表情符號才算，一般參考清單不算
+        if (n.type === 'list') return isPromoList(n) && (EMOJI.test(a.text) || KW.some((k) => a.text.includes(k)));
+        return false;
+      };
       let end = ch.length;
       while (end > 0 && (isTags(ch[end - 1]) || ch[end - 1].type === 'thematicBreak' || ch[end - 1].type === 'definition')) end--;
       let i = end;
@@ -93,7 +99,11 @@ function remarkStripTrailingPromo() {
     if (cut >= 0) {
       let start = cut;
       if (start > 0 && ch[start - 1].type === 'thematicBreak') start -= 1;
-      const tags = ch.splice(start).filter(isTags);
+      const removed = ch.splice(start);
+      // 網址定義（[id]: 網址）不能跟著剝——正文裡的參照式連結／圖片還要靠它（gpt-6-astra 剝除器第六輪複核）
+      const keepDefs = removed.filter((n) => n.type === 'definition');
+      const tags = removed.filter(isTags);
+      if (keepDefs.length) ch.push(...keepDefs);
       if (tags.length) ch.push(...tags);   // 促銷剝掉，文末標籤段搬回來
     }
     ch.forEach((n) => {                    // 標籤段：掛 class 給樣式用；data-nocjk 讓 cjk-wrap.js 別插 <wbr>
