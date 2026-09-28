@@ -429,33 +429,38 @@ const jsonLd = prov ? [
           '<p class="bw-note">' + (online ? '遠端視訊，預約後自動開啟線上會議室連結。' : '實體面談：' + esc(W.loc.note || W.loc.name) + '。') + ' 付訂金後即為你保留時段，餘額' + (online ? '依老師指示' : '現場') + '結清。</p>' +
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
         shell(5, '確認預約', inner, '<button class="zf-btn md secondary" data-back type="button">上一步</button><button class="zf-btn md primary" data-go type="button">確認並付訂金</button>');
-        on('[data-back]', function () { if (W.creating) return; W.pendingPay = null; stepInfo(); });   // 建單中不准回上一步；回去改了東西就不能再付舊那張
-        var dep0 = dep;
+        on('[data-back]', function () { if (W.creating) return; stepInfo(); });   // 建單中不准回上一步
         on('[data-go]', function (btn) {
-          if (W.pendingPay) { location.href = W.pendingPay; return; }
           if (btn.disabled) return;
-          btn.disabled = true; btn.textContent = '建立訂單中…'; W.creating = true;
-          fetch(API + '/sb-book', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          btn.disabled = true; btn.textContent = '確認訂金中…'; W.creating = true;
+          function unlockGo() { W.creating = false; btn.disabled = false; btn.textContent = '確認並付訂金'; }
+          function showE(m) { var e = document.getElementById('wzErr2'); if (e) { e.textContent = m; e.hidden = false; } }
+          /* 2026-09-28（gpt-6-astra 複核第二輪）：同預約頁——建單「之前」先抓最新訂金比對，不一樣就更新畫面請客人再按一次（還沒開單、還沒佔時段）。
+             上一版「建單後停下、再用同一張單付款」會在換項目後付到舊單。最新訂金抓不到就不擋。 */
+          fetch(API + '/sb-providers?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }).then(function (pd) {
+            var pv = pd && (pd.providers || []).filter(function (x) { return String(x.id) === String(prov.id); })[0];
+            var sv = pv && (pv.services || []).filter(function (x) { return String(x.id) === String(W.svc.id); })[0];
+            var fresh = sv ? (Number(sv.deposit) || Number(sv.price) || 0) : 0;
+            if (fresh && fresh !== dep) {
+              W.svc.deposit = sv.deposit; W.svc.price = sv.price; unlockGo(); stepConfirm();
+              showE('訂金剛更新為 ' + ntd(fresh) + '（原本顯示 ' + ntd(dep) + '），確認沒問題再按一次。');
+              return;
+            }
+            btn.textContent = '建立訂單中…';
+            return fetch(API + '/sb-book', { method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ service: W.svc.id, provider: prov.id, datetime: W.date + ' ' + W.time + ':00', location: W.loc.id, name: W.fields.name, phone: W.fields.phone, email: W.fields.email, topic: W.fields.topic || null, note: W.fields.note || null }) })
             .then(function (r) { return r.json(); }).then(function (d) {
-              W.creating = false;
-              if (d && d.ok && d.payment_url) {
-                /* 2026-09-28（gpt-6-astra 複核）：頁面訂金可能是幾分鐘前的，後端照現價收；不同就先停下來確認，按下去用同一張單付款（時段已保留） */
-                if (d.amount != null && dep0 && Number(d.amount) !== dep0) {
-                  W.pendingPay = d.payment_url; btn.disabled = false; btn.textContent = '以 ' + ntd(d.amount) + ' 付訂金';
-                  var e0 = document.getElementById('wzErr2'); if (e0) { e0.textContent = '訂金剛更新：實際是 ' + ntd(d.amount) + '（頁面原本顯示 ' + ntd(dep0) + '）。確認沒問題再按一次。'; e0.hidden = false; }
-                  return;
-                }
-                location.href = d.payment_url; return;
-              }
-              var e = document.getElementById('wzErr2'); if (e) { e.textContent = (d && (d.message || d.error)) || '建立預約失敗，請稍後再試。'; e.hidden = false; } btn.disabled = false; btn.textContent = '確認並付訂金';
-            }).catch(function () { W.creating = false; var e = document.getElementById('wzErr2'); if (e) { e.textContent = '網路錯誤，請稍後再試。'; e.hidden = false; } btn.disabled = false; btn.textContent = '確認並付訂金'; });
+              if (d && d.ok && d.payment_url) { location.href = d.payment_url; return; }
+              unlockGo(); showE((d && (d.message || d.error)) || '建立預約失敗，請稍後再試。');
+            });
+          }).catch(function () { unlockGo(); showE('網路錯誤，請稍後再試。'); });
         });
       }
 
       // 頁面上「預約這項」→ 帶著項目跳到預約模組
       document.querySelectorAll('[data-pick]').forEach(function (b) {
         b.addEventListener('click', function () {
+          if (W.creating) { document.getElementById('book').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }   // 建單中不准換項目，否則舊的回應會把人帶去付上一個項目（gpt-6-astra 複核）
           W.svc = svcs.filter(function (s) { return String(s.id) === b.dataset.pick; })[0] || null; W.date = null; W.time = null;
           W.loc ? stepTime() : stepLocation();
           document.getElementById('book').scrollIntoView({ behavior: 'smooth', block: 'start' });

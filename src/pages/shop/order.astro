@@ -30,8 +30,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
       var no = new URLSearchParams(location.search).get('no') || '';
       if (!no) { box.innerHTML = '<div class="lp-paid"><h3>沒有訂單編號</h3><p>請從付款完成後的頁面或信件連結進來。</p></div>'; return; }
-      fetch(API + '/shop-order/' + encodeURIComponent(no)).then(function (r) { return r.json(); }).then(function (d) {
-        if (d && d.ok && d.status === 'Paid') {
+      /* 分清三種情況（gpt-6-astra 複核）：查無此訂單（404）／查詢失敗（5xx、格式不對）／查到了但還沒付款 */
+      fetch(API + '/shop-order/' + encodeURIComponent(no)).then(function (r) {
+        if (r.status === 404) return { notFound: true };
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json();
+      }).then(function (d) {
+        if (d && d.notFound) {
+          box.innerHTML = '<div class="lp-paid"><i class="ph ph-question" style="color:var(--text-muted)"></i><h3>找不到這筆訂單</h3><p>訂單編號 <code>' + esc(no) + '</code> 查不到。請確認連結是否完整；已經付款的話，請直接聯絡我們，我們幫你查。</p></div>';
+          return;
+        }
+        if (!d || !d.ok || !d.status) throw new Error('bad response');
+        if (d.status === 'Paid') {
           box.innerHTML = '<div class="lp-paid"><i class="ph ph-check-circle"></i><h3>已收到你的訂單</h3><p>' + esc(d.product_name) + '（' + esc(d.variant) + '）· ' + ntd(d.amount) + '<br>老師會依你的生辰親繪開光後，寄到 ' + esc(d.cvs_store_name || '你選的門市') + '。<br>到店會另行通知。訂單編號 <code>' + esc(no) + '</code>' + (d.sandbox ? '<br><span style="color:var(--text-muted)">（測試訂單，未實際扣款）</span>' : '') + '</p></div>';
         } else {
           box.innerHTML = '<div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>付款尚未完成</h3><p>訂單 <code>' + esc(no) + '</code> 狀態：' + esc((d && d.status) || '未知') + '。若你已完成付款，稍等一下再重新整理；仍有問題請聯絡我們。</p></div>';

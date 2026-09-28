@@ -362,30 +362,41 @@ import { PERSONAS } from '../data/booking-teachers';
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-go type="button">確認並付訂金</button>';
         shell(sn(4),'確認預約',inner,foot);
-        mount.querySelector('[data-back]').addEventListener('click',function(){if(W&&W.creating)return;if(W)W.pendingPay=null;stepInfo();});   /* 建單中不准回上一步；回去改了東西就不能再付舊那張（gpt-6-astra 複核） */
+        mount.querySelector('[data-back]').addEventListener('click',function(){if(W&&W.creating)return;stepInfo();});   /* 建單中不准回上一步（gpt-6-astra 複核） */
         mount.querySelector('[data-go]').addEventListener('click',function(){
           var btn=this;
-          if(W.pendingPay){location.href=W.pendingPay;return;}
           /* 2026-09-26（Codex 複審抓到）：原本只加 CSS class，鈕其實沒被停用——鍵盤 Enter／Space
              還會再觸發，第一次回應前連按會建出多筆預約與多張付款單，其中幾筆會占住時段變成孤兒單。
              改成真的設 disabled 屬性並在入口擋掉重入；成功會跳轉離開，所以只在失敗時解鎖。 */
           if(btn.disabled)return;
-          btn.disabled=true; btn.classList.add('disabled'); btn.textContent='建立訂單中…'; W.creating=true;
+          btn.disabled=true; btn.classList.add('disabled'); btn.textContent='確認訂金中…'; W.creating=true;
           function unlockGo(){if(W)W.creating=false;btn.disabled=false;btn.classList.remove('disabled');btn.textContent='確認並付訂金';}
-          fetch(WORKER_API+'/sb-book',{method:'POST',headers:{'Content-Type':'application/json'},
+          /* 2026-09-28（gpt-6-astra 複核第二輪）：頁面訂金可能是幾分鐘前的，後端照現價收。上一版「建單後金額不同就停下、再用同一張單付款」
+             會在客人換項目後付到舊單，回上一步還會被自己保留的時段擋住。改成建單「之前」先抓最新訂金比對：
+             不一樣就更新畫面請客人再按一次（這時還沒開單、也還沒佔時段）。最新訂金抓不到就不擋。 */
+          var req=W;
+          fetch(WORKER_API+'/sb-providers?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(pd){
+            if(req!==W)return;
+            var pv=pd&&(pd.providers||[]).filter(function(x){return String(x.id)===String(W.prov.id);})[0];
+            var sv=pv&&(pv.services||[]).filter(function(x){return String(x.id)===String(W.svc.id);})[0];
+            var fresh=sv?(Number(sv.deposit)||Number(sv.price)||0):0;
+            if(fresh&&fresh!==dep){
+              W.svc.deposit=sv.deposit;W.svc.price=sv.price;unlockGo();stepConfirm();
+              showErr(document.getElementById('wzErr2'),'訂金剛更新為 NT$ '+fresh.toLocaleString('en-US')+'（原本顯示 NT$ '+dep.toLocaleString('en-US')+'），確認沒問題再按一次。');
+              return;
+            }
+            btn.textContent='建立訂單中…';
+            return fetch(WORKER_API+'/sb-book',{method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({service:W.svc.id,provider:W.prov.id,datetime:W.date+' '+W.time+':00',
               location:W.loc?W.loc.id:null,
               name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null,note:W.fields.note||null})})
            .then(function(r){return r.json().then(function(d){return{st:r.status,d:d};});}).then(function(o){var d=o.d;
-             if(d&&d.ok&&d.payment_url){
-               /* 2026-09-28（gpt-6-astra 複核）：頁面訂金可能是幾分鐘前的，後端照現價收；不同就先停下來確認，按下去用同一張單付款（時段已保留） */
-               if(d.amount!=null&&dep&&Number(d.amount)!==dep){unlockGo();W.pendingPay=d.payment_url;btn.textContent='以 NT$ '+Number(d.amount).toLocaleString('en-US')+' 付訂金';showErr(document.getElementById('wzErr2'),'訂金剛更新：實際是 NT$ '+Number(d.amount).toLocaleString('en-US')+'（頁面原本顯示 NT$ '+dep.toLocaleString('en-US')+'）。確認沒問題再按一次。');}
-               else location.href=d.payment_url;
-             }
+             if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
              /* 時段被別人約走（409）：後端把原因放在 error，原本只讀 message 被吞掉 → 說清楚並帶回去重選 */
              else if(o.st===409){unlockGo();W.date=null;W.time=null;W.notice=(d&&(d.error||d.message))||'這個時段剛被約走了，請重選一個時間。';stepTime();}
              else{unlockGo();showErr(document.getElementById('wzErr2'),d&&(d.message||d.error)||'建立預約失敗，請稍後再試。');}
-           }).catch(function(){unlockGo();showErr(document.getElementById('wzErr2'),'網路錯誤，請稍後再試。');});
+           });
+          }).catch(function(){unlockGo();showErr(document.getElementById('wzErr2'),'網路錯誤，請稍後再試。');});
         });
       }
       function row(k,v){return '<div class="bw-row"><span class="bw-k">'+esc(k)+'</span><span class="bw-v">'+esc(v)+'</span></div>';}

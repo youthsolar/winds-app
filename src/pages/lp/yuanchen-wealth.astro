@@ -13,12 +13,13 @@ const PRODUCT_ID = '9920676';
 export const prerender = false;
 let prod: any = null;
 let failed = false;
+{ const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 8000);   // 目錄一直沒回應也不能把頁面（含付款返回）卡住（gpt-6-astra 複核）
 try {
-  const r = await fetch(API + '/shop-products');
+  const r = await fetch(API + '/shop-products', { signal: ac.signal });
   if (!r.ok) throw new Error(String(r.status));
   const d = await r.json();
   prod = (d.products || d || []).find((p: any) => String(p.id) === PRODUCT_ID) || null;
-} catch { failed = true; }
+} catch { failed = true; } finally { clearTimeout(t); } }
 // 付款回來（?paid=）不能被目錄擋住：讀不到目錄或商品剛下架，改去只查訂單的狀態頁（gpt-6-astra 複核）
 const paidNo = Astro.url.searchParams.get('paid');
 if ((failed || !prod) && paidNo) return Astro.redirect('/shop/order/?no=' + encodeURIComponent(paidNo), 302);
@@ -383,13 +384,23 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         return;
       }
 
-      /* 2026-09-28（gpt-6-astra 複核）：頁面價格可能是幾分鐘前的，後端照現價建單；金額不同先停下來確認，按下去用同一張訂單付款 */
-      var pendingPay = null;
+      /* 2026-09-28（gpt-6-astra 複核第二輪）：同商品頁——建單「之前」先抓最新價格比對，不一樣就更新畫面請客人再按一次（還沒開單，
+         沒有舊單可以付錯）；送單期間鎖住表單。上一版「建單後停下、再用同一張單付款」會在改款式／門市後付到舊單。 */
       function shownAmount() { var sel = fields().variant; var vv = (D.variants || []).filter(function (x) { return x.title === sel; })[0]; return vv ? Number(vv.price) : 0; }
-      form.addEventListener('change', function () { if (pendingPay) { pendingPay = null; document.getElementById('payBtn').innerHTML = '確認並付款<i class="ph ph-lock-key"></i>'; } });
+      function lockForm(on) {
+        form.querySelectorAll('input,select,textarea,button').forEach(function (el) { el.disabled = on; });
+        document.querySelectorAll('[data-cvs],#storeChange').forEach(function (el) { el.disabled = on; });
+      }
+      function freshPrice(sel) {
+        return fetch(API + '/shop-products?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+          var p = d && (d.products || []).filter(function (x) { return String(x.id) === String(D.id); })[0]; if (!p) return null;
+          var vs = (p.variants || []).filter(function (v) { return v && v.id; });
+          var v = vs.filter(function (x) { return x.title === sel; })[0];
+          return v ? { price: Number(v.price), variants: vs } : null;
+        }).catch(function () { return null; });
+      }
       form.addEventListener('submit', function (ev) {
         ev.preventDefault(); err.hidden = true;
-        if (pendingPay) { save(); location.href = pendingPay; return; }
         var f = fields();
         if (!f.variant) return fail('請選擇款式。');
         if (!f.name) return fail('請輸入本人姓名。');
@@ -398,22 +409,26 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         if (!validYmd(f.bdate)) return fail('這一天不存在，請再確認生日。');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return fail('請輸入正確 Email。');
         if (!store) return fail('請先選取貨門市。');
-        var btn = document.getElementById('payBtn'); btn.disabled = true; btn.textContent = '建立訂單中…';
-        fetch(API + '/shop-order', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ product_id: D.id, variant: f.variant, name: f.name, birth: f.bdate + ' ' + f.bhour, phone: f.phone, email: f.email, cvs_type: store.type, cvs_store_id: store.id, cvs_store_name: store.name, cvs_address: store.addr, note: f.note, back_url: pageUrl }) })
-          .then(function (r) { return r.json(); }).then(function (d) {
-            if (d && d.ok && d.payment_url) {
-              var exp = shownAmount();
-              if (d.amount != null && exp && Number(d.amount) !== exp) {
-                pendingPay = d.payment_url; btn.disabled = false; btn.textContent = '以 ' + ntd(d.amount) + ' 付款';
-                document.getElementById('totalTxt').textContent = ntd(d.amount);
-                fail('價格剛更新：實際金額是 ' + ntd(d.amount) + '（頁面原本顯示 ' + ntd(exp) + '）。確認沒問題再按一次付款。');
-                return;
-              }
-              save(); location.href = d.payment_url; return;
-            }
-            fail((d && (d.message || d.error)) || '建立訂單失敗，請稍後再試。'); btn.disabled = false; btn.innerHTML = '確認並付款<i class="ph ph-lock-key"></i>';
-          }).catch(function () { fail('網路錯誤，請稍後再試。'); btn.disabled = false; btn.innerHTML = '確認並付款<i class="ph ph-lock-key"></i>'; });
+        var btn = document.getElementById('payBtn');
+        var shown = shownAmount();
+        lockForm(true); btn.textContent = '確認價格中…';
+        function unlock() { lockForm(false); btn.innerHTML = '確認並付款<i class="ph ph-lock-key"></i>'; }
+        freshPrice(f.variant).then(function (fp) {
+          if (fp && fp.price && fp.price !== shown) {
+            D.variants = fp.variants;
+            document.getElementById('totalTxt').textContent = ntd(fp.price);
+            unlock();
+            fail('價格剛更新為 ' + ntd(fp.price) + '（頁面原本顯示 ' + ntd(shown) + '），確認沒問題再按一次付款。');
+            return;
+          }
+          btn.textContent = '建立訂單中…';
+          return fetch(API + '/shop-order', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: D.id, variant: f.variant, name: f.name, birth: f.bdate + ' ' + f.bhour, phone: f.phone, email: f.email, cvs_type: store.type, cvs_store_id: store.id, cvs_store_name: store.name, cvs_address: store.addr, note: f.note, back_url: pageUrl }) })
+            .then(function (r) { return r.json(); }).then(function (d) {
+              if (d && d.ok && d.payment_url) { save(); location.href = d.payment_url; return; }
+              unlock(); fail((d && (d.message || d.error)) || '建立訂單失敗，請稍後再試。');
+            });
+        }).catch(function () { unlock(); fail('網路錯誤，請稍後再試。'); });
       });
     })();
   </script>
