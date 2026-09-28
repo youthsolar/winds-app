@@ -146,7 +146,7 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
       const bls = data.blocks.filter((b: any) => String(b.start_datetime).slice(0, 10) <= date && String(b.end_datetime).slice(0, 10) >= date);
       const offs = provider ? [wdMap[`${provider}|${date}`]].filter((w) => w && Number(w.is_day_off) === 1) : data.workdays.filter((w: any) => w.date === date && Number(w.is_day_off) === 1);
       const items: string[] = [];
-      for (const w of offs) items.push(`<div class="tb-row tb-off"><span class="tb-time">全天</span><div class="tb-body"><b>${esc(provName(w.provider_id))} 休假</b></div><div class="tb-act"><button class="zf-btn ghost sm" data-act="workon" data-prov="${w.provider_id}" data-date="${date}">恢復上班</button></div></div>`);
+      for (const w of offs) items.push(`<div class="tb-row tb-off"><span class="tb-time">全天</span><div class="tb-body"><b>${esc(provName(w.provider_id))} 休假</b></div><div class="tb-act"><button class="zf-btn ghost sm" data-act="workon" data-prov="${w.provider_id}" data-date="${date}">恢復每週班表</button></div></div>`);
       for (const b of bls) items.push(`<div class="tb-row tb-blk"><span class="tb-time">${hm(b.start_datetime)}–${hm(b.end_datetime)}</span><div class="tb-body"><b>${esc(provName(b.provider_id))} 擋時間</b>${b.reason ? `<span>${esc(b.reason)}</span>` : ''}</div><div class="tb-act"><button class="zf-btn ghost sm" data-act="unblock" data-id="${b.id}">解除</button></div></div>`);
       for (const b of bks) {
         const canceled = /cancel/.test(String(b.status));

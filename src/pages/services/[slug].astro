@@ -25,8 +25,13 @@ const j = async (p: string) => {
 };
 let items: any[] = [];
 let failed = false;
+// 只有這一頁自己的來源是必要的；另一個來源只拿來做「同類推薦」，壞了就省略，不要整頁 503（gpt-6-astra 複核）
+const needSb = String(Astro.params.slug || '').startsWith('sb-');
 try {
-  const [sb, es] = await Promise.all([j('/sb-services'), j('/shop-products')]);
+  const [sb, es] = await Promise.all([
+    needSb ? j('/sb-services') : j('/sb-services').catch(() => []),
+    needSb ? j('/shop-products').catch(() => []) : j('/shop-products'),
+  ]);
   items = [
     ...sb.map((s: any) => ({
       source: 'sb', slug: `sb-${s.id}`, name: s.name, seoTitle: s.seo_title || '',

@@ -182,15 +182,15 @@
       var url=HISTORY+'?'+qs.join('&');
       var h={}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
       typing(true); S.hydrating=true;   // 2026-09-28（gpt-6-astra 體檢）：撈歷史期間不准送，否則晚到的歷史會把新 session 換回舊的
-      setTimeout(function(){S.hydrating=false;},15000);   // 撈太久就放行
+      setTimeout(function(){if(S.hydrating){S.hydrating=false;typing(false);greet();}},15000);   // 撈太久就放行：收掉等待指示、給開場白
       fetch(url,{headers:h}).then(function(r){return r.json()}).then(function(d){
-        typing(false); if(!S.hydrating) return; S.hydrating=false;
+        if(!S.hydrating) return; S.hydrating=false; typing(false);   // 逾時後晚到的回應不能碰畫面（會把新訊息的等待指示收掉）
         // 跨裝置接回：後端回了最近對話的 token → 認領存本機，之後續聊接同一段
         if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} }
         var ms=(d&&d.messages)||[];
         if(ms.length){ ms.forEach(function(m){ bubble(m.role==='user'?'user':'bot', m.content); }); }
         else { greet(); }
-      }).catch(function(){ typing(false); if(!S.hydrating) return; S.hydrating=false; greet(); });
+      }).catch(function(){ if(!S.hydrating) return; S.hydrating=false; typing(false); greet(); });
     }
     function open(){
       root.classList.add('open'); panel.hidden=false; fab.setAttribute('aria-expanded','true');

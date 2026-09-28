@@ -345,7 +345,7 @@ import { PERSONAS } from '../data/booking-teachers';
       }
       function fld(label,id,v,t){return '<label class="bw-fld"><span>'+label+'</span><input id="'+id+'" type="'+(t||'text')+'" value="'+esc(v)+'"></label>';}
       function val(id){var e=document.getElementById(id);return e?e.value.trim():'';}
-      function showErr(el,m){el.textContent=m;el.hidden=false;}
+      function showErr(el,m){if(!el)return;el.textContent=m;el.hidden=false;}   /* 節點可能已不在畫面上，不能讓它拋錯把後面的解鎖擋掉 */
       function stepConfirm(){
         var dep=Number(W.svc.deposit)||Number(W.svc.price)||0;
         var online=W.loc&&W.loc.type==='online';
@@ -361,7 +361,7 @@ import { PERSONAS } from '../data/booking-teachers';
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-go type="button">確認並付訂金</button>';
         shell(sn(4),'確認預約',inner,foot);
-        mount.querySelector('[data-back]').addEventListener('click',stepInfo);
+        mount.querySelector('[data-back]').addEventListener('click',function(){if(W&&W.creating)return;stepInfo();});   /* 建單中不准回上一步（gpt-6-astra 複核） */
         mount.querySelector('[data-go]').addEventListener('click',function(){
           var btn=this;
           /* 2026-09-26（Codex 複審抓到）：原本只加 CSS class，鈕其實沒被停用——鍵盤 Enter／Space
@@ -378,8 +378,8 @@ import { PERSONAS } from '../data/booking-teachers';
              if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
              /* 時段被別人約走（409）：後端把原因放在 error，原本只讀 message 被吞掉 → 說清楚並帶回去重選 */
              else if(o.st===409){unlockGo();W.date=null;W.time=null;W.notice=(d&&(d.error||d.message))||'這個時段剛被約走了，請重選一個時間。';stepTime();}
-             else{showErr(document.getElementById('wzErr2'),d&&(d.message||d.error)||'建立預約失敗，請稍後再試。');unlockGo();}
-           }).catch(function(){showErr(document.getElementById('wzErr2'),'網路錯誤，請稍後再試。');unlockGo();});
+             else{unlockGo();showErr(document.getElementById('wzErr2'),d&&(d.message||d.error)||'建立預約失敗，請稍後再試。');}
+           }).catch(function(){unlockGo();showErr(document.getElementById('wzErr2'),'網路錯誤，請稍後再試。');});
         });
       }
       function row(k,v){return '<div class="bw-row"><span class="bw-k">'+esc(k)+'</span><span class="bw-v">'+esc(v)+'</span></div>';}
