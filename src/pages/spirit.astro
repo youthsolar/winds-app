@@ -532,7 +532,11 @@ import '../styles/global.css';
       /* 2026-09-28（Codex 複核）：原本先畫一次＋status 回來再畫一次，兩次都撈歷史；第二次會把中間送出的訊息清掉。
          改成 status 回來前只畫殼、不撈歷史也不准送出，回來後才正式畫＋撈一次。 */
       S.booting=true;
-      fetchStatus().then(function(){S.booting=false;render();renderPaywall()});
+      /* status 卡住（請求一直沒結束）也不能把整頁鎖死：10 秒就先正式畫；晚到的 status 只更新次數／付費牆，不再整頁重畫（會清掉新訊息） */
+      var booted=false;
+      function finishBoot(){if(booted)return;booted=true;S.booting=false;render();renderPaywall()}
+      setTimeout(finishBoot,10000);
+      fetchStatus().then(function(){if(booted){renderCount();renderPaywall();renderProfile()}else finishBoot()});
       render(); // 先畫（含登入 gate / 殼），status 回來後 render 再更新次數
     })();
   </script>
