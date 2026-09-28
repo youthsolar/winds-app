@@ -208,7 +208,7 @@ import '../styles/global.css';
     var API={status:WORKER_API+"/spirit-status",chat:WORKER_API+"/spirit-chat",history:WORKER_API+"/spirit-history"};
 
     var S={mode:"self",userId:"",idToken:"",sessionId:null,sending:false,hydGen:0,hydrating:false,
-      subscribed:false,lockedBirthday:null,freeRemaining:null,roundsSelf:null,roundsTarget:null,dailyRounds:30,profileExpanded:false,astro:null,
+      subscribed:false,lockedBirthday:null,unlockedFrom:"",freeRemaining:null,roundsSelf:null,roundsTarget:null,dailyRounds:30,profileExpanded:false,astro:null,
       spiritName:"",spiritTraits:null,
       targetDate:"",targetTime:"",targetConfirmed:false,hasMsg:false};
 
@@ -346,7 +346,7 @@ import '../styles/global.css';
       var chk=new Date(v+"T12:00:00");if(isNaN(chk)||chk.toISOString().slice(0,10)!==v){toast("這一天不存在，請再確認");return}
       /* 2026-09-28（gpt-6-astra 體檢）：換成另一個生日＝另一個人，前一位的對話與命盤不能留在畫面上、也不能接著用同一段對話 */
       var nt=(t&&t.value)||"";
-      S.targetDate=v;S.targetTime=nt;S.targetConfirmed=true;
+      S.targetDate=v;S.targetTime=nt;S.targetConfirmed=true;S.unlockedFrom="";
       revalidateTarget();   // 畫面上那段對話如果屬於別的生日（含重開頁接回來的、按「修改」前的），清掉
       renderTarget();
     }
@@ -357,10 +357,13 @@ import '../styles/global.css';
     function applySubState(hasSub,locked){
       var wasSub=S.subscribed,wasLock=S.lockedBirthday;
       if(hasSub===true)S.subscribed=true;else if(hasSub===false)S.subscribed=false;
-      if(locked)S.lockedBirthday=locked;
+      if(locked){S.lockedBirthday=locked;S.unlockedFrom="";}
       else if(hasSub===false&&S.lockedBirthday){
-        S.lockedBirthday=null;
-        if(S.mode==="target"&&S.histTarget&&S.histSess===S.sessionId){S.targetDate=S.histTarget.slice(0,10);var hm=S.histTarget.slice(11,16);S.targetTime=hm==="12:00"?"":hm;S.targetConfirmed=true;}
+        var was=String(S.lockedBirthday);S.lockedBirthday=null;
+        if(S.mode==="target"&&S.histTarget&&S.histSess===S.sessionId){S.targetDate=S.histTarget.slice(0,10);var hm=S.histTarget.slice(11,16);S.targetTime=hm==="12:00"?"":hm;S.targetConfirmed=true;S.unlockedFrom="";}
+        /* 不在對象頁籤、或對象那段還沒載入：先記下剛解除的鎖，換回對象頁籤撈到那段對話時再照它的生日還原（見 rehydrate）。
+           否則解鎖後改比完整生日，同一天不同時辰的那段會被判成另一個人而切段（gpt-6-astra 會員第八輪複核） */
+        else S.unlockedFrom=was;
       }
       if(S.mode==="target"&&(S.subscribed!==wasSub||S.lockedBirthday!==wasLock))renderTarget();
     }
@@ -378,7 +381,7 @@ import '../styles/global.css';
         showWelcome();renderProfile();
       }
     }
-    function editTarget(){if(S.sending){toast("等分靈體回完這句再換對象");return}S.targetConfirmed=false;renderTarget()}
+    function editTarget(){if(S.sending){toast("等分靈體回完這句再換對象");return}S.targetConfirmed=false;S.unlockedFrom="";renderTarget()}
 
     /* ===== count row ===== */
     function renderCount(){
@@ -445,9 +448,14 @@ import '../styles/global.css';
           /* 2026-09-28（gpt-6-astra 複核）總規則：對象頁籤撈回來的對話，一定先核對屬於哪個生日；跟目前對象不同就不顯示、也不接著用
              （本機編號留著，換回那個人時還接得回來）。切頁籤、慢回應、被後端鎖定改回來，全部走這一道 */
           if(mode==="target"&&d.target_birthday){
+            var tb=String(d.target_birthday);
+            /* 鎖定是在別的頁籤（或這段載入前）解除的：鎖定期間同一天就是同一個人，這段對話的生日就是那位對象的完整生日，
+               對象欄位改用它（跟在對象頁籤當下解鎖的做法一樣）。客人之後自己改過對象就不套用（confirmTarget／editTarget 會清記號） */
+            if(S.unlockedFrom&&!S.lockedBirthday&&tb.slice(0,10)===S.unlockedFrom.slice(0,10)){S.targetDate=tb.slice(0,10);var hm2=tb.slice(11,16);S.targetTime=hm2==="12:00"?"":hm2;S.targetConfirmed=true;renderTarget();}
+            S.unlockedFrom="";
             var cur=curTargetKey();
-            if(cur&&!sameTgt(String(d.target_birthday),cur)){S.sessionId=null;return}
-            S.histTarget=String(d.target_birthday);S.histSess=id;
+            if(cur&&!sameTgt(tb,cur)){S.sessionId=null;return}
+            S.histTarget=tb;S.histSess=id;
           }
           var ms=d.messages||[];
           if(!ms.length)return;

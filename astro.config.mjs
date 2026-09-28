@@ -34,7 +34,9 @@ function remarkStripTrailingPromo() {
   // 本站連結：解析網址看網域（原本比對「網址裡有沒有出現這幾個字」，winds.tw.example.org 這種外站也會中）（gpt-6-astra 剝除器第七輪複核）
   const isSiteHost = (u) => {
     try {
-      const h = new URL(String(u || '')).hostname.toLowerCase();
+      // 協定相對網址（//winds.tw/…）補上 https: 才解析得出網域；網域尾端的點（winds.tw.）跟沒點是同一個站（gpt-6-astra 剝除器第八輪複核）
+      const s = String(u || '');
+      const h = new URL(s.startsWith('//') ? 'https:' + s : s).hostname.toLowerCase().replace(/\.+$/, '');
       return /(^|\.)winds\.tw$/.test(h) || /(^|\.)easy\.co$/.test(h) || /(^|\.)easystore\.co$/.test(h) || h.includes('zijiawangzijia');
     } catch { return false; }
   };
@@ -98,7 +100,8 @@ function remarkStripTrailingPromo() {
       let i = end;
       while (i > 0 && ch[i - 1].type !== 'thematicBreak') i--;
       const block = ch.slice(i, end);
-      if (i > 0 && block.length && block.every((n) => isPromo(n) || isPromoList(n) || isCTA(n) || n.type === 'definition') && block.some(isCTA)) {
+      // 放行條件裡的 isCTA 只給清單用（站內相對網址的促銷清單）；段落／標題仍要過 isPromo，一般正文帶個站內連結不能被當促銷（gpt-6-astra 剝除器第八輪複核）
+      if (i > 0 && block.length && block.every((n) => isPromo(n) || isPromoList(n) || (n.type === 'list' && isCTA(n)) || n.type === 'definition') && block.some(isCTA)) {
         cut = i - 1;
       } else {
         let k = end;
