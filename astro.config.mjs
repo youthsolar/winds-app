@@ -35,9 +35,13 @@ function remarkStripTrailingPromo() {
   const TAGS_ONLY = /^(?:#[^#\s]+){3,}$/;                  // 文末 #關鍵字段（SEO/GEO 用，不剝）
   return (tree) => {
     const ch = tree.children || [];
+    // 參照式連結（[文字][id] ＋ [id]: 網址）要先查定義才知道指向哪裡（gpt-6-astra 剝除器第五輪複核）
+    const defs = {};
+    ch.forEach((n) => { if (n.type === 'definition' && n.identifier) defs[String(n.identifier).toLowerCase()] = n.url; });
     const flat = (n, acc) => {
       if (n.value) acc.text += n.value;
       if (n.type === 'link' && n.url) acc.urls.push(n.url);
+      if (n.type === 'linkReference' && n.identifier && defs[String(n.identifier).toLowerCase()]) acc.urls.push(defs[String(n.identifier).toLowerCase()]);
       (n.children || []).forEach((c) => flat(c, acc));
       return acc;
     };
@@ -74,11 +78,11 @@ function remarkStripTrailingPromo() {
       const isCTA = (n) => (n.type === 'paragraph' || n.type === 'heading') && !isTags(n)
         && flat(n, { text: '', urls: [] }).urls.some((u) => PROMO_HOST.test(u) || /^\/(?!\/)/.test(u));   // 站內相對路徑（/booking/）也算本站連結
       let end = ch.length;
-      while (end > 0 && (isTags(ch[end - 1]) || ch[end - 1].type === 'thematicBreak')) end--;
+      while (end > 0 && (isTags(ch[end - 1]) || ch[end - 1].type === 'thematicBreak' || ch[end - 1].type === 'definition')) end--;
       let i = end;
       while (i > 0 && ch[i - 1].type !== 'thematicBreak') i--;
       const block = ch.slice(i, end);
-      if (i > 0 && block.length && block.every((n) => isPromo(n) || isPromoList(n)) && block.some(isCTA)) {
+      if (i > 0 && block.length && block.every((n) => isPromo(n) || isPromoList(n) || n.type === 'definition') && block.some(isCTA)) {
         cut = i - 1;
       } else {
         let k = end;
