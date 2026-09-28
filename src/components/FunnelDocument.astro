@@ -2181,6 +2181,12 @@ function pollStatus(logId,alreadyWarm){
 function pollGiveUp(msg){
   STATE.submitting=false;
   if(STATE.reportMode&&!STATE.k&&!STATE.userId){location.href=loginReturnUrl();return;}
+  /* 已登入（或有 k）回看報告：留在報告畫面給重試，不要退回選題頁（原本 go("info") 找不到頁會落到入口） */
+  if(STATE.reportMode&&STATE.reportLogId){
+    var root=document.getElementById("root");
+    root.innerHTML=siteHeader()+'<main class="shell narrow" style="text-align:center;padding:64px 20px"><p style="font-family:var(--font-serif);font-size:16px;color:var(--text-secondary);margin:0 0 18px">'+esc(msg)+'</p><button class="zf-btn primary md" onclick="go(\'interpreting\');pollStatus(STATE.reportLogId)">再讀一次</button></main>'+siteFooter();
+    wireSiteChrome();return;
+  }
   go(STATE.k?"hex":"info");setTimeout(function(){showFfErr(msg);},60);
 }
 function loginReturnUrl(){
