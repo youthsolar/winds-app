@@ -66,25 +66,25 @@ function remarkStripTrailingPromo() {
       if (ch[i].type === 'heading' && flat(ch[i], { text: '', urls: [] }).text.includes('相關推薦')) { cut = i; break; }
     }
     if (cut < 0) {
-      /* 從文末往回：碰到分隔線 --- 就停（分隔線算進促銷區塊，前面作者自己的結語不動——blog-120／180／330 曾被越界剝掉）。
-         站內連結清單只在「被分隔線圍起來的區塊」裡才算促銷；沒有分隔線時清單一律當正文（gpt-6-astra 複核） */
-      /* 再修（gpt-6-astra 剝除器第三輪複核）：還沒遇到促銷文案前碰到的分隔線是「收尾線」，跳過繼續往回找；
-         一定要真的有促銷文案（段落／標題）才剝——分隔線後只有站內參考清單、沒有 CTA，不算促銷 */
-      const run = (allowList) => {
-        let i = ch.length, seenPromo = false;
-        while (i > 0) {
-          const n = ch[i - 1];
-          if (n.type === 'thematicBreak') { if (!seenPromo) { i--; continue; } return { i: i - 1, bounded: true, seenPromo }; }
-          if (isTags(n)) { i--; continue; }
-          if (isPromo(n)) { seenPromo = true; i--; continue; }
-          if (allowList && isPromoList(n)) { i--; continue; }
-          break;
-        }
-        return { i, bounded: false, seenPromo };
-      };
-      let r = run(true);
-      if (!(r.bounded && r.seenPromo)) r = run(false);
-      if (ch.slice(r.i).some((n) => isPromo(n))) cut = r.i;
+      /* 2026-09-28（gpt-6-astra 剝除器第四輪複核）改成照真實促銷的結構判斷，不再靠「跳過幾條分隔線」的特例：
+         ① 略過文末標籤與收尾分隔線 ② 只看最後一個區塊（碰到分隔線就停，不越界）
+         ③ 區塊內全部是促銷段落／站內連結清單，而且至少有一段「帶本站連結」的促銷（CTA）才剝——只有關鍵字或只有清單都不算
+         ④ 沒有起始分隔線時，只剝最後連續的促銷段落（不含清單），同樣要有 CTA
+         全站 456 篇與上一版結果完全相同；8 個合成情境（含複核抓到的引用句＋參考清單）皆正確。 */
+      const isCTA = (n) => (n.type === 'paragraph' || n.type === 'heading') && !isTags(n)
+        && flat(n, { text: '', urls: [] }).urls.some((u) => PROMO_HOST.test(u) || /^\/(?!\/)/.test(u));   // 站內相對路徑（/booking/）也算本站連結
+      let end = ch.length;
+      while (end > 0 && (isTags(ch[end - 1]) || ch[end - 1].type === 'thematicBreak')) end--;
+      let i = end;
+      while (i > 0 && ch[i - 1].type !== 'thematicBreak') i--;
+      const block = ch.slice(i, end);
+      if (i > 0 && block.length && block.every((n) => isPromo(n) || isPromoList(n)) && block.some(isCTA)) {
+        cut = i - 1;
+      } else {
+        let k = end;
+        while (k > i && isPromo(ch[k - 1])) k--;
+        if (k < end && ch.slice(k, end).some(isCTA)) cut = k;
+      }
     }
     if (cut >= 0) {
       let start = cut;
