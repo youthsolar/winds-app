@@ -62,7 +62,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         try {
           var u = new URL(new URLSearchParams(location.search).get('return') || '/', location.origin);
           if (u.origin !== location.origin || !/^https?:$/.test(u.protocol)) return '/';
-          return u.pathname + u.search + u.hash;
+          return u.href;   // 回傳驗證過的完整網址——只取 pathname 的話 https://winds.tw//evil.com 會變成 //evil.com 跳到外站（gpt-6-astra 複核）
         } catch (e) { return '/'; }
       }
       // 已登入直接回轉址目標

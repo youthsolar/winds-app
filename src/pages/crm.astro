@@ -74,6 +74,7 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
   const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
   const ntd = (n: number) => 'NT$ ' + Number(n || 0).toLocaleString('en-US');
   // 2026-09-28（gpt-6-astra 體檢）：原本直接切字串＝UTC 日期，台北凌晨的互動會顯示成前一天。沒帶時區的一律是 D1 的 UTC（SB 存檔後端已補 +08:00）
+  const savingKeys = new Set<string>();   // 正在儲存備註的客戶
   const day = (ts: string) => {
     if (!ts) return '';
     let x = String(ts).replace(' ', 'T'); if (!/[Z+]|-\d\d:\d\d$/.test(x.slice(10))) x += 'Z';
@@ -191,7 +192,9 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
       const noteVal = String(f.note.value);
       if (noteVal.length > 2000 || tags.length > 20) { st.textContent = `備註最多 2000 字（現在 ${noteVal.length}）、標籤最多 20 個（現在 ${tags.length}）`; return; }
       const saveBtn = (ev.target as HTMLFormElement).querySelector('button[type=submit]') as HTMLButtonElement | null;
-      if (saveBtn?.disabled) return;
+      // 依客戶鎖（不是只鎖按鈕）：等待儲存時關掉再打開同一位客戶，會是新的按鈕，照樣要擋（gpt-6-astra 複核）
+      if (savingKeys.has(key)) { st.textContent = '上一次還在存，稍等一下'; return; }
+      savingKeys.add(key);
       if (saveBtn) saveBtn.disabled = true;
       let d2: any;
       try {
@@ -200,11 +203,14 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
         d2 = await r2.json();
       } catch (e: any) {
         st.textContent = '沒存成：' + (e?.message || '連線失敗');   // 原本沒接住，會永遠停在「儲存中…」讓人分不出存了沒
+        savingKeys.delete(key);
         if (saveBtn) saveBtn.disabled = false;
         return;
       }
+      savingKeys.delete(key);
       if (saveBtn) saveBtn.disabled = false;
-      if (d2.ok) { st.textContent = String(f.note.value) === noteVal ? '已存' : '已存（之後改的還沒存）'; const me = people.find((x) => x.key === key); if (me) { me.tags = tags; me.note = noteVal; } renderList(); }
+      const tagsNow = String(f.tags.value).split(/[,，]/).map((s: string) => s.trim()).filter(Boolean).join('|');
+      if (d2.ok) { st.textContent = String(f.note.value) === noteVal && tagsNow === tags.join('|') ? '已存' : '已存（之後改的還沒存）'; const me = people.find((x) => x.key === key); if (me) { me.tags = tags; me.note = noteVal; } renderList(); }
       else st.textContent = '沒存成：' + (d2.error || d2.message || '');
     });
     if (window.innerWidth < 900) window.scrollTo({ top: box.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' });   // 手機：留 90px 給固定導覽列（scrollIntoView 不一定吃 scroll-margin）

@@ -44,7 +44,7 @@ import '../styles/global.css';
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
-  <script src="/assets/nav-auth.js?v=5" defer></script>
+  <script src="/assets/nav-auth.js?v=6" defer></script>
 
   <style is:global>
     html,body{height:100%}
@@ -346,9 +346,16 @@ import '../styles/global.css';
       var chk=new Date(v+"T12:00:00");if(isNaN(chk)||chk.toISOString().slice(0,10)!==v){toast("這一天不存在，請再確認");return}
       /* 2026-09-28（gpt-6-astra 體檢）：換成另一個生日＝另一個人，前一位的對話與命盤不能留在畫面上、也不能接著用同一段對話 */
       var nt=(t&&t.value)||"";
-      var changed=(S.targetDate&&(S.targetDate!==v||S.targetTime!==nt));
+      /* 重開頁時 S.targetDate 是空的，要拿「接回來的那段對話屬於哪個生日」來比（gpt-6-astra 複核） */
+      var prev=S.targetDate?(S.targetDate+" "+(S.targetTime||"12:00")):(S.histTarget||"");
+      var changed=!!prev&&prev!==(v+" "+(nt||"12:00"));
       S.targetDate=v;S.targetTime=nt;S.targetConfirmed=true;
-      if(changed){S.sessionId=null;saveSess(null);S.astro=null;S.hasMsg=false;S.hydGen++;showWelcome();}
+      if(changed){
+        /* 本機的對話編號先不刪：後端若回「訂閱期間已鎖定對象」，要能把原本那段接回來；新對話成功後 saveSess 會自然換掉 */
+        S.sessionId=null;S.histTarget="";S.astro=null;S.hasMsg=false;
+        S.hydGen++;S.hydrating=false;   // 讓進行中的撈歷史作廢，也要解鎖，否則會一直卡在「正在接回」
+        showWelcome();renderProfile();
+      }
       renderTarget();
     }
     function editTarget(){if(S.sending){toast("等分靈體回完這句再換對象");return}S.targetConfirmed=false;renderTarget()}
@@ -414,6 +421,7 @@ import '../styles/global.css';
           if(gen!==S.hydGen||S.mode!==mode)return;
           if(d&&d.gone){try{localStorage.removeItem("winds_spirit_session_"+mode)}catch(e){}S.sessionId=null;return}
           if(!d||!d.success&&!d.messages)return;
+          if(mode==="target"&&d.target_birthday)S.histTarget=String(d.target_birthday);
           var ms=d.messages||[];
           if(!ms.length)return;
           box.innerHTML="";
@@ -468,7 +476,9 @@ import '../styles/global.css';
          if(!d.success){
            if(d.error==="no_profile"){appendMsg("spirit","我還不認識你呢——先拿到老師的靈符解方，讓我感應你的靈魂頻率，回來我們再好好聊。",nowHM());setTimeout(function(){location.href="/divination"},3000);return}
            if(d.error==="daily_limit"){appendMsg("spirit",d.message||"今天聊得夠多了，讓彼此沉澱一下，明天再來。",nowHM());ta.disabled=true;ta.placeholder="分靈體已休息，明天再來";return}
-           if(d.error==="target_locked"){toast("訂閱期間已鎖定對象（"+d.locked_birthday+"）");S.lockedBirthday=d.locked_birthday;renderTarget();return}
+           if(d.error==="target_locked"){toast("訂閱期間已鎖定對象（"+d.locked_birthday+"）");S.lockedBirthday=d.locked_birthday;renderTarget();
+             if(!S.sessionId&&loadSess()){S.sessionId=loadSess();rehydrate();}   // 剛才換人時清掉的那段對話接回來
+             return}
            if(d.error==="ai_failed"){if(userEl&&userEl.parentNode)userEl.parentNode.removeChild(userEl);ta.value=msg;autoResize(ta);toast(d.message||"分靈體暫時無法回應，請稍後再試");return}
            toast(d.message||d.error||"對話失敗，請稍後再試");return;
          }
@@ -560,7 +570,7 @@ import '../styles/global.css';
         /* 2026-09-28（gpt-6-astra 體檢）：正式畫這次會重建輸入區，客人等待期間已經打的字、選的生日要放回去 */
         var keep={};["spText","tgYear","tgMonth","tgDay","tgTime"].forEach(function(id){var el=document.getElementById(id);if(el&&el.value)keep[id]=el.value;});
         render();renderPaywall();
-        Object.keys(keep).forEach(function(id){var el=document.getElementById(id);if(el&&!el.value){el.value=keep[id];if(id==="spText")autoResize(el);}});
+        Object.keys(keep).forEach(function(id){var el=document.getElementById(id);if(el&&(id==="spText"?!el.value:true)){el.value=keep[id];if(id==="spText")autoResize(el);}});   // 生日以客人最後選的為準（重畫時會先填回已確認的舊值）
       }
       setTimeout(finishBoot,10000);
       var lbBefore=null,subBefore=null;setTimeout(function(){lbBefore=S.lockedBirthday;subBefore=S.subscribed;},10000);
