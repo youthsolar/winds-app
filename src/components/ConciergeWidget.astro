@@ -155,9 +155,9 @@
       if(!t) return null;
       try{ var p=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); return {token:t,sub:p.sub}; }catch(e){ return null; }
     }
-    function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }   // 2026-09-28（gpt-6-astra 體檢）：補引號——linkify 把網址放進 href="…"，網址帶 " 可跳出屬性塞 onclick
     // 網址 char class 排除結尾雜訊（中文括號/標點），避免把 …blog-192） 的 ）吃進連結→404
-    function linkify(s){ return esc(s).replace(/(https?:\/\/[^\s)）」』，。、！？!?；;]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+    function linkify(s){ return esc(s).replace(/(https?:\/\/(?:(?!&quot;|&#39;)[^\s)）」』，。、！？!?；;])+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
     function bubble(role,text){
       var d=document.createElement('div'); d.className='wc-b '+(role==='user'?'user':'bot');
       d.innerHTML = role==='user'
@@ -181,15 +181,16 @@
       var qs=[]; if(S.sessionId) qs.push('sessionId='+encodeURIComponent(S.sessionId)); if(auth&&auth.sub) qs.push('google_sub='+encodeURIComponent(auth.sub));
       var url=HISTORY+'?'+qs.join('&');
       var h={}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
-      typing(true);
+      typing(true); S.hydrating=true;   // 2026-09-28（gpt-6-astra 體檢）：撈歷史期間不准送，否則晚到的歷史會把新 session 換回舊的
+      setTimeout(function(){S.hydrating=false;},15000);   // 撈太久就放行
       fetch(url,{headers:h}).then(function(r){return r.json()}).then(function(d){
-        typing(false);
+        typing(false); if(!S.hydrating) return; S.hydrating=false;
         // 跨裝置接回：後端回了最近對話的 token → 認領存本機，之後續聊接同一段
         if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} }
         var ms=(d&&d.messages)||[];
         if(ms.length){ ms.forEach(function(m){ bubble(m.role==='user'?'user':'bot', m.content); }); }
         else { greet(); }
-      }).catch(function(){ typing(false); greet(); });
+      }).catch(function(){ typing(false); if(!S.hydrating) return; S.hydrating=false; greet(); });
     }
     function open(){
       root.classList.add('open'); panel.hidden=false; fab.setAttribute('aria-expanded','true');
@@ -260,7 +261,7 @@
         msgs.appendChild(card); msgs.scrollTop=msgs.scrollHeight;
       } else if(ui.kind==='pay' && ui.url){
         var p=document.createElement('div'); p.className='wc-pay';
-        p.innerHTML='<div class="wc-pay-amt">訂金 NT$ '+(ui.amount||'')+' <small>確認後付款</small></div>'+
+        p.innerHTML='<div class="wc-pay-amt">本次付款 NT$ '+(ui.amount||'')+' <small>確認後付款</small></div>'+
           '<a class="wc-pay-btn" href="'+ui.url+'" target="_blank" rel="noopener">前往付款 →</a>'+
           '<div class="wc-pay-note">付款完成後預約即正式成立</div>';
         msgs.appendChild(p); msgs.scrollTop=msgs.scrollHeight;
@@ -294,7 +295,7 @@
       }
     }
     function sendText(msg){
-      if(!msg||S.sending) return;
+      if(!msg||S.sending||S.hydrating) return;
       S.sending=true; sendBtn.disabled=true;
       bubble('user',msg); typing(true);
       var auth=getAuth(); var body={message:msg,channel:'web',sessionId:S.sessionId};
@@ -308,6 +309,7 @@
     }
     function send(){
       var msg=(ta.value||'').trim(); if(!msg) return;
+      if(S.sending||S.hydrating) return;   // 2026-09-28（gpt-6-astra 體檢）：忙碌時先別清空輸入框，否則字被清掉又沒送出
       ta.value=''; ta.style.height='auto'; sendText(msg);
     }
     // ============ 語音通話（Grok Voice；打字/通話雙軌恆存） ============
@@ -341,7 +343,7 @@
       }
     }
     function startVoice(){
-      if(V.call||V.loading) return;
+      if(V.call||V.pending||V.loading) return;
       function boot(){
         if(window.WindsVoiceCall && WindsVoiceCall.isLikelyBlockedWebview()){ voiceDegrade('mic'); return; }
         voiceUi('connecting');
@@ -351,7 +353,8 @@
           onToolResult:function(name,result){ voiceToolCard(name,result); },
           onError:function(kind){ voiceDegrade(kind); }
         });
-        call.start().then(function(){ V.call=call; }).catch(function(){ /* onError 已處理 */ });
+        V.pending=call;   // 2026-09-28（gpt-6-astra 體檢）：連線中按掛斷原本只藏畫面，稍後照樣接通、麥克風還開著
+        call.start().then(function(){ if(V.pending!==call){ call.stop('user'); return; } V.pending=null; V.call=call; }).catch(function(){ if(V.pending===call) V.pending=null; /* onError 已處理 */ });
       }
       if(window.WindsVoiceCall){ boot(); return; }
       V.loading=true;
@@ -361,7 +364,7 @@
       document.head.appendChild(s);
     }
     vBtn.addEventListener('click',startVoice);
-    vHang.addEventListener('click',function(){ if(V.call) V.call.stop('user'); else voiceUi('idle'); });
+    vHang.addEventListener('click',function(){ if(V.call) V.call.stop('user'); else { var pc=V.pending; V.pending=null; if(pc) pc.stop('user'); voiceUi('idle'); } });
     // 通話中點時段卡 → 以文字送進語音對話（Grok 會接著講）
     var _origSendText=sendText;
     sendText=function(msg){

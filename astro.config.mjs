@@ -5,6 +5,18 @@ import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
+// 2026-09-28：/services/[slug] 改成每次請求即時讀（prerender=false），sitemap 外掛不會自動收它 →
+// build 時抓一次目錄補進 customPages。抓不到就讓 build 失敗（跟原本 getStaticPaths 抓不到一樣顯性），不發一份少了項目頁的 sitemap。
+async function servicePages() {
+  const get = async (p) => { const r = await fetch('https://api.winds.tw' + p); if (!r.ok) throw new Error(`sitemap：${p} 回 ${r.status}`); return r.json(); };
+  const [sb, es] = await Promise.all([get('/sb-services'), get('/shop-products')]);
+  return [
+    ...(sb.services || []).filter((x) => x && x.name).map((x) => `https://winds.tw/services/sb-${x.id}/`),
+    ...(es.products || []).filter((x) => x && x.name).map((x) => `https://winds.tw/services/es-${x.id}/`),
+  ];
+}
+const SERVICE_PAGES = await servicePages();
+
 /**
  * 剝掉文章 markdown 結尾 Content-Alchemy pipeline 埋入的促銷區塊
  * （「## 💫 相關推薦」+ 法器連結 + 「✨ 免費占卜 CTA」）。
@@ -74,6 +86,7 @@ export default defineConfig({
 
   integrations: [
     sitemap({
+      customPages: SERVICE_PAGES,
       // home/share/spirit 皆已是真實 Astro 頁，會自動帶入（含 trailing slash）；
       // 舊 customPages 的無斜線版本會造成重複條目，已移除
       // 2026-09-02：私人／功能頁不進 sitemap（登入牆後或無獨立內容，屬稀薄頁）

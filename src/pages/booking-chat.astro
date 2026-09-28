@@ -217,9 +217,9 @@ import '../styles/global.css';
     var msgsEl=document.getElementById('msgs'), taEl=document.getElementById('ta'), sendEl=document.getElementById('send');
     msgsEl.innerHTML=''; // 清掉給抓取工具看的靜態文案，對話由 JS 接手
 
-    function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }   // 2026-09-28（gpt-6-astra 體檢）：補引號——linkify 把網址放進 href="…"，網址帶 " 可跳出屬性塞 onclick
     // 網址 char class 排除結尾雜訊（中文括號/標點），避免把 …blog-192） 的 ）吃進連結→404
-    function linkify(s){ return esc(s).replace(/(https?:\/\/[^\s)）」』，。、！？!?；;]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+    function linkify(s){ return esc(s).replace(/(https?:\/\/(?:(?!&quot;|&#39;)[^\s)）」』，。、！？!?；;])+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
 
     function addBubble(role, text){
       var d=document.createElement('div'); d.className='sp-bubble '+(role==='user'?'user':'bot');
@@ -283,7 +283,7 @@ import '../styles/global.css';
         msgsEl.appendChild(scard); msgsEl.scrollTop=msgsEl.scrollHeight;
       } else if(ui.kind==='pay' && ui.url){
         var p=document.createElement('div'); p.className='wc-pay';
-        p.innerHTML='<div class="wc-pay-amt">訂金 NT$ '+(ui.amount||'')+' <small>確認後付款</small></div>'+
+        p.innerHTML='<div class="wc-pay-amt">本次付款 NT$ '+(ui.amount||'')+' <small>確認後付款</small></div>'+
           '<a class="wc-pay-btn" href="'+ui.url+'" target="_blank" rel="noopener">前往付款 →</a>'+
           '<div class="wc-pay-note">付款完成後預約即正式成立</div>';
         msgsEl.appendChild(p); msgsEl.scrollTop=msgsEl.scrollHeight;
@@ -341,6 +341,7 @@ import '../styles/global.css';
     }
     function send(){
       var msg=(taEl.value||'').trim(); if(!msg) return;
+      if(S.sending||S.hydrating) return;   // 2026-09-28（gpt-6-astra 體檢）：忙碌時先別清空輸入框，否則字被清掉又沒送出
       taEl.value=''; taEl.style.height='auto'; sendText(msg);
     }
 
@@ -376,7 +377,7 @@ import '../styles/global.css';
       }
     }
     function startVoice(){
-      if(V.call||V.loading) return;
+      if(V.call||V.pending||V.loading) return;
       function boot(){
         if(window.WindsVoiceCall && WindsVoiceCall.isLikelyBlockedWebview()){ voiceDegrade('mic'); return; }
         voiceUi('connecting');
@@ -386,7 +387,8 @@ import '../styles/global.css';
           onToolResult:function(name,result){ voiceToolCard(name,result); },
           onError:function(kind){ voiceDegrade(kind); }
         });
-        call.start().then(function(){ V.call=call; }).catch(function(){ /* onError 已處理 */ });
+        V.pending=call;   // 2026-09-28（gpt-6-astra 體檢）：連線中按掛斷原本只藏畫面，稍後照樣接通、麥克風還開著
+        call.start().then(function(){ if(V.pending!==call){ call.stop('user'); return; } V.pending=null; V.call=call; }).catch(function(){ if(V.pending===call) V.pending=null; /* onError 已處理 */ });
       }
       if(window.WindsVoiceCall){ boot(); return; }
       V.loading=true;
@@ -403,7 +405,7 @@ import '../styles/global.css';
       if(['https://booking.winds.tw','https://winds.tw','https://www.winds.tw'].indexOf(e.origin)<0) return;
       if(e.data&&e.data.type==='winds-voice-start') startVoice();
     });
-    vHang.addEventListener('click',function(){ if(V.call) V.call.stop('user'); else voiceUi('idle'); });
+    vHang.addEventListener('click',function(){ if(V.call) V.call.stop('user'); else { var pc=V.pending; V.pending=null; if(pc) pc.stop('user'); voiceUi('idle'); } });
     // 通話中點時段卡/打字 → 以文字送進語音對話（Grok 會接著講）
     var _origSendText=sendText;
     sendText=function(msg){

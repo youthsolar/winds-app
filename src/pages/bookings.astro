@@ -173,7 +173,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       function formatWhen(s) {
         if (!s) return '';
         var x = s.replace(' ', 'T');
-        if (!/[Z+]/.test(x.slice(10))) x += 'Z';
+        if (!/[Z+]/.test(x.slice(10))) x += '+08:00';   // 2026-09-28（gpt-6-astra 體檢）：start_datetime 是台北當地時間，原本補 Z 當 UTC＝全部晚 8 小時
         var d = new Date(x);
         if (isNaN(d.getTime())) return s;
         return d.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric', weekday: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
@@ -187,7 +187,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       function bookingCard(b) {
         var badge = BADGE[b.status] || BADGE['Paid'];
-        var paidLabel = b.deposit && b.deposit < b.total
+        // 2026-09-28（gpt-6-astra 體檢）：用優惠碼折後付清也是 deposit < total，原本被標成「訂金…全額原價」
+        var paidLabel = b.promo
+          ? '已付 NT$ ' + nf(b.deposit || b.total) + '（已套用優惠）'
+          : b.deposit && b.deposit < b.total
           ? '訂金 NT$ ' + nf(b.deposit) + ' 已付 · 全額 NT$ ' + nf(b.total)
           : '已付 NT$ ' + nf(b.total || b.deposit);
         return '' +

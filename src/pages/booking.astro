@@ -238,9 +238,8 @@ import { PERSONAS } from '../data/booking-teachers';
       var mount = document.getElementById('bkWiz');
       var W = {};
       function sn(base){return W.multiLoc?base+1:base;}   // 有地點步驟時各步 +1
-      function pad2(n){return String(n).padStart(2,'0');}
-      function ymd(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
-      function wizClose(){mount.innerHTML='';document.body.style.overflow='';W=null;}   /* 2026-09-27：也要清掉 W，否則慢回來的時段請求會把精靈自己彈回來 */
+      function wizClose(){if(W&&W.creating)return;   /* 2026-09-28（gpt-6-astra 體檢）：建單中不准關，否則舊回應會把新流程導去舊老師／項目的付款頁 */
+        mount.innerHTML='';document.body.style.overflow='';W=null;}   /* 2026-09-27：也要清掉 W，否則慢回來的時段請求會把精靈自己彈回來 */
       function shell(step, title, inner, footer){
         var nn=W.nSteps||4, arr=[]; for(var i=1;i<=nn;i++)arr.push(i);
         var dots=arr.map(function(n){return '<span class="bw-dot'+(n<=step?' on':'')+'"></span>';}).join('');
@@ -254,6 +253,7 @@ import { PERSONAS } from '../data/booking-teachers';
         mount.querySelectorAll('[data-wclose]').forEach(function(el){el.addEventListener('click',wizClose);});
       }
       function openWiz(id){
+        if(W&&W.creating)return;
         W = { prov: teachers.filter(function(t){return String(t.id)===String(id);})[0] };
         if(!W.prov) return;
         var locIds = W.prov.locations || [];
@@ -287,13 +287,14 @@ import { PERSONAS } from '../data/booking-teachers';
       }
       function stepTime(){
         shell(sn(2),'選時間','<div class="bw-loading"><span class="bw-spin"></span>載入可預約時段…</div>');
-        var from=new Date(); from.setDate(from.getDate()+1); var to=new Date(); to.setDate(to.getDate()+28);
+        /* 2026-09-28（gpt-6-astra 體檢）：日期用台北時間算，不是裝置時區（海外裝置會漏列或多列一天） */
+        var tpe=function(n){return new Date(Date.now()+8*3600000+n*86400000).toISOString().slice(0,10);};
         /* 2026-09-27：時段請求沒綁這一次精靈。在載入中途關掉、改開另一位老師的話，舊老師的回應會用
            現在的 W 渲染——畫面上是新老師、時段是舊老師的，送出時還會拿新項目 ID 配舊項目的時間。
            req 記住這次是哪一輪（openWiz 會換成新物件、wizClose 會設成 null），對不上就把回應丟掉。 */
         var req=W;
-        fetch(WORKER_API+'/sb-slots?service='+encodeURIComponent(W.svc.id)+'&provider='+encodeURIComponent(W.prov.id)+'&from='+ymd(from)+'&to='+ymd(to))
-          .then(function(r){return r.json();}).then(function(d){
+        fetch(WORKER_API+'/sb-slots?service='+encodeURIComponent(W.svc.id)+'&provider='+encodeURIComponent(W.prov.id)+'&from='+tpe(1)+'&to='+tpe(28))
+          .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();}).then(function(d){   /* 502 不能當成「沒有空檔」 */
             if(req!==W) return;
             var slots=(d&&d.slots)||{}; var dates=Object.keys(slots).sort();
             if(!dates.length){shell(sn(2),'選時間','<p class="bw-none">這位老師近 30 天暫無可預約時段，換個老師或稍後再試。</p>');return;}
@@ -306,7 +307,8 @@ import { PERSONAS } from '../data/booking-teachers';
         var dchips='<div class="bw-dates">'+dates.map(function(dt){return '<button class="bw-date'+(dt===W.date?' on':'')+'" data-d="'+dt+'" type="button">'+dlabel(dt)+'</button>';}).join('')+'</div>';
         var times='<div class="bw-times">'+(slots[W.date]||[]).map(function(t){return '<button class="bw-time'+(t===W.time?' on':'')+'" data-t="'+t+'" type="button">'+t+'</button>';}).join('')+'</div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary'+(W.time?'':' disabled')+'" data-next type="button">下一步</button>';
-        shell(sn(2),'選時間',dchips+times,foot);
+        var nt=W.notice?'<p class="bw-err">'+esc(W.notice)+'</p>':''; W.notice=null;
+        shell(sn(2),'選時間',nt+dchips+times,foot);
         mount.querySelectorAll('[data-d]').forEach(function(b){b.addEventListener('click',function(){W.date=b.dataset.d;W.time=null;renderTime(slots,dates);});});
         mount.querySelectorAll('[data-t]').forEach(function(b){b.addEventListener('click',function(){W.time=b.dataset.t;renderTime(slots,dates);});});
         var nx=mount.querySelector('[data-next]'); if(nx)nx.addEventListener('click',function(){if(W.time)stepInfo();});
@@ -366,15 +368,17 @@ import { PERSONAS } from '../data/booking-teachers';
              還會再觸發，第一次回應前連按會建出多筆預約與多張付款單，其中幾筆會占住時段變成孤兒單。
              改成真的設 disabled 屬性並在入口擋掉重入；成功會跳轉離開，所以只在失敗時解鎖。 */
           if(btn.disabled)return;
-          btn.disabled=true; btn.classList.add('disabled'); btn.textContent='建立訂單中…';
-          function unlockGo(){btn.disabled=false;btn.classList.remove('disabled');btn.textContent='確認並付訂金';}
+          btn.disabled=true; btn.classList.add('disabled'); btn.textContent='建立訂單中…'; W.creating=true;
+          function unlockGo(){if(W)W.creating=false;btn.disabled=false;btn.classList.remove('disabled');btn.textContent='確認並付訂金';}
           fetch(WORKER_API+'/sb-book',{method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({service:W.svc.id,provider:W.prov.id,datetime:W.date+' '+W.time+':00',
               location:W.loc?W.loc.id:null,
               name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null,note:W.fields.note||null})})
-           .then(function(r){return r.json();}).then(function(d){
+           .then(function(r){return r.json().then(function(d){return{st:r.status,d:d};});}).then(function(o){var d=o.d;
              if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
-             else{showErr(document.getElementById('wzErr2'),d&&d.message||'建立預約失敗，請稍後再試。');unlockGo();}
+             /* 時段被別人約走（409）：後端把原因放在 error，原本只讀 message 被吞掉 → 說清楚並帶回去重選 */
+             else if(o.st===409){unlockGo();W.date=null;W.time=null;W.notice=(d&&(d.error||d.message))||'這個時段剛被約走了，請重選一個時間。';stepTime();}
+             else{showErr(document.getElementById('wzErr2'),d&&(d.message||d.error)||'建立預約失敗，請稍後再試。');unlockGo();}
            }).catch(function(){showErr(document.getElementById('wzErr2'),'網路錯誤，請稍後再試。');unlockGo();});
         });
       }

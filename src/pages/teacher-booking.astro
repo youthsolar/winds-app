@@ -107,7 +107,8 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
 
   // ── 狀態 ──
   let view: 'day' | 'week' = 'day';
-  let anchor = ymd(new Date());
+  const tpeToday = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);   // 2026-09-28（gpt-6-astra 體檢）：「今天」用台北日期，不是裝置時區
+  let anchor = tpeToday();
   let provider = '';
   let catalog: any = { providers: [], locations: [] };
   let data: any = { bookings: [], blocks: [], workdays: [] };
@@ -164,7 +165,7 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
             <button class="zf-btn ghost sm" data-act="cancel" data-id="${b.id}">取消</button>`}
           </div></div>`);
       }
-      return `<section class="tb-day${date === ymd(new Date()) ? ' today' : ''}"><h3>${mdLabel(date)}<span>${bks.filter((b: any) => !/cancel/.test(String(b.status))).length} 位</span></h3>${items.length ? items.join('') : '<p class="tb-empty">這天沒有預約。</p>'}</section>`;
+      return `<section class="tb-day${date === tpeToday() ? ' today' : ''}"><h3>${mdLabel(date)}<span>${bks.filter((b: any) => !/cancel/.test(String(b.status))).length} 位</span></h3>${items.length ? items.join('') : '<p class="tb-empty">這天沒有預約。</p>'}</section>`;
     }).join('');
     $('tb-days').innerHTML = html;
     hideAll(); section.hidden = false;
@@ -181,6 +182,9 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
         const v = prompt('改到什麼時候？（格式 2026-09-12 15:00）', cur.replace('T', ' '));
         if (!v) return;
         const m = v.trim().match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/); if (!m) { alert('格式要像 2026-09-12 15:00'); return; }
+        // 2026-09-28（gpt-6-astra 體檢）：只驗形狀會收下 2026-09-31、25:00，存進去後日／週清單永遠列不出來
+        { const [yy, mo, dd] = m[1].split('-').map(Number); const [hh, mi] = m[2].split(':').map(Number); const t = new Date(Date.UTC(yy, mo - 1, dd));
+          if (t.getUTCFullYear() !== yy || t.getUTCMonth() !== mo - 1 || t.getUTCDate() !== dd || hh > 23 || mi > 59) { alert('沒有這個日期或時間，再確認一次'); return; } }
         await api(`/teacher/bookings/${id}`, { method: 'PATCH', body: JSON.stringify({ start_datetime: `${m[1]} ${m[2]}:00` }) });
       }
       if (a === 'unblock') await api(`/teacher/blocks?id=${id}`, { method: 'DELETE' });
@@ -195,16 +199,20 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   const bf = $('block-form');
   $('block-btn').addEventListener('click', () => { bf.hidden = !bf.hidden; ($('bf-date') as HTMLInputElement).value = anchor; if (provider) ($('bf-prov') as HTMLSelectElement).value = provider; });
   $('bf-cancel').addEventListener('click', () => { bf.hidden = true; });
+  let savingBlock = false;   // 2026-09-28（gpt-6-astra 體檢）：慢網路連點會建出重複的封鎖，解除一筆還被另一筆擋
   async function saveBlock(dayOff: boolean) {
+    if (savingBlock) return;
     const prov = ($('bf-prov') as HTMLSelectElement).value, date = ($('bf-date') as HTMLInputElement).value;
     const from = ($('bf-from') as HTMLInputElement).value, to = ($('bf-to') as HTMLInputElement).value, reason = ($('bf-reason') as HTMLInputElement).value.trim();
     const st = $('bf-status'); st.textContent = '';
     if (!prov || !date) { st.textContent = '要選老師和日期'; return; }
+    savingBlock = true; ($('bf-save') as HTMLButtonElement).disabled = true; ($('bf-dayoff') as HTMLButtonElement).disabled = true;
     try {
       if (dayOff) await api('/teacher/workday', { method: 'PUT', body: JSON.stringify({ provider_id: Number(prov), date, is_day_off: 1 }) });
       else { if (!from || !to || from >= to) { st.textContent = '結束要晚於開始'; return; } await api('/teacher/blocks', { method: 'POST', body: JSON.stringify({ provider_id: Number(prov), start_datetime: `${date} ${from}:00`, end_datetime: `${date} ${to}:00`, reason }) }); }
       bf.hidden = true; anchor = date; await load();
     } catch (e: any) { st.textContent = e.message; }
+    finally { savingBlock = false; ($('bf-save') as HTMLButtonElement).disabled = false; ($('bf-dayoff') as HTMLButtonElement).disabled = false; }
   }
   $('bf-save').addEventListener('click', () => saveBlock(false));
   $('bf-dayoff').addEventListener('click', () => saveBlock(true));
@@ -212,7 +220,7 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   // ── 導覽 ──
   $('nav-prev').addEventListener('click', () => { anchor = addDays(anchor, view === 'day' ? -1 : -7); load(); });
   $('nav-next').addEventListener('click', () => { anchor = addDays(anchor, view === 'day' ? 1 : 7); load(); });
-  $('nav-today').addEventListener('click', () => { anchor = ymd(new Date()); load(); });
+  $('nav-today').addEventListener('click', () => { anchor = tpeToday(); load(); });
   document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => { document.querySelectorAll('[data-view]').forEach((x) => x.classList.remove('on')); b.classList.add('on'); view = (b as HTMLElement).dataset.view as any; load(); }));
   $('prov-select').addEventListener('change', () => { provider = ($('prov-select') as HTMLSelectElement).value; try { localStorage.setItem('winds_teacher_provider', provider); } catch {} load(); });
   $('retry-btn').addEventListener('click', () => boot());

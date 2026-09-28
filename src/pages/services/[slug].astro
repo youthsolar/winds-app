@@ -8,26 +8,26 @@
 // 網址用 id（/services/sb-38/）不用中文名：Jeffery 會改文案，名字變了網址就斷；
 // id 永遠不變，而且跟既有的 ?id=sb-38 一對一，轉址無歧義。
 //
-// 資料在 build 時抓（維持 output:'static'）。項目異動要重建——用每日排程重建即可，
-// 目錄本來就很少變。
+// 資料來源見下方 2026-09-28 註解（改成每次請求即時讀）。
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const API = 'https://api.winds.tw';
 const strip = (h: string) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 
-export async function getStaticPaths() {
-  const API = 'https://api.winds.tw';
-  const strip = (h: string) => String(h || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  /* 2026-09-27：原本 catch 掉回空陣列，API 抖一下就不產任何靜態頁＝所有項目頁上線變 404，
-     而且 API 恢復也不會自己好。改成讓 build 失敗，deploy 當場紅掉重跑。 */
-  const j = async (p: string) => {
-    const r = await fetch(API + p);
-    if (!r.ok) throw new Error(`build 中斷：${p} 回 ${r.status}，不要讓項目頁整批變 404`);
-    const d = await r.json();
-    return Array.isArray(d) ? d : (d.services || d.products || d.items || d.data || []);
-  };
+// 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓（註解說靠每日排程重建，但實際沒有排程）。列表頁即時讀目錄、
+// 詳情卻是 build 快照＝新項目點進來 404、改價後兩頁價格不一樣。改成每次請求即時讀＋邊緣快取 5 分鐘。
+export const prerender = false;
+const j = async (p: string) => {
+  const r = await fetch(API + p);
+  if (!r.ok) throw new Error(`${p} 回 ${r.status}`);
+  const d = await r.json();
+  return Array.isArray(d) ? d : (d.services || d.products || d.items || d.data || []);
+};
+let items: any[] = [];
+let failed = false;
+try {
   const [sb, es] = await Promise.all([j('/sb-services'), j('/shop-products')]);
-  const items = [
+  items = [
     ...sb.map((s: any) => ({
       source: 'sb', slug: `sb-${s.id}`, name: s.name, seoTitle: s.seo_title || '',
       price: Number(s.price) || 0, duration: s.duration || null, image: s.image || '',
@@ -39,12 +39,13 @@ export async function getStaticPaths() {
       desc: strip(p.desc), llm: strip(p.llm), category: p.category || '', url: p.url || '',
     })),
   ];
-  return items
-    .filter((i) => i.slug && i.name)
-    .map((item) => ({ params: { slug: item.slug }, props: { item, siblings: items } }));
-}
+} catch { failed = true; }
+if (failed) return new Response('暫時讀不到項目資料，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
+const item = items.find((i: any) => i.slug === String(Astro.params.slug || '') && i.name);
+if (!item) return new Response(null, { status: 404 });
+const siblings = items;
+Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 
-const { item, siblings } = Astro.props;
 const isSB = item.source === 'sb';
 const canonical = `https://winds.tw/services/${item.slug}/`;
 const priceTxt = item.price ? `NT$ ${item.price.toLocaleString('en-US')}` : '';
