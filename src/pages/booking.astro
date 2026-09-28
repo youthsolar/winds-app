@@ -397,9 +397,11 @@ import { PERSONAS } from '../data/booking-teachers';
              else if(d&&d.error==='req_conflict'){unlockGo();window.__windsReqBooking=null;try{sessionStorage.removeItem('winds-req-booking');}catch(e){}showErr(document.getElementById('wzErr2'),d.message||'資料跟上一次不一樣，請再按一次。');}
              else if(d&&d.error==='price_changed'&&d.amount){
                unlockGo();
-               if(Number(W.svc.deposit)>0)W.svc.deposit=Number(d.amount);else W.svc.price=Number(d.amount);
+               // 後端另回訂金與總價就分欄更新（2026-09-28 gpt-6-astra 複核：原本不收訂金的項目改收訂金，會把訂金誤寫成總價）
+               if(d.deposit!=null||d.total!=null){if(d.deposit!=null)W.svc.deposit=Number(d.deposit)||0;if(d.total!=null)W.svc.price=Number(d.total)||W.svc.price;}
+               else if(Number(W.svc.deposit)>0)W.svc.deposit=Number(d.amount);else W.svc.price=Number(d.amount);
                stepConfirm();
-               showErr(document.getElementById('wzErr2'),'訂金剛更新為 NT$ '+Number(d.amount).toLocaleString('en-US')+'（原本顯示 NT$ '+dep.toLocaleString('en-US')+'），確認沒問題再按一次。');
+               showErr(document.getElementById('wzErr2'),'金額剛更新為 NT$ '+Number(d.amount).toLocaleString('en-US')+'（原本顯示 NT$ '+dep.toLocaleString('en-US')+'），確認沒問題再按一次。');
              }
              /* 時段被別人約走（409）：後端把原因放在 error，原本只讀 message 被吞掉 → 說清楚並帶回去重選 */
              else if(o.st===409){unlockGo();W.date=null;W.time=null;W.notice=(d&&(d.error||d.message))||'這個時段剛被約走了，請重選一個時間。';stepTime();}

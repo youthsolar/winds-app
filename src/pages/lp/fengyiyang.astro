@@ -457,9 +457,11 @@ const jsonLd = prov ? [
               if (d && d.error === 'already_paid') { W.memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} showE(d.message || '這筆預約已經付款完成，我們會為你安排。'); return; }
               if (d && d.error === 'req_conflict') { W.memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} showE(d.message || '資料跟上一次不一樣，請再按一次。'); return; }
               if (d && d.error === 'price_changed' && d.amount) {
-                if (Number(W.svc.deposit) > 0) W.svc.deposit = Number(d.amount); else W.svc.price = Number(d.amount);
+                // 後端另回訂金與總價就分欄更新（2026-09-28 gpt-6-astra 複核：原本不收訂金的項目改收訂金，會把訂金誤寫成總價）
+                if (d.deposit != null || d.total != null) { if (d.deposit != null) W.svc.deposit = Number(d.deposit) || 0; if (d.total != null) W.svc.price = Number(d.total) || W.svc.price; }
+                else if (Number(W.svc.deposit) > 0) W.svc.deposit = Number(d.amount); else W.svc.price = Number(d.amount);
                 stepConfirm();
-                showE('訂金剛更新為 ' + ntd(d.amount) + '（原本顯示 ' + ntd(dep) + '），確認沒問題再按一次。');
+                showE('金額剛更新為 ' + ntd(d.amount) + '（原本顯示 ' + ntd(dep) + '），確認沒問題再按一次。');
                 return;
               }
               showE((d && (d.message || d.error)) || '建立預約失敗，請稍後再試。');
