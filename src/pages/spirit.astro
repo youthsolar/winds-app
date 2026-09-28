@@ -354,10 +354,13 @@ import '../styles/global.css';
     function curTargetKey(){if(S.lockedBirthday)return String(S.lockedBirthday);if(S.targetDate)return S.targetDate+" "+(S.targetTime||"12:00");return ""}   // 按「修改」期間仍以上一次確認的為準，不回空字串放行
     /* 對象一有變動（確認、被鎖定、晚到的狀態換了鎖）就重新核對：畫面上那段對話屬於別的生日就清掉、改開新的一段
        （本機的對話編號留著，換回那個人時還接得回來）。gpt-6-astra 會員第三輪複核 */
+    /* 是不是同一個人：訂閱鎖定期間「同一天就是同一個人」（跟後端鎖定規則一致），否則比完整的日期＋時辰 */
+    function sameTgt(a,b){if(S.lockedBirthday)return String(a).slice(0,10)===String(b).slice(0,10);return String(a)===String(b)}
     function revalidateTarget(){
       if(S.mode!=="target")return;
       var cur=curTargetKey();
-      if(cur&&S.histTarget&&S.histTarget!==cur){
+      /* 只拿「目前這段對話」自己的生日紀錄來比；正在載入另一段時，等它回來再核對（gpt-6-astra 會員第四輪複核） */
+      if(cur&&S.histTarget&&S.histSess===S.sessionId&&!sameTgt(S.histTarget,cur)){
         S.sessionId=null;S.histTarget="";S.astro=null;S.hasMsg=false;
         S.hydGen++;S.hydrating=false;   // 進行中的撈歷史作廢並解鎖
         showWelcome();renderProfile();
@@ -410,6 +413,7 @@ import '../styles/global.css';
       var id=S.sessionId||loadSess();
       if(!id){S.sessionId=null;return}
       S.sessionId=id;
+      if(S.histSess!==id){S.histTarget="";S.histSess="";}   // 要載入的是另一段：上一段的生日紀錄不能拿來判斷這段
       var box=document.getElementById("spMsgs");if(!box)return;
       S.hydrating=true;
       /* 撈太久（15 秒）就放棄：解鎖讓他能送，並讓晚到的回應作廢，免得回來又把新訊息蓋掉 */
@@ -430,8 +434,8 @@ import '../styles/global.css';
              （本機編號留著，換回那個人時還接得回來）。切頁籤、慢回應、被後端鎖定改回來，全部走這一道 */
           if(mode==="target"&&d.target_birthday){
             var cur=curTargetKey();
-            if(cur&&String(d.target_birthday)!==cur){S.sessionId=null;return}
-            S.histTarget=String(d.target_birthday);
+            if(cur&&!sameTgt(String(d.target_birthday),cur)){S.sessionId=null;return}
+            S.histTarget=String(d.target_birthday);S.histSess=id;
           }
           var ms=d.messages||[];
           if(!ms.length)return;
@@ -495,7 +499,7 @@ import '../styles/global.css';
          }
          if(sentMode==="target")S.chatVerTarget=(S.chatVerTarget||0)+1;else S.chatVerSelf=(S.chatVerSelf||0)+1;
          if(d.session_id){S.sessionId=d.session_id;saveSess(d.session_id)}
-         if(sentMode==="target"&&d.target_birthday)S.histTarget=String(d.target_birthday);
+         if(sentMode==="target"&&d.target_birthday){S.histTarget=String(d.target_birthday);S.histSess=S.sessionId;}
          if(d.locked_birthday&&S.mode==="target"){S.lockedBirthday=d.locked_birthday;renderTarget()}
          if(d.has_subscription){S.subscribed=true}
          if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;
