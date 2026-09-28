@@ -53,12 +53,6 @@ const SVC = smallPicks.slice(0, 2).map((s) => ({
   id: s.id, glyph: glyphOf(s.name), name: cleanName(s.name),
   line: homeLine(s.name) || lineOf(s).slice(0, 40), price: ntd(s.price), duration: durOf(s),
 }));
-const TALIS = [
-  { glyph: '安', name: '安神隨身符', line: '睡不好、心緒亂時，放在枕邊。', price: '480' },
-  { glyph: '緣', name: '結緣紅線手環', line: '為一段關係，繫上一點溫柔的祝福。', price: '680' },
-  { glyph: '淨', name: '淨化香氛．艾草', line: '回到家，先讓空間靜下來。', price: '560' },
-  { glyph: '晶', name: '安定粉晶原礦', line: '放在桌上，提醒自己對自己好一點。', price: '880' },
-];
 const FLOW = '/divination';  // 深度占卜漏斗（DS 重建）
 const BOOK = '/booking';     // 預約老師（真 SB 老師 + 預約精靈）
 const SHOP = '/shop';        // 法器選物（真 ES 商品）
@@ -213,14 +207,10 @@ const homeJsonLd = {
         </div>
         <div class="zf-card tint shop-card">
           <div class="shop-head"><h3>帶一件靈性的小物回家</h3><span class="badge">法器選物</span></div>
+          <!-- 2026-09-28（gpt-6-astra 體檢）：原本先放 4 個寫死的示意商品與價格，API 讀不到就一直顯示假商品。
+               改成先顯示載入中，拿到真的商品才畫；讀不到或沒有商品就說清楚、引導到全部選物 -->
           <div class="shop-list" id="homeShopList">
-            {TALIS.map(t => (
-              <div class="shop-item">
-                <span class="disc sm">{t.glyph}</span>
-                <div class="si-body"><div class="si-name">{t.name}</div><div class="si-line">{t.line}</div></div>
-                <span class="si-price">NT$ {t.price}</span>
-              </div>
-            ))}
+            <p class="si-line" style="padding:12px 0;margin:0">選物載入中…</p>
           </div>
           <a class="zf-btn secondary md full" href={SHOP}>逛逛全部選物 <i class="ph ph-arrow-right" style="font-size:15px"></i></a>
         </div>
@@ -243,13 +233,18 @@ const homeJsonLd = {
   const qzone = document.getElementById('qzone');
   const bigQ = document.getElementById('bigQ');
   const subQ = document.getElementById('subQ');
+  let chipTimer = null;
   document.getElementById('chips').addEventListener('click', (e) => {
     const b = e.target.closest('.chip'); if (!b) return;
     const i = parseInt(b.dataset.i, 10); if (i === sel) return;
+    // 2026-09-28（gpt-6-astra 體檢）：sel 原本等 280ms 動畫後才更新，快速點回原本那個會被 i === sel 擋掉、畫面停在上一個。
+    // 點下去就更新 sel，並取消上一次還沒跑的換字
+    sel = i;
+    if (chipTimer) clearTimeout(chipTimer);
     qzone.classList.add('fade-out');
     [...document.querySelectorAll('.chip')].forEach((c, ci) => c.classList.toggle('on', ci === i));
-    setTimeout(() => {
-      sel = i;
+    chipTimer = setTimeout(() => {
+      chipTimer = null;
       bigQ.innerHTML = brHtml(SC[i].q);
       subQ.innerHTML = brHtml(SC[i].sub);
       resetDraw();
@@ -341,8 +336,9 @@ const homeJsonLd = {
   /* 法器選物：接真實 ES 商品（/shop-products），覆蓋 SSR 佔位 */
   (function(){
     var box = document.getElementById('homeShopList'); if(!box) return;
-    fetch('https://api.winds.tw/shop-products').then(function(r){return r.json();}).then(function(d){
-      var ps = (d && d.products) || []; if(!ps.length) return;
+    function none(msg){ box.innerHTML = '<p class="si-line" style="padding:12px 0;margin:0">'+msg+'</p>'; }
+    fetch('https://api.winds.tw/shop-products').then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();}).then(function(d){
+      var ps = (d && d.products) || []; if(!ps.length){ none('選物正在整理中，點下面看全部選物。'); return; }
       box.innerHTML = ps.slice(0,4).map(function(p,idx){
         var nm = (p.name||'').replace(/^[【\[]/,'').replace(/[】\]][\s\S]*$/,'').trim() || p.name;
         var pm = (p.desc||'').match(/<p[^>]*>([\s\S]*?)<\/p>/i);
@@ -355,7 +351,7 @@ const homeJsonLd = {
           (line?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13px;line-height:1.6;color:var(--text-secondary)">'+escH(line)+'</div>':'')+'</div>'+
           '<span style="font-family:var(--font-sans);font-size:13.5px;color:var(--ink-700);white-space:nowrap">NT$ '+escH(p.price)+'</span></div>';
       }).join('');
-    }).catch(function(){});
+    }).catch(function(){ none('選物清單暫時讀不到，點下面看全部選物。'); });
   })();
 
   /* 預約項目：接真實 SB 服務（/sb-services）。就地更新 SSR 卡片文字（保留 scoped 樣式，不用 innerHTML 注入無樣式節點）*/
