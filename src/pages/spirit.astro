@@ -471,7 +471,7 @@ import '../styles/global.css';
       var ta=document.getElementById("spText");var msg=ta.value.trim();if(!msg)return;
       /* 目前這段對話自己的生日（已核對、綁在這段上）：續聊優先送它——訂閱中途到期、鎖定解除後，舊的同日異時對話才不會被切段（gpt-6-astra 會員第五輪複核） */
       var curK=curTargetKey(),histOk=S.mode==="target"&&S.histTarget&&S.histSess===S.sessionId&&S.sessionId&&(!curK||sameTgt(S.histTarget,curK));
-      if(S.mode==="target"&&!S.targetConfirmed&&!S.lockedBirthday&&!histOk){toast("請先輸入對象生日");return}
+      if(S.mode==="target"&&!S.targetConfirmed&&!S.lockedBirthday){toast("請先輸入對象生日");return}   // histOk 只決定送哪個生日，不能取代「客人確認過對象」（gpt-6-astra 會員第六輪複核）
       var targetBirthday=null;
       if(S.mode==="target")targetBirthday=histOk?S.histTarget:(S.lockedBirthday||(S.targetDate+" "+(S.targetTime||"12:00")));
       ta.value="";autoResize(ta);
@@ -502,14 +502,16 @@ import '../styles/global.css';
          if(sentMode==="target")S.chatVerTarget=(S.chatVerTarget||0)+1;else S.chatVerSelf=(S.chatVerSelf||0)+1;
          if(d.session_id){S.sessionId=d.session_id;saveSess(d.session_id)}
          if(sentMode==="target"&&d.target_birthday){S.histTarget=String(d.target_birthday);S.histSess=S.sessionId;}
-         if(d.locked_birthday&&S.mode==="target"){S.lockedBirthday=d.locked_birthday;renderTarget()}
+         /* 先把訂閱、鎖定、生日狀態全部同步好，再統一重畫對象區（原本先重畫才改訂閱，畫面還停在鎖定、沒有「修改」）（gpt-6-astra 會員第六輪複核） */
+         var wasSub=S.subscribed,wasLock=S.lockedBirthday;
+         if(d.has_subscription){S.subscribed=true}else if(d.has_subscription===false){S.subscribed=false}
+         if(d.locked_birthday&&S.mode==="target"){S.lockedBirthday=d.locked_birthday}
          /* 後端明確說「沒有訂閱／沒有鎖定」（訂閱在頁面開著時到期）也要同步清掉；對象欄位改沿用這段對話的生日 */
          else if(sentMode==="target"&&d.locked_birthday===null&&S.lockedBirthday&&d.has_subscription===false){
            S.lockedBirthday=null;
            if(S.histTarget&&S.histSess===S.sessionId){S.targetDate=S.histTarget.slice(0,10);var hm=S.histTarget.slice(11,16);S.targetTime=hm==="12:00"?"":hm;S.targetConfirmed=true;}
-           renderTarget();
          }
-         if(d.has_subscription){S.subscribed=true}else if(d.has_subscription===false){S.subscribed=false}
+         if(S.mode==="target"&&(S.subscribed!==wasSub||S.lockedBirthday!==wasLock))renderTarget();
          if(d.free_count_remaining!=null)S.freeRemaining=d.free_count_remaining;
          if(d.remaining_rounds!=null){if(S.mode==="target")S.roundsTarget=d.remaining_rounds;else S.roundsSelf=d.remaining_rounds;}
          if(d.daily_rounds!=null)S.dailyRounds=d.daily_rounds;
