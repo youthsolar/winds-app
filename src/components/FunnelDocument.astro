@@ -230,9 +230,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     /* result */
     .summary{position:relative;border-radius:var(--radius-xl);overflow:hidden;background:linear-gradient(160deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);padding:38px 40px;margin-bottom:8px}
     @media(max-width:760px){.summary{padding:26px 22px}}
-    .summary .q{font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.45;color:var(--ink-900);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:balance}
-    .res-h3,.recs .head h2,.hg-h1,.paywall .veil h3,.cool h1,.step-intro h1,.ff-h,.ff-main{text-wrap:balance}
-    .cjk{word-break:keep-all!important;overflow-wrap:anywhere!important} /* !important：.summary .q 等兩層選擇器本來就寫了 word-break:normal，要蓋過去 */
+    .summary .q{font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.45;color:var(--ink-900);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
+    .res-h3,.hg-h1,.paywall .veil h3,.step-intro h1,.ff-h,.ff-main{text-wrap:auto}.recs .head h2,.cool h1{text-wrap:pretty} /* 9/29：DS 的 balance 讓靠左標題提早斷、右邊留白；靠左改 auto（交給 cjk-wrap 補行），置中的用 pretty */
+    .cjk{word-break:normal!important;line-break:strict!important;overflow-wrap:anywhere!important} /* 9/29：不用 keep-all（WebKit 在 keep-all 下不照標點規則換行）；詞內不斷由 cjk-wrap.js 的 Word Joiner 負責 */
     @media(max-width:760px){.summary .q{font-size:24px}}
     .res-block{margin-top:26px}
     .res-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -594,7 +594,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .hg-bagua-row{display:flex;justify-content:center;margin:18px 0 28px}
     .hg-bagua{height:48px;width:48px;opacity:.9}
     .hg .hg-hero{display:flex;flex-direction:column;gap:12px;margin:6px 0 30px}
-    .hg .hg-h1{font-size:30px;font-weight:500;line-height:1.3;color:var(--ink-900);letter-spacing:.01em;margin:0;text-wrap:balance}
+    .hg .hg-h1{font-size:30px;font-weight:500;line-height:1.3;color:var(--ink-900);letter-spacing:.01em;margin:0;text-wrap:auto}
     @media(max-width:760px){.hg .hg-h1{font-size:24px}}
     .hg .hg-hero .lede{font-size:18px}
     .hg-cols{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:26px}
@@ -676,7 +676,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-pill);padding:8px 8px 8px 16px;font-family:var(--font-serif);font-size:14px;color:var(--text-primary)}
     .ff-chip a{flex:none;font-family:var(--font-sans);font-size:12.5px;color:var(--accent-press);border:1px solid var(--border-accent);border-radius:999px;padding:3px 10px;text-decoration:none}
     /* 結果頁：主句＋傳給那個該看到的人 */
-    .ff-main{font-family:var(--font-serif);font-weight:500;font-size:24px;line-height:1.35;color:var(--text-primary);margin:12px 0 6px;text-wrap:balance}
+    .ff-main{font-family:var(--font-serif);font-weight:500;font-size:24px;line-height:1.35;color:var(--text-primary);margin:12px 0 6px;text-wrap:auto}
     .ff-share{margin-top:14px}
     .ff-share.zf-card{padding:14px 16px}
     .ff-share .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:10px}
