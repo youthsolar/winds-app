@@ -50,7 +50,7 @@
       var vNotC = out.length && /^[不沒][下起到了完動開住得見出來去掉懂透清]/.test(w) && CJK.test(last.slice(-1));   /* 放不下、看不到、說不出 */
       var closeLead = out.length && /^[，。、；：？！…」』】）》〉,.;:?!)]/.test(w);   /* 收尾標點開頭的段黏回上一段 */
       if (out.length && (HEAD.test(last) || OPEN.test(last) || TAIL.test(w) || aNotA || vNotC || closeLead)) out[out.length - 1] += w;
-      else if (out.length && (last + w).length <= 7 && ((w.replace(/[，。、；：？！…」』】）》〉,.;:?!)]/g, '').length === 1 && CJK.test(w)) || last.slice(-1) === w.charAt(0))) out[out.length - 1] += w;   /* 單字（可帶標點，如「辦？」）黏上一段 */
+      else if (out.length && !HEAD.test(w) && (last + w).length <= 7 && ((w.replace(/[，。、；：？！…」』】）》〉,.;:?!)]/g, '').length === 1 && CJK.test(w)) || last.slice(-1) === w.charAt(0))) out[out.length - 1] += w;   /* 單字（可帶標點，如「辦？」）黏上一段 */
       else out.push(w);
     }
     return out;
