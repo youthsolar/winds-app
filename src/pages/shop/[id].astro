@@ -5,6 +5,7 @@
 // 表單與流程沿用 /lp/yuanchen-wealth.astro（那頁是手寫版樣板，之後可退役）。
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { retryPage } from '../../data/retry-page';
+import { getShopProducts, SHOP_FROM_WP, WP_CHECKOUT } from '../../data/shop-products';
 
 // 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓＝調價後頁面還是舊價（後端照現價收）、API 一抖就發殘缺頁且不會自己好。
 // 改成每次請求即時讀＋瀏覽器快取 5 分鐘（Workers 回應不經邊緣快取，實測無 cf-cache-status）；讀不到回 503 讓人重整。
@@ -12,10 +13,9 @@ export const prerender = false;
 // 付款回來（?paid=）一律先去只查訂單的狀態頁：不讀目錄（目錄懸置／下架都擋不住）、跟訂單頁同一套狀態判斷（gpt-6-astra 複核）
 const paidNo = Astro.url.searchParams.get('paid');
 if (paidNo) return Astro.redirect('/shop/order/?no=' + encodeURIComponent(paidNo), 302);
-let products: any[] | null = null;
 // 目錄一直沒回應也不能把頁面（含付款返回）卡住：8 秒逾時，連讀內容一起算（gpt-6-astra 複核）
-{ const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 8000);
-  try { const r = await fetch('https://api.winds.tw/shop-products', { signal: ac.signal }); if (r.ok) products = (await r.json()).products || []; } catch { products = null; } finally { clearTimeout(t); } }
+// 2026-09-29：來源集中在 data/shop-products（建置時可切成讀 WooCommerce）
+const products: any[] | null = await getShopProducts(8000);
 if (!products) return retryPage();   // 選完門市回來剛好讀不到也講清楚資料還在＋重新整理鈕
 const prod: any = products.find((p: any) => String(p.id) === String(Astro.params.id || ''));
 if (!prod) return new Response(null, { status: 404 });
@@ -27,7 +27,8 @@ const [rawName, rawSub = ''] = String(prod.name).split('/');
 const name = rawName.replace(/[【】]/g, '').trim();
 const sub = rawSub.trim();
 const isTalisman = /符令|符/.test(name);
-const variants: { title: string; price: number }[] = (prod.variants || []).filter((v: any) => v && v.id);
+// D1 的款式用 id 標「有效」；Woo 的款式用 vid（款式編號，結帳要帶）
+const variants: { vid?: number; title: string; price: number }[] = (prod.variants || []).filter((v: any) => v && (v.id || v.vid));
 const multi = variants.length > 1;
 const prices = variants.length ? variants.map((v) => Number(v.price)) : [Number(prod.price)];
 const minPrice = Math.min(...prices), maxPrice = Math.max(...prices);
@@ -99,9 +100,32 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     <section id="order" class="lp-wrap lp-block">
       <div class="zf-section-heading">
         <span class="zf-sh-eyebrow">訂購</span>
-        <h2 class="zf-sh-title">就在這裡，選門市、付款，完成</h2>
+        <h2 class="zf-sh-title">{SHOP_FROM_WP ? '選好款式，下一頁填資料、付款' : '就在這裡，選門市、付款，完成'}</h2>
       </div>
       <div class="zf-card lp-order" id="orderCard">
+        {SHOP_FROM_WP && (
+          /* 2026-09-29 WP 後台遷移：結帳改走 WooCommerce 結帳頁（姓名／生日時辰／取貨門市／付款都在那一頁）。
+             這裡只選款式，用一般的 GET 表單把「這一件」帶過去；winds=1 讓 WP 先清空購物車，維持單件結帳。 */
+          <form class="lp-woo" action={WP_CHECKOUT} method="get">
+            <input type="hidden" name="winds" value="1" />
+            <input type="hidden" name="add-to-cart" value={prod.wooId} />
+            <input type="hidden" name="quantity" value="1" />
+            {multi ? (
+              <fieldset class="lp-fs">
+                <legend class="zf-field-label">款式</legend>
+                <div class="lp-radios">
+                  {variants.map((v, i) => (
+                    <label class="lp-radio"><input type="radio" name="variation_id" value={v.vid} data-price={v.price} checked={i === 0} /><span>{v.title}</span><em>{ntd(v.price)}</em></label>
+                  ))}
+                </div>
+              </fieldset>
+            ) : (variants[0]?.vid ? <input type="hidden" name="variation_id" value={variants[0].vid} /> : null)}
+            <div class="lp-total"><span>總計（含開光，運費 0）</span><b id="wooTotal">{ntd(variants[0]?.price ?? prod.price)}</b></div>
+            <button class="zf-btn primary lg full" type="submit">前往填資料與付款<i class="ph ph-arrow-right"></i></button>
+            <p class="lp-paynote">下一頁填本人姓名、西元生日與時辰、取貨門市後付款。付款由綠界 ECPay 處理，支援信用卡、Apple Pay、LINE Pay、台灣 Pay；本站不會保存你的卡號。</p>
+          </form>
+        )}
+        {!SHOP_FROM_WP && (
         <form id="orderForm" novalidate>
           {multi ? (
             <fieldset class="lp-fs">
@@ -153,6 +177,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
               <button class="zf-btn primary lg full" type="submit" id="payBtn">確認並付款<i class="ph ph-lock-key"></i></button>
               <p class="lp-paynote">付款由綠界 ECPay 處理，支援信用卡、Apple Pay、LINE Pay、台灣 Pay。本頁不會保存你的卡號。</p>
         </form>
+        )}
       </div>
     </section>
 
@@ -170,6 +195,12 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
   </div>
 
   <script type="application/json" id="lpData" set:html={JSON.stringify({ id: PRODUCT_ID, name, variants, price: Number(prod.price) || 0 })} />
+  <!-- Woo 結帳版只要換款式時更新總計；下面原本那段看到沒有 orderForm 會直接結束 -->
+  <script is:inline>
+    document.querySelectorAll('.lp-woo [name=variation_id]').forEach(function (r) {
+      r.addEventListener('change', function () { document.getElementById('wooTotal').textContent = 'NT$ ' + (Number(r.dataset.price) || 0).toLocaleString('en-US'); });
+    });
+  </script>
 
   <style>
     .lp { --lp-max: 1040px; }

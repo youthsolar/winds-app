@@ -1,19 +1,18 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getShopProducts } from '../data/shop-products';
 
 // 法器選物：目錄從 worker /shop-products（D1 service_catalog）build 時抓，每件連到自售頁 /shop/<id>/。
 // 2026-09-03 起不再連 EasyStore、不做購物袋（單件結帳）。
-const API = 'https://api.winds.tw';
 /* 2026-09-27：原本 catch 掉就發一個空目錄上線，API 恢復也不會自己好（要再 deploy 一次才會）。
    改成讓 build 失敗——空商店等於整站無法導購，寧可 deploy 當場紅掉重跑，也不要靜默上線空頁。
    注意：API 回 200 但商品真的是空的，照舊發布（那是 API 的事實，不是故障）。 */
 // 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓＝調價後頁面還是舊價（後端照現價收）、API 一抖就發殘缺頁且不會自己好。
 // 改成每次請求即時讀＋瀏覽器快取 5 分鐘（Workers 回應不經邊緣快取，實測無 cf-cache-status）；讀不到回 503 讓人重整。
 export const prerender = false;
-let shopResp: Response | null = null;
-try { shopResp = await fetch(API + '/shop-products'); } catch { shopResp = null; }
-if (!shopResp || !shopResp.ok) return new Response('暫時讀不到資料，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
-const products: any[] = (await shopResp.json()).products || [];
+// 2026-09-29：目錄來源集中在 data/shop-products（建置時可切成讀 WooCommerce），讀不到一樣回 503
+const products: any[] | null = await getShopProducts();
+if (!products) return new Response('暫時讀不到資料，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
 Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 
 const nf = (n: number) => 'NT$ ' + (Number(n) || 0).toLocaleString('en-US');
