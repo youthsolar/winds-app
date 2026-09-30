@@ -42,6 +42,7 @@ try {
       source: 'sb', slug: `sb-${s.id}`, name: s.name, seoTitle: s.seo_title || '',
       price: Number(s.price) || 0, duration: s.duration || null, image: s.image || '',
       desc: strip(s.desc), llm: strip(s.llm), category: s.category || '', url: '', sbId: String(s.sb_id || ''),
+      bookable: s.bookable !== false,   // 2026-10-01：false＝介紹頁照留、暫停線上預約（worker bk_services.booking_paused）
     })),
     ...es.map((p: any) => ({
       source: 'es', slug: `es-${p.id}`, name: p.name, seoTitle: p.seo_title || '',
@@ -57,6 +58,8 @@ const siblings = items;
 Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 
 const isSB = item.source === 'sb';
+// 2026-10-01 Jeffery 拍板：先只開放兩項，其他暫停線上預約；介紹頁照留，預約按鈕換成「暫停開放預約」＋官方 LINE
+const paused = isSB && item.bookable === false;
 // 2026-09-30 Jeffery 拍板：預約卡照 DS ServiceDetail 側欄放老師；一個項目可能有 2–6 位老師，照 SB 實際能接的人放
 // 老師資料只是加分，讀不到就回到原本只有價格的卡
 // ⚠️ 網址的 sb-NN 是站內目錄編號，老師名單用的是 SimplyBook 編號（sb_id），兩套不同
@@ -105,7 +108,7 @@ const jsonLd = [
       : { brand: { '@type': 'Brand', name: '找風問幸福' } }),
     ...(item.price
       ? { offers: { '@type': 'Offer', price: item.price, priceCurrency: 'TWD',
-                    availability: 'https://schema.org/InStock', url: canonical } }
+                    availability: isSB && item.bookable === false ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock', url: canonical } }
       : {}),
   },
   {
@@ -170,13 +173,22 @@ const jsonLd = [
             </div>
           </div>
         )}
-        {teachers.length === 0 && <span class="sd-book-label">{isSB ? '預約這個項目' : '請這件法器'}</span>}
+        {teachers.length === 0 && <span class="sd-book-label">{paused ? '暫停開放預約' : isSB ? '預約這個項目' : '請這件法器'}</span>}
         {priceTxt && <div class="sd-book-price">{priceTxt}</div>}
-        <a class="zf-btn primary lg full sd-btn" href={isSB ? '/booking' : (item.url || '/booking')}
-           {...(isSB ? {} : { target: '_blank', rel: 'noopener' })}>
-          {isSB ? '預約老師' : '前往購買'}
-        </a>
-        <p class="sd-book-note">{isSB ? '報名與付款將前往安全頁完成' : '超商店到店 · 7 天內 · 台灣限定'}</p>
+        {paused ? (
+          <>
+            <a class="zf-btn secondary lg full sd-btn" href="https://lin.ee/tQHsgWB" target="_blank" rel="noopener">加入官方 LINE 詢問</a>
+            <p class="sd-book-note">這個項目目前暫停開放線上預約，想了解可以加官方 LINE 問我們。</p>
+          </>
+        ) : (
+          <>
+            <a class="zf-btn primary lg full sd-btn" href={isSB ? '/booking' : (item.url || '/booking')}
+               {...(isSB ? {} : { target: '_blank', rel: 'noopener' })}>
+              {isSB ? '預約老師' : '前往購買'}
+            </a>
+            <p class="sd-book-note">{isSB ? '報名與付款將前往安全頁完成' : '超商店到店 · 7 天內 · 台灣限定'}</p>
+          </>
+        )}
         {isSB && <p class="sd-alt">還不確定？先線上起一卦，老師依卦給靈符解方（NT$360）。<a href="/divination/">先起一卦</a></p>}
       </section>
 
