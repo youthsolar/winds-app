@@ -231,7 +231,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .summary{position:relative;border-radius:var(--radius-xl);overflow:hidden;background:linear-gradient(160deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);padding:38px 40px;margin-bottom:8px}
     @media(max-width:760px){.summary{padding:26px 22px}}
     .summary .q{font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.45;color:var(--ink-900);margin:0;word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
-    .res-h3,.hg-h1,.paywall .veil h3,.step-intro h1,.ff-h,.ff-main{text-wrap:auto}.recs .head h2,.cool h1{text-wrap:pretty} /* 9/29：DS 的 balance 讓靠左標題提早斷、右邊留白；靠左改 auto（交給 cjk-wrap 補行），置中的用 pretty */
+    .res-h3,.hg-h1,.paywall .veil h3,.step-intro h1,.ff-h,.ff-main,.recs .head h2{text-wrap:auto}.cool h1{text-wrap:pretty} /* 9/29：DS 的 balance 讓靠左標題提早斷、右邊留白；靠左改 auto（交給 cjk-wrap 補行），置中的用 pretty */
     .cjk{word-break:normal!important;line-break:strict!important;overflow-wrap:anywhere!important} /* 9/29：不用 keep-all（WebKit 在 keep-all 下不照標點規則換行）；詞內不斷由 cjk-wrap.js 的 Word Joiner 負責 */
     @media(max-width:760px){.summary .q{font-size:24px}}
     .res-block{margin-top:26px}
@@ -430,10 +430,10 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
 
     /* recs */
     .recs{margin-top:60px}
-    .recs .head{text-align:center;margin-bottom:34px}
+    .recs .head{text-align:left;margin-bottom:34px} /* 9/30 Jeffery 拍板：照 DS SectionHeading 靠左 */
     .recs .head h2{font-family:var(--font-serif);font-size:30px;font-weight:500;line-height:1.18;letter-spacing:.02em;color:var(--ink-900);margin:0 0 8px}
     .recs .head p{font-family:var(--font-serif);font-weight:300;font-size:var(--t-body-lg);color:var(--text-secondary)}
-    .recs .head p{line-height:1.7;max-width:30em;margin:0 auto}.recs .head p+p{margin-top:10px}
+    .recs .head p{line-height:1.7;max-width:none;margin:0}.recs .head p+p{margin-top:10px}
     .rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
     @media(max-width:760px){.recs{margin-top:44px}.rec-grid{grid-template-columns:1fr;gap:14px}}
     .rec{display:flex;flex-direction:column;height:100%;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;text-decoration:none;transition:all var(--dur-fast) var(--ease-soft)}
