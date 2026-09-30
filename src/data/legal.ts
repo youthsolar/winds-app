@@ -5,12 +5,14 @@ export type Block =
   | { list: ListItem[] }
   | { parties: { name: string; use: string }[] };
 export type Section = { id: string; title: string; blocks: Block[] };
-export type LegalContent = { eyebrow: string; title: string; lede: string; intro: string; sections: Section[] };
+export type LegalContent = { eyebrow: string; title: string; lede: string; intro: string; sections: Section[]; updated: string };
 
-export const UPDATED = '2026 年 6 月';
+// 2026-10-01（廣告前全站掃描）：條款 9/3（法器退換貨）、9/28（改期指引）都改過內容，共用日期原本還寫 6 月。
+// 兩頁內容更新時間不同，日期改放各自的 updated（條款 9 月、隱私 6 月），LegalPage 讀 content.updated。
 export const CONTACT = 'uneedwind@winds.tw';
 
 export const TERMS: LegalContent = {
+  updated: '2026 年 9 月',
   eyebrow: '使用條款',
   title: '使用條款',
   lede: '這份條款說明你在找風問幸福使用占卜、預約與選物時，我們之間的約定。',
@@ -76,6 +78,7 @@ export const TERMS: LegalContent = {
 };
 
 export const PRIVACY: LegalContent = {
+  updated: '2026 年 6 月',
   eyebrow: '隱私權政策',
   title: '隱私權政策',
   lede: '你願意把在意的事說給我們聽，我們會用同樣的慎重，守好你的資料。',

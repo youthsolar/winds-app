@@ -399,7 +399,8 @@ import '../styles/global.css';
       }
       if(S.freeRemaining==null){el.innerHTML="";return}
       var n=S.freeRemaining;
-      el.innerHTML='<span class="muted">今日剩餘</span>'+
+      /* 2026-10-01（廣告前全站掃描）：原本寫「今日剩餘」，但免費額度是一次性的、不會每天重置（後端只有付費時才歸零），改成「免費剩餘」 */
+      el.innerHTML='<span class="muted">免費剩餘</span>'+
         '<span class="num'+(S.freeRemaining===0?" zero":"")+'">'+ic("chat-circle")+n+' 次</span>'+
         '<button class="unlock" onclick="openPaywall()">解鎖對話</button>';
     }
@@ -409,7 +410,19 @@ import '../styles/global.css';
       return '<div class="sp-input"><textarea id="spText" rows="1" placeholder="輸入訊息…（Enter 送出）" oninput="autoResize(this)" onkeydown="onKey(event)"></textarea>'+
         '<button class="sp-send" id="spSend" onclick="send()">'+ic("paper-plane-tilt","bold")+'</button></div>';
     }
-    function bindInput(){}
+    /* 2026-10-01（廣告前全站掃描）：Google 登入憑證一小時就過期。原本過期後每次送出只跳「請先登入」toast，
+       輸入框已清空、氣泡留著、頁面沒有登入入口。現在：這句先存在 sessionStorage、清掉過期憑證、帶去登入頁，
+       回來後由 bindInput 放回輸入框（對話編號不動，舊對話照樣接得回來）。 */
+    function reLogin(msg){
+      try{if(msg)sessionStorage.setItem("winds_spirit_draft_"+S.mode,msg)}catch(e){}
+      try{localStorage.removeItem("winds_google_token")}catch(e){}
+      toast("登入已過期，帶你重新登入");
+      setTimeout(function(){location.href="/login?return=/spirit"},1000);
+    }
+    function bindInput(){
+      try{var k="winds_spirit_draft_"+S.mode,v=sessionStorage.getItem(k);   // 重新登入前沒送出的那句放回來（只放回同一個頁籤）
+        if(v){var ta=document.getElementById("spText");if(ta){if(!ta.value){ta.value=v;autoResize(ta)}sessionStorage.removeItem(k)}}}catch(e){}
+    }
     function autoResize(el){el.style.height="auto";el.style.height=Math.min(120,el.scrollHeight)+"px"}
     function onKey(e){if(e.isComposing||e.keyCode===229)return;if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}   // 注音／拼音選字時的 Enter 不能送出（會用掉句數）
 
@@ -441,6 +454,9 @@ import '../styles/global.css';
           /* 2026-09-28（gpt-6-astra 體檢）：只有「確定不存在／不是你的」（404、403）才刪本機的對話編號；
              500／502 這種暫時錯誤刪了，舊對話就再也接不回來 */
           if(r.status===404||r.status===403)return {gone:true};
+          /* 2026-10-01（廣告前全站掃描）：切頁籤時憑證已過期，原本 401 被靜默吞掉、畫面只剩開場白。
+             本機憑證確定過期才帶去重新登入（憑證還沒過期卻被擋＝Google 驗證暫時出狀況，自動跳轉會繞圈，維持原樣）；對話編號不刪 */
+          if(r.status===401&&!readToken())reLogin("");
           if(!r.ok)throw new Error("http "+r.status);
           return r.json();
         })
@@ -492,6 +508,7 @@ import '../styles/global.css';
       if(S.sending)return;
       if(S.hydrating||S.booting){toast("正在接回先前的對話，稍等一下");return}
       var ta=document.getElementById("spText");var msg=ta.value.trim();if(!msg)return;
+      if(!readToken()){reLogin(msg);return}   // 2026-10-01（廣告前全站掃描）：憑證已過期就先帶去重新登入，這句不送、不清掉
       /* 目前這段對話自己的生日（已核對、綁在這段上）：續聊優先送它——訂閱中途到期、鎖定解除後，舊的同日異時對話才不會被切段（gpt-6-astra 會員第五輪複核） */
       var curK=curTargetKey(),histOk=S.mode==="target"&&S.histTarget&&S.histSess===S.sessionId&&S.sessionId&&(!curK||sameTgt(S.histTarget,curK));
       if(S.mode==="target"&&!S.targetConfirmed&&!S.lockedBirthday){toast("請先輸入對象生日");return}   // histOk 只決定送哪個生日，不能取代「客人確認過對象」（gpt-6-astra 會員第六輪複核）
@@ -513,6 +530,7 @@ import '../styles/global.css';
          if(S.mode!==sentMode)return;   // 保險：真的被換掉就整份丟掉
          if(sentMode==="target"&&(S.targetDate+"|"+S.targetTime)!==sentTarget)return;   // 等待期間換了對象：舊對象的回覆不能進新對象的畫面
          if(o.status===403&&d.needSubscribe){applySubState(false,null);openPaywall();return}   // 到期且免費額度用完：也要同步解除鎖定（gpt-6-astra 會員第七輪複核）
+         if(o.status===401){if(userEl&&userEl.parentNode)userEl.parentNode.removeChild(userEl);ta.value=msg;autoResize(ta);reLogin(msg);return}   // 2026-10-01（廣告前全站掃描）：後端認不得這張憑證（過期、被撤銷）：原本只跳 toast、這句就丟了；現在撤回氣泡、放回這句、帶去重新登入
          if(!d.success){
            if(d.error==="no_profile"){appendMsg("spirit","我還不認識你呢——先拿到老師的靈符解方，讓我感應你的靈魂頻率，回來我們再好好聊。",nowHM());setTimeout(function(){location.href="/divination"},3000);return}
            if(d.error==="daily_limit"){appendMsg("spirit",d.message||"今天聊得夠多了，讓彼此沉澱一下，明天再來。",nowHM());ta.disabled=true;ta.placeholder="分靈體已休息，明天再來";return}

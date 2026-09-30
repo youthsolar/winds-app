@@ -14,14 +14,15 @@ for (const p of allPosts) {
   categorized[cat].push(p);
 }
 
-const categoryOrder = ['感情挽回','桃花運','斬桃花','元辰宮','財運','塔羅','星座','命理','兩性關係','感情和合','開運招財','命理占卜','其他'];
-const sortedCats = Object.keys(categorized).sort((a, b) => {
-  const ai = categoryOrder.indexOf(a);
-  const bi = categoryOrder.indexOf(b);
-  if (ai === -1) return 1;
-  if (bi === -1) return -1;
-  return ai - bi;
-});
+// 2026-10-01（廣告前全站掃描）：部落格改讀 WP 後分類改名（塔羅→塔羅牌、星座→星座運勢），表裡對不到的 13 個分類照 WP 回傳順序亂排，
+// 「其他」卡在第 7、87 篇的星座運勢掉到第 9。改成：舊名換成 WP 現行名稱（原本的先後不變）、表外分類照篇數多到少、「其他」固定最後。
+const categoryOrder = ['感情挽回','桃花運','斬桃花','元辰宮','財運','塔羅牌','星座運勢','命理','兩性關係','感情和合','開運招財','命理占卜'];
+const catRank = (c: string) => (c === '其他' ? 999 : categoryOrder.includes(c) ? categoryOrder.indexOf(c) : 900);
+const sortedCats = Object.keys(categorized).sort((a, b) =>
+  catRank(a) - catRank(b)
+  || categorized[b].length - categorized[a].length
+  || a.localeCompare(b, 'zh-Hant')
+);
 
 const pageTitle = "找風問幸福｜靈炁命理部落格・感情挽回・桃花運・補財庫・元辰宮";
 const pageDesc = "找風問幸福部落格：感情挽回、桃花運、補財庫、元辰宮修補、塔羅占卜等 340+ 篇靈炁命理文章，由風易揚、風賜靈、芊蘭、伊紫蓮、竹韻、玄奇六位老師分享真實個案。";

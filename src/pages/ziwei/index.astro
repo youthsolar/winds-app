@@ -118,7 +118,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
               <option value="116.4">北京 116.4°E（-14 min）</option>
               <option value="114.1">香港 114.1°E（-24 min）</option>
               <option value="139.7">東京 139.7°E（+19 min）</option>
-              <option value="103.8">新加坡 103.8°E（+15 min, MYT/SGT 為 120°E zone）</option>
+              <!-- 2026-10-01（廣告前全站掃描）：拿掉「新加坡」：後端以經度就近取整推時區（UTC+7），新加坡實際用 UTC+8，校正差一小時會跨時辰；LINE 內頁本來就沒有這個選項 -->
               <option value="-122.4">舊金山 -122.4°E（-10 min）</option>
               <option value="-123.1">溫哥華 -123.1°E（-12 min）</option>
               <option value="-118.2">洛杉磯 -118.2°E（+7 min）</option>
@@ -182,6 +182,9 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       <p id="error-msg"></p>
     </section>
   </main>
+  <!-- 2026-09-30（廣告前全站掃描）：原本靠 BaseLayout 的 GIS script，但建置時沒有 PUBLIC_GOOGLE_CLIENT_ID、那段從未輸出，登入閘只剩空白卡片
+       → 比照 gift／login 頁自帶 GIS script（client id 在下方 renderGoogleSignIn 補上） -->
+  <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
 </BaseLayout>
 
 <script>
@@ -999,6 +1002,9 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       if (chartData.already_exists) {
         // 此使用者已有命盤，補拿 horoscope（worker 已存的 my-chart）
         const my = await fetch(`${WORKER_API}/ziwei-my-chart`, { headers: authHeaders() }).then((x) => x.json());
+        // 2026-09-30（廣告前全站掃描）：補拿失敗（401／tokeninfo 暫時錯誤）原本照樣 showResult，chart 是 undefined → 結果區整片空白
+        // → 沒拿到命盤就丟進下面的 catch → showError（表單留著）
+        if (!my.ok || !my.exists || !my.chart) throw new Error(my.error || '無法讀取命盤');
         chartData = my;
       }
     } catch (err: any) {
@@ -1013,8 +1019,10 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 
   // === Google Sign-In button render（在 auth-gate 內） ===
   function renderGoogleSignIn() {
-    const clientId = (document.querySelector('[data-client_id]') as HTMLElement | null)?.dataset.client_id;
-    if (!clientId) return;
+    // 2026-09-30（廣告前全站掃描）：原本找不到 BaseLayout 的 [data-client_id] 就 return（線上建置從沒輸出過），連 3.5 秒外開引導都排不到
+    // → 退回全站同一顆公開 client id（login／gift／FunnelDocument 同款），按鈕與外開引導都會出來
+    const clientId = (document.querySelector('[data-client_id]') as HTMLElement | null)?.dataset.client_id
+      || '35219881811-2rnl87e0qmb9vsuhuqnfooo0a0af5ggd.apps.googleusercontent.com';
     // 等 GIS script 載入
     const tryRender = () => {
       const g = (window as any).google?.accounts?.id;

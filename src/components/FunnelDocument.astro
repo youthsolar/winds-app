@@ -870,6 +870,7 @@ function lvPickWho(k,btn){
   var r1=document.getElementById("lvWho");if(r1)Array.prototype.forEach.call(r1.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});
   var r2=document.getElementById("lvAngle");if(r2)r2.innerHTML=lvAngleChips();
   var w=document.getElementById("lvAngleWrap");if(w)w.style.display="";
+  var n3=document.getElementById("lcN3");if(n3)n3.textContent="3";   /* 2026-10-01（廣告前全站掃描）：② 出現了，水鏡卡從 2 改成 3 */
   var g=document.getElementById("lvGuide");if(g)g.innerHTML=lvGuideHtml();
   var e=document.getElementById("ffErr");if(e)e.style.display="none";
   lcSync();
@@ -1055,11 +1056,12 @@ function header(){
     return '<span class="ph-step '+cls+'"><span class="ph-num">'+num+'</span><span class="ph-lbl">'+s.l+'</span></span>'+(i<STEPS.length-1?'<span class="ph-sep"></span>':'');
   }).join("");
   return '<header class="ph-hdr"><div class="row">'+
-    '<button class="ph-back" onclick="back()">'+ic("arrow-left")+'<span>上一步</span></button>'+
+    /* 2026-10-01（廣告前全站掃描）：手機寬「上一步」字被 CSS 藏掉、X 鈕只有圖示，螢幕閱讀器只唸「按鈕」；補 aria-label */
+    '<button class="ph-back" onclick="back()" aria-label="上一步">'+ic("arrow-left")+'<span>上一步</span></button>'+
     '<div class="ph-steps">'+steps+'</div>'+
     '<span class="ph-mob"><b>'+(idx+1)+'</b> / '+STEPS.length+' · '+STEPS[idx].l+'</span>'+
     '<div style="display:flex;align-items:center;gap:10px"><button class="ph-exit" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'"></i></button>'+
-    '<button class="ph-exit" onclick="exitFlow()">'+ic("x")+'</button></div>'+
+    '<button class="ph-exit" onclick="exitFlow()" aria-label="離開">'+ic("x")+'</button></div>'+
     '</div><div class="ph-bar"><span style="width:'+pct+'%"></span></div></header>';
 }
 
@@ -1132,8 +1134,11 @@ function ffMirror(mode,o){
   var body=mode==="dial"
     ? ffDialTicks(inner,o.year)+'<div class="ff-dialtxt"><div class="ff-dial-k">轉輪鏡</div><div class="ff-dial-y" id="ffDialY">'+o.year+'</div><div class="ff-dial-m" id="ffDialM">民國 '+(o.year-1911)+'</div></div>'
     : '<div class="ff-hexc" id="ffYaos">'+ffYaos(o.code,o.rising||0)+'</div>';
+  /* 2026-10-01（廣告前全站掃描）：水鏡原本沒有 tabindex、只聽指標事件，只用鍵盤的人到起卦這步就卡住；
+     起卦／轉輪鏡兩種可操作的鏡子補 tabindex，轉輪鏡補 aria-valuenow／min／max（上下限同 setY）。鍵盤事件在 ffCastWire／ffDialWire。 */
+  var kb=mode==="cast"||mode==="dial";
   return '<div class="ff-mirrorwrap">'+
-    '<div class="ff-mirror'+(mode==="dial"?' dial':mode==="cast"?' cast':'')+'" id="ffMirror" style="width:'+size+'px;height:'+size+'px" role="'+(mode==="dial"?'slider':'button')+'" aria-label="'+(mode==="dial"?'轉輪鏡選年份':esc(o.hint||'按住水面'))+'">'+
+    '<div class="ff-mirror'+(mode==="dial"?' dial':mode==="cast"?' cast':'')+'" id="ffMirror" style="width:'+size+'px;height:'+size+'px" role="'+(mode==="dial"?'slider':'button')+'"'+(kb?' tabindex="0"':'')+(mode==="dial"?' aria-valuenow="'+o.year+'" aria-valuemin="1940" aria-valuemax="'+new Date().getFullYear()+'"':'')+' aria-label="'+(mode==="dial"?'轉輪鏡選年份':esc(o.hint||'按住水面'))+'">'+
     ffStars(inner)+'<span class="ff-sheen"></span><div class="ff-rips" id="ffRips"></div>'+body+'</div>'+
     (mode!=="dial"?'<div class="ff-hexname'+((o.rising||0)>=6&&o.name?' on':'')+'" id="ffHexName">'+esc(o.name||'')+'</div>':'')+
     '</div>';
@@ -1204,7 +1209,9 @@ function viewLoveLanding(){
         '<section class="lc-sec" id="lvAngleWrap"'+(STATE.data.loveWho?'':' style="display:none"')+'>'+lcStep(2,"lcN2","那，你最想先知道哪一件？","",!!STATE.data.loveAngle)+
           '<div class="lc-opts lc-opts2" role="group" id="lvAngle">'+lvAngleChips()+'</div></section>'+
       '</div>'+
-      '<div class="lc-side"><div class="lc-card">'+lcStep(3,"lcN3","把手放在水鏡上。","按著三秒，不要急著放開。卦會自己浮上來。",false)+
+      /* 2026-10-01（廣告前全站掃描）：② 在選完 ① 前是 display:none，水鏡卡寫死 ③，首屏看到 ①→③ 跳號。
+         還沒選 ① 時水鏡卡標 2，選了（lvPickWho 會改成 3，回訪 lvRestore 已填回）就標 3 */
+      '<div class="lc-side"><div class="lc-card">'+lcStep(STATE.data.loveWho?3:2,"lcN3","把手放在水鏡上。","按著三秒，不要急著放開。卦會自己浮上來。",false)+
         '<div class="lc-guide" id="lvGuide">'+lvGuideHtml()+'</div>'+
         '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
         '<div class="ff-clock" id="ffClock"></div></div>'+
@@ -1253,6 +1260,10 @@ function ffCastWire(){
   }
   function release(){if(FF_CAST.t==="pending"){FF_CAST.t=null;stop();return;}stop();}
   m.addEventListener("pointerdown",start);m.addEventListener("pointerup",release);m.addEventListener("pointercancel",release);
+  /* 2026-10-01（廣告前全站掃描）：鍵盤按住 Enter／空白鍵＝按住水鏡，放開＝放手（原本只有指標事件，鍵盤起不了卦）。
+     一律 preventDefault，按住空白鍵時頁面才不會一直往下捲。 */
+  m.addEventListener("keydown",function(e){if(e.key!=="Enter"&&e.key!==" ")return;e.preventDefault();if(!e.repeat)start(e);});
+  m.addEventListener("keyup",function(e){if(e.key==="Enter"||e.key===" ")release();});
 }
 function showFfErr(msg){var e=document.getElementById("ffErr");if(!e){e=document.createElement("div");e.id="ffErr";e.className="ff-err";var r=document.getElementById("root");if(r)r.appendChild(e);}e.textContent=msg;e.style.display="block";setTimeout(function(){e.style.display="none";},4000);}
 
@@ -1321,11 +1332,13 @@ function ffNext(){
 function ffDialWire(){
   var m=document.getElementById("ffMirror");if(!m||!m.classList.contains("dial"))return;
   var sx=null,acc=0,moved=0;
-  function setY(y){y=Math.max(1940,Math.min(new Date().getFullYear(),y));if(y===STATE.data.year)return;STATE.data.year=y;if(STATE.data.day&&STATE.data.day>ffDaysIn(y,STATE.data.month))STATE.data.day=null;var t=m.querySelector(".ff-ticks");if(t)t.outerHTML=ffDialTicks(m.clientWidth-20,y);var e=document.getElementById("ffDialY");if(e)e.textContent=y;var mm=document.getElementById("ffDialM");if(mm)mm.textContent="民國 "+(y-1911);}
+  function setY(y){y=Math.max(1940,Math.min(new Date().getFullYear(),y));if(y===STATE.data.year)return;STATE.data.year=y;if(STATE.data.day&&STATE.data.day>ffDaysIn(y,STATE.data.month))STATE.data.day=null;var t=m.querySelector(".ff-ticks");if(t)t.outerHTML=ffDialTicks(m.clientWidth-20,y);var e=document.getElementById("ffDialY");if(e)e.textContent=y;var mm=document.getElementById("ffDialM");if(mm)mm.textContent="民國 "+(y-1911);m.setAttribute("aria-valuenow",y);}
   m.addEventListener("pointerdown",function(e){sx=e.clientX;acc=0;moved=0;try{m.setPointerCapture(e.pointerId);}catch(x){}});
   m.addEventListener("pointermove",function(e){if(sx===null)return;var dx=e.clientX-sx;sx=e.clientX;acc+=dx;moved+=Math.abs(dx);var step=Math.trunc(acc/9);if(step){acc-=step*9;setY(STATE.data.year+step);}});
   m.addEventListener("pointerup",function(e){if(sx===null)return;if(moved<4){var r=m.getBoundingClientRect();setY(STATE.data.year+((e.clientX-r.left)<r.width/2?-1:1));}sx=null;});
   m.addEventListener("pointercancel",function(){sx=null;});
+  /* 2026-10-01（廣告前全站掃描）：轉輪鏡原本只能拖或點，鍵盤調不了年份（這題沒有其他輸入框）；方向鍵左下＝退一年、右上＝進一年 */
+  m.addEventListener("keydown",function(e){var d=(e.key==="ArrowLeft"||e.key==="ArrowDown")?-1:(e.key==="ArrowRight"||e.key==="ArrowUp")?1:0;if(!d)return;e.preventDefault();setY(STATE.data.year+d);});
 }
 
 /* ── 4b 回訪一行 ── */
@@ -1472,7 +1485,9 @@ function viewReportPaid(R,q){
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
 function viewResult(){
-  var R=STATE.result||{};var paid=STATE.paid||R.purchased;var q=STATE.text||"";
+  /* 2026-10-01（廣告前全站掃描）：STATE.text 是送給老師的整段模板（結尾「　實際情況是：」），原本整段印在「你問的是」，
+     沒補述的人看到像沒填完的表單。改印客人點的那一句（STATE.q，起卦頁標題也是這句）；回訪沒有 q 才退回原本寫法 */
+  var R=STATE.result||{};var paid=STATE.paid||R.purchased;var q=STATE.q||STATE.text||"";
   if(HOME){var hs0=homeSitu(STATE.data.home);q="家裡的符"+(hs0?"・"+hs0.l:"");}
   if(LOVE){var la0=loveAngle(STATE.data.loveWho,STATE.data.loveAngle);q=(lvSingle()?"我的桃花":"這段感情")+(la0?"・"+la0.l:"");}
   if(paid)return viewReportPaid(R,q);
@@ -1623,11 +1638,14 @@ function normName(api){
   var config=api.san_cai_key||'';
   var scLuck=(api.san_cai&&api.san_cai.fortune_text)||'';
   var paid_extra=[];
-  if(api.san_cai){var sc=api.san_cai;var body=sc.content||sc.fortune_text||'';
+  /* 2026-10-01（廣告前全站掃描）：後端付費版 san_cai 是 {combo,fortune_text,modern_content,…}，沒有 content，
+     原本付費客人的「三才完整解讀」只印出「大吉」兩字；改先讀 modern_content（整段付費解讀） */
+  if(api.san_cai){var sc=api.san_cai;var body=sc.modern_content||sc.content||sc.fortune_text||'';
     try{var pj=(typeof sc.content==='string')?JSON.parse(sc.content):sc.content;if(pj&&(pj.summary||pj.text))body=pj.summary||pj.text;}catch(e){}
     if(body)paid_extra.push({h:'三才完整解讀',b:String(body)});}
   if(api.zodiac_analysis&&api.zodiac_analysis.hits&&api.zodiac_analysis.hits.length){
-    var pref={good:'相生宜用',bad:'相剋宜避',neutral:'中性'};
+    /* 2026-10-01（廣告前全站掃描）：後端與 D1 的值是 better／worse，原本對照表寫 good／bad，付費報告印出英文「王（better）」 */
+    var pref={better:'相生宜用',worse:'相剋宜避',neutral:'中性'};
     var zb=api.zodiac_analysis.hits.map(function(h){return h.char+'（'+(pref[h.preference]||h.preference)+'）'}).join('、');
     paid_extra.push({h:'生肖命中分析',b:'屬'+api.zodiac_analysis.zodiac+'：'+zb+'。'});}
   return {fullname:api.name||'',chars:chars,wuge:wuge,score:api.composite_score||0,
@@ -1706,7 +1724,7 @@ function hexCardHero(paid){
   /* 2026-09-20 Jeffery 拍板：付費後也用同一張卦符卡（後端出付費態：底下寫「法效期間 · M/D 止」、不會過期），1 卦＋5 符六張同一套 */
   var HC=(R.hexCard&&R.hexCard.url)?R.hexCard:null;
   var inner=HC
-    ? '<img src="'+esc(HC.url)+'" alt="'+esc(R.hexName||'')+' 卦符" decoding="async" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">'
+    ? '<img src="'+esc(HC.url)+'" alt="'+esc(R.hexName||'')+' 卦符" decoding="async" onerror="this.onerror=null;this.style.visibility=\'hidden\'" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">'
     : R.talismanImg
     ? '<img src="'+esc(R.talismanImg)+'" draggable="false" oncontextmenu="return false;" class="'+(paid?'':'blurred')+'" style="width:100%;height:100%;object-fit:cover">'
     : '<div class="'+(paid?'':'blurred')+'" style="width:100%;height:100%">'+fulu('䷀',R.hexName||'靈符',true)+'</div>';
@@ -1898,6 +1916,9 @@ var BLOG_LINKS={
  self:[["塔羅牌","塔羅怎麼幫你把混亂的心整理清楚。"],["星座運勢","從星座讀自己最近的狀態。"],["命理占卜","用命理看懂自己的時機與節奏。"]]
 };
 function blogSection(){
+  /* 2026-10-01（廣告前全站掃描）：家裡的符 dir="home"，BLOG_LINKS 沒有 home 這組，原本退回 love 推「感情挽回／感情和合／斬桃花」。
+     家宅那組三句說明要 Jeffery 定稿，定稿前 /home-gua 先不出這一區（/divination、/love 不受影響） */
+  if(HOME)return '';
   var list=BLOG_LINKS[STATE.dir]||BLOG_LINKS.love;
   return '<section class="recs" style="margin-top:44px"><div class="head"><h2>想多讀一點——</h2><p>這些主題的文章，慢慢看，也許正好說中你現在的處境。</p></div>'+
     '<div class="rec-grid">'+list.map(function(b){
@@ -2080,11 +2101,17 @@ function updateFabCta(){
   fabScroll();
 }
 function go(s){STATE.step=s;render()}
-function back(){var map=(HOME||LOVE)?{cast:"landing",hex:"landing",ask:"hex",ret:"hex",result:"landing"}:{cast:"topic",hex:"topic",ask:"hex",ret:"hex",result:"topic"};if(map[STATE.step])go(map[STATE.step])}
+/* 2026-10-01（廣告前全站掃描・總複驗）：從結果頁按上一步原本不清網址的 log_id，重新整理又回到那一卦；跟 askAnother 共用同一段清理 */
+function clearReportUrl(){STATE.reportMode=false;STATE.reportLogId="";try{var u=new URL(location.href);u.searchParams.delete("log_id");u.searchParams.delete("k");history.replaceState(null,"",u.pathname+(u.search||""));}catch(e){}try{sessionStorage.removeItem("winds_pending_log_id");sessionStorage.removeItem("winds_pending_path");}catch(e){}}
+function back(){var map=(HOME||LOVE)?{cast:"landing",hex:"landing",ask:"hex",ret:"hex",result:"landing"}:{cast:"topic",hex:"topic",ask:"hex",ret:"hex",result:"topic"};if(STATE.step==="result")clearReportUrl();if(map[STATE.step])go(map[STATE.step])}
 function exitFlow(){location.href="/";}
 function openOA(){window.open(LINE_OA_URL,"_blank");}
-function askAnother(){STATE.cast=null;STATE.ask=0;STATE.k="";STATE.shareUrl="";STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;STATE.logId="";STATE.repeatWall=null;if(HOME){STATE.data.home="";STATE.dir="home";STATE.q="家裡先留一張符";STATE.text="我想替現在住的地方求一張符，先看看這個家目前的狀況。";}if(LOVE){STATE.data.loveWho="";STATE.data.loveAngle="";STATE.dir="love";STATE.q="這段感情，現在走到哪裡";STATE.text="我想為現在這段感情起一卦，先看看我們目前的狀況。";}go((HOME||LOVE)?"landing":"topic");}
-function showInfoErr(msg){var e=document.getElementById("infoErr");if(e){e.textContent=msg;e.classList.remove("hidden");e.scrollIntoView({behavior:"smooth",block:"center"});}else{alert(msg);}}
+function askAnother(){
+  /* 2026-10-01（廣告前全站掃描）：原本不重設 reportMode、也不清網址上的 ?log_id=&k=：從回看報告再問一卦，新結果頁沒有「上一步」，
+     重新整理（或付款後按「完成後點我載入」）又回到舊報告。這裡歸零回看狀態、只拿掉網址的 log_id／k（utm 等照留），
+     並清掉舊那一卦付款留下的 pending，否則還沒送出新卦前重新整理會被舊報告接管。 */
+  clearReportUrl();
+  STATE.cast=null;STATE.ask=0;STATE.k="";STATE.shareUrl="";STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;STATE.logId="";STATE.repeatWall=null;if(HOME){STATE.data.home="";STATE.dir="home";STATE.q="家裡先留一張符";STATE.text="我想替現在住的地方求一張符，先看看這個家目前的狀況。";}if(LOVE){STATE.data.loveWho="";STATE.data.loveAngle="";STATE.dir="love";STATE.q="這段感情，現在走到哪裡";STATE.text="我想為現在這段感情起一卦，先看看我們目前的狀況。";}go((HOME||LOVE)?"landing":"topic");}
 
 /* ===== Google SSO auth ===== */
 var googleIdToken="";
@@ -2102,7 +2129,9 @@ function checkEmailLive(email){
     .then(function(r){return r.json();}).then(function(d){
       if(EMAILV.email!==email)return;
       EMAILV.verdict=d.verdict||"";
-      if(d.verdict==="bad")showInfoErr("這個 Email 好像有誤（查無此信箱），請再確認一次。");
+      /* 2026-10-01（廣告前全站掃描）：原本呼叫 showInfoErr，去表單化後 #infoErr 已不存在，退成瀏覽器 alert 彈窗，
+         而且常在按了「排命盤」、讀卦動畫已經在跑時才跳出來。改用同頁底部軟提示（文案同 LINE 內頁），已送出就不再提示 */
+      if(d.verdict==="bad"&&!STATE.submitting)showFfErr("這個信箱好像有誤（查無此信箱），再確認一次。");
     }).catch(function(){});
 }
 document.addEventListener("focusout",function(ev){var t=ev.target;if(t&&t.id==="ffEmail")checkEmailLive(t.value.trim());});
@@ -2112,7 +2141,8 @@ function phoneE164(p){p=(p||"").replace(/[\s-]/g,"");return p.indexOf("0")===0?"
 /* ===== 送出（去表單化：零登入，靠 log token 看結果）→ interpreting → 輪詢 ===== */
 function submitFree(){
   if(STATE.submitting)return;
-  if(!STATE.cast||!STATE.cast.code){showFfErr("先回到水鏡起一卦。");go("cast");return;}
+  /* 2026-10-01（廣告前全站掃描）：原本先 showFfErr 再 go()，render() 換掉 #root 把提示一起清掉，客人被無聲踢回；改成先換頁再提示（同 LINE 內頁） */
+  if(!STATE.cast||!STATE.cast.code){go("cast");setTimeout(function(){showFfErr("先回到水鏡起一卦。");},60);return;}
   if(!STATE.text){showFfErr("請先回到上一步，選一句想問的話。");go("topic");return;}
   var d=STATE.data,payload;
   if(STATE.ret&&STATE.retInfo){
@@ -2160,7 +2190,7 @@ function submitFree(){
      if(!data)return;
      if(data.blocked){STATE.cooldown={message:data.message,available_at:data.available_at,last_log_id:data.last_log_id||null};STATE.submitting=false;go("cooldown");return;}
      if(data.success===false){STATE.submitting=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr(data.message||"發生錯誤，請再試一次。");},60);return;}
-     if(data.k){STATE.k=data.k;STATE.logId=String(data.log_id||"");try{localStorage.setItem("winds_ff_log",STATE.logId);localStorage.setItem("winds_ff_k",STATE.k);}catch(e){}}
+     if(data.k){STATE.k=data.k;STATE.logId=String(data.log_id||"");var lsOk=false;try{localStorage.setItem("winds_ff_log",STATE.logId);localStorage.setItem("winds_ff_k",STATE.k);lsOk=true;}catch(e){}rememberK(STATE.logId,STATE.k);markUrl(STATE.logId,lsOk?"":STATE.k);}
      if(data.pending){if(data.warm_urls&&data.warm_urls.length){warmCards(data.warm_urls.slice());}pollStatus(data.log_id||"",true);return;}
      finishResult(data);
    })
@@ -2178,7 +2208,14 @@ function pollStatus(logId,alreadyWarm){
     attempts++;
     var ident=STATE.k?("&k="+encodeURIComponent(STATE.k)):("&google_sub="+encodeURIComponent(STATE.userId||""));
     fetch(API.status+"?log_id="+encodeURIComponent(logId)+ident,{headers:authHeaders()})
-     .then(function(r){return r.json();}).then(function(d){
+     .then(function(r){
+       /* 2026-10-01（廣告前全站掃描）：回看報告沒帶 k 也沒登入時，後端第一次就回 403（找不到回 404），等再久也不會變；
+          原本照樣轉 92 秒「老師正在看你的卦」才被帶去登入頁。這種情況直接收掉走 pollGiveUp（它會帶去登入頁）。
+          有 k 或已登入的照舊輪詢（登入後同信箱合併要一點時間），5xx／斷線也照舊。 */
+       if((r.status===403||r.status===404)&&STATE.reportMode&&!STATE.k&&!STATE.userId){clearInterval(timer);pollGiveUp("老師還在寫，稍後再回來這一頁看。");return null;}
+       return r.json();
+     }).then(function(d){
+       if(!d)return;
        if(d.warm_urls&&d.warm_urls.length&&!warmed){warmed=true;warmCards(d.warm_urls.slice());}
        if(d.ready&&d.summary){clearInterval(timer);finishResult(d,logId);}
        else if(attempts>=max){clearInterval(timer);pollGiveUp("老師還在寫，稍後再回來這一頁看。");}
@@ -2195,7 +2232,7 @@ function pollGiveUp(msg){
   if(STATE.reportMode&&STATE.reportLogId){
     if(interpTimer){interpTimer();interpTimer=null;}   /* 繞過 render() 直接換畫面，等待動畫的計時器要自己收 */
     var root=document.getElementById("root");
-    root.innerHTML=siteHeader()+'<main class="shell narrow" style="text-align:center;padding:64px 20px"><p style="font-family:var(--font-serif);font-size:16px;color:var(--text-secondary);margin:0 0 18px">'+esc(msg)+'</p><button class="zf-btn primary md" onclick="go(\'interpreting\');pollStatus(STATE.reportLogId)">再讀一次</button></main>'+siteFooter();
+    root.innerHTML=siteHeader()+'<main class="shell narrow" style="text-align:center;padding:64px 20px"><p style="font-family:var(--font-serif);font-size:16px;color:var(--text-secondary);margin:0 0 18px">'+esc(msg)+'</p><button class="zf-btn primary md" onclick="go(\'interpreting\');pollStatus(STATE.reportLogId)">再讀一次</button> <button class="zf-btn ghost md" onclick="askAnother()">重新起一卦</button></main>'+siteFooter();
     wireSiteChrome();return;
   }
   go(STATE.k?"hex":"info");setTimeout(function(){showFfErr(msg);},60);
@@ -2206,9 +2243,19 @@ function loginReturnUrl(){
   if(STATE.k&&!p.get("k"))p.set("k",STATE.k);
   return "/login?return="+encodeURIComponent(location.pathname+"?"+p.toString());
 }
+/* 2026-10-01（廣告前全站掃描）：結果頁網址原本一直是 /divination/、/home-gua/、/love/，重新整理或 IG／FB 內建瀏覽器切回來重載，
+   就回到落地頁，卦符卡、解卦、付款鈕全不見。送出成功就把這一卦寫進網址（replaceState，不多一筆上一頁），重載走 boot 既有的 ?log_id= 回看。
+   網址已經是同一卦（提醒信、付款回跳帶 k 進來）就不動，免得洗掉 k；只留 log_id，已核銷的 pt 等參數不會在重載時又被存回去。
+   k 預設不放進網址（boot 會從 localStorage 補回），localStorage 寫不進去才帶 k，否則重載後讀不到報告。 */
+/* 2026-10-01（廣告前全站掃描）：winds_ff_k 只記最新一卦，同一台裝置回到較舊那一卦的 ?log_id= 會拿不到 k、被導去登入（信箱客人沒有 Google 帳號就卡住）。
+   另記最近 10 卦的 k（登出時跟其他 winds_ 鍵一起清掉，見 nav-auth.js） */
+function rememberK(id,k){try{var m=JSON.parse(localStorage.getItem("winds_ff_ks")||"{}")||{};m[String(id)]=k;var ks=Object.keys(m);while(ks.length>10){delete m[ks.shift()];}localStorage.setItem("winds_ff_ks",JSON.stringify(m));}catch(e){}}
+function recallK(id){try{var m=JSON.parse(localStorage.getItem("winds_ff_ks")||"{}")||{};return m[String(id)]||"";}catch(e){return "";}}
+function markUrl(id,k){id=String(id||"");if(!id)return;try{var u=new URLSearchParams(location.search);if(u.get("log_id")===id)return;history.replaceState(null,"",location.pathname+"?log_id="+encodeURIComponent(id)+(k?"&k="+encodeURIComponent(k):""));}catch(e){}}
 function finishResult(d,logId){
   STATE.submitting=false;
   STATE.logId=d.log_id||d.reading_id||logId||"";
+  markUrl(STATE.logId);   /* 2026-10-01：保底（沒有 k 的回應、只回 reading_id 時），見 markUrl 註解 */
   lvRestore(d.funnel_choice);lvRemember();hgRestore(d.funnel_choice);hgRemember();   /* 兩個活動頁：回訪先取回使用者選的狀況，新的一卦則記下來（見 lvRestore／hgRestore 註解） */
   STATE.shareUrl=d.share_url||"";
   if(d.next_action)STATE.talismanName=d.next_action.talisman_name||STATE.talismanName;
@@ -2280,14 +2327,16 @@ function createOrder(){
      if(d.success&&d.free_unlock){
        /* 媒體 token 核銷成功：免付費，直接重載進完整解讀 */
        try{localStorage.removeItem("winds_press_token");}catch(e){}
-       try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);}catch(e){}
+       try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);sessionStorage.setItem("winds_pending_path",location.pathname);}catch(e){}
        location.href=location.pathname+"?log_id="+STATE.logId;return;
      }
      if(d.success&&d.pay_url){
-       try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);}catch(e){}
+       /* 2026-10-01（廣告前全站掃描）：pending 原本不綁頁面，開了付款頁沒付、回首頁再進別的漏斗，會被這一卦的舊報告接管一次。
+          一併記下當時的頁面，boot 只在同一頁重新載入時才接管（見 boot 的 pendingPath） */
+       try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);sessionStorage.setItem("winds_pending_path",location.pathname);}catch(e){}
        var w=window.open(d.pay_url,"_blank");if(!w){location.href=d.pay_url;return;}
        if(btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}
-     }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert(d.message||"建立訂單失敗，請再試一次。");}
+     }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert(d.message||d.error||"建立訂單失敗，請再試一次。");}   /* 2026-10-01（廣告前全站掃描）：後端 errorResponse 回的是 error 欄位（例如「登入身分與請求不符，請重新登入」），原本只讀 message，只看得到通用訊息 */
    }).catch(function(e){STATE.ordering=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert("付款錯誤："+e.message);});
 }
 
@@ -2299,7 +2348,7 @@ function shareResult(btn){
   var orig=btn?btn.innerHTML:"";
   if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'生成分享圖中…';}
   var done=function(){if(btn){btn.disabled=false;btn.innerHTML=orig;}};
-  fetch(WORKER_API+"/generate-og-image",{method:"POST",headers:{"Content-Type":"application/json"},
+  fetch(WORKER_API+"/generate-og-image",{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),   /* 2026-10-01（廣告前全站掃描）：後端改成驗身分，要帶登入憑證 */
     body:JSON.stringify({google_sub:STATE.userId})}).catch(function(){}).then(function(){
     done();
     var shareUrl="https://winds.tw/share?uid="+encodeURIComponent(STATE.userId)+"&t="+Date.now();
@@ -2406,17 +2455,23 @@ function boot(){
   var saved="";try{saved=localStorage.getItem("winds_google_token")||"";}catch(e){}
   if(saved&&!adoptGoogleToken(saved)){try{localStorage.removeItem("winds_google_token");}catch(e){}}
   var rid=params.get("log_id"),kk=params.get("k")||"",ret=params.get("ret")||"",ref=params.get("ref")||"",pending="";try{pending=sessionStorage.getItem("winds_pending_log_id")||"";}catch(e){}
+  /* 2026-10-01（廣告前全站掃描）：pending 綁寫入時的頁面，換到別的漏斗就不接管（見 createOrder）；舊版沒記頁面的照舊接管 */
+  var pendingPath="";try{pendingPath=sessionStorage.getItem("winds_pending_path")||"";}catch(e){}
+  if(pending&&pendingPath&&pendingPath!==location.pathname)pending="";
   if(ref)STATE.ref=ref;   /* 從別人的卦符卡收卡頁「我也起一卦」進來 */
   /* 去表單化：?log_id=&k= 用 log token 看結果，零登入（提醒信、付完款回跳都走這條） */
   /* 2026-09-28（Codex 複核）：pending 讀出來就清，任何報告分支 return 之前都要清到，否則殘留的 pending 會在下次進 /divination 接管 */
-  if(pending){try{sessionStorage.removeItem("winds_pending_log_id");}catch(e){}}
+  try{sessionStorage.removeItem("winds_pending_log_id");sessionStorage.removeItem("winds_pending_path");}catch(e){}
   if(rid&&kk){STATE.k=kk;STATE.reportMode=true;STATE.step="interpreting";render();pollStatus(rid);return;}
-  if(!kk&&rid){try{var sk=localStorage.getItem("winds_ff_log")||"",skk=localStorage.getItem("winds_ff_k")||"";if(sk===String(rid)&&skk)STATE.k=skk;}catch(e){}}
+  if(!kk&&rid){try{var sk=localStorage.getItem("winds_ff_log")||"",skk=localStorage.getItem("winds_ff_k")||"";if(sk===String(rid)&&skk)STATE.k=skk;}catch(e){}if(!STATE.k)STATE.k=recallK(rid);}
   if(rid||pending){
     if(pending&&!rid){try{pending_k=localStorage.getItem("winds_ff_log")===pending?(localStorage.getItem("winds_ff_k")||""):"";if(pending_k)STATE.k=pending_k;}catch(e){}}
     STATE.reportMode=true;   // 完整報告：回訪既有占卜 → 結果頁套站台 Nav/Footer
     STATE.step="interpreting";render();pollStatus(rid||pending);
     if(!STATE.userId&&!STATE.k)initGoogleGIS();
+    /* 2026-10-01（廣告前全站掃描）：零登入（信箱身分）的客人用同一個 Gmail 從 /login 回來、或已登入開沒帶 k 的舊連結，
+       原本不會打 /liff-prefill，後端「同信箱合併」不會發生，google_sub 對不到這一卦，永遠 403。這裡補打一次，合併後輪詢就讀得到 */
+    if(STATE.userId&&!STATE.k)doPrefill();
     return;
   }
   /* 回訪一行：提醒信 ?ret=<卦>&k=<token>，或同一支手機上次留過（localStorage；FB 內建瀏覽器可能關了就清，清了就照常問） */

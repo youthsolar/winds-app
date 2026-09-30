@@ -162,7 +162,7 @@ const homeJsonLd = {
       <div class="zf-section-heading sh"><h2 class="zf-sh-title cjk">預約項目</h2><p class="zf-sh-lede">有些事情，還是要讓老師親自看。你可以從下面選一個最接近目前狀況的項目。</p></div>
       <div class="svc-grid">
         {FEATURED && (
-        <a class="zf-card tint interactive svc-featured" href={`/services?id=sb-${FEATURED.id}`} id="homeSvcFeatured">
+        <a class="zf-card tint interactive svc-featured" href={`/services/sb-${FEATURED.id}/`} id="homeSvcFeatured">
           <div class="sf-head">
             <span class="disc lg">{FEATURED.glyph}</span>
             <div><span class="badge">{FEATURED.kind}</span><h3>{FEATURED.name}</h3></div>
@@ -176,7 +176,7 @@ const homeJsonLd = {
         )}
         <div class="svc-small" id="homeSvcSmall">
           {SVC.map(it => (
-            <a class="zf-card interactive svc-card" href={`/services?id=sb-${it.id}`}>
+            <a class="zf-card interactive svc-card" href={`/services/sb-${it.id}/`}>
               <span class="disc">{it.glyph}</span>
               <div class="sc-body">
                 <h4>{it.name}</h4><p>{it.line}</p>
@@ -349,7 +349,7 @@ const homeJsonLd = {
         return '<div style="display:flex;align-items:center;gap:14px;padding:12px 0;'+(idx?'border-top:1px solid var(--rose-100);':'')+'">'+thumb+
           '<div style="flex:1;min-width:0"><div style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">'+escH(nm)+'</div>'+
           (line?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13px;line-height:1.6;color:var(--text-secondary)">'+escH(line)+'</div>':'')+'</div>'+
-          '<span style="font-family:var(--font-sans);font-size:13.5px;color:var(--ink-700);white-space:nowrap">NT$ '+escH(p.price)+'</span></div>';
+          '<span style="font-family:var(--font-sans);font-size:13.5px;color:var(--ink-700);white-space:nowrap">NT$ '+(Number(p.price)||0).toLocaleString('en-US')+'</span></div>';   // 2026-10-01（廣告前全站掃描）：原本印原始數字「NT$ 1200」，同頁其他價格都有千分位 → 補千分位
       }).join('');
     }).catch(function(){ none('選物清單暫時讀不到，點下面看全部選物。'); });
   })();
@@ -371,7 +371,7 @@ const homeJsonLd = {
       if(!all.length) return;
       var featured = all.find(function(s){ return /知運勢|代觀/.test(s.name); }) || all.find(function(s){ return /元辰宮/.test(s.name); }) || all[0];
       if(featBox && featured){
-        featBox.setAttribute('href', '/services?id=sb-' + featured.id);
+        featBox.setAttribute('href', '/services/sb-' + featured.id + '/');   // 2026-10-01（廣告前全站掃描）：原本連 /services?id=，要等列表頁兩支 API 都成功才轉到項目頁，任一支壞就卡在列表頁 → 直接連項目頁
         setTxt(featBox, '.disc', glyph(featured.name));
         setTxt(featBox, 'h3', cleanNm(featured.name));
         setTxt(featBox, '.sf-line', lineOf(featured,64));
@@ -391,7 +391,7 @@ const homeJsonLd = {
           var s = picks[j];
           if(!s){ cards[j].style.display='none'; continue; }
           cards[j].style.display='';
-          cards[j].setAttribute('href', '/services?id=sb-' + s.id);
+          cards[j].setAttribute('href', '/services/sb-' + s.id + '/');
           setTxt(cards[j], '.disc', glyph(s.name));
           setTxt(cards[j], 'h4', cleanNm(s.name));
           setTxt(cards[j], '.sc-body p', lineOf(s,40));
@@ -479,6 +479,9 @@ const homeJsonLd = {
   .cf-name { font-family: var(--font-serif); font-size: 26px; font-weight: 500; color: var(--accent-press); margin: 0 0 6px; }
   .cf-rule { width: 22px; height: 1px; background: var(--rose-200); margin: 2px 0 8px; }
   .cf-line { font-family: var(--font-serif); font-size: 11.5px; line-height: 1.7; color: var(--text-secondary); }
+  /* 2026-10-01（廣告前全站掃描）：360／375px 手機三張牌總寬 3×104＋2×12＝336 大過卡片外框（360 時 324），按「占卜」後左右牌突出白框 12px
+     → 390px 以下牌縮到 92、間距 8（整排 292），高度不變，正面左右留白 12→8 讓最長牌文仍排得下（放在 .card-front 基本樣式之後，才蓋得過） */
+  @media (max-width: 389px) { .cards { gap: 8px; } .card { width: 92px; } .card-front { padding: 14px 8px; } }
   .draw-hint { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); letter-spacing: 0.04em; }
   .draw-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; }
 

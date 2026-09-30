@@ -81,7 +81,8 @@ import '../styles/global.css';
     .sp-typing .dots span:nth-child(3){animation-delay:.4s}
     @keyframes spBlink{0%,100%{opacity:.3}50%{opacity:1}}
     /* 輸入列 */
-    .sp-input{flex:none;border-top:1px solid var(--border-soft);padding:10px 0 18px;display:flex;gap:10px;align-items:center;background:var(--surface-page)}
+    /* 2026-10-01（廣告前全站掃描）：viewport-fit=cover 下原本底距固定 18px，iPhone 輸入框與送出鈕壓進底部手勢區；照 spirit 頁加 safe-area（LINE 版 concierge.html 同步） */
+    .sp-input{flex:none;border-top:1px solid var(--border-soft);padding:10px 0 calc(18px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;background:var(--surface-page)}
     .sp-input textarea{flex:1;padding:12px 16px;font-family:var(--font-serif);font-size:16px;line-height:1.6;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);outline:none;resize:none;max-height:120px}
     .sp-input textarea:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring)}
     .sp-input textarea:disabled{opacity:.5}
@@ -306,6 +307,8 @@ import '../styles/global.css';
         // 繞圈→占卜出口卡（DS：surface-tint 卡 + DS primary 按鈕）
         var a=document.createElement('div'); a.className='wc-action';
         var abtn=document.createElement('a'); abtn.className='wc-action-btn'; abtn.href=ui.url;
+        // 2026-10-01（廣告前全站掃描）：桌機 SB 頁的 iframe 小面板（embed=1）原本同框跳轉，占卜整頁被塞進 380 寬的面板、回不去對話；iframe 模式改開新分頁（獨立頁、手機全螢幕照舊同頁）
+        var de=document.documentElement; if(de.classList.contains('embed')&&!de.classList.contains('embed-page')){ abtn.target='_blank'; abtn.rel='noopener'; }
         abtn.textContent=(ui.label||'先起一卦，老師依卦給你一張靈符解方')+' →';
         a.appendChild(abtn); msgsEl.appendChild(a); msgsEl.scrollTop=msgsEl.scrollHeight;
       } else if(ui.kind==='handoff' && ui.url){
@@ -430,14 +433,17 @@ import '../styles/global.css';
       showTyping();
       S.hydrating=true; sendEl.disabled=true; taEl.disabled=true;   // 撈歷史期間不准送，避免兩邊打架
       function hydrateDone(){ S.hydrating=false; sendEl.disabled=false; taEl.disabled=false; }
+      // 2026-10-01（廣告前全站掃描）：原本沒逾時，歷史請求掛住時輸入框一直鎖著、整頁不能打字；對齊 ConciergeWidget 15 秒放行，晚到的回應不再動畫面
+      setTimeout(function(){ if(S.hydrating){ hideTyping(); hydrateDone(); greet(); } },15000);
       fetch(url,{headers:h}).then(function(r){return r.json()}).then(function(d){
+        if(!S.hydrating) return;
         hideTyping(); hydrateDone();
         // 跨裝置接回：後端回了最近對話的 token → 認領存本機，之後續聊接同一段
         if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} }
         var ms=(d&&d.messages)||[];
         if(ms.length){ ms.forEach(function(m){ addBubble(m.role==='user'?'user':'bot', m.content); }); }
         else { greet(); }
-      }).catch(function(){ hideTyping(); hydrateDone(); greet(); });
+      }).catch(function(){ if(!S.hydrating) return; hideTyping(); hydrateDone(); greet(); });
     })();
 
     // 漢堡選單

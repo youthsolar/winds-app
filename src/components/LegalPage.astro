@@ -1,9 +1,9 @@
 ---
 import type { LegalContent, Block } from '../data/legal';
-import { UPDATED, CONTACT } from '../data/legal';
+import { CONTACT } from '../data/legal';
 interface Props { content: LegalContent; }
 const { content } = Astro.props;
-const { eyebrow, title, lede, intro, sections } = content;
+const { eyebrow, title, lede, intro, sections, updated } = content;   // 2026-10-01（廣告前全站掃描）：日期改讀各頁自己的 updated（條款 9 月、隱私 6 月）
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const isList = (b: Block): b is { list: any[] } => 'list' in b;
 const isParties = (b: Block): b is { parties: any[] } => 'parties' in b;
@@ -15,7 +15,7 @@ const isP = (b: Block): b is { p: string } => 'p' in b;
     <span class="zf-ph-eyebrow">{eyebrow}</span>
     <h1 class="zf-ph-title">{title}</h1>
     <p class="zf-ph-lede">{lede}</p>
-    <p class="zf-ph-meta">最後更新 · {UPDATED}</p>
+    <p class="zf-ph-meta">最後更新 · {updated}</p>
   </header>
 
   {intro && <div class="lg2-intro"><p class="lg2-para">{intro}</p></div>}

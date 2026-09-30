@@ -215,7 +215,7 @@ import { PERSONAS } from '../data/booking-teachers';
           (t.blurb?'<p class="tc-blurb">'+esc(t.blurb)+'</p>':'')+
           (t.quote?'<div class="tc-quote"><i class="ph-fill ph-quotes"></i><span>'+esc(t.quote)+'</span></div>':'')+
           '<div class="tc-foot">'+
-            (price?'<div><span class="tc-price-unit">單次對談</span><span class="tc-price-val">NT$ '+price+' 起</span></div>':'<span></span>')+
+            (price?'<div><span class="tc-price-unit">單次對談</span><span class="tc-price-val">NT$ '+price.toLocaleString('en-US')+' 起</span></div>':'<span></span>')+
             '<button class="zfbtn md secondary" data-book="'+esc(t.id)+'" type="button">預約 <i class="ph-bold ph-arrow-right"></i></button>'+
           '</div></article>';
       }
@@ -279,7 +279,7 @@ import { PERSONAS } from '../data/booking-teachers';
         var inner = '<div class="bw-list">'+svcs.map(function(s,i){
           return '<button class="bw-opt" data-svc="'+i+'" type="button"><span class="bw-opt-main"><span class="bw-opt-nm">'+esc(s.name)+'</span>'+
             (s.duration?'<span class="bw-opt-meta">'+s.duration+' 分鐘</span>':'')+'</span>'+
-            '<span class="bw-opt-price">NT$ '+(Number(s.price)||0).toLocaleString('en-US')+(s.deposit?'<span class="bw-opt-dep">訂金 '+s.deposit+'</span>':'')+'</span></button>';
+            '<span class="bw-opt-price">NT$ '+(Number(s.price)||0).toLocaleString('en-US')+(s.deposit?'<span class="bw-opt-dep">訂金 NT$ '+Number(s.deposit).toLocaleString('en-US')+'</span>':'')+'</span></button>';
         }).join('')+'</div>';
         var foot = W.multiLoc ? '<button class="zfbtn md secondary" data-back type="button">上一步</button>' : null;
         shell(sn(1),'選一個項目',inner,foot);
@@ -349,18 +349,23 @@ import { PERSONAS } from '../data/booking-teachers';
       function showErr(el,m){if(!el)return;el.textContent=m;el.hidden=false;}   /* 節點可能已不在畫面上，不能讓它拋錯把後面的解鎖擋掉 */
       function stepConfirm(){
         var dep=Number(W.svc.deposit)||Number(W.svc.price)||0;
+        /* 2026-10-01（廣告前全站掃描）：不收訂金（訂金 0）或訂金＝總額的項目，原本也寫「線上付訂金…餘額現場結清」，其實線上已付全額。
+           只有「有訂金且小於總額」才算訂金；送後端的金額 dep 不變（後端 charge＝deposit>0?deposit:total） */
+        var isDep=Number(W.svc.deposit)>0&&Number(W.svc.deposit)<(Number(W.svc.price)||0);
+        var goLabel=isDep?'確認並付訂金':'確認並付款';
         var online=W.loc&&W.loc.type==='online';
-        var locNote=W.loc?(online?'遠端諮詢，預約後自動開啟線上會議室連結。':'實體面談：'+(W.loc.note||W.loc.name)+'。'):'';
+        var locNote=W.loc?(online?'遠端諮詢，連線方式會在對談前提供。'   /* 2026-10-01（廣告前全站掃描）：原本承諾「自動開啟會議室連結」，實際沒有程式會產生；照確認信（sb.ts）的說法 */:'實體面談：'+(W.loc.note||W.loc.name)+'。'):'';
         var inner='<div class="bw-confirm">'+
           row('老師',W.prov.name)+row('項目',W.svc.name)+
           (W.loc?row('方式',W.loc.name):'')+row('時間',W.date+' '+W.time)+
           row('聯絡',W.fields.name+' · '+W.fields.phone)+
           (W.fields.topic?row('主題',W.fields.topic):'')+
           (W.fields.note?row('備註',W.fields.note):'')+
-          '<div class="bw-dep"><span>線上付訂金</span><b>NT$ '+dep.toLocaleString('en-US')+'</b></div>'+
-          '<p class="bw-note">'+(locNote?esc(locNote)+' ':'')+'付訂金後即為你保留時段，餘額'+(online?'依老師指示':'現場')+'結清。僅接受 Gmail，採超商/線上付款。</p>'+
+          '<div class="bw-dep"><span>'+(isDep?'線上付訂金':'線上付清')+'</span><b>NT$ '+dep.toLocaleString('en-US')+'</b></div>'+
+          /* 2026-10-01（廣告前全站掃描）：原本寫可用 CVS 付款，但綠界收銀台已排除 CVS／BARCODE（ecpay.ts IgnorePayment），客人進收銀台找不到；改成只寫線上付款 */
+          '<p class="bw-note">'+(locNote?esc(locNote)+' ':'')+(isDep?'付訂金後即為你保留時段，餘額'+(online?'依老師指示':'現場')+'結清。':'付款後即為你保留時段。')+'僅接受 Gmail，採線上付款。</p>'+
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
-        var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-go type="button">確認並付訂金</button>';
+        var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-go type="button">'+goLabel+'</button>';
         shell(sn(4),'確認預約',inner,foot);
         mount.querySelector('[data-back]').addEventListener('click',function(){if(W&&W.creating)return;stepInfo();});   /* 建單中不准回上一步（gpt-6-astra 複核） */
         mount.querySelector('[data-go]').addEventListener('click',function(){
@@ -370,7 +375,7 @@ import { PERSONAS } from '../data/booking-teachers';
              改成真的設 disabled 屬性並在入口擋掉重入；成功會跳轉離開，所以只在失敗時解鎖。 */
           if(btn.disabled)return;
           btn.disabled=true; btn.classList.add('disabled'); btn.textContent='建立訂單中…'; W.creating=true;
-          function unlockGo(){if(W)W.creating=false;btn.disabled=false;btn.classList.remove('disabled');btn.textContent='確認並付訂金';}
+          function unlockGo(){if(W)W.creating=false;btn.disabled=false;btn.classList.remove('disabled');btn.textContent=goLabel;}
           /* 2026-09-28（gpt-6-astra 金流複核第三輪）：前端先查價擋不住（查價後剛好調價、查價失敗照送）。改成帶「畫面上的訂金」
              expected_amount，後端算好要收的金額、開單佔時段之前比對，不一樣就回 price_changed、不開單；這裡更新畫面請客人再按一次。
              20 秒沒回應就解鎖，不會卡在建單中。 */
@@ -415,6 +420,8 @@ import { PERSONAS } from '../data/booking-teachers';
 
       fetch(WORKER_API + '/sb-providers').then(function(r){return r.json();}).then(function(d){
         teachers = (d && d.providers) || [];
+        /* 2026-10-01（廣告前全站掃描）：零價項目（價格與訂金都是 0）原本照列「NT$ 0」，填完資料送單才被後端 400 擋下；線上收不了款的項目不列出來 */
+        teachers = teachers.filter(function(t){ t.services=(t.services||[]).filter(function(s){return Number(s.price)>0||Number(s.deposit)>0;}); return t.services.length>0; });   // 2026-10-01（廣告前全站掃描・總複驗）：項目全被濾掉的老師不列，免得按「預約」後清單是空的
         LOCATIONS = (d && d.locations) || [];
         if (!teachers.length){ grid.innerHTML=''; empty.hidden=false; empty.textContent='老師清單載入中或暫無，稍後再試。'; return; }
         apply();

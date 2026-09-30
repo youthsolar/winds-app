@@ -82,18 +82,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       /* 2026-09-27：原本 init() 每 150ms 無限重試，3.5 秒後就算已經換成外開引導也不會停；
          Google SDK 若很晚才載入（或永遠被擋），init() 會把引導清掉、換回一顆在這個瀏覽器按不動的
          Google 按鈕，副標也還是藏著＝畫面自相矛盾。改成：逾時就停止輪詢，且引導出來後不再蓋回去。 */
+      /* 2026-10-01（廣告前全站掃描）：一般 Safari／Chrome 在慢網路（冷快取、約 5 Mbps 以下）Google 腳本要 5–6 秒才到，
+         原本 3.5 秒就停止輪詢、換成「不支援」後永遠不再補按鈕，只能重新整理。改成：
+         逾時後放慢成每秒一次、最多等到 60 秒；逾時引導（data-fb="timeout"）在 Google 腳本到了之後換回真按鈕並恢復副標，
+         App 內建瀏覽器的引導（data-fb="inapp"）維持 9/27 的做法，不蓋回去（照 gift.astro 的「GSI 晚到換回真按鈕」）。 */
       var GSI_DEADLINE = Date.now() + 3500;   // 與下面 setTimeout(fallback, 3500) 同一個時間點
+      var GSI_GIVEUP = Date.now() + 60000;
       function init() {
         if (!(window.google && google.accounts && google.accounts.id)) {
-          if (Date.now() > GSI_DEADLINE) return;
-          setTimeout(init, 150); return;
+          if (Date.now() > GSI_GIVEUP) return;
+          setTimeout(init, Date.now() > GSI_DEADLINE ? 1000 : 150); return;
         }
-        if ((document.getElementById('lgGoogle') || {}).getAttribute && document.getElementById('lgGoogle').getAttribute('data-fb')) return;
+        if ((document.getElementById('lgGoogle') || {}).getAttribute && document.getElementById('lgGoogle').getAttribute('data-fb') === 'inapp') return;
         google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onCredential, auto_select: false, context: 'signin' });
         var mount = document.getElementById('lgGoogle');
         if (mount) {
           mount.innerHTML='';
           mount.removeAttribute('data-fb');
+          var sub = document.querySelector('.lg-sub');
+          if (sub) sub.style.display = '';   // 逾時引導藏掉的副標放回來
           google.accounts.id.renderButton(mount, { theme: (window.ZFTheme&&ZFTheme.isDark())?'filled_black':'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
         }
         // One Tap 加碼（被 cooldown 抑制也沒關係）
@@ -106,7 +113,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         var mount = document.getElementById('lgGoogle');
         if (!mount) return;
         if (!force && mount.childNodes.length) return;   // 逾時路徑：只在掛載點還空的時候接手
-        mount.setAttribute('data-fb', '1');
+        mount.setAttribute('data-fb', force ? 'inapp' : 'timeout');   // 分開兩種來源：只有 inapp 不准被 init() 蓋回按鈕
         // 藏掉副標，否則「用 Google 帳戶登入…」會跟下面的「不支援」自相矛盾
         var sub = document.querySelector('.lg-sub');
         if (sub) sub.style.display = 'none';

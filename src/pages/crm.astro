@@ -81,7 +81,8 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
     const d = new Date(x); if (isNaN(d.getTime())) return String(ts).slice(0, 10);
     return new Date(d.getTime() + 8 * 3600000).toISOString().slice(0, 10);
   };
-  const TIER: Record<string, [string, string]> = { paid: ['付過錢', 'rose'], booked: ['預約過', 'clay'], engaged: ['有互動', 'sage'], lead: ['只有名單', 'neutral'] };
+  // 2026-09-30（廣告前全站掃描）：原本 booked 用 'clay'，但 ds.css 沒有 .zf-badge.clay（只有 .zf-tag.clay），「預約過」徽章會沒底色沒字色；改用既有的 gold 變體（ds.css:45），四種 tier 不撞色。
+  const TIER: Record<string, [string, string]> = { paid: ['付過錢', 'rose'], booked: ['預約過', 'gold'], engaged: ['有互動', 'sage'], lead: ['只有名單', 'neutral'] };
   const STATUS: Record<string, string> = { Pending: '未付款', pending: '未付款', Failed: '付款失敗', canceled: '已取消', unpaid: '未付款', Expired: '保留過期', PaidSbFailed: '已收款・安排中' };
 
   type P = { key: string; name: string; email: string; phone: string; birth: string; sources: string[]; tier: string; spend: number; paid_count: number; event_count: number; last_activity: string; alive_at: string; last_sent_at: string; last_click_at: string; tags: string[]; note: string };

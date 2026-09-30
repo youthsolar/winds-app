@@ -50,7 +50,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             if (own && own.reqKey) { var cur = JSON.parse(sessionStorage.getItem(own.reqKey) || 'null'); if (cur && own.reqId && cur.id === own.reqId) sessionStorage.removeItem(own.reqKey); }
             sessionStorage.removeItem(ownKey);
           } catch (e) {}
-          box.innerHTML = '<div class="lp-paid"><i class="ph ph-check-circle"></i><h3>已收到你的訂單</h3><p>' + esc(d.product_name) + '（' + esc(d.variant) + '）· ' + ntd(d.amount) + '<br>老師會依你的生辰親繪開光後，寄到 ' + esc(d.cvs_store_name || '你選的門市') + '。<br>到店會另行通知。訂單編號 <code>' + esc(no) + '</code>' + (d.sandbox ? '<br><span style="color:var(--text-muted)">（測試訂單，未實際扣款）</span>' : '') + '</p></div>';
+          // 2026-09-30（廣告前全站掃描）：金龍板只有一款、款式標題是空字串，原本印成「…開光（）· NT$ 6,800」；款式為空就不印括號。
+          // 品名照商品頁 [id].astro 同一條規則只在顯示端清理（去【】、切掉「/ …」尾巴），D1 存的 product_name 不動
+          var pname = String(d.product_name == null ? '' : d.product_name).split('/')[0].replace(/[【】]/g, '').trim();
+          box.innerHTML = '<div class="lp-paid"><i class="ph ph-check-circle"></i><h3>已收到你的訂單</h3><p>' + esc(pname) + (d.variant ? '（' + esc(d.variant) + '）· ' : ' · ') + ntd(d.amount) + '<br>老師會依你的生辰親繪開光後，寄到 ' + esc(d.cvs_store_name || '你選的門市') + '。<br>到店會另行通知。訂單編號 <code>' + esc(no) + '</code>' + (d.sandbox ? '<br><span style="color:var(--text-muted)">（測試訂單，未實際扣款）</span>' : '') + '</p></div>';
         } else {
           box.innerHTML = '<div class="lp-paid"><i class="ph ph-clock" style="color:var(--text-muted)"></i><h3>付款尚未完成</h3><p>訂單 <code>' + esc(no) + '</code> 狀態：' + esc((d && d.status) || '未知') + '。若你已完成付款，稍等一下再重新整理；仍有問題請聯絡我們。</p></div>';
         }

@@ -151,7 +151,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .gf-terms a{color:var(--rose-500);text-decoration:none;}
     .gf-terms a:hover{text-decoration:underline;}
     .gf-brand{text-align:center;border-top:1px solid var(--border-soft);padding-top:20px;}
-    .gf-brand img{height:50px;width:auto;opacity:0.8;}
+    /* 2026-10-01（廣告前全站掃描）：全站基礎樣式把 img 設成 block，text-align 置中對它無效 → logo 貼左、標語置中；左右 auto 讓 logo 置中 */
+    .gf-brand img{height:50px;width:auto;opacity:0.8;margin:0 auto;}
     .gf-brand p{font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-muted);margin:8px 0 0;}
   </style>
   <!-- 這四條給 fallback() 用 innerHTML 注入的 DOM：Astro 的 scoped style 會加

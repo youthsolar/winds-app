@@ -30,7 +30,8 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
         <h2>請輸入老師密碼</h2>
         <p class="auth-desc">此為老師專用排盤工具，需要密碼才能使用。<br/>密碼由負責人提供，請勿外流。</p>
         <form id="pwd-form" style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
-          <input type="password" id="pwd-input" autocomplete="off" placeholder="老師密碼" style="padding:11px 14px;border:1px solid var(--border-soft);border-radius:var(--radius-md);font-family:var(--font-serif);font-size:15px;text-align:center" />
+          <!-- 2026-09-30（廣告前全站掃描）：inline 15px 小於 16px，iPhone Safari 點進去會整頁自動放大、進表單後不縮回 → 改 16px（同頁 .ziwei-form input） -->
+          <input type="password" id="pwd-input" autocomplete="off" placeholder="老師密碼" style="padding:11px 14px;border:1px solid var(--border-soft);border-radius:var(--radius-md);font-family:var(--font-serif);font-size:16px;text-align:center" />
           <button type="submit" class="submit-btn" style="margin:0">進入排盤工具</button>
           <p id="pwd-error" class="auth-note" style="color:var(--critical);min-height:1.2em" hidden>密碼錯誤，請再試一次</p>
         </form>
@@ -121,7 +122,7 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
             <option value="116.4">北京 116.4°E（-14 min）</option>
             <option value="114.1">香港 114.1°E（-24 min）</option>
             <option value="139.7">東京 139.7°E（+19 min）</option>
-            <option value="103.8">新加坡 103.8°E（+15 min, MYT/SGT 為 120°E zone）</option>
+            <!-- 2026-10-01（廣告前全站掃描）：拿掉「新加坡」：後端以經度就近取整推時區（UTC+7），新加坡實際用 UTC+8，校正差一小時會跨時辰；LINE 內頁本來就沒有這個選項 -->
             <option value="-122.4">舊金山 -122.4°E（-10 min）</option>
             <option value="-123.1">溫哥華 -123.1°E（-12 min）</option>
             <option value="-118.2">洛杉磯 -118.2°E（+7 min）</option>

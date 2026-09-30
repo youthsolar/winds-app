@@ -4,6 +4,8 @@ import { env } from 'cloudflare:workers';
 
 // EasyStore（shop.winds.tw）舊網址 → winds.tw 新位置；2026-09-03 內容搬遷後啟用。
 // 只攔 ES 專屬路徑前綴（winds.tw 本站沒有這些路徑），shop.winds.tw 路由掛上本 worker 後其餘一律導回 /shop/。
+// 2026-10-01（廣告前全站掃描）：「其餘一律導回」只對沒有靜態檔的路徑有效——預先產好的頁（/blog/…、/home-gua/ 等）由資產層先回 200，
+// 輪不到這支中介層，shop.winds.tw 上會出現整頁副本；這部分要在 Cloudflare 用 Redirect Rule 導走（ES 前綴以外的 shop.winds.tw 全 301 到 /shop/）。
 const MAP = new Map<string, string>(esRedirects as [string, string][]);
 const ES_PREFIX = /^\/(blogs|pages|products|collections|cart|checkout|search)(\/|$)/;
 const BASE = 'https://winds.tw';
@@ -60,7 +62,9 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   const isShopHost = host === 'shop.winds.tw';
   if (!isShopHost && !ES_PREFIX.test(pathname)) return next();
 
-  const p = pathname.replace(/\/+$/, '') || '/';
+  // 2026-10-01（廣告前全站掃描）：URL.pathname 一律是百分比編碼（%E4%B8%8D…），對照表的中文鍵用原字，
+  // 兩條中文舊文章網址查不到、被丟到 /blog/ 首頁；先解碼再查（解碼失敗就用原字串）。
+  const p = (() => { try { return decodeURIComponent(pathname); } catch { return pathname; } })().replace(/\/+$/, '') || '/';
   let to = MAP.get(p);
   if (!to) {
     if (p.startsWith('/blogs')) to = '/blog/';

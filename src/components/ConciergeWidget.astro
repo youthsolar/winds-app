@@ -211,7 +211,10 @@
     window.wcOpen=open;
     document.addEventListener('click',function(e){
       var t=e.target&&e.target.closest?e.target.closest('[data-wc-open]'):null;
-      if(!t) return; e.preventDefault(); open();
+      if(!t) return;
+      // 2026-10-01（廣告前全站掃描）：漏斗落地頁把風小編整個藏起來（display:none），原本照樣攔下連結並鎖住捲動→手機整頁卡死、桌機按了沒反應；藏著就不攔，讓 href 照常導到預約頁
+      if(getComputedStyle(root).display==='none') return;
+      e.preventDefault(); open();
     });
     // 對話內泡泡（DS 卡）：選時段 / 付款。點時段→回送訊息；付款→開連結。
     function renderUi(ui){

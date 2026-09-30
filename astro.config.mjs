@@ -20,6 +20,25 @@ async function servicePages() {
 }
 const SERVICE_PAGES = await servicePages();
 
+// 2026-10-01（廣告前全站掃描）：主題卦頁（/love-gua/ 等）是即時讀的，還沒有核准的卦時頁面自己掛 noindex，
+// 但 sitemap 在 build 時照收 → 送出一個叫搜尋引擎別收的網址（/love-gua/ 自 9/6 起就是這樣）。
+// build 時問一次各主題有沒有卦：確定回「沒有」（ok:true、item:null）才排除；問不到就照收，免得 worker 暫時故障把正常頁踢出 sitemap。
+// 主題清單對 src/data/topics.ts 的 TOPICS；有卦之後要等下一次 build 才會重新收錄。
+async function emptyTopicPages() {
+  const topics = { love: '/love-gua/', wealth: '/wealth-gua/', fortune: '/fortune-gua/' };
+  const out = [];
+  await Promise.all(Object.entries(topics).map(async ([key, path]) => {
+    try {
+      const r = await fetch('https://api.winds.tw/topic-gua?topic=' + key, { headers: { Accept: 'application/json' } });
+      if (!r.ok) return;
+      const j = await r.json();
+      if (j && j.ok === true && !j.item) out.push(path);
+    } catch { /* 問不到＝不排除 */ }
+  }));
+  return out;
+}
+const EMPTY_TOPIC_PAGES = await emptyTopicPages();
+
 /**
  * 剝掉文章 markdown 結尾 Content-Alchemy pipeline 埋入的促銷區塊
  * （「## 💫 相關推薦」+ 法器連結 + 「✨ 免費占卜 CTA」）。
@@ -187,10 +206,14 @@ export default defineConfig({
         '/divination/', '/spirit/', '/teacher-ziwei/',
         // 內部 CRM（2026-09-03），密碼閘＋noindex，絕不進 sitemap
         '/crm/',
+        // 2026-10-01（廣告前全站掃描）：老師預約後台（內部、密碼閘＋noindex）原本漏排，被公開列在 sitemap 上
+        '/teacher-booking/',
         // 一頁式 dev 預覽（2026-09-03），noindex
         '/lp/',
         // 訂單狀態頁（2026-09-28）：個人訂單查詢，noindex
         '/shop/order/',
+        // 還沒有核准的卦、此刻掛 noindex 的主題卦頁（見上方 emptyTopicPages）
+        ...EMPTY_TOPIC_PAGES,
       ].some((x) => page.includes(x)),
     }),
   ],

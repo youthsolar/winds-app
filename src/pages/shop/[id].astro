@@ -27,6 +27,9 @@ const [rawName, rawSub = ''] = String(prod.name).split('/');
 const name = rawName.replace(/[【】]/g, '').trim();
 const sub = rawSub.trim();
 const isTalisman = /符令|符/.test(name);
+// 2026-09-30（廣告前全站掃描）：訂購區「總計（含開光，運費 0）」原本寫死，命書籤詩（副標「親撰寄送」）跟上面 hero 價格區對不上；
+// 改成名稱是符令、或副標有寫「開光」（手環／金龍板）才標「含開光」
+const blessed = isTalisman || /開光/.test(sub);
 // D1 的款式用 id 標「有效」；Woo 的款式用 vid（款式編號，結帳要帶）
 const variants: { vid?: number; title: string; price: number }[] = (prod.variants || []).filter((v: any) => v && (v.id || v.vid));
 const multi = variants.length > 1;
@@ -120,7 +123,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
                 </div>
               </fieldset>
             ) : (variants[0]?.vid ? <input type="hidden" name="variation_id" value={variants[0].vid} /> : null)}
-            <div class="lp-total"><span>總計（含開光，運費 0）</span><b id="wooTotal">{ntd(variants[0]?.price ?? prod.price)}</b></div>
+            <div class="lp-total"><span>總計（{blessed ? '含開光，' : ''}運費 0）</span><b id="wooTotal">{ntd(variants[0]?.price ?? prod.price)}</b></div>
             <button class="zf-btn primary lg full" type="submit">前往填資料與付款<i class="ph ph-arrow-right"></i></button>
             <p class="lp-paynote">下一頁填本人姓名、西元生日與時辰、取貨門市後付款。付款由綠界 ECPay 處理，支援信用卡、Apple Pay、LINE Pay、台灣 Pay；本站不會保存你的卡號。</p>
           </form>
@@ -173,7 +176,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
                 <p class="lp-err" id="orderErr" hidden></p>
               </div>
 
-              <div class="lp-total"><span>總計（含開光，運費 0）</span><b id="totalTxt">{ntd(variants[0]?.price ?? prod.price)}</b></div>
+              <div class="lp-total"><span>總計（{blessed ? '含開光，' : ''}運費 0）</span><b id="totalTxt">{ntd(variants[0]?.price ?? prod.price)}</b></div>
               <button class="zf-btn primary lg full" type="submit" id="payBtn">確認並付款<i class="ph ph-lock-key"></i></button>
               <p class="lp-paynote">付款由綠界 ECPay 處理，支援信用卡、Apple Pay、LINE Pay、台灣 Pay。本頁不會保存你的卡號。</p>
         </form>
@@ -263,8 +266,9 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     .lp-store b { display: block; font-family: var(--font-serif); font-size: 15px; color: var(--ink-900); }
     .lp-store span { display: block; font-family: var(--font-sans); font-size: 12.5px; color: var(--text-secondary); }
     .lp-err { grid-column: 1 / -1; font-family: var(--font-sans); font-size: 13px; color: var(--critical); margin: 0; }
-    .lp-total { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 0 14px; padding: 14px 16px; background: var(--surface-tint); border-radius: var(--radius-md); font-family: var(--font-serif); }
-    .lp-total b { font-size: 24px; color: var(--accent-press); }
+    /* 2026-10-01（廣告前全站掃描）：手機上總計金額在千分位後折行，改成可換行、金額不斷行靠右（同 yuanchen-wealth） */
+    .lp-total { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between; align-items: baseline; margin: 20px 0 14px; padding: 14px 16px; background: var(--surface-tint); border-radius: var(--radius-md); font-family: var(--font-serif); }
+    .lp-total b { font-size: 24px; color: var(--accent-press); white-space: nowrap; margin-left: auto; }
     .lp-paynote { font-family: var(--font-sans); font-size: 12px; line-height: 1.7; color: var(--text-muted); text-align: left; margin: 12px 0 0; }
 
     .lp-faq { padding-bottom: 72px; }

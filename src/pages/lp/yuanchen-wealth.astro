@@ -139,7 +139,8 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
             <li><i class="ph ph-pen-nib"></i>符令由老師依個案親繪，售出後不接受退換。</li>
             <li><i class="ph ph-identification-card"></i>需要本人姓名與國曆生辰，精確到時辰；不確定時辰請選「不確定」，老師會另行處理。</li>
             <li><i class="ph ph-fire"></i>法效 49 天，期滿請燒化或交回。</li>
-            <li><i class="ph ph-moon-stars"></i>若想做更深度的財運調整，建議搭配<a class="zf-text-link" href="/lp/fengyiyang/#items">元辰宮代觀</a>。</li>
+            <!-- 2026-10-01（廣告前全站掃描）：li 是 flex，文字、連結、句號各成一欄 → 手機上連結被擠成「元辰宮代⏎觀」、句號漂到右緣；文字包進一個 span，li 只剩 icon＋span 兩欄 -->
+            <li><i class="ph ph-moon-stars"></i><span>若想做更深度的財運調整，建議搭配<a class="zf-text-link" href="/lp/fengyiyang/#items">元辰宮代觀</a>。</span></li>
           </ul>
         </section>
 
@@ -278,8 +279,10 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     .lp-store b { display: block; font-family: var(--font-serif); font-size: 15px; color: var(--ink-900); }
     .lp-store span { display: block; font-family: var(--font-sans); font-size: 12.5px; color: var(--text-secondary); }
     .lp-err { grid-column: 1 / -1; font-family: var(--font-sans); font-size: 13px; color: var(--critical); margin: 0; }
-    .lp-total { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 0 14px; padding: 14px 16px; background: var(--surface-tint); border-radius: var(--radius-md); font-family: var(--font-serif); }
-    .lp-total b { font-size: 24px; color: var(--accent-press); }
+    /* 2026-10-01（廣告前全站掃描）：手機 390px 放不下同一行時，金額被折成「NT$⏎2,600」、左邊折成「運費⏎0）」
+       → 金額不斷行；放不下就整個金額換到下一行靠右（flex-wrap＋margin-left:auto），桌機外觀不變 */
+    .lp-total { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between; align-items: baseline; margin: 20px 0 14px; padding: 14px 16px; background: var(--surface-tint); border-radius: var(--radius-md); font-family: var(--font-serif); }
+    .lp-total b { font-size: 24px; color: var(--accent-press); white-space: nowrap; margin-left: auto; }
     .lp-paynote { font-family: var(--font-sans); font-size: 12px; line-height: 1.7; color: var(--text-muted); text-align: left; margin: 12px 0 0; }
 
     .lp-faq { padding-bottom: 72px; }

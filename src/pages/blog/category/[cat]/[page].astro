@@ -5,7 +5,8 @@ import BlogCategoryBody from '../../../../components/BlogCategoryBody.astro';
 
 export async function getStaticPaths() {
   const PER_PAGE = 12;
-  const catOrder = ['感情挽回','桃花運','斬桃花','元辰宮','財運','塔羅','星座','命理','兩性關係','感情和合','開運招財','命理占卜','其他'];
+  // 2026-10-01（廣告前全站掃描）：跟 /blog/ 首頁同一套排序（WP 現行分類名、表外照篇數、「其他」最後）
+  const catOrder = ['感情挽回','桃花運','斬桃花','元辰宮','財運','塔羅牌','星座運勢','命理','兩性關係','感情和合','開運招財','命理占卜'];
   const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
   const byCat: Record<string, typeof posts> = {};
   for (const p of posts) {
@@ -15,8 +16,8 @@ export async function getStaticPaths() {
   const allCats = Object.keys(byCat)
     .map(name => ({ name, count: byCat[name].length }))
     .sort((a, b) => {
-      const ai = catOrder.indexOf(a.name), bi = catOrder.indexOf(b.name);
-      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+      const rank = (c: string) => (c === '其他' ? 999 : catOrder.includes(c) ? catOrder.indexOf(c) : 900);
+      return rank(a.name) - rank(b.name) || b.count - a.count || a.name.localeCompare(b.name, 'zh-Hant');
     });
 
   const paths: any[] = [];

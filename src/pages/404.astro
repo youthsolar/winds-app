@@ -1,0 +1,32 @@
+---
+/* 2026-10-01（廣告前全站掃描）：站上原本沒有自訂 404，打錯網址會看到 Astro 內建的英文黑底「404: Not Found」，沒有導覽、沒有回首頁。
+   補一頁品牌 404：文案照搬 LINE 內頁 liff.winds.tw/404.html 已上線的那一版，不另寫新文案。
+   ⚠️ 一定要 prerender=false：預先產生的 404 頁會讓 Astro 對「對不到路由」的請求直接回那份靜態檔、不跑 middleware，
+   EasyStore 舊網址轉址（/blogs/…、/products/…、shop.winds.tw）會全部變成 404（本機 wrangler dev 實測過）。
+   即時產生時 middleware 照跑，狀態碼仍是 404；sitemap 外掛本來就排除 404。 */
+export const prerender = false;
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="找不到這一頁 · 找風問幸福"
+  description="也許連結舊了，也許路走岔了。沒關係，回到起點，重新問一次就好。"
+  noindex={true}
+>
+  <main class="nf-wrap">
+    <header class="zf-page-header center">
+      <h1 class="zf-ph-title">這一頁不在這裡。</h1>
+      <p class="zf-ph-lede">也許連結舊了，也許路走岔了。<br />沒關係，回到起點，重新問一次就好。</p>
+    </header>
+    <a class="zf-btn primary lg nf-btn" href="/">回首頁</a>
+  </main>
+
+  <style>
+    /* 版面照 login.astro 的置中卡殼；字級、按鈕走 ds.css 的 zf-page-header／zf-btn */
+    .nf-wrap{min-height:calc(100vh - 76px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 32px;background:var(--surface-page);text-align:center;}
+    .nf-btn{margin-top:32px;}
+    @media (max-width:760px){
+      .nf-wrap{min-height:calc(100vh - 64px);padding:40px 20px;}
+      .nf-btn{margin-top:26px;}
+    }
+  </style>
+</BaseLayout>

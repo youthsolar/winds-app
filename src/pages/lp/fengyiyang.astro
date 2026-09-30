@@ -101,7 +101,8 @@ const jsonLd = prov ? [
                 <a class="zf-btn primary lg" href="#book">預約老師<i class="ph ph-arrow-down"></i></a>
                 <a class="zf-btn secondary lg" href="#items">看項目與價格</a>
               </div>
-              <p class="lp-meta">線上付訂金即保留時段 · 項目 {ntd(minPrice)} 起 · 共 {services.length} 個項目</p>
+              <!-- 2026-10-01（廣告前全站掃描）：金額「NT$ 3,040」在手機上被折成「NT$ 3,⏎040」→ 金額整段包 nowrap＋不給斷行程式處理 -->
+              <p class="lp-meta">線上付訂金即保留時段 · 項目 <span data-nocjk style="white-space:nowrap">{ntd(minPrice)}</span> 起 · 共 {services.length} 個項目</p>
             </div>
             <figure class="lp-hero-photo">
               <img src={prov.photo} alt={prov.name} width="520" height="520" loading="eager" />
@@ -138,7 +139,7 @@ const jsonLd = prov ? [
                 <h3>{clean(s.name)}</h3>
                 {(LP_FEATURED_DESC[String(s.id)] || [s.desc]).map((t) => <p>{t}</p>)}
                 <button class="zf-btn primary md" type="button" data-pick={s.id}>預約這項<i class="ph ph-arrow-right"></i></button>
-                <span class="lp-fcard-dep">訂金 {ntd(s.deposit)}</span>
+                <span class="lp-fcard-dep">訂金 <span data-nocjk style="white-space:nowrap">{ntd(s.deposit)}</span></span>
               </article>
             ))}
           </div>
@@ -153,7 +154,7 @@ const jsonLd = prov ? [
                     <li>
                       <div class="lp-row-main">
                         <span class="lp-row-name">{clean(s.name)}</span>
-                        <span class="lp-row-meta">{s.duration} 分鐘 · 訂金 {ntd(s.deposit)}</span>
+                        <span class="lp-row-meta">{s.duration} 分鐘 · 訂金 <span data-nocjk style="white-space:nowrap">{ntd(s.deposit)}</span></span>
                       </div>
                       <span class="lp-row-price">{ntd(s.price)}</span>
                       <button class="zf-btn ghost sm" type="button" data-pick={s.id}>預約</button>
@@ -194,7 +195,7 @@ const jsonLd = prov ? [
             <h2 class="zf-sh-title">來之前想知道的</h2>
           </div>
           <details><summary>訂金是多少？餘額什麼時候付？</summary><p>訂金為項目全額的四成，線上付款後時段即保留。餘額實體當天現場結清，遠端依老師指示結清。</p></details>
-          <details><summary>遠端視訊怎麼進行？</summary><p>預約完成後會自動開啟線上會議室連結，時間到用手機或電腦點進去即可，不用另外安裝軟體。</p></details>
+          <details><summary>遠端視訊怎麼進行？</summary><p>預約完成後，連線方式會在對談前提供，時間到用手機或電腦點進去即可，不用另外安裝軟體。</p><!-- 2026-10-01（廣告前全站掃描）：原本寫「自動開啟會議室連結」，實際沒有程式會產生；照確認信的說法 --></details>
           <details><summary>為什麼 Email 只收 Gmail？</summary><p>預約確認信與會議連結都靠信箱送達，Gmail 送達率最穩定，避免你收不到通知。</p></details>
           <details><summary>要準備什麼？</summary><p>本人姓名、西元生日；如果知道出生時辰，也一起準備。</p><p>另外，把你最想問的一兩件事先放在心裡，來了直接跟老師說就好。</p></details>
         </section>
@@ -208,6 +209,8 @@ const jsonLd = prov ? [
     .lp { --lp-max: 1040px; }
     .lp-wrap { max-width: var(--lp-max); margin: 0 auto; padding: 0 28px; box-sizing: border-box; }
     .lp-block { padding-top: 64px; padding-bottom: 8px; }
+    /* 2026-10-01（廣告前全站掃描）：按「預約老師 ↓」跳到 #book，眉題「預約」被 sticky 導覽列蓋住 → 錨點停下時往下留 32px（加上區塊本身上方留白，手機眉題落在約 80px、導覽列底 65px） */
+    #book { scroll-margin-top: 32px; }
     .lp-empty { text-align: center; padding: 80px 20px; font-family: var(--font-serif); color: var(--text-muted); }
 
     /* hero */
@@ -423,17 +426,19 @@ const jsonLd = prov ? [
       function row(k, v) { return '<div class="bw-row"><span class="bw-k">' + esc(k) + '</span><span class="bw-v">' + esc(v) + '</span></div>'; }
       function stepConfirm() {
         var dep = Number(W.svc.deposit) || Number(W.svc.price) || 0, online = W.loc && W.loc.type === 'online';
+        /* 2026-10-01（廣告前全站掃描）：訂金 0 或訂金＝全額的項目收的是全額，原本照樣寫「線上付訂金…餘額結清」（同 booking.astro 的改法） */
+        var isDep = Number(W.svc.deposit) > 0 && Number(W.svc.deposit) < (Number(W.svc.price) || 0), goLabel = isDep ? '確認並付訂金' : '確認並付款';
         var inner = '<div class="bw-confirm">' + row('老師', prov.name) + row('項目', clean(W.svc.name)) + row('方式', W.loc.name) + row('時間', W.date + ' ' + W.time) + row('聯絡', W.fields.name + ' · ' + W.fields.phone) +
           (W.fields.topic ? row('主題', W.fields.topic) : '') + (W.fields.note ? row('備註', W.fields.note) : '') +
-          '<div class="bw-dep"><span>線上付訂金</span><b>' + ntd(dep) + '</b></div>' +
-          '<p class="bw-note">' + (online ? '遠端視訊，預約後自動開啟線上會議室連結。' : '實體面談：' + esc(W.loc.note || W.loc.name) + '。') + ' 付訂金後即為你保留時段，餘額' + (online ? '依老師指示' : '現場') + '結清。</p>' +
+          '<div class="bw-dep"><span>' + (isDep ? '線上付訂金' : '線上付清') + '</span><b>' + ntd(dep) + '</b></div>' +
+          '<p class="bw-note">' + (online ? '遠端視訊，連線方式會在對談前提供。' : '實體面談：' + esc(W.loc.note || W.loc.name) + '。') + (isDep ? ' 付訂金後即為你保留時段，餘額' + (online ? '依老師指示' : '現場') + '結清。' : ' 付款後即為你保留時段。') + '</p>' +
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
-        shell(5, '確認預約', inner, '<button class="zf-btn md secondary" data-back type="button">上一步</button><button class="zf-btn md primary" data-go type="button">確認並付訂金</button>');
+        shell(5, '確認預約', inner, '<button class="zf-btn md secondary" data-back type="button">上一步</button><button class="zf-btn md primary" data-go type="button">' + goLabel + '</button>');
         on('[data-back]', function () { if (W.creating) return; stepInfo(); });   // 建單中不准回上一步
         on('[data-go]', function (btn) {
           if (btn.disabled) return;
           btn.disabled = true; btn.textContent = '建立訂單中…'; W.creating = true;
-          function unlockGo() { W.creating = false; btn.disabled = false; btn.textContent = '確認並付訂金'; }
+          function unlockGo() { W.creating = false; btn.disabled = false; btn.textContent = goLabel; }
           function showE(m) { var e = document.getElementById('wzErr2'); if (e) { e.textContent = m; e.hidden = false; } }
           /* 2026-09-28（gpt-6-astra 金流複核第三輪）：同預約頁——帶「畫面上的訂金」expected_amount，後端開單佔時段之前比對，
              不一樣就回 price_changed、不開單；這裡更新畫面請客人再按一次。20 秒沒回應就解鎖。 */
@@ -452,7 +457,9 @@ const jsonLd = prov ? [
             body: JSON.stringify(payload) })
             .then(function (r) { return r.json(); }).then(function (d) {
               clearTimeout(to);
-              if (d && d.ok && d.payment_url) { location.href = d.payment_url; return; }
+              // 2026-10-01（廣告前全站掃描）：付款頁的「返回商店」寫死回 LIFF 預約頁，網頁來客回不到這頁 → 帶上這頁網址（back），
+              // 後端 /pay-booking 接上 back 之前會直接忽略這個參數，行為不變
+              if (d && d.ok && d.payment_url) { location.href = d.payment_url + (String(d.payment_url).indexOf('?') < 0 ? '?' : '&') + 'back=' + encodeURIComponent(location.origin + location.pathname); return; }
               unlockGo();
               if (d && d.error === 'already_paid') { W.memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} showE(d.message || '這筆預約已經付款完成，我們會為你安排。'); return; }
               if (d && d.error === 'req_conflict') { W.memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} showE(d.message || '資料跟上一次不一樣，請再按一次。'); return; }
@@ -479,13 +486,56 @@ const jsonLd = prov ? [
         });
       });
 
-      /* 付完訂金回來（/pay-booking 的 ClientBackURL 目前回 liff.winds.tw/booking，這裡先留接口）。
+      /* 付完訂金回來（?paid=單號）。
          2026-09-27：原本只要網址有任何非空的 paid 參數就顯示「已收到訂金、時段保留給你了」，
          沒有核對單號、付款狀態或簽章——打 ?paid=0 或用舊連結回來的人會以為付款成功，其實後端沒有這筆。
-         目前沒有可以查預約單狀態的端點，所以這裡不再宣告付款結果，只說「以確認信為準」並給一個看得到
-         真實狀態的出口。要真的顯示成功，得先加一支只回狀態的查詢端點再接回來。 */
-      if (new URLSearchParams(location.search).get('paid')) {
-        card.innerHTML = '<div class="bw-body"><div class="bw-done"><i class="ph ph-envelope-simple" style="font-size:36px;color:var(--rose-600)"></i><p>你剛從付款頁回來。這一筆的狀態以收到的確認信為準；也可以到<a href="/bookings">我的預約</a>看這筆現在的狀態。</p></div></div>';
+         2026-10-01（廣告前全站掃描）：9/28 起後端有只回狀態的 /booking-order/:單號 → 照搬 LIFF 預約頁（liff/booking.html checkPaid）
+         的查詢與畫面：查實際狀態再決定怎麼說，待付款自動再查 6 次，每次 10 秒逾時，只認最新一次回應；
+         「重新預約」回這頁的預約區、「LINE」附官方帳號連結。後端 /pay-booking 還是寫死回 LIFF 時，這段只有手動帶 ?paid= 才會進來。 */
+      var PAID_SEQ = 0, WK = '日一二三四五六';
+      function paidView(icon, title, msg, extra) {
+        card.innerHTML = '<div class="bw-body"><div class="bw-done"><i class="ph ph-' + icon + '" style="font-size:36px;color:var(--rose-600)"></i>' +
+          '<p style="font-size:20px;margin:10px 0 8px">' + esc(title) + '</p>' +
+          '<p class="bw-note" style="max-width:26em;margin:0 auto">' + esc(msg) + '</p>' +
+          (extra ? '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px">' + extra + '</div>' : '') +
+          '<p class="bw-note" style="margin-top:16px">有任何問題，隨時來 <a class="zf-text-link" href="https://lin.ee/tQHsgWB" target="_blank" rel="noopener">LINE</a> 找我們就好。</p></div></div>';
+      }
+      function fmtStart(v) {
+        var d = new Date(String(v || '').slice(0, 10) + 'T00:00:00');
+        if (isNaN(d.getTime())) return '';
+        return (d.getMonth() + 1) + '/' + d.getDate() + '（週' + WK.charAt(d.getDay()) + '）' + String(v).slice(11, 16);
+      }
+      function checkPaid(tradeNo, n) {
+        var again = '<a class="zf-btn primary md" href="' + location.pathname + '#book">重新預約</a>';
+        var retry = '<button class="zf-btn ghost md" type="button" data-recheck>重新查詢</button>';
+        function view(icon, title, msg, extra) { paidView(icon, title, msg, extra); on('[data-recheck]', function () { checkPaid(tradeNo, 0); }); }
+        if (!/^BK[A-Za-z0-9]+$/.test(tradeNo)) { view('question', '找不到這筆預約', '連結可能不完整。如果你已經付款，請直接來 LINE 找我們，我們幫你查。'); return; }
+        var my = ++PAID_SEQ;
+        var ac = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ac) ac.abort(); }, 10000);
+        fetch(API + '/booking-order/' + encodeURIComponent(tradeNo), ac ? { signal: ac.signal } : undefined)
+          .then(function (r) { if (r.status === 404) return { notFound: true }; if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+          .then(function (d) {
+            clearTimeout(to);
+            if (my !== PAID_SEQ) return;
+            if (d && d.notFound) { view('question', '找不到這筆預約', '連結可能不完整。如果你已經付款，請直接來 LINE 找我們，我們幫你查。'); return; }
+            if (!d || !d.ok) throw new Error('bad');
+            var what = [d.provider ? d.provider + ' 老師' : '', d.service || '', fmtStart(d.start)].filter(Boolean).join(' · ');
+            if (d.status === 'Paid') { view('check-circle', '預約完成 🙏', '我們已收到你的訂金' + (what ? '：' + what : '') + '。預約確認信會寄到你的 email，到時候見。'); return; }
+            if (d.status === 'PaidSbFailed') { view('check-circle', '已收到你的訂金 🙏', '我們正在為你安排時段' + (what ? '（' + what + '）' : '') + '，確認後會通知你。'); return; }
+            if (d.status === 'Failed') { view('x-circle', '這次付款沒有完成', '沒有扣款成功。可以回預約頁重新選一次時段。', again); return; }
+            // 保留失效不代表付款一定失效：付款結果可能晚到（同 LIFF 第二輪複核）
+            if (d.status === 'Expired') { view('clock', '這筆預約的保留時間已過', '如果你剛才已經付過款，請先不要重新預約，稍等幾分鐘再查一次，或直接來 LINE 找我們；還沒付款的話，回預約頁重新挑一個時間就好。', retry + again); return; }
+            if (n < 6) { view('clock', '正在確認付款結果…', '付款結果有時會晚一點送到，我們再確認一次。'); setTimeout(function () { if (my === PAID_SEQ) checkPaid(tradeNo, n + 1); }, 5000); return; }
+            view('clock', '還沒收到付款結果', '如果你已經付款，稍等幾分鐘再重新查詢；請先不要重複付款。', retry);
+          })
+          .catch(function () { clearTimeout(to); if (my !== PAID_SEQ) return; view('warning', '暫時查不到付款結果', '這不代表付款沒成功，請先不要重複付款。稍等一下再查一次。', retry); });
+      }
+
+      var paidNo = new URLSearchParams(location.search).get('paid');
+      if (paidNo) {
+        paidView('clock', '正在確認付款結果…', '稍等一下，我們正在確認這筆預約。');
+        checkPaid(paidNo, 0);
+        setTimeout(function () { var bk = document.getElementById('book'); if (bk) bk.scrollIntoView({ block: 'start' }); }, 0);   // 結果在頁尾預約區，回來時直接捲過去
       } else {
         stepLocation();
       }
