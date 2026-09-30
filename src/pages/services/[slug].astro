@@ -41,7 +41,7 @@ try {
     ...sb.map((s: any) => ({
       source: 'sb', slug: `sb-${s.id}`, name: s.name, seoTitle: s.seo_title || '',
       price: Number(s.price) || 0, duration: s.duration || null, image: s.image || '',
-      desc: strip(s.desc), llm: strip(s.llm), category: s.category || '', url: '',
+      desc: strip(s.desc), llm: strip(s.llm), category: s.category || '', url: '', sbId: String(s.sb_id || ''),
     })),
     ...es.map((p: any) => ({
       source: 'es', slug: `es-${p.id}`, name: p.name, seoTitle: p.seo_title || '',
@@ -57,6 +57,26 @@ const siblings = items;
 Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 
 const isSB = item.source === 'sb';
+// 2026-09-30 Jeffery 拍板：預約卡照 DS ServiceDetail 側欄放老師；一個項目可能有 2–6 位老師，照 SB 實際能接的人放
+// 老師資料只是加分，讀不到就回到原本只有價格的卡
+// ⚠️ 網址的 sb-NN 是站內目錄編號，老師名單用的是 SimplyBook 編號（sb_id），兩套不同
+const SB_ID = isSB ? item.sbId : '';
+let teachers: { name: string; photo: string; title: string; line: string }[] = [];
+if (SB_ID) {
+  const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 4000);
+  try {
+    const r = await fetch(API + '/sb-providers', { signal: ac.signal });
+    const d: any = r.ok ? await r.json() : {};
+    teachers = ((d && d.providers) || [])
+      .filter((p: any) => (p.services || []).some((x: any) => String(x.id) === SB_ID))
+      .sort((x: any, y: any) => Number(x.id) - Number(y.id))
+      .map((p: any) => {
+        const desc = String(p.desc || ''); const k = desc.indexOf('：');
+        return { name: String(p.name || ''), photo: String(p.photo || ''),
+          title: k > 0 ? desc.slice(0, k).trim() : '', line: (k > 0 ? desc.slice(k + 1) : desc).replace(/\s+/g, '').trim() };
+      });
+  } catch { teachers = []; } finally { clearTimeout(t); }
+}
 const canonical = `https://winds.tw/services/${item.slug}/`;
 const priceTxt = item.price ? `NT$ ${item.price.toLocaleString('en-US')}` : '';
 const durTxt = item.duration ? `${item.duration} 分鐘` : '';
@@ -129,7 +149,28 @@ const jsonLd = [
       )}
 
       <section class="sd-book">
-        <span class="sd-book-label">{isSB ? '預約這個項目' : '請這件法器'}</span>
+        {teachers.length === 1 && (
+          <>
+            <div class="sd-t-row">
+              <span class="zf-avatar ring sd-av"><img src={teachers[0].photo} alt="" width="52" height="52" /></span>
+              <div>
+                <div class="sd-t-name">{teachers[0].name}</div>
+                {teachers[0].title && <div class="sd-t-title">{teachers[0].title}</div>}
+              </div>
+            </div>
+            {teachers[0].line && <p class="sd-t-line">{teachers[0].line}</p>}
+          </>
+        )}
+        {teachers.length > 1 && (
+          <div class="sd-t-row multi">
+            <span class="sd-avs">{teachers.map((t) => <span class="zf-avatar ring sd-av sm"><img src={t.photo} alt="" width="40" height="40" /></span>)}</span>
+            <div>
+              <div class="sd-t-name">{teachers[0].name}等 {teachers.length} 位老師</div>
+              <div class="sd-t-title">{teachers.map((t) => t.name).join('、')}</div>
+            </div>
+          </div>
+        )}
+        {teachers.length === 0 && <span class="sd-book-label">{isSB ? '預約這個項目' : '請這件法器'}</span>}
         {priceTxt && <div class="sd-book-price">{priceTxt}</div>}
         <a class="zf-btn primary lg full sd-btn" href={isSB ? '/booking' : (item.url || '/booking')}
            {...(isSB ? {} : { target: '_blank', rel: 'noopener' })}>
@@ -177,6 +218,17 @@ const jsonLd = [
     .sd-book-label { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); }
     .sd-book-price { font-family: var(--font-serif); font-size: 28px; font-weight: 500; color: var(--ink-900); margin: 6px 0 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-soft); }
     .sd-btn { font-size: 17px; }
+    /* 老師列＝DS ServiceDetail 側欄：Avatar 52 ring、名字 serif 18/500、頭銜 sans 12.5 muted、一句話 serif 300 14.5/1.8 */
+    .sd-t-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .sd-av { width: 52px; height: 52px; }
+    .sd-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .sd-avs { display: flex; flex: none; }
+    .sd-t-row.multi { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .sd-av.sm { width: 40px; height: 40px; position: relative; }
+    .sd-avs .sd-av.sm + .sd-av.sm { margin-left: -10px; }
+    .sd-t-name { font-family: var(--font-serif); font-size: 18px; font-weight: 500; color: var(--ink-900); }
+    .sd-t-title { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); }
+    .sd-t-line { margin: 0 0 16px; font-family: var(--font-serif); font-weight: 300; font-size: 14.5px; line-height: 1.8; color: var(--text-secondary); max-width: none; }
     .sd-book-note { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); margin: 14px 0 0; text-align: center; }
     .sd-rel { list-style: none; padding: 0; margin: 0; }
     .sd-rel li { padding: 16px 0; border-bottom: 1px solid var(--border-soft); font-family: var(--font-serif); font-size: 17px; font-weight: 500; }
