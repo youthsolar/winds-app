@@ -1,0 +1,109 @@
+---
+// 全站導覽列（2026-10-01 從 BaseLayout 抽出）：BaseLayout 與預約小幫手對話頁共用同一份，改導覽列只改這裡。
+// Jeffery 10/1 拍板：對話頁只換導覽列、不加頁尾（全螢幕聊天，加頁尾會把輸入框擠下去）。
+---
+<nav class="zf-nav">
+  <div class="zf-nav-row">
+    <a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福" /></a>
+    <div class="zf-nav-links">
+      <a href="/">首頁</a>
+      <a href="/divination">問一件事</a>
+      <a href="/blog">案例專欄</a>
+      <a href="/booking">老師介紹</a>
+      <a href="/shop">法器選物</a>
+      <a href="/divination" class="zf-btn ghost sm">占卜</a>
+      <a href="/booking" class="zf-btn primary sm" data-wc-open>預約老師</a>
+      <button class="zf-theme-btn" id="zfThemeBtn" aria-label="切換深淺色"><i class="ph-thin ph-moon-stars"></i></button>
+      <div id="auth-button" class="zf-account"></div>
+    </div>
+    <button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>
+  </div>
+  <div class="zf-drawer" id="zfDrawer" hidden>
+    <a href="/">首頁</a>
+    <a href="/divination">問一件事</a>
+    <a href="/blog">案例專欄</a>
+    <a href="/booking">老師介紹</a>
+    <a href="/shop">法器選物</a>
+    <a href="/divination" class="zf-btn primary md full">占卜</a>
+    <a href="/booking" class="zf-btn ghost md full" data-wc-open>預約老師</a>
+    <button class="zf-theme-btn m" id="zfThemeBtnM" aria-label="切換深淺色"><i class="ph-thin ph-moon-stars"></i><span>深色模式</span></button>
+    <div id="auth-button-m" class="zf-account-m"></div>
+  </div>
+</nav>
+
+<!-- DS Nav hamburger toggle（無框架、純 attribute）-->
+<script is:inline>
+  (function () {
+    var b = document.getElementById('zfBurger'), d = document.getElementById('zfDrawer');
+    if (b && d) b.addEventListener('click', function () {
+      var icon = b.querySelector('i');
+      if (d.hasAttribute('hidden')) { d.removeAttribute('hidden'); if (icon) icon.className = 'ph-thin ph-x'; }
+      else { d.setAttribute('hidden', ''); if (icon) icon.className = 'ph-thin ph-list'; }
+    });
+    /* 深淺色切換鈕（theme-init.js 提供 ZFTheme） */
+    function paint() {
+      var dark = window.ZFTheme && ZFTheme.isDark();
+      ['zfThemeBtn', 'zfThemeBtnM'].forEach(function (id) {
+        var el = document.getElementById(id); if (!el) return;
+        var i = el.querySelector('i'); if (i) i.className = dark ? 'ph-thin ph-sun' : 'ph-thin ph-moon-stars';
+        var s = el.querySelector('span'); if (s) s.textContent = dark ? '淺色模式' : '深色模式';
+      });
+    }
+    ['zfThemeBtn', 'zfThemeBtnM'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('click', function () { if (window.ZFTheme) ZFTheme.toggle(); });
+    });
+    window.addEventListener('zf-theme-change', paint);
+    paint();
+  })();
+</script>
+
+<style>
+  /* ===== DS Nav（site-nav-footer.jsx Nav，桌機/手機逐值對齊；ThemeToggle 暫不上＝暗黑版定稿後）===== */
+  .zf-nav{position:sticky;top:0;z-index:40;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft);}
+  .zf-nav-row{max-width:var(--container);margin:0 auto;padding:0 32px;height:76px;display:flex;align-items:center;justify-content:space-between;}
+  .zf-logo{display:block;}
+  .zf-nav .zf-logo img{height:54px;width:auto;display:block;}
+  .zf-nav-links{display:flex;align-items:center;gap:26px;}
+  .zf-nav-links > a:not(.zf-btn){font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:0.03em;text-decoration:none;}
+  .zf-nav-links > a:not(.zf-btn):hover{color:var(--accent-press);text-decoration:none;}
+  .zf-burger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:transparent;color:var(--ink-700);cursor:pointer;}
+  .zf-theme-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:44px;height:44px;border:none;border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer;padding:0;}
+  .zf-theme-btn i{display:inline-flex;align-items:center;justify-content:center;font-size:19px;line-height:1;}
+  .zf-theme-btn:not(.m) i{display:flex;width:100%;height:100%;}
+  /* 手機抽屜：DS ThemeToggle mobile＝一列文字（serif 16 ink-700、12px 4px、下底線、gap 10、圖示 18） */
+  .zf-theme-btn.m{display:flex;width:auto;height:auto;justify-content:flex-start;gap:10px;padding:12px 4px;border:none;border-bottom:1px solid var(--border-soft);border-radius:0;background:transparent;font-family:var(--font-serif);font-size:16px;font-weight:400;color:var(--ink-700);text-align:left;}
+  .zf-theme-btn.m i{font-size:18px;}
+  .zf-theme-btn.m span{white-space:nowrap;}
+  .zf-burger i{font-size:24px;line-height:1;}
+  .zf-drawer{display:none;border-top:1px solid var(--border-soft);background:var(--surface-page);padding:8px 20px 18px;}
+  .zf-drawer > a:not(.zf-btn){font-family:var(--font-serif);font-size:17px;color:var(--ink-900);padding:12px 4px;border-bottom:1px solid var(--border-soft);text-decoration:none;}
+
+  /* ===== DS Btn（ui-kit.jsx Btn）===== */
+  .zf-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-serif);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;border-radius:var(--radius-pill);white-space:nowrap;cursor:pointer;transition:background var(--dur-fast) var(--ease-soft);text-decoration:none;}
+  .zf-btn.sm{padding:8px 16px;font-size:var(--t-body-sm);min-height:36px;}
+  .zf-btn.md{padding:11px 22px;font-size:var(--t-body);min-height:44px;}
+  .zf-btn.full{display:flex;width:100%;margin-top:12px;}
+  .zf-btn.ghost{background:transparent;color:var(--accent-press);border:1px solid var(--border-accent);box-shadow:none;}
+  .zf-btn.ghost:hover{background:var(--accent-quiet);text-decoration:none;}
+  .zf-btn.primary{background:var(--accent);color:var(--text-on-accent);border:1px solid transparent;box-shadow:var(--shadow-sm);}
+  .zf-btn.primary:hover{background:var(--accent-hover);text-decoration:none;}
+
+  /* auth 連結由 nav-auth.js innerHTML 注入 → 需 :global（Astro scoped 不套 JS 注入元素）*/
+  .zf-account{display:flex;align-items:center;}            /* 頭像與占卜鈕同列垂直置中 */
+  .zf-account :global(.nav-acct){display:flex;align-items:center;}  /* 內層也 flex：消掉繼承行高的基線位移，頭像不再略高 */
+  .zf-account :global(a){display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:0.03em;text-decoration:none;}
+  .zf-account :global(a:hover){color:var(--accent-press);text-decoration:none;}
+  .zf-account-m{margin-top:8px;padding-top:10px;border-top:1px solid var(--border-soft);}
+  /* DS AccountNav mobile 未登入＝只有一顆膠囊（自帶 margin-top 12），沒有上框線 */
+  :global(.zf-account-m:has(> a[href="/login"])){margin-top:0;padding-top:0;border-top:none;}
+  .zf-account-m :global(a){display:block;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);padding:10px 4px;text-decoration:none;}
+
+  @media (max-width:980px){
+    .zf-nav-row{padding:0 20px;height:64px;}
+    .zf-nav .zf-logo img{height:42px;}
+    .zf-nav-links{display:none;}
+    .zf-burger{display:flex;}
+    .zf-drawer:not([hidden]){display:flex;flex-direction:column;gap:2px;}
+  }
+</style>

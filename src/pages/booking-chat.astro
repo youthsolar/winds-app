@@ -8,6 +8,7 @@
  *       沒有則訪客模式（機器人會問聯絡資料），一樣能完成預約。
  */
 import '../styles/global.css';
+import SiteNav from '../components/SiteNav.astro';
 ---
 
 <!DOCTYPE html>
@@ -45,20 +46,8 @@ import '../styles/global.css';
     html,body{height:100%}
     body{margin:0;overflow:hidden}
     .sp-app{height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--surface-page);overflow:hidden}
-    /* site nav（對齊 spirit.astro）*/
-    .zf-nav{flex:none;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft)}
-    .zf-nav-row{max-width:var(--container);margin:0 auto;padding:0 32px;height:76px;display:flex;align-items:center;justify-content:space-between}
-    .zf-nav .zf-logo img{height:54px;width:auto;display:block}
-    .zf-nav-links{display:flex;align-items:center;gap:26px}
-    .zf-nav-links > a:not(.zf-btn){font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:.03em;text-decoration:none}
-    .zf-nav-links > a:not(.zf-btn):hover{color:var(--accent-press)}
-    .zf-burger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:transparent;color:var(--ink-700);cursor:pointer}
-    .zf-burger i{font-size:24px;line-height:1}
-    .zf-drawer{display:none;border-top:1px solid var(--border-soft);background:var(--surface-page);padding:8px 20px 18px}
-    .zf-drawer > a:not(.zf-btn){font-family:var(--font-serif);font-size:17px;color:var(--ink-900);padding:12px 4px;border-bottom:1px solid var(--border-soft);text-decoration:none}
-    .zf-account{display:flex;align-items:center}
-    .zf-account-m{margin-top:8px;padding-top:10px;border-top:1px solid var(--border-soft)}
-    @media(max-width:980px){.zf-nav-row{padding:0 20px;height:64px}.zf-nav .zf-logo img{height:42px}.zf-nav-links{display:none}.zf-burger{display:flex}.zf-drawer:not([hidden]){display:flex;flex-direction:column;gap:2px}}
+    /* 導覽列改用共用元件 SiteNav（10/1）；這裡只留全螢幕聊天需要的：導覽列不被壓縮 */
+    .zf-nav{flex:none}
 
     /* 主容器 + 訊息區（複用 spirit .sp-* 視覺）*/
     .sp-wrap{flex:1;min-height:0;display:flex;flex-direction:column;max-width:680px;width:100%;margin:0 auto;box-sizing:border-box;padding:14px 24px 0;position:relative;overflow:hidden}
@@ -143,28 +132,7 @@ import '../styles/global.css';
 </head>
 <body>
   <div class="sp-app">
-    <nav class="zf-nav">
-      <div class="zf-nav-row">
-        <a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福" /></a>
-        <div class="zf-nav-links">
-          <a href="/">首頁</a>
-          <a href="/divination">問一件事</a>
-          <a href="/blog">案例專欄</a>
-          <a href="/booking">老師介紹</a>
-          <a href="/shop">法器選物</a>
-          <div id="auth-button" class="zf-account"></div>
-        </div>
-        <button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>
-      </div>
-      <div class="zf-drawer" id="zfDrawer" hidden>
-        <a href="/">首頁</a>
-        <a href="/divination">問一件事</a>
-        <a href="/blog">案例專欄</a>
-        <a href="/booking">老師介紹</a>
-        <a href="/shop">法器選物</a>
-        <div id="auth-button-m" class="zf-account-m"></div>
-      </div>
-    </nav>
+    <SiteNav />
 
     <!-- 風小編 header（只在 embed=page 手機全螢幕顯示，取代 sp-intro，逐值對齊原生 ConciergeWidget .wc-head）-->
     <div class="bc-head">
@@ -446,9 +414,6 @@ import '../styles/global.css';
       }).catch(function(){ if(!S.hydrating) return; hideTyping(); hydrateDone(); greet(); });
     })();
 
-    // 漢堡選單
-    var b=document.getElementById('zfBurger'), dr=document.getElementById('zfDrawer');
-    if(b&&dr) b.addEventListener('click', function(){ dr.hidden=!dr.hidden; });
   </script>
 </body>
 </html>
