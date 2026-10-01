@@ -151,6 +151,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .zf-account a{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:0.03em;text-decoration:none;}
     .zf-account a:hover{color:var(--accent-press);text-decoration:none;}
     .zf-account-m{margin-top:8px;padding-top:10px;border-top:1px solid var(--border-soft);}
+    .zf-account-m:has(> a[href="/login"]){margin-top:0;padding-top:0;border-top:none;} /* 10/1：同 BaseLayout，未登入時不跟深淺色那行疊兩條線 */
     .zf-account-m a{display:block;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);padding:10px 4px;text-decoration:none;}
     @media (max-width:980px){
       .zf-nav-row{padding:0 20px;height:64px;}
@@ -2013,7 +2014,7 @@ function siteHeader(){
     '<div class="zf-drawer" id="zfDrawer" hidden>'+
       '<a href="/">首頁</a><a href="/divination">問一件事</a><a href="/blog">案例專欄</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a>'+
       '<a href="/divination" class="zf-btn primary md full">占卜</a><a href="/booking" class="zf-btn ghost md full" data-wc-open>預約老師</a>'+
-      '<button class="zf-theme-btn-m" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;margin-top:12px;padding:0 22px;box-sizing:border-box;border:1px solid var(--border-strong);border-radius:var(--radius-pill);background:var(--surface-card);cursor:pointer;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'"></i><span class="zf-theme-lbl">'+(window.ZFTheme&&ZFTheme.isDark()?'淺色模式':'深色模式')+'</span></button>'+
+      '<button class="zf-theme-btn-m" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;margin-top:12px;padding:12px 4px;box-sizing:border-box;border:none;border-bottom:1px solid var(--border-soft);border-radius:0;background:transparent;cursor:pointer;text-align:left;font-family:var(--font-serif);font-size:16px;font-weight:400;color:var(--ink-700)"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'" style="font-size:18px"></i><span class="zf-theme-lbl">'+(window.ZFTheme&&ZFTheme.isDark()?'淺色模式':'深色模式')+'</span></button>'+
       '<div id="auth-button-m" class="zf-account-m"></div>'+
     '</div></nav>';
 }
