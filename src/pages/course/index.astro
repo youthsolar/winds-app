@@ -185,6 +185,13 @@ const STREAM = JSON.stringify(streams);
     .course-root .ec-sessions { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); }
     .course-root .ec-tags { display: flex; gap: 6px; flex-wrap: wrap; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border-soft); }
     .course-root .ec-btn { font-size: 17px; }
+    /* 老師列＝DS CourseDetail 側欄：Avatar 52 ring、名字 serif 18/500、頭銜 sans 12.5 muted、一句話 serif 300 14.5/1.8 */
+    .course-root .ec-t-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .course-root .ec-av { width: 52px; height: 52px; }
+    .course-root .ec-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .course-root .ec-t-name { font-family: var(--font-serif); font-size: 18px; font-weight: 500; color: var(--ink-900); }
+    .course-root .ec-t-title { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); }
+    .course-root .ec-t-line { margin: 0 0 4px; font-family: var(--font-serif); font-weight: 300; font-size: 14.5px; line-height: 1.8; color: var(--text-secondary); max-width: none; }
     .course-root .ec-note { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-sans); font-size: 12px; line-height: 1.6; color: var(--text-muted); margin: 12px 0 0; }
     .course-root .ec-note .ph { font-size: 13px; }
     .course-root .ec-secondary { display: block; text-align: center; margin-top: 12px; font-family: var(--font-sans); font-size: 13px; color: var(--accent-press); text-decoration: none; }
@@ -319,7 +326,23 @@ const STREAM = JSON.stringify(streams);
       }
 
       /* ── 詳情 view ── */
-      function renderDetail(c, all) {
+      // 2026-09-30 Jeffery：課程都是風易揚老師在教 → 報名卡照 DS CourseDetail 放老師；讀不到就退回原本的卡（最多等 3 秒）
+      function loadTeacher() {
+        var get = fetch(WORKER_API + '/sb-providers').then(function (r) { return r.json(); }).then(function (d) {
+          var p = ((d && d.providers) || []).find(function (x) { return x.name === '風易揚老師'; });
+          if (!p) return null;
+          var desc = String(p.desc || ''), k = desc.indexOf('：');
+          return { name: p.name, photo: p.photo || '', title: k > 0 ? desc.slice(0, k).trim() : '', line: (k > 0 ? desc.slice(k + 1) : desc).replace(/\s+/g, '') };
+        }).catch(function () { return null; });
+        return Promise.race([get, new Promise(function (ok) { setTimeout(function () { ok(null); }, 3000); })]);
+      }
+      function teacherHtml(t) {
+        return '<div class="ec-t-row"><span class="zf-avatar ring ec-av"><img src="' + esc(t.photo) + '" alt="" width="52" height="52"></span>' +
+          '<div><div class="ec-t-name">' + esc(t.name) + '</div>' + (t.title ? '<div class="ec-t-title">' + esc(t.title) + '</div>' : '') + '</div></div>' +
+          (t.line ? '<p class="ec-t-line">' + esc(t.line) + '</p>' : '');
+      }
+
+      function renderDetail(c, all, teacher) {
         var related = all.filter(function (x) { return x.id !== c.id; }).slice(0, 3);
         var formatNotes = FORMAT_NOTES;
 
@@ -369,7 +392,7 @@ const STREAM = JSON.stringify(streams);
             '<a class="back-link" href="/course"><i class="ph ph-arrow-left"></i>回課程列表</a>' +
           '</article>' +
           '<aside class="aside"><div class="enroll-card zf-card">' +
-            '<span class="ec-label">報名這個課程</span>' +
+            (teacher ? teacherHtml(teacher) : '<span class="ec-label">報名這個課程</span>') +
             '<div class="ec-price-row"><span class="ec-price">' + priceLabel(c) + '</span>' +
             '<span class="ec-sessions">' + esc(c.sessionsLabel) + '</span></div>' +
             '<div class="ec-tags"><span class="zf-tag sage outline format-tag"><i class="ph ph-users-three"></i>' + esc(c.format) + '</span>' +
@@ -388,7 +411,7 @@ const STREAM = JSON.stringify(streams);
         if (skel) skel.hidden = true;
         if (cid) {
           var c = courses.find(function (x) { return String(x.id) === String(cid); });
-          if (c) { document.title = c.name + '｜找風問幸福 靈修課程'; renderDetail(c, courses); return; }
+          if (c) { document.title = c.name + '｜找風問幸福 靈修課程'; loadTeacher().then(function (t) { renderDetail(c, courses, t); }); return; }
         }
         renderList(courses);
       }
