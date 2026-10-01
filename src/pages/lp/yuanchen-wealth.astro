@@ -3,7 +3,8 @@
 // 一頁講完一件法器：它是什麼、給誰、怎麼用、注意什麼 → 頁尾直接選門市付款，不跳 EasyStore。
 // 資料是真的：品名/價格/款式/圖 build 時抓 /shop-products；訂單走 api.winds.tw /shop-order
 // → 綠界收銀台（dev 網域自動用綠界測試商店，可走完整流程不扣真錢）；超商門市走綠界電子地圖。
-// 內容文案取自 EasyStore 現有商品頁（49 天版），署名依鐵則改「風易揚老師親繪」。
+// 內容文案取自 EasyStore 現有商品頁，署名依鐵則改「風易揚老師親繪」。
+// 2026-10-01（Jeffery 拍板）：法效以 28 天為準（主圖與商品說明本來就印 28 天），頁面原本 49 天的五處一併改成 28。
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { retryPage } from '../../data/retry-page';
 
@@ -33,7 +34,7 @@ const variants: { title: string; price: number }[] = prod?.variants || [];
 
 const canonical = 'https://winds.tw/lp/yuanchen-wealth/';
 const title = `${name}｜風易揚老師親繪開光｜找風問幸福`;
-const description = '不只是招財，更先把漏財的洞補起來。風易揚老師依個案姓名生辰親繪並開光，五行土金、法效 49 天，共兩張隨身與財位各一。全台超商店到店，7 天內送達。';
+const description = '不只是招財，更先把漏財的洞補起來。風易揚老師依個案姓名生辰親繪並開光，五行土金、法效 28 天，共兩張隨身與財位各一。全台超商店到店，7 天內送達。';
 const jsonLd = prod ? [{
   '@context': 'https://schema.org', '@type': 'Product', name, image: prod.image, description, url: canonical,
   brand: { '@type': 'Brand', name: '找風問幸福' },
@@ -63,7 +64,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
               <p class="lp-lede">不只是招財，更先把漏財的洞補起來。</p>
               <div class="lp-chips">
                 <span class="zf-tag clay">五行：土金</span>
-                <span class="zf-tag clay">法效：49 天</span>
+                <span class="zf-tag clay">法效：28 天</span>
                 <span class="zf-tag clay">共 2 張</span>
                 <span class="zf-tag neutral outline">依個案親撰及開光</span>
               </div>
@@ -124,8 +125,8 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
           <ol class="lp-steps">
             <li><span class="lp-step-n">1</span><div><b>第一張隨身</b><p>放進錢包夾層，跟著你走。</p></div></li>
             <li><span class="lp-step-n">2</span><div><b>第二張安放財位</b><p>家中進門後的 45 度對角，即為財位。</p></div></li>
-            <li><span class="lp-step-n">3</span><div><b>連續 49 天</b><p>中間不中斷。這 49 天也可以順便留意自己的花費，把不必要的支出整理一下。</p></div></li>
-            <li><span class="lp-step-n">4</span><div><b>期滿處理</b><p>49 天後燒化，或寄回交給老師處理。</p></div></li>
+            <li><span class="lp-step-n">3</span><div><b>連續 28 天</b><p>中間不中斷。這 28 天也可以順便留意自己的花費，把不必要的支出整理一下。</p></div></li>
+            <li><span class="lp-step-n">4</span><div><b>期滿處理</b><p>28 天後燒化，或寄回交給老師處理。</p></div></li>
           </ol>
         </section>
 
@@ -138,7 +139,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
           <ul class="lp-notes">
             <li><i class="ph ph-pen-nib"></i>符令由老師依個案親繪，售出後不接受退換。</li>
             <li><i class="ph ph-identification-card"></i>需要本人姓名與國曆生辰，精確到時辰；不確定時辰請選「不確定」，老師會另行處理。</li>
-            <li><i class="ph ph-fire"></i>法效 49 天，期滿請燒化或交回。</li>
+            <li><i class="ph ph-fire"></i>法效 28 天，期滿請燒化或交回。</li>
             <!-- 2026-10-01（廣告前全站掃描）：li 是 flex，文字、連結、句號各成一欄 → 手機上連結被擠成「元辰宮代⏎觀」、句號漂到右緣；文字包進一個 span，li 只剩 icon＋span 兩欄 -->
             <li><i class="ph ph-moon-stars"></i><span>若想做更深度的財運調整，建議搭配<a class="zf-text-link" href="/lp/fengyiyang/#items">元辰宮代觀</a>。</span></li>
           </ul>
