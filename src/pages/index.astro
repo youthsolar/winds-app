@@ -149,7 +149,7 @@ const homeJsonLd = {
     <section class="selling">
       <div class="wrap selling-row">
         <div class="selling-claim">
-          <span>填 <em>6 個</em> 基本資料，大概 <em>30 秒</em>。</span><span>接下來的交給我們。</span>
+          <span>只要 <em>6 個</em> 基本資料</span><span class="plus">＋</span><span><em>30 秒</em> 得到幸福</span>
         </div>
         <div class="fields">
           {FIELDS.map((f, i) => (<span class="field"><span class="fn">{String(i + 1).padStart(2, '0')}</span>{f}</span>))}
@@ -502,7 +502,8 @@ const homeJsonLd = {
   @media (max-width: 760px) { .selling-row { flex-direction: column; align-items: flex-start; gap: 16px; padding-top: 26px; padding-bottom: 26px; } }
   .selling-claim { display: flex; align-items: baseline; gap: 14px; white-space: nowrap; font-family: var(--font-serif); font-size: 23px; font-weight: 500; color: var(--ink-900); }
   .selling-claim em { font-style: normal; color: var(--accent-press); }
-  .selling-claim .plus { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); }
+  .selling-claim .plus { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); letter-spacing: 0.04em; }
+  @media (max-width: 760px) { .selling-claim .plus { font-size: 12px; } } /* 10/1 Jeffery 拍板：賣點改回 DS 原句 */
   @media (max-width: 760px) { .selling-claim { font-size: 16px; gap: 4px 9px; white-space: normal; flex-wrap: wrap; } }
   .fields { display: flex; gap: 8px; flex-wrap: wrap; }
   .field { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 12.5px; color: var(--ink-500); background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-pill); padding: 5px 12px; }
