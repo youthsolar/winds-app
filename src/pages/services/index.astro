@@ -89,7 +89,10 @@ const pageDesc =
     @media (max-width: 760px) { .services-root .sc-name { font-size: 19px; } }
     .services-root .svc-card:hover .sc-name { color: var(--accent-press); }
     .services-root .sc-excerpt { font-family: var(--font-serif); font-weight: 300; font-size: 14.5px; line-height: 1.85; color: var(--text-secondary); margin: 10px 0 0; max-width: none; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .services-root .sc-meta { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--border-soft); display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .services-root .sc-meta { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    /* 10/1 Jeffery 拍板：照 DS ServiceCard 底列補「看介紹」secondary sm 鈕（整張卡本來就是連結，鈕只是視覺） */
+    .services-root .sc-pd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .services-root .sc-btn { pointer-events: none; }
     .services-root .sc-price { font-family: var(--font-serif); font-size: 20px; font-weight: 500; color: var(--ink-900); }
     .services-root .sc-dur { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
     .services-root .empty-note { font-family: var(--font-serif); font-size: 16px; color: var(--text-muted); text-align: center; margin: 40px 0; }
@@ -218,10 +221,10 @@ const pageDesc =
                 '<span class="zf-badge rose">' + esc(srcLabel(it.source)) + '</span></div>' +
               '<h3 class="sc-name cjk-title">' + esc(it.name) + '</h3>' +
               (excerptOf(it) ? '<p class="sc-excerpt">' + esc(excerptOf(it)) + '</p>' : '') +
-              '<div class="sc-meta">' +
+              '<div class="sc-meta"><span class="sc-pd">' +
                 (priceLabel(it) ? '<span class="sc-price">' + priceLabel(it) + '</span>' : '') +
                 (it.source === 'sb' && it.duration ? '<span class="sc-dur">' + esc(it.duration) + ' 分鐘 · 一對一</span>' : '') +
-              '</div>' +
+              '</span><span class="zf-btn secondary sm sc-btn">看介紹<i class="ph ph-arrow-right" style="font-size:14px"></i></span></div>' +
             '</a></li>';
         }).join('');
 
