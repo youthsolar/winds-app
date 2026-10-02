@@ -1147,16 +1147,16 @@ function viewCast(){
 }
 function ffCastWire(){
   var m=document.getElementById("ffMirror");if(!m)return;
-  FF_CAST={t:null,rising:0,busy:false,req:(FF_CAST&&FF_CAST.req)||0};ffRipStart(false);
+  FF_CAST={t:null,rising:0,busy:false,auto:false,req:(FF_CAST&&FF_CAST.req)||0};ffRipStart(false);
   function draw(){var y=document.getElementById("ffYaos");if(y&&STATE.cast)y.innerHTML=ffYaos(STATE.cast.code,FF_CAST.rising);var n=document.getElementById("ffHexName");if(n&&STATE.cast){n.textContent=STATE.cast.name;n.classList.toggle("on",FF_CAST.rising>=6);}}
   function stop(){if(FF_CAST.t&&FF_CAST.t!=="done"){clearInterval(FF_CAST.t);FF_CAST.t=null;FF_CAST.rising=0;FF_CAST.busy=false;STATE.cast=null;draw();ffRipStart(false);var c=document.getElementById("ffClock");if(c)c.textContent="";m.classList.remove("busy");}}
-  function start(e){
-    if(FF_CAST.t)return;e.preventDefault();try{m.setPointerCapture(e.pointerId);}catch(x){}
+  function start(e,auto){
+    if(FF_CAST.t)return;if(!auto){e.preventDefault();try{m.setPointerCapture(e.pointerId);}catch(x){}}
     /* 2026-09-25：家裡的符要先選狀況才能起卦 */
     if(HOME&&!STATE.data.home){var ch=document.getElementById("hgChips");if(ch)ch.scrollIntoView({behavior:"smooth",block:"center"});showFfErr("先選一個，再按水鏡。");return;}
     /* 2026-09-26：找風問好愛要兩排都選完才能起卦 */
     if(LOVE&&!lvReady()){var lc=document.getElementById(STATE.data.loveWho?"lvAngle":"lvWho");if(lc)lc.scrollIntoView({behavior:"smooth",block:"center"});showFfErr(STATE.data.loveWho?"再選一件你最想先知道的事。":"先選一個，再按水鏡。");return;}
-    FF_CAST.busy=true;m.classList.add("busy");ffRipStart(true);
+    FF_CAST.auto=!!auto;FF_CAST.busy=true;m.classList.add("busy");ffRipStart(true);
     FF_CAST.t="pending";
     /* 2026-09-28（Codex 體檢）：按 A 放開再按 B，A 較晚回來會被當成 B。每次按下帶序號，只收最新那次。 */
     var myReq=FF_CAST.req=(FF_CAST.req||0)+1;
@@ -1172,14 +1172,19 @@ function ffCastWire(){
       },520);
     }).catch(function(){if(myReq!==FF_CAST.req)return;FF_CAST.t=null;stop();showFfErr("連線不穩，再按一次。");});
   }
-  function release(){if(FF_CAST.t==="pending"){FF_CAST.t=null;stop();return;}stop();}
+  function release(){if(FF_CAST.auto)return;if(FF_CAST.t==="pending"){FF_CAST.t=null;stop();return;}stop();}
   m.addEventListener("pointerdown",start);m.addEventListener("pointerup",release);m.addEventListener("pointercancel",release);
   /* 2026-10-01（廣告前全站掃描）：鍵盤按住 Enter／空白鍵＝按住水鏡，放開＝放手（原本只有指標事件，鍵盤起不了卦）。
      一律 preventDefault，按住空白鍵時頁面才不會一直往下捲。 */
   m.addEventListener("keydown",function(e){if(e.key!=="Enter"&&e.key!==" ")return;e.preventDefault();if(!e.repeat)start(e);});
   m.addEventListener("keyup",function(e){if(e.key==="Enter"||e.key===" ")release();});
+  /* 2026-10-02（首頁 Astra 審查 #4 同款，Jeffery 選項卡：活動頁一起修）：讀屏軟體／語音控制只送一個 click（detail 為 0），這時按一下就整卦起完，不必按住 */
+  m.addEventListener("click",function(e){if(e.detail===0&&!FF_CAST.t)start(e,true);});
 }
-function showFfErr(msg){var e=document.getElementById("ffErr");if(!e){e=document.createElement("div");e.id="ffErr";e.className="ff-err";var r=document.getElementById("root");if(r)r.appendChild(e);}e.textContent=msg;e.style.display="block";setTimeout(function(){e.style.display="none";},4000);}
+/* 2026-10-02（首頁 Astra 審查 #5 同款）：錯誤另外寫進 body 上一直都在的 role=alert 隱形區（#root 每次 render 會整個換掉，所以不放 #root），讀屏軟體才會唸 */
+var FF_SR=document.createElement("div");FF_SR.setAttribute("role","alert");FF_SR.style.cssText="position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0";document.body.appendChild(FF_SR);
+function ffSrAlert(msg){FF_SR.textContent="";setTimeout(function(){FF_SR.textContent=msg;},50);}
+function showFfErr(msg){var e=document.getElementById("ffErr");if(!e){e=document.createElement("div");e.id="ffErr";e.className="ff-err";var r=document.getElementById("root");if(r)r.appendChild(e);}e.textContent=msg;e.style.display="block";ffSrAlert(msg);setTimeout(function(){e.style.display="none";},4000);}
 
 /* ── 3 看到卦 ── */
 function viewHex(){
