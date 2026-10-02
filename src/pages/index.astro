@@ -1,23 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import servicesData from '../data/services.json';
+import '../styles/cast-landing.css';   // 水鏡＋起卦區塊（與 /home-gua、/love 共用）
 // 首頁輕入口 — 值對齊 handoff home-page.jsx + home-free-draw.jsx + site-nav-footer.jsx
 // 暫放 /home（不動現有 root=/ 占卜流程）；之後翻 root 再一步處理
+// 2026-10-02 Jeffery：首頁塔羅抽牌換成活動頁的水鏡起卦。情境＝① 的四個選項；head／lede＝選了哪個，hero 大標題與副句就換成哪句
+// （Jeffery 選項卡：大標題跟著選項換，同舊版首頁；原本 hero 問句＋副句，「抽一張牌」改成起卦）；預設選「有沒有未來」。
+// dir／sub／ask／service＝交給 /divination 的題目（dir、sub 對 FunnelDocument TOPICS 的 key，ask 是寫進問題字串給老師看的那句）
 const SCENARIOS = [
-  { key: '已讀不回', q: '他已讀不回的這幾天，\n你是不是也一直在看手機？', sub: '先別急著想他怎麼了，\n先看看自己現在是什麼狀態？' },
-  { key: '曖昧不明', q: '這段曖昧，是有機會，\n還是在等一個無緣的人？', sub: '說不清楚的，先不用說清楚。\n抽一張牌，看看現在的你該怎麼做？' },
-  { key: '有沒有未來', q: '你們還有沒有可能？', sub: '先不用急著決定，\n我們先看看。' },
-  { key: '最近心不安', q: '最近心裡總是不太安穩，\n又說不上來為什麼？', sub: '說不出口的，不代表不重要。\n從一張牌開始。' },
+  { key: '已讀不回', head: '他已讀不回的這幾天，你是不是也一直在看手機？', lede: '先別急著想他怎麼了，先看看自己現在是什麼狀態？', dir: 'love', sub: 'crush', service: 'karma', ask: '他已讀不回好幾天了，他現在到底在想什麼？' },
+  { key: '曖昧不明', head: '這段曖昧，是有機會，還是在等一個無緣的人？', lede: '說不清楚的，先不用說清楚。起一卦，看看現在的你該怎麼做？', dir: 'love', sub: 'crush', service: 'fortune', ask: '這段曖昧，是有機會，還是在等一個無緣的人？' },
+  { key: '有沒有未來', head: '你們還有沒有可能？', lede: '先不用急著決定，我們先看看。', dir: 'love', sub: 'reunion', service: 'fortune', ask: '我們還有沒有可能？' },
+  { key: '最近心不安', head: '最近心裡總是不太安穩，又說不上來為什麼？', lede: '說不出口的，不代表不重要。從一卦開始。', dir: 'self', sub: 'mind', service: 'fortune', ask: '最近心裡總是不太安穩，又說不上來為什麼？' },
 ];
-const DECK = [
-  { name: '月亮', line: '你感覺到的不安，是真的。先承認它，再慢慢走。' },
-  { name: '星星', line: '再撐一下下。你以為過不去的，其實快過去了。' },
-  { name: '戀人', line: '你心裡其實已經有答案，只是還不敢說出口。' },
-  { name: '節制', line: '不用急著要一個結果。給彼此，也給自己一點時間。' },
-  { name: '力量', line: '你以為快撐不住了，其實還沒到那裡。' },
-  { name: '太陽', line: '今天不用想太多。做一件小事，對自己好一點就夠了。' },
-];
-const DEFAULT = 2;
+const DEFAULT = 2;   // 一進來先選好「有沒有未來」，大標題就有一句完整的問句
 const DAILY_QUOTE = '有些事情想很久，還是沒有答案。那就換個角度看看。';
 const FIELDS = ['姓', '名', '西元生日（陽曆）', '出生時間', '手機', '電子郵件'];
 // 預約項目：接真實 SB 服務（services.json = D1，source==='simplybook'），連到真項目頁
@@ -56,8 +52,7 @@ const SVC = smallPicks.slice(0, 2).map((s) => ({
 const FLOW = '/divination';  // 深度占卜漏斗（DS 重建）
 const BOOK = '/booking';     // 預約老師（真 SB 老師 + 預約精靈）
 const SHOP = '/shop';        // 法器選物（真 ES 商品）
-const pageDesc = '先抽一張牌，看看今天的提醒。也可以填 6 個基本資料，大概 30 秒，就能起卦。心裡那件事，在找風問幸福慢慢說就好。';
-const br = (s) => s.split('\n');
+const pageDesc = '按住水鏡起一卦，老師依你這一卦給一張親手畫的靈符解方。只要 6 個基本資料，大概 30 秒。心裡那件事，在找風問幸福慢慢說就好。';
 
 // GEO：品牌實體錨點（Organization + WebSite）。AI 引擎靠這個認識「找風問幸福是誰」；
 // 文章頁的 Article schema 已各自帶，這裡只放站級兩型。
@@ -91,57 +86,45 @@ const homeJsonLd = {
 };
 ---
 <BaseLayout title="找風問幸福｜先聽聽現在的自己" description={pageDesc} ogType="website" jsonLd={homeJsonLd}>
-  <main class="home" data-scenarios={JSON.stringify(SCENARIOS)} data-deck={JSON.stringify(DECK)} data-default={DEFAULT}>
-    <!-- Hero -->
-    <header class="hero">
-      <div class="hero-glow"></div>
-      <div class="hero-wrap">
-        <div class="hero-card">
-          <span class="eyebrow"><span class="dot"></span>先聽聽現在的自己</span>
-          <h2 class="lead">現在的你，比較像——</h2>
-          <div class="chips" id="chips">
-            {SCENARIOS.map((m, i) => (
-              <button class={`chip${i === DEFAULT ? ' on' : ''}`} data-i={i}>{m.key}</button>
-            ))}
+  <main class="home" data-scenarios={JSON.stringify(SCENARIOS)} data-default={DEFAULT}>
+    <!-- Hero＋起卦（2026-10-02 DS 回稿 contribution-to-ds/ui_kits/free-flow/home-cast.jsx：hero 與起卦合成一屏、單一 1120 容器；
+         桌機兩欄＝左 hero＋① 選項＋社群證明、右 ② 水鏡卡 sticky；手機單欄＝hero → ① → ② → 社群證明 → 每日一句） -->
+    <header class="hc">
+      <div class="hc-grid">
+        <div class="hc-left">
+          <div class="hc-hero">
+            <span class="hc-eyebrow"><i></i>找風問幸福 · 先聽聽現在的自己</span>
+            <!-- 大標題跟著選項換；四句都疊在同一格當隱形量尺，高度取最長那句，換選項時下面的選項不跳 -->
+            <div class="hc-q">
+              <div class="hc-qcur" id="hmQ"><h1 class="hc-h1" id="hmHead">{SCENARIOS[DEFAULT].head}</h1><p class="hc-lede" id="hmLede">{SCENARIOS[DEFAULT].lede}</p></div>
+              {SCENARIOS.map((m) => (<div class="hc-qsizer" aria-hidden="true"><div class="hc-h1">{m.head}</div><p class="hc-lede">{m.lede}</p></div>))}
+            </div>
           </div>
-          <div class="qzone" id="qzone">
-            <h1 class="big-q cjk" id="bigQ">{br(SCENARIOS[DEFAULT].q).map((l, i) => (<>{i > 0 && <br />}{l}</>))}</h1>
-            <p class="sub-q" id="subQ">{br(SCENARIOS[DEFAULT].sub).map((l, i) => (<>{i > 0 && <br />}{l}</>))}</p>
-          </div>
-          <!-- CTA / draw zone -->
-          <div class="cta-zone" id="ctaZone">
-            <button class="zf-btn primary lg draw-btn" id="drawBtn"><i class="ph-thin ph-cards" style="font-size:22px"></i>占卜</button>
-            <div class="social"><div class="av-stack"><span class="av rose">林</span><span class="av clay">陳</span><span class="av sage">王</span></div><span class="social-line">已陪 <b>2,700+</b> 人，把心裡的事慢慢說完</span></div>
-            <p class="flow-note">起卦之後，老師依你這一卦給一張親手畫的靈符解方。</p>
-            <a class="quiet-link" id="scrollDeepen" href="#deepen">或預約老師慢慢聊 →</a>
-          </div>
-          <div class="draw-zone hidden" id="drawZone">
-            <div class="cards" id="cards">
-              {[0, 1, 2].map(i => (
-                <div class="card-slot" data-slot={i}>
-                  <button class="card" data-i={i}>
-                    <div class="card-inner">
-                      <div class="card-back"><span class="back-frame">風</span></div>
-                      <div class="card-front"><span class="cf-name"></span><span class="cf-rule"></span><span class="cf-line"></span></div>
-                    </div>
-                  </button>
-                </div>
+          <section class="hc-step1">
+            <div class="hc-step"><span class="hc-num done" id="hmN1" aria-hidden="true">1</span><div class="hc-step-txt"><h3>現在的你，比較像——</h3></div></div>
+            <div class="hc-opts" role="group" id="hmOpts">
+              {SCENARIOS.map((m, i) => (
+                <button type="button" aria-pressed={i === DEFAULT ? 'true' : 'false'} class={`hc-opt${i === DEFAULT ? ' on' : ''}`} data-i={i}><span class="hc-radio" aria-hidden="true"><i class="ph-bold ph-check"></i></span><span>{m.key}</span></button>
               ))}
             </div>
-            <span class="draw-hint" id="drawHint">輕輕點一張，看看今天的提醒</span>
-            <div class="draw-actions hidden" id="drawActions">
-              <button class="zf-btn quiet sm" id="redraw"><i class="ph ph-arrow-counter-clockwise" style="font-size:15px"></i>再抽一張</button>
-              <a class="zf-btn primary sm" href={FLOW}>深入占卜<i class="ph ph-arrow-right" style="font-size:15px"></i></a>
-            </div>
+          </section>
+          <div class="hc-extra">
             <div class="social"><div class="av-stack"><span class="av rose">林</span><span class="av clay">陳</span><span class="av sage">王</span></div><span class="social-line">已陪 <b>2,700+</b> 人，把心裡的事慢慢說完</span></div>
-            <p class="flow-note">起卦之後，老師依你這一卦給一張親手畫的靈符解方。</p>
+            <a class="hc-book" id="scrollDeepen" href="#deepen">或預約老師慢慢聊 <i class="ph ph-arrow-right"></i></a>
           </div>
         </div>
-
-        <div class="daily">
-          <i class="ph-thin ph-quotes"></i>
-          <span class="daily-text">{'「' + DAILY_QUOTE + '」'}</span>
+        <div class="hc-side">
+          <div class="hc-card ready" id="hmCast">
+            <div class="hc-step"><span class="hc-num" id="hmN2" aria-hidden="true">2</span><div class="hc-step-txt"><h3>把手放在水鏡上。</h3><p>按著三秒，不要急著放開。卦會自己浮上來。</p></div></div>
+            <div class="hc-guide"><p>想著這件事，把手放到水鏡上。</p><p>起卦之後，老師依你這一卦給一張親手畫的靈符解方。</p></div>
+            <div class="hc-mirror" id="hmMirror"></div>
+          </div>
         </div>
+      </div>
+
+      <div class="hc-daily">
+        <i class="ph-thin ph-quotes"></i>
+        <div class="hc-daily-row"><span class="hc-daily-k">今日一句</span><p>{'「' + DAILY_QUOTE + '」'}</p></div>
       </div>
     </header>
 
@@ -223,74 +206,80 @@ const homeJsonLd = {
 (function () {
   const root = document.querySelector('.home');
   if (!root) return;
+  /* ===== 水鏡起卦（2026-10-02 Jeffery：首頁塔羅換成活動頁的水鏡）=====
+     鏡子的畫法與按住起卦的手感照抄 FunnelDocument 的 ffStars／ffYaos／ffMirror／ffRip*／ffCastWire——那邊改了這裡要跟著改。
+     卦起好就存進 sessionStorage 交給 /divination（FunnelDocument takeHomeCast），從「你的卦」接著走，不用再按一次；卦的真假後端照樣驗。 */
   const SC = JSON.parse(root.dataset.scenarios);
-  const DECK = JSON.parse(root.dataset.deck);
-  let sel = parseInt(root.dataset.default, 10);
+  const API = 'https://api.winds.tw';
+  const REDUCE = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let sel = parseInt(root.dataset.default, 10);   // 預設選好的那一個（DEFAULT）
+  const STARS = (function(){var s=7;function rnd(){s=(s*9301+49297)%233280;return s/233280;}var pts=[];for(var i=0;i<26;i++){var a=rnd()*Math.PI*2,r=0.18+Math.sqrt(rnd())*0.72;pts.push({x:0.5+r*0.5*Math.cos(a),y:0.5+r*0.5*Math.sin(a),r:0.6+rnd()*1.3,o:0.22+rnd()*0.5,d:rnd()*6});}return pts;})();
+  function stars(size){return '<svg class="ff-stars" viewBox="0 0 '+size+' '+size+'">'+STARS.map(function(p,i){return '<circle cx="'+(p.x*size).toFixed(1)+'" cy="'+(p.y*size).toFixed(1)+'" r="'+p.r.toFixed(2)+'" opacity="'+p.o.toFixed(2)+'"'+(REDUCE?'':' style="animation:ffTwinkle '+(5+(i%4))+'s ease-in-out '+p.d.toFixed(2)+'s infinite alternate"')+'/>'}).join('')+'</svg>';}
+  function yaos(code,rising){return '<div class="ff-yaos">'+String(code||'000000').split('').map(function(c,i){var shown=(6-i)<=rising;return '<div class="ff-yao'+(c==='1'?' yang':'')+(shown?' on':'')+'">'+(c==='1'?'<i></i>':'<i></i><i></i>')+'</div>'}).join('')+'</div>';}
+  const size = window.innerWidth < 900 ? 232 : 256, inner = size - 20;
+  document.getElementById('hmMirror').innerHTML =
+    '<div class="ff-mirrorwrap"><div class="ff-mirror cast" id="ffMirror" style="width:'+size+'px;height:'+size+'px" role="button" tabindex="0" aria-label="按住水鏡起卦">'+
+    stars(inner)+'<span class="ff-sheen"></span><div class="ff-rips" id="ffRips"></div><div class="ff-hexc" id="ffYaos">'+yaos('000000',0)+'</div></div>'+
+    '<div class="ff-hexname" id="ffHexName"></div></div><div class="ff-clock" id="ffClock"></div>';
+  const m = document.getElementById('ffMirror'), yEl = document.getElementById('ffYaos'), nEl = document.getElementById('ffHexName'), clock = document.getElementById('ffClock');
 
-  const brHtml = (s) => s.split('\n').map((l, i) => (i ? '<br>' : '') + l).join('');
+  /* 漣漪：一組 3～4 圈依序往外散；閒置每 5.2s 一組，按住 1.6s 一組 */
+  let ripTimer = null;
+  function ripBurst(){var box=document.getElementById('ffRips');if(!box||REDUCE)return;var n=3+Math.round(Math.random());for(var k=0;k<n;k++){setTimeout(function(){var b=document.getElementById('ffRips');if(!b)return;var s=document.createElement('span');b.appendChild(s);setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s);},3400);},k*380);}}
+  function ripStop(){if(ripTimer){clearInterval(ripTimer);ripTimer=null;}}
+  function ripStart(busy){ripStop();ripBurst();ripTimer=setInterval(ripBurst,busy?1600:5200);}
+  function showErr(msg){var e=document.getElementById('ffErr');if(!e){e=document.createElement('div');e.id='ffErr';e.className='ff-err';document.body.appendChild(e);}e.textContent=msg;e.style.display='block';setTimeout(function(){e.style.display='none';},4000);}
 
-  // 情緒選擇器
-  const qzone = document.getElementById('qzone');
-  const bigQ = document.getElementById('bigQ');
-  const subQ = document.getElementById('subQ');
-  let chipTimer = null;
-  document.getElementById('chips').addEventListener('click', (e) => {
-    const b = e.target.closest('.chip'); if (!b) return;
+  // ① 選情境：切按鈕，大標題與副句淡出換成這個情境的那句（同舊版首頁 280ms；點下去就更新 sel，取消上一次還沒跑的換字）
+  const opts = document.getElementById('hmOpts');
+  const qEl = document.getElementById('hmQ');
+  let qTimer = null;
+  opts.addEventListener('click', (e) => {
+    const b = e.target.closest('.hc-opt'); if (!b) return;
     const i = parseInt(b.dataset.i, 10); if (i === sel) return;
-    // 2026-09-28（gpt-6-astra 體檢）：sel 原本等 280ms 動畫後才更新，快速點回原本那個會被 i === sel 擋掉、畫面停在上一個。
-    // 點下去就更新 sel，並取消上一次還沒跑的換字
+    if (CAST.t) return;   // 起卦中不換題
     sel = i;
-    if (chipTimer) clearTimeout(chipTimer);
-    qzone.classList.add('fade-out');
-    [...document.querySelectorAll('.chip')].forEach((c, ci) => c.classList.toggle('on', ci === i));
-    chipTimer = setTimeout(() => {
-      chipTimer = null;
-      bigQ.innerHTML = brHtml(SC[i].q);
-      subQ.innerHTML = brHtml(SC[i].sub);
-      resetDraw();
-      document.getElementById('ctaZone').classList.remove('hidden');
-      document.getElementById('drawZone').classList.add('hidden');
-      qzone.classList.remove('fade-out');
-    }, 280);
+    [...opts.querySelectorAll('.hc-opt')].forEach((x) => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    if (qTimer) clearTimeout(qTimer);
+    qEl.classList.add('fade');
+    qTimer = setTimeout(() => { qTimer = null; document.getElementById('hmHead').textContent = SC[i].head; document.getElementById('hmLede').textContent = SC[i].lede; qEl.classList.remove('fade'); }, 280);
+    const er = document.getElementById('ffErr'); if (er) er.style.display = 'none';
   });
 
-  // 占卜 → 顯示抽牌
-  document.getElementById('drawBtn').addEventListener('click', () => {
-    document.getElementById('ctaZone').classList.add('hidden');
-    document.getElementById('drawZone').classList.remove('hidden');
-  });
-
-  // 抽牌
-  let picked = null;
-  const cardsEl = document.getElementById('cards');
-  function resetDraw() {
-    picked = null;
-    cardsEl.classList.remove('picked');
-    [...cardsEl.querySelectorAll('.card-slot')].forEach(s => {
-      s.classList.remove('flipped', 'dim');
-      s.querySelector('.cf-name').textContent = '';
-      s.querySelector('.cf-line').textContent = '';
-    });
-    document.getElementById('drawHint').classList.remove('hidden');
-    document.getElementById('drawActions').classList.add('hidden');
+  // ② 按住水鏡起卦：按下那一刻向後端起卦（同 /divination），六爻浮上來後交給 /divination
+  let CAST = { t: null, rising: 0, req: 0, cast: null };
+  function draw(){yEl.innerHTML=yaos(CAST.cast?CAST.cast.code:'000000',CAST.rising);nEl.textContent=CAST.cast?CAST.cast.name:'';nEl.classList.toggle('on',CAST.rising>=6);}
+  function stop(){if(CAST.t&&CAST.t!=='done'){clearInterval(CAST.t);CAST.t=null;CAST.rising=0;CAST.cast=null;draw();ripStart(false);clock.textContent='';m.classList.remove('busy');}}
+  function handOff(){
+    const s = SC[sel];
+    try { sessionStorage.setItem('winds_home_cast', JSON.stringify({ dir: s.dir, sub: s.sub, q: s.ask, service: s.service, cast: CAST.cast })); } catch (e) {}
+    location.href = '/divination/';
   }
-  cardsEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('.card'); if (!btn || picked !== null) return;
-    picked = parseInt(btn.dataset.i, 10);
-    const c = DECK[Math.floor(Math.random() * DECK.length)];
-    const slots = [...cardsEl.querySelectorAll('.card-slot')];
-    cardsEl.classList.add('picked');
-    slots.forEach((s, i) => {
-      if (i === picked) {
-        s.classList.add('flipped');
-        s.querySelector('.cf-name').textContent = c.name;
-        s.querySelector('.cf-line').textContent = c.line;
-      } else s.classList.add('dim');
-    });
-    document.getElementById('drawHint').classList.add('hidden');
-    document.getElementById('drawActions').classList.remove('hidden');
-  });
-  document.getElementById('redraw').addEventListener('click', resetDraw);
+  function start(e){
+    if (CAST.t) return; e.preventDefault(); try { m.setPointerCapture(e.pointerId); } catch (x) {}
+    if (sel < 0) { opts.scrollIntoView({ behavior: 'smooth', block: 'center' }); showErr('先選一個，再按水鏡。'); return; }
+    m.classList.add('busy'); ripStart(true);
+    CAST.t = 'pending';
+    const myReq = CAST.req = CAST.req + 1;   // 按 A 放開再按 B，A 較晚回來不能被當成 B
+    fetch(API + '/free-cast', { method: 'POST' }).then((r) => r.json()).then((d) => {
+      if (CAST.t !== 'pending' || myReq !== CAST.req) return;
+      if (!d || !d.success) { CAST.t = null; stop(); showErr('起卦沒成功，再按一次。'); return; }
+      CAST.cast = { code: d.code, name: d.name, line: d.line, castAt: d.cast_at, castLabel: d.cast_label || '' };
+      clock.textContent = CAST.cast.castLabel + ' 起卦';
+      CAST.t = setInterval(() => {
+        CAST.rising++; draw();
+        if (CAST.rising >= 6) { clearInterval(CAST.t); CAST.t = 'done'; document.getElementById('hmN2').classList.add('done'); ripStart(false); setTimeout(handOff, 1700); }
+      }, 520);
+    }).catch(() => { if (myReq !== CAST.req) return; CAST.t = null; stop(); showErr('連線不穩，再按一次。'); });
+  }
+  function release(){ if (CAST.t === 'pending') { CAST.t = null; stop(); return; } stop(); }
+  m.addEventListener('pointerdown', start); m.addEventListener('pointerup', release); m.addEventListener('pointercancel', release);
+  // 鍵盤：按住 Enter／空白鍵＝按住水鏡，放開＝放手
+  m.addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); if (!e.repeat) start(e); });
+  m.addEventListener('keyup', (e) => { if (e.key === 'Enter' || e.key === ' ') release(); });
+  // 從 /divination 按上一頁回來（瀏覽器直接還原這頁）：水鏡回到可以再按的樣子
+  window.addEventListener('pageshow', (e) => { if (e.persisted && CAST.t === 'done') { CAST = { t: null, rising: 0, req: CAST.req, cast: null }; document.getElementById('hmN2').classList.remove('done'); draw(); clock.textContent = ''; m.classList.remove('busy'); } });
+  ripStart(false);
 
   // 平滑捲動
   document.getElementById('scrollDeepen').addEventListener('click', (e) => {
@@ -409,92 +398,96 @@ const homeJsonLd = {
   .wrap { max-width: var(--container); margin: 0 auto; padding-left: 32px; padding-right: 32px; }
   @media (max-width: 760px) { .wrap { padding-left: 20px; padding-right: 20px; } }
   .cjk { word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
-  .hidden { display: none !important; }
 
-  /* Hero */
-  .hero { position: relative; overflow: hidden; }
-  .hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(680px 480px at 80% 0%, var(--rose-100), transparent 62%), radial-gradient(520px 420px at 6% 70%, var(--tint-glow), transparent 58%); }
-  .hero-wrap { position: relative; max-width: 920px; margin: 0 auto; padding: 56px 32px 76px; }
-  @media (max-width: 760px) { .hero-wrap { padding: 32px 18px 48px; } }
-  .hero-card { background: linear-gradient(168deg, var(--surface-tint), var(--paper) 78%); border: 1px solid var(--rose-100); border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); padding: 50px 56px 44px; text-align: center; }
-  @media (max-width: 760px) { .hero-card { border-radius: var(--radius-xl); padding: 30px 22px 32px; } }
-  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: 12px; font-weight: 500; letter-spacing: 0.02em; color: var(--accent-press); }
-  .eyebrow .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); flex: none; }
-  .lead { font-family: var(--font-serif); font-size: 22px; font-weight: 400; color: var(--text-secondary); margin: 16px 0 0; letter-spacing: 0.02em; }
-  @media (max-width: 760px) { .lead { font-size: 18px; } }
+  /* Hero＋起卦（2026-10-02 DS 回稿 home-cast.jsx 逐值；DS 斷點 900＝手機 ≤899）。水鏡本體與 ff-clock／ff-err 在共用 styles/cast-landing.css；
+     選項、序號圓、水鏡卡、引導塊照 DS 值在這裡寫（首頁手機選項 2×2、padding 13/14，與活動頁 love-cast 不同，故不共用 .lc-*） */
+  .hc { max-width: var(--container); margin: 0 auto; padding: 72px 32px 64px; box-sizing: border-box; }
+  .hc-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 72px; align-items: start; }
+  .hc-left { display: flex; flex-direction: column; gap: 40px; padding-top: 8px; }
+  .hc-side { position: sticky; top: 96px; }
+  .hc-hero { display: flex; flex-direction: column; gap: 16px; }
+  .hc-q { display: grid; }
+  .hc-qcur, .hc-qsizer { grid-area: 1 / 1; display: flex; flex-direction: column; gap: 16px; }
+  .hc-qsizer { visibility: hidden; pointer-events: none; }
+  .hc-qcur { transition: opacity 280ms var(--ease-soft), transform 280ms var(--ease-soft); }
+  .hc-qcur.fade { opacity: 0; transform: translateY(6px); }
+  .hc-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.02em; color: var(--accent-press); }
+  .hc-eyebrow i { width: 5px; height: 5px; border-radius: 999px; background: var(--accent-press); }
+  .hc-h1 { margin: 0; font-family: var(--font-serif); font-size: 40px; font-weight: 500; line-height: 1.3; letter-spacing: 0.01em; color: var(--text-primary); }
+  .hc-lede { margin: 0; font-family: var(--font-serif); font-size: 18px; font-weight: 300; line-height: 1.8; color: var(--text-secondary); max-width: none; }
+  .hc-h1, .hc-lede, .hc-step-txt h3, .hc-step-txt p, .hc-guide :global(p), .hc-daily p, .social-line { word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+  .hc-step1 { display: flex; flex-direction: column; gap: 16px; }
+  .hc-step { display: flex; gap: 12px; align-items: flex-start; }
+  .hc-num { flex: none; width: 26px; height: 26px; margin-top: 3px; box-sizing: border-box; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-sans); font-size: 12.5px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--accent-press); background: transparent; border: 1px solid var(--rose-300); transition: all var(--dur-fast) var(--ease-soft); }
+  .hc-num.done { color: var(--text-on-accent); background: var(--accent); border-color: transparent; }
+  .hc-step-txt { min-width: 0; }
+  .hc-step-txt h3 { margin: 0; font-family: var(--font-serif); font-size: 22px; font-weight: 500; line-height: 1.4; color: var(--text-primary); }
+  .hc-step-txt p { margin: 8px 0 0; font-family: var(--font-serif); font-size: 16px; font-weight: 300; line-height: 1.8; color: var(--text-secondary); max-width: none; }
+  .hc-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hc-opt { cursor: pointer; box-sizing: border-box; width: 100%; text-align: left; display: flex; align-items: center; gap: 12px; font-family: var(--font-serif); font-size: 17.5px; line-height: 1.6; color: var(--ink-900); background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 16px 20px; white-space: nowrap; margin: 0; -webkit-appearance: none; appearance: none; transition: all var(--dur-fast) var(--ease-soft); }
+  .hc-opt.on { background: var(--surface-tint); border-color: var(--rose-300); }
+  .hc-radio { flex: none; width: 18px; height: 18px; box-sizing: border-box; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); background: transparent; }
+  .hc-radio i { display: none; font-size: 11px; line-height: 1; color: var(--text-on-accent); }
+  .hc-opt.on .hc-radio { border-color: var(--accent); background: var(--accent); }
+  .hc-opt.on .hc-radio i { display: block; }
+  .hc-extra { display: flex; flex-direction: column; gap: 12px; }
+  .hc-book { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; font-family: var(--font-sans); font-size: 13.5px; color: var(--accent-press); text-decoration: none; border-bottom: 1px solid var(--rose-300); padding-bottom: 2px; }
+  .hc-book i { font-size: 13px; }
+  .hc-card { background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 32px 32px 24px; display: flex; flex-direction: column; gap: 24px; }
+  .hc-guide { background: var(--accent-quiet); border-radius: var(--radius-md); padding: 16px 20px; display: flex; flex-direction: column; gap: 2px; }
+  .hc-guide :global(p) { margin: 0; font-family: var(--font-serif); font-size: 16px; font-weight: 300; line-height: 1.8; color: var(--text-secondary); max-width: none; }
+  .hc-card.ready .hc-guide :global(p) { color: var(--text-primary); }
+  .hc-mirror { display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0.4; filter: saturate(.5); pointer-events: none; transition: opacity var(--dur-slow, .42s) var(--ease-soft), filter var(--dur-slow, .42s) var(--ease-soft); }
+  .hc-card.ready .hc-mirror { opacity: 1; filter: none; pointer-events: auto; }
+  .hc-mirror :global(.ff-mirrorwrap) { margin-top: 0; }
+  .hc-daily { margin-top: 72px; border-top: 1px solid var(--border-soft); padding-top: 24px; display: flex; align-items: flex-start; gap: 16px; }
+  .hc-daily > i { flex: none; font-size: 26px; color: var(--rose-400); line-height: 1; margin-top: 2px; }
+  .hc-daily-row { min-width: 0; display: flex; align-items: baseline; gap: 16px; }
+  .hc-daily-k { flex: none; font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.02em; color: var(--text-muted); white-space: nowrap; }
+  .hc-daily p { margin: 0; font-family: var(--font-serif); font-size: 18px; font-weight: 400; line-height: 1.7; color: var(--ink-700); max-width: none; }
 
-  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
-  .chip { all: unset; cursor: pointer; font-family: var(--font-serif); font-size: 16px; font-weight: 500; letter-spacing: 0.01em; line-height: 1; padding: 11px 20px; border-radius: var(--radius-pill); white-space: nowrap; color: var(--accent-press); background: var(--surface-card); border: 1px solid var(--rose-200); transition: all var(--dur-fast) var(--ease-soft); }
-  .chip.on { color: var(--text-on-accent); background: var(--accent); border-color: transparent; box-shadow: var(--shadow-sm); }
-  @media (max-width: 760px) { .chip { font-size: 15px; padding: 10px 17px; } }
-
-  .qzone { min-height: 140px; display: flex; flex-direction: column; justify-content: center; margin-top: 22px; transition: opacity 320ms var(--ease-soft), transform 320ms var(--ease-soft); }
-  .qzone.fade-out { opacity: 0; transform: translateY(6px); }
-  @media (max-width: 760px) { .qzone { min-height: 96px; } }
-  .big-q { font-family: var(--font-serif); font-size: 44px; font-weight: 500; line-height: 1.32; letter-spacing: 0.01em; margin: 0; color: var(--ink-900); }
-  @media (max-width: 760px) { .big-q { font-size: 27px; } }
-  .sub-q { font-family: var(--font-serif); font-weight: 300; font-size: 18px; line-height: 1.8; color: var(--text-secondary); margin: 14px auto 0; max-width: 26em; }
-  @media (max-width: 760px) { .sub-q { font-size: 15.5px; } }
-
-  .cta-zone { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 28px; }
-  @media (max-width: 760px) { .cta-zone { margin-top: 22px; } }
-  .quiet-link { cursor: pointer; font-family: var(--font-sans); font-size: 13.5px; color: var(--text-muted); border-bottom: 1px solid var(--border-strong); padding-bottom: 2px; margin-top: 2px; text-decoration: none; }
-
-  /* social proof */
-  .social { display: flex; align-items: center; justify-content: center; gap: 12px; }
-  .av-stack { display: flex; }
+  /* social proof（DS Avatar 36／-10 疊、字 13.5；手機 32／12.5） */
+  .social { display: flex; align-items: center; gap: 12px; }
+  .av-stack { display: flex; flex: none; }
   /* DS Avatar：淡色底 + 深色字 + 雙層 ring（3px surface-page + 4.5px tone-ring）*/
   .av { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-pill); font-family: var(--font-serif); font-size: 15px; font-weight: var(--w-medium); overflow: hidden; flex: none; }
+  .av-stack .av { position: relative; }
+  .av-stack .av:nth-child(1) { z-index: 3; }
+  .av-stack .av:nth-child(2) { z-index: 2; }
+  .av-stack .av:nth-child(3) { z-index: 1; }
   .av-stack .av + .av { margin-left: -10px; }
   .av.rose { background: var(--rose-100); color: var(--rose-600); box-shadow: 0 0 0 3px var(--surface-page), 0 0 0 4.5px var(--rose-300); }
   .av.clay { background: var(--clay-200); color: var(--clay-500); box-shadow: 0 0 0 3px var(--surface-page), 0 0 0 4.5px var(--clay-300); }
   .av.sage { background: var(--sage-200); color: var(--sage-500); box-shadow: 0 0 0 3px var(--surface-page), 0 0 0 4.5px var(--sage-300); }
-  .social-line { font-family: var(--font-sans); font-size: 13.5px; color: var(--text-secondary); letter-spacing: 0.01em; white-space: nowrap; }
+  .social-line { font-family: var(--font-sans); font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); }
   .social-line b { font-weight: 600; color: var(--ink-900); }
-  /* 手機：社群證明頭像 32 / 文字 12（對齊 mockup SocialProof mobile）*/
-  @media (max-width: 760px) {
+
+  /* 手機（DS useMedia(900)）：單欄 hero → ① → ② → 社群證明（.hc-left 拆開用 order 排） */
+  @media (max-width: 899px) {
+    .hc { padding: 28px 20px 40px; }
+    .hc-grid { display: flex; flex-direction: column; gap: 24px; align-items: stretch; }
+    .hc-left { display: contents; }
+    .hc-hero { order: 1; gap: 12px; }
+    .hc-qcur, .hc-qsizer { gap: 12px; }
+    .hc-step1 { order: 2; }
+    .hc-side { order: 3; position: static; }
+    .hc-extra { order: 4; margin-top: 8px; }
+    .hc-h1 { font-size: 28px; }
+    .hc-lede { font-size: 15.5px; }
+    .hc-num { margin-top: 1px; }
+    .hc-step-txt h3 { font-size: 19px; }
+    .hc-step-txt p { font-size: 15px; }
+    .hc-opt { font-size: 16px; padding: 13px 14px; gap: 10px; }
+    .hc-card { padding: 24px 20px; gap: 20px; }
+    .hc-guide { padding: 14px 16px; }
+    .hc-guide :global(p) { font-size: 15px; }
     .social .av { width: 32px; height: 32px; font-size: 13.4px; }
-    .social-line { font-size: 12px; }
+    .social-line { font-size: 12.5px; }
+    .hc-daily { margin-top: 40px; padding-top: 20px; gap: 12px; }
+    .hc-daily > i { font-size: 22px; }
+    .hc-daily-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .hc-daily p { font-size: 16px; }
   }
-
-  /* card draw */
-  .draw-zone { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
-  @media (max-width: 760px) { .draw-zone { gap: 26px; margin-top: 24px; } }
-  .cards { display: flex; gap: 18px; align-items: center; }
-  @media (max-width: 760px) { .cards { gap: 12px; } }
-  .card-slot { transition: transform var(--dur-slow) var(--ease-soft), opacity var(--dur-base) var(--ease-soft); }
-  .card-slot[data-slot="0"] { transform: rotate(-5deg) translateY(8px); }
-  .card-slot[data-slot="2"] { transform: rotate(5deg) translateY(8px); }
-  .cards.picked .card-slot { transform: none; }
-  .card-slot.dim { opacity: 0.45; }
-  .card { all: unset; cursor: pointer; perspective: 900px; width: 116px; height: 178px; display: block; }
-  .cards.picked .card { cursor: default; }
-  @media (max-width: 760px) { .card { width: 104px; height: 168px; } }
-  .card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 520ms var(--ease-soft); }
-  .card-slot.flipped .card-inner { transform: rotateY(180deg); }
-  .card-back, .card-front { position: absolute; inset: 0; backface-visibility: hidden; border-radius: var(--radius-md); border: 1px solid var(--rose-200); }
-  .card-back { background: linear-gradient(160deg, var(--rose-300), var(--clay-400)); box-shadow: var(--shadow-md); display: flex; align-items: center; justify-content: center; }
-  .back-frame { width: 78%; height: 82%; border-radius: var(--radius-sm); border: 1px solid var(--disc-frost-hair); display: flex; align-items: center; justify-content: center; color: rgba(255,253,248,0.92); font-family: var(--font-serif); font-size: 30px; }
-  .card-front { transform: rotateY(180deg); background: var(--paper); box-shadow: var(--shadow-lg); padding: 14px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-  .cf-name { font-family: var(--font-serif); font-size: 26px; font-weight: 500; color: var(--accent-press); margin: 0 0 6px; }
-  .cf-rule { width: 22px; height: 1px; background: var(--rose-200); margin: 2px 0 8px; }
-  .cf-line { font-family: var(--font-serif); font-size: 11.5px; line-height: 1.7; color: var(--text-secondary); }
-  /* 2026-10-01（廣告前全站掃描）：360／375px 手機三張牌總寬 3×104＋2×12＝336 大過卡片外框（360 時 324），按「占卜」後左右牌突出白框 12px
-     → 390px 以下牌縮到 92、間距 8（整排 292），高度不變，正面左右留白 12→8 讓最長牌文仍排得下（放在 .card-front 基本樣式之後，才蓋得過） */
-  @media (max-width: 389px) { .cards { gap: 8px; } .card { width: 92px; } .card-front { padding: 14px 8px; } }
-  .draw-hint { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); letter-spacing: 0.04em; }
-  .draw-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; }
-
-  /* 占卜 hero 大鈕：DS zf-btn.lg 之上覆寫尺寸（對齊 home-page.jsx Btn lg 的 style override 20px/18-48）*/
-  .draw-btn { font-size: 20px; padding: 18px 48px; }
-  @media (max-width: 760px) { .draw-btn { font-size: 18px; padding: 16px 36px; } }
-
-  /* daily quote band */
-  .daily { margin-top: 28px; background: linear-gradient(120deg, var(--rose-100), var(--clay-200) 120%); border-radius: var(--radius-xl); padding: 26px 34px; display: flex; align-items: flex-start; gap: 14px; justify-content: center; box-shadow: var(--shadow-xs); }
-  @media (max-width: 760px) { .daily { margin-top: 22px; padding: 22px; } }
-  .daily > i { font-size: 26px; color: var(--rose-400); flex: none; margin-top: 4px; }
-  .daily-text { font-family: var(--font-serif); font-size: 19px; font-weight: 400; line-height: 1.7; color: var(--ink-800); text-align: center; }
-  @media (max-width: 760px) { .daily-text { font-size: 16px; } .daily > i { margin-top: 2px; } }
 
   /* selling point */
   .selling { border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); background: var(--surface-sunken); }
