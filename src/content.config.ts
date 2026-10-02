@@ -3,7 +3,9 @@ import { glob } from 'astro/loaders';
 import { wpBlogLoader } from './wp-blog-loader';
 
 const blogCollection = defineCollection({
-  loader: process.env.WINDS_BLOG_SOURCE === 'wp' ? wpBlogLoader() : glob({ pattern: '**/*.md', base: './src/content/blog' }),
+  // 文章正本在 WP（9/30 拍板）：預設一律讀 WP。只有明確設 WINDS_BLOG_SOURCE=md 才讀程式碼裡的 markdown 備份（回退用，內容停在 9/30）。
+  // 10/2 查到：原本要帶 WINDS_BLOG_SOURCE=wp 才讀 WP，本機更新網站沒帶，部落格被悄悄退回舊版 6 次
+  loader: process.env.WINDS_BLOG_SOURCE === 'md' ? glob({ pattern: '**/*.md', base: './src/content/blog' }) : wpBlogLoader(),
   schema: z.object({
     title: z.string(),
     description: z.string(),

@@ -1,11 +1,27 @@
 // 部落格資料來源：WordPress（wp.winds.tw）——2026-09-29 WP 後台遷移
-// 只在 WINDS_BLOG_SOURCE=wp 時啟用（content.config.ts 判斷）；平常照舊讀 src/content/blog/*.md
+// 預設就讀 WP（content.config.ts 判斷）；只有 WINDS_BLOG_SOURCE=md 才讀 src/content/blog/*.md 備份
+// 帳密：GitHub Actions 用環境變數；本機沒設環境變數就讀 ~/.claude/secrets/godaddy-wp.env
 // 規則：網址一律用 winds_source_slug（WP 代稱會去尾「-」且有 200 字元上限），沒有才用 WP slug
 import type { Loader, LoaderContext } from 'astro/loaders';
 import { glob } from 'astro/loaders';
 import GithubSlugger from 'github-slugger';
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 
 const SITE = 'https://winds.tw';
+
+/** 本機的 WP 帳密檔（一行一個 KEY=VALUE）；沒有這個檔（例如 GitHub Actions）就回空的 */
+function localWpEnv(): Record<string, string> {
+  const p = join(homedir(), '.claude', 'secrets', 'godaddy-wp.env');
+  if (!existsSync(p)) return {};
+  const out: Record<string, string> = {};
+  for (const line of readFileSync(p, 'utf8').split('\n')) {
+    const m = line.match(/^\s*(?:export\s+)?([A-Z_]+)=(.*)$/);
+    if (m) out[m[1]] = m[2].trim().replace(/^(['"])(.*)\1$/, '$2');
+  }
+  return out;
+}
 
 const decode = (s: string) =>
   s.replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
@@ -67,8 +83,9 @@ function tidyWpHtml(html: string, postIdBySlug: Map<string, string>): string {
 }
 
 async function loadFromWp({ store, parseData, logger }: LoaderContext) {
-  const site = process.env.WP_SITE, user = process.env.WP_USER, pass = process.env.WP_APP_PASSWORD;
-  if (!site || !user || !pass) throw new Error('WINDS_BLOG_SOURCE=wp 需要 WP_SITE／WP_USER／WP_APP_PASSWORD');
+  const local = localWpEnv();
+  const site = process.env.WP_SITE || local.WP_SITE, user = process.env.WP_USER || local.WP_USER, pass = process.env.WP_APP_PASSWORD || local.WP_APP_PASSWORD;
+  if (!site || !user || !pass) throw new Error('部落格要讀 WP：需要 WP_SITE／WP_USER／WP_APP_PASSWORD（環境變數，或本機 ~/.claude/secrets/godaddy-wp.env）');
   const headers = { Authorization: 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64'), 'User-Agent': 'winds-build/1.0' };
   const get = async (path: string) => {
     const r = await fetch(site + '/wp-json' + path, { headers });
@@ -130,10 +147,13 @@ export function wpBlogLoader(): Loader {
       try {
         await loadFromWp(ctx);
       } catch (e) {
-        // WP 存檔觸發的重建（GitHub Actions 設 WINDS_BLOG_STRICT）要失敗給人看，不能默默拿舊內容上線
-        if (process.env.WINDS_BLOG_STRICT) throw e;
-        // WP 抓不到（GoDaddy 掛、防火牆擋）不能讓整站建置失敗：先沿用上次建置抓到的（.astro/data-store.json），
-        // 全新環境（CI）沒有上次的就改讀程式碼裡的 markdown 備份——內容會比 WP 舊，但網站照常上線
+        // WP 抓不到就讓建置失敗、不上線（10/2 起本機也一樣）：默默拿舊內容上線，部落格就會退回舊版而沒人發現。
+        // 真的要在 WP 掛掉時照常上線，才明確設 WINDS_BLOG_STRICT=0（或 WINDS_BLOG_SOURCE=md，部落格會退回 9/30）
+        if (process.env.WINDS_BLOG_STRICT !== '0') {
+          throw new Error(`部落格讀不到 WP，這次不建置（避免把舊文章上線）：${e}｜先確認 wp.winds.tw；真的要照常上線才設 WINDS_BLOG_STRICT=0`);
+        }
+        // WINDS_BLOG_STRICT=0：先沿用上次建置抓到的（.astro/data-store.json），
+        // 全新環境沒有上次的就改讀程式碼裡的 markdown 備份——內容會比 WP 舊，但網站照常上線
         const kept = ctx.store.keys().length;
         if (kept) { ctx.logger.error(`WP 抓不到（${e}）：沿用上次建置抓到的 ${kept} 篇`); return; }
         ctx.logger.error(`WP 抓不到（${e}）：改讀程式碼裡的 markdown 備份 src/content/blog（內容可能較舊）`);
