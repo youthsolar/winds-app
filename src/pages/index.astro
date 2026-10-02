@@ -228,7 +228,12 @@ const homeJsonLd = {
   function ripBurst(){var box=document.getElementById('ffRips');if(!box||REDUCE)return;var n=3+Math.round(Math.random());for(var k=0;k<n;k++){setTimeout(function(){var b=document.getElementById('ffRips');if(!b)return;var s=document.createElement('span');b.appendChild(s);setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s);},3400);},k*380);}}
   function ripStop(){if(ripTimer){clearInterval(ripTimer);ripTimer=null;}}
   function ripStart(busy){ripStop();ripBurst();ripTimer=setInterval(ripBurst,busy?1600:5200);}
-  function showErr(msg){var e=document.getElementById('ffErr');if(!e){e=document.createElement('div');e.id='ffErr';e.className='ff-err';document.body.appendChild(e);}e.textContent=msg;e.style.display='block';setTimeout(function(){e.style.display='none';},4000);}
+  // 2026-10-02（Astra 審查 #5）：錯誤除了畫面上的提示，另外寫進一開始就在的 role=alert 隱形區，讀屏軟體才會唸出來
+  const srAlert = document.createElement('div');
+  srAlert.setAttribute('role', 'alert');
+  srAlert.style.cssText = 'position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0';
+  document.body.appendChild(srAlert);
+  function showErr(msg){var e=document.getElementById('ffErr');if(!e){e=document.createElement('div');e.id='ffErr';e.className='ff-err';document.body.appendChild(e);}e.textContent=msg;e.style.display='block';srAlert.textContent='';setTimeout(function(){srAlert.textContent=msg;},50);setTimeout(function(){e.style.display='none';},4000);}
 
   // ① 選情境：切按鈕，大標題與副句淡出換成這個情境的那句（同舊版首頁 280ms；點下去就更新 sel，取消上一次還沒跑的換字）
   const opts = document.getElementById('hmOpts');
@@ -247,17 +252,32 @@ const homeJsonLd = {
   });
 
   // ② 按住水鏡起卦：按下那一刻向後端起卦（同 /divination），六爻浮上來後交給 /divination
-  let CAST = { t: null, rising: 0, req: 0, cast: null };
+  let CAST = { t: null, rising: 0, req: 0, cast: null, auto: false };
+  let handTimer = null;   // 六爻浮完 → 1.7 秒後交接的計時器
   function draw(){yEl.innerHTML=yaos(CAST.cast?CAST.cast.code:'000000',CAST.rising);nEl.textContent=CAST.cast?CAST.cast.name:'';nEl.classList.toggle('on',CAST.rising>=6);}
   function stop(){if(CAST.t&&CAST.t!=='done'){clearInterval(CAST.t);CAST.t=null;CAST.rising=0;CAST.cast=null;draw();ripStart(false);clock.textContent='';m.classList.remove('busy');}}
-  function handOff(){
-    const s = SC[sel];
-    try { sessionStorage.setItem('winds_home_cast', JSON.stringify({ dir: s.dir, sub: s.sub, q: s.ask, service: s.service, cast: CAST.cast })); } catch (e) {}
-    location.href = '/divination/';
+  // 整個水鏡回到可以再按的樣子（取消還沒跑的交接；req 加一，還在路上的起卦回應就作廢）
+  function reset(){
+    if (handTimer) { clearTimeout(handTimer); handTimer = null; }
+    if (CAST.t && CAST.t !== 'done' && CAST.t !== 'pending') clearInterval(CAST.t);
+    CAST = { t: null, rising: 0, req: CAST.req + 1, cast: null, auto: false };
+    document.getElementById('hmN2').classList.remove('done'); draw(); clock.textContent = ''; m.classList.remove('busy'); ripStart(false);
   }
-  function start(e){
-    if (CAST.t) return; e.preventDefault(); try { m.setPointerCapture(e.pointerId); } catch (x) {}
+  function handOff(){
+    handTimer = null;
+    if (CAST.t !== 'done' || !CAST.cast) return;   // 2026-10-02（Astra 審查 #2）：等待中被重設過（例如離開再按上一頁回來）就不跳
+    const s = SC[sel];
+    const data = JSON.stringify({ dir: s.dir, sub: s.sub, q: s.ask, service: s.service, cast: CAST.cast });
+    // 2026-10-02（Astra 審查 #3）：存不進 sessionStorage（私密模式、額度滿）就把卦放在網址 #hc= 帶過去，卦不會掉
+    let saved = false;
+    try { sessionStorage.setItem('winds_home_cast', data); saved = sessionStorage.getItem('winds_home_cast') === data; } catch (e) {}
+    location.href = '/divination/' + (saved ? '' : '#hc=' + encodeURIComponent(data));
+  }
+  function start(e, auto){
+    if (CAST.t) return;
+    if (!auto) { e.preventDefault(); try { m.setPointerCapture(e.pointerId); } catch (x) {} }
     if (sel < 0) { opts.scrollIntoView({ behavior: 'smooth', block: 'center' }); showErr('先選一個，再按水鏡。'); return; }
+    CAST.auto = !!auto;
     m.classList.add('busy'); ripStart(true);
     CAST.t = 'pending';
     const myReq = CAST.req = CAST.req + 1;   // 按 A 放開再按 B，A 較晚回來不能被當成 B
@@ -268,17 +288,20 @@ const homeJsonLd = {
       clock.textContent = CAST.cast.castLabel + ' 起卦';
       CAST.t = setInterval(() => {
         CAST.rising++; draw();
-        if (CAST.rising >= 6) { clearInterval(CAST.t); CAST.t = 'done'; document.getElementById('hmN2').classList.add('done'); ripStart(false); setTimeout(handOff, 1700); }
+        if (CAST.rising >= 6) { clearInterval(CAST.t); CAST.t = 'done'; document.getElementById('hmN2').classList.add('done'); ripStart(false); handTimer = setTimeout(handOff, 1700); }
       }, 520);
     }).catch(() => { if (myReq !== CAST.req) return; CAST.t = null; stop(); showErr('連線不穩，再按一次。'); });
   }
-  function release(){ if (CAST.t === 'pending') { CAST.t = null; stop(); return; } stop(); }
-  m.addEventListener('pointerdown', start); m.addEventListener('pointerup', release); m.addEventListener('pointercancel', release);
+  function release(){ if (CAST.auto) return; if (CAST.t === 'pending') { CAST.t = null; stop(); return; } stop(); }
+  m.addEventListener('pointerdown', (e) => start(e)); m.addEventListener('pointerup', release); m.addEventListener('pointercancel', release);
   // 鍵盤：按住 Enter／空白鍵＝按住水鏡，放開＝放手
   m.addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); if (!e.repeat) start(e); });
   m.addEventListener('keyup', (e) => { if (e.key === 'Enter' || e.key === ' ') release(); });
-  // 從 /divination 按上一頁回來（瀏覽器直接還原這頁）：水鏡回到可以再按的樣子
-  window.addEventListener('pageshow', (e) => { if (e.persisted && CAST.t === 'done') { CAST = { t: null, rising: 0, req: CAST.req, cast: null }; document.getElementById('hmN2').classList.remove('done'); draw(); clock.textContent = ''; m.classList.remove('busy'); } });
+  // 2026-10-02（Astra 審查 #4）：讀屏軟體／語音控制只送一個 click（沒有按下、放開，detail 為 0），這時按一下就整卦起完，不必按住
+  m.addEventListener('click', (e) => { if (e.detail === 0 && !CAST.t) start(e, true); });
+  // 離開這頁時取消還沒跑的交接；從 /divination 按上一頁回來（瀏覽器直接還原這頁）時水鏡回到可以再按的樣子
+  window.addEventListener('pagehide', () => { if (handTimer) reset(); });
+  window.addEventListener('pageshow', (e) => { if (e.persisted && CAST.t) reset(); });
   ripStart(false);
 
   // 平滑捲動

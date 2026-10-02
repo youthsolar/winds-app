@@ -2368,13 +2368,20 @@ function boot(){
   var pressT=params.get("pt");if(pressT){try{localStorage.setItem("winds_press_token",pressT);}catch(e){}}
   /* 2026-10-02 首頁水鏡起卦：首頁按住水鏡起好卦，存在 sessionStorage 交接過來，這頁直接從「你的卦」接著走，不用再按一次。
      讀到就清（不管後面走哪個分支），只認 25 分鐘內的卦；卦的真假後端照樣驗（verifyCast：30 分鐘內、卦要對得上起卦時間）。 */
-  var homeCast=null;try{homeCast=JSON.parse(sessionStorage.getItem("winds_home_cast")||"null");sessionStorage.removeItem("winds_home_cast");}catch(e){}
+  /* 2026-10-02（Astra 審查 #3）：瀏覽器存不進 sessionStorage 時，首頁改把卦放在網址 #hc= 帶過來。
+     網址帶的是這一次的卦，驗過有效就優先用；sessionStorage 可能是上一次沒跳成留下的舊卦，只當備援。兩邊讀到都清掉。 */
+  var homeCast=null,hashCast=null,storedCast=null;
+  if(/^#hc=/.test(location.hash)){try{hashCast=JSON.parse(decodeURIComponent(location.hash.slice(4)));}catch(e){}try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}}
+  try{storedCast=JSON.parse(sessionStorage.getItem("winds_home_cast")||"null");sessionStorage.removeItem("winds_home_cast");}catch(e){}
+  homeCast=homeCastOk(hashCast)?hashCast:(homeCastOk(storedCast)?storedCast:null);
   var saved="";try{saved=localStorage.getItem("winds_google_token")||"";}catch(e){}
   if(saved&&!adoptGoogleToken(saved)){try{localStorage.removeItem("winds_google_token");}catch(e){}}
   var rid=params.get("log_id"),kk=params.get("k")||"",ret=params.get("ret")||"",ref=params.get("ref")||"",pending="";try{pending=sessionStorage.getItem("winds_pending_log_id")||"";}catch(e){}
   /* 2026-10-01（廣告前全站掃描）：pending 綁寫入時的頁面，換到別的漏斗就不接管（見 createOrder）；舊版沒記頁面的照舊接管 */
   var pendingPath="";try{pendingPath=sessionStorage.getItem("winds_pending_path")||"";}catch(e){}
   if(pending&&pendingPath&&pendingPath!==location.pathname)pending="";
+  /* 2026-10-02（Astra 審查 #1）：首頁剛起好的卦優先於「開了付款頁沒付」留下的舊單；網址明確帶 log_id 時仍以網址為準 */
+  if(!rid&&!HOME&&!LOVE&&homeCastOk(homeCast))pending="";
   if(ref)STATE.ref=ref;   /* 從別人的卦符卡收卡頁「我也起一卦」進來 */
   /* 去表單化：?log_id=&k= 用 log token 看結果，零登入（提醒信、付完款回跳都走這條） */
   /* 2026-09-28（Codex 複核）：pending 讀出來就清，任何報告分支 return 之前都要清到，否則殘留的 pending 會在下次進 /divination 接管 */
@@ -2402,10 +2409,20 @@ function boot(){
   render();
 }
 /* 首頁交接的卦（見 boot）：選的情境帶 dir／sub／題目，問題字串照 pickQ 的寫法組，結果頁的推薦與文章區就跟從選題進來一樣 */
+/* 交接資料可能來自網址（外部可改），每個欄位先驗型別；任何不合格一律當沒有（Astra 複核：castAt 塞物件會讓 new Date 拋錯、整頁起不來） */
+function homeCastOk(h){
+  try{
+    if(!h||typeof h!=="object"||!h.cast||typeof h.cast!=="object")return false;
+    var c=h.cast,str=function(v){return v==null||typeof v==="string";};
+    if(typeof c.code!=="string"||!/^[01]{6}$/.test(c.code)||typeof c.castAt!=="string")return false;
+    if(!str(c.name)||!str(c.line)||!str(c.castLabel)||typeof h.dir!=="string"||!str(h.sub)||!str(h.q)||!str(h.service))return false;
+    var at=new Date(c.castAt).getTime();
+    return isFinite(at)&&Date.now()-at<25*60*1000&&Date.now()-at>-60*1000&&!!TOPICS.find(function(t){return t.key===h.dir});
+  }catch(e){return false;}
+}
 function takeHomeCast(h){
-  var c=h.cast||{},at=new Date(c.castAt).getTime();
-  if(!/^[01]{6}$/.test(String(c.code||""))||!(Date.now()-at<25*60*1000))return;
-  var d=TOPICS.find(function(t){return t.key===h.dir});if(!d)return;
+  if(!homeCastOk(h))return;
+  var c=h.cast,d=TOPICS.find(function(t){return t.key===h.dir});
   var s=(d.subs||[]).find(function(x){return x.key===h.sub})||{};
   STATE.dir=d.key;STATE.sub=s.key||null;STATE.q=String(h.q||"");STATE.service=String(h.service||"");
   STATE.text="我目前最想處理的問題是「"+d.title+(s.name?" - "+s.name:"")+"」，狀況比較接近「"+STATE.q+"」。";
