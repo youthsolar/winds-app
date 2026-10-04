@@ -1147,7 +1147,11 @@ function viewCast(){
 }
 function ffCastWire(){
   var m=document.getElementById("ffMirror");if(!m)return;
-  FF_CAST={t:null,rising:0,busy:false,auto:false,req:(FF_CAST&&FF_CAST.req)||0};ffRipStart(false);
+  /* 2026-10-04（Astra 10/2 順帶抓到、Jeffery 選項卡「現在修」）：起卦動畫跑到一半按上一步、再回到起卦畫面，
+     上一次的爻計時器和 1.7 秒後跳「你的卦」的計時器都沒停，會接著跑完、自己跳過去。重新接線時先把上一次的停掉、序號加一作廢。 */
+  if(FF_CAST&&typeof FF_CAST.t==="number")clearInterval(FF_CAST.t);
+  if(FF_CAST&&FF_CAST.hand)clearTimeout(FF_CAST.hand);
+  FF_CAST={t:null,rising:0,busy:false,auto:false,hand:null,req:((FF_CAST&&FF_CAST.req)||0)+1};ffRipStart(false);
   function draw(){var y=document.getElementById("ffYaos");if(y&&STATE.cast)y.innerHTML=ffYaos(STATE.cast.code,FF_CAST.rising);var n=document.getElementById("ffHexName");if(n&&STATE.cast){n.textContent=STATE.cast.name;n.classList.toggle("on",FF_CAST.rising>=6);}}
   function stop(){if(FF_CAST.t&&FF_CAST.t!=="done"){clearInterval(FF_CAST.t);FF_CAST.t=null;FF_CAST.rising=0;FF_CAST.busy=false;STATE.cast=null;draw();ffRipStart(false);var c=document.getElementById("ffClock");if(c)c.textContent="";m.classList.remove("busy");}}
   function start(e,auto){
@@ -1166,9 +1170,11 @@ function ffCastWire(){
       if(!d||!d.success){FF_CAST.t=null;stop();showFfErr("起卦沒成功，再按一次。");return;}
       STATE.cast={code:d.code,name:d.name,line:d.line,castAt:d.cast_at,castLabel:d.cast_label||""};
       var c=document.getElementById("ffClock");if(c)c.textContent=STATE.cast.castLabel+" 起卦";
+      var mine=FF_CAST;
       FF_CAST.t=setInterval(function(){
+        if(FF_CAST!==mine){clearInterval(mine.t);return;}   /* 已離開又回來重新接線＝這一輪作廢 */
         FF_CAST.rising++;draw();
-        if(FF_CAST.rising>=6){clearInterval(FF_CAST.t);FF_CAST.t="done";FF_CAST.busy=false;ffRipStart(false);setTimeout(function(){if(STATE.step==="cast"||STATE.step==="landing")go("hex");},1700);}
+        if(FF_CAST.rising>=6){clearInterval(FF_CAST.t);FF_CAST.t="done";FF_CAST.busy=false;ffRipStart(false);FF_CAST.hand=setTimeout(function(){if(FF_CAST===mine&&(STATE.step==="cast"||STATE.step==="landing"))go("hex");},1700);}
       },520);
     }).catch(function(){if(myReq!==FF_CAST.req)return;FF_CAST.t=null;stop();showFfErr("連線不穩，再按一次。");});
   }
