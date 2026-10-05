@@ -941,6 +941,7 @@ function buildResult(d){
     hexName:d.hexagram_name||"",upperGua:d.upper_gua||"",lowerGua:d.lower_gua||"",
     talismanImg:d.talisman_image_url||"",talismanElements:d.talisman_elements||[],talismanCards:d.talisman_cards||[],jieqi:d.jieqi||null,shengKe:d.sheng_ke||"",
     hexCode:d.hexagram_code||"",hexCard:d.hex_card||null,
+    tian:d.tian||null,tianPending:!!d.tian_pending,   /* 2026-10-06 天卦（命）：付款後才有 tian；付款前只有 tianPending */
     nextStep:d.next_step||null,   /* 2026-09-24：{focus,talisman_reason,needs_teacher,teacher_line}，舊紀錄 null */
     wuxing:wr?(function(){var ks=["木","火","土","金","水"],vs=ks.map(function(k){return +wr[k]||0}),mx=Math.max.apply(null,vs);return ks.map(function(k,i){return{k:k,v:mx>0?Math.round(vs[i]/mx*100):0}})})():[],
     fortuneLine:a.fortune_line||d.fortune_line||[],
@@ -1387,12 +1388,30 @@ function qianBlockFull(R){
   }
   return block("解籤","",qk+'</div>');
 }
+/* 2026-10-06 天卦制（Jeffery 定）：付款後揭曉命卦（依生辰＋起卦那一刻），運卦＝水鏡那一卦；完整解讀以命卦為主、運卦為輔。
+   同卦時特別點出（選項卡拍板）；沒填時辰的人前端預設中午＝午時起卦，這裡註明用的是哪個時辰（選項卡拍板）。文案待 Jeffery 改定。 */
+function tianPair(R){
+  var T=R.tian;if(!T)return '';
+  function one(label,name,up,lo,note){
+    var sym=(GUA_UNI[up]||'')+(GUA_UNI[lo]||'');
+    return '<div class="zf-card" style="flex:1 1 220px;min-width:0"><span class="eyebrow"><span class="dot"></span>'+label+'</span>'+
+      '<p class="hex-name" style="margin:8px 0 0">「'+esc(name)+'」</p>'+
+      (sym?'<p class="hex-read" style="font-size:22px;letter-spacing:6px;color:var(--accent-press);margin:8px 0 0">'+sym+'</p>':'')+
+      '<p style="font-family:var(--font-sans);font-size:13px;line-height:1.7;color:var(--text-muted);margin:8px 0 0">'+note+'</p></div>';
+  }
+  return '<div style="display:flex;flex-wrap:wrap;gap:16px">'+
+    one("命卦",T.name,T.upper_gua,T.lower_gua,'依你的生辰'+(T.birth_label?'（'+esc(T.birth_label)+'）':'')+'與起卦那一刻起的卦，看這件事的方向。這次的五張靈符依它而配。')+
+    one("運卦",R.hexName,R.upperGua,R.lowerGua,'你按下水鏡那一刻起的卦，看眼前這段時間的時機。')+
+    '</div>'+
+    (T.same?'<p style="font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.8;color:var(--text-secondary);margin:14px 0 0"><b style="font-weight:500;color:var(--ink-900)">命與運落在同一卦：</b>這件事的方向很清楚。</p>':'');
+}
 function viewReportPaid(R,q){
   var F=STATE.full||{};
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>已拿到靈符解方</span>'+
     '<h1 class="q">你的完整命理報告</h1>'+
     (q?'<p class="sum-ask" style="margin:12px 0 0">你問的是——「'+esc(q)+'」</p>':'')+
     '</div>';
+  if(R.tian)h+=block("你的命卦與運卦","",tianPair(R));
   h+=block("完整解讀","",paywall(true));
   h+=block("你的命理檔案","",profileCard(true));
   /* 2026-09-28（Codex 體檢）：付費版原本沒有 spiritCard＝沒有「生成我的分靈體」按鈕，後端付款時也不會自動生成。
@@ -1682,8 +1701,10 @@ function hexTalismans(paid){
   var list=cards.length?cards:els.map(function(el,i){return{pos:i+1,element:el,available:false,blur_url:""}});
   if(list.length){
     /* 2026-09-26 逐值對齊 DS step4-result.jsx L398-403：標題 17 與標籤同列 gap 10、margin 0 0 6px、標籤 12/字距 0、說明 14（手機 13.5）；區塊上方留 DS hero 卡的 margin-bottom 20（手機 16） */
-    h+='<div class="tal5-sec"><div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span class="tal5-t">對應卦象的 '+list.length+' 張量能靈符</span><span class="zf-tag rose outline" style="font-size:12px;letter-spacing:0">隨「'+esc(R.hexName||'本')+'卦」而對應</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
-      '<p class="tal5-p">卦象、節氣和你現在的狀況，老師都看過了。</p><p class="tal5-p">這五張靈符，是風易揚老師照這次的卦象，一張一張親手畫的。不是現成圖，也不是隨機挑的。</p></div>';
+    h+='<div class="tal5-sec"><div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span class="tal5-t">對應卦象的 '+list.length+' 張量能靈符</span><span class="zf-tag rose outline" style="font-size:12px;letter-spacing:0">'+(R.tian?'隨你的命卦「'+esc(R.tian.name)+'」而對應':R.tianPending?'隨你的命卦而對應':'隨「'+esc(R.hexName||'本')+'卦」而對應')+'</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
+      '<p class="tal5-p">卦象、節氣和你現在的狀況，老師都看過了。</p><p class="tal5-p">這五張靈符，是風易揚老師照這次的卦象，一張一張親手畫的。不是現成圖，也不是隨機挑的。</p>'+
+      /* 2026-10-06 天卦制：免費看到的是運卦，這五張配的是依生辰起的命卦，付款後揭曉（文案待 Jeffery 改定） */
+      (!paid&&R.tianPending?'<p class="tal5-p">上面那一卦看的是此刻的運；這五張配的是依你的生辰起的命卦，拿到靈符解方時一起揭曉。</p>':'')+'</div>';
     h+='<div class="tal5-grid">'+list.map(function(c,i){
       var el=c.element;
       /* 未付款＋該位次已上傳真圖 → 顯示真模糊符令；否則退回符號佔位（同樣鎖住外觀） */
