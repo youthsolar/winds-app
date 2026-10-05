@@ -1725,7 +1725,7 @@ function hexTalismans(paid){
       else if(!showClear)fog='<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span>'+
         (days!=null?'<span class="fu-wait">'+(days>0?days+' 天後自動開':'節氣到了，重新整理就開')+'</span>':'')+'</div>';
       return '<div class="tal5"><div style="position:relative">'+tframe(inner,false,EL_GLOW[String(el).slice(0,1)])+fog+'</div>'+
-        '<div class="nm">'+(SOLAR.seq[i]||SOLAR.next)+' · '+esc(el)+'</div>'+
+        '<div class="nm">'+(SOLAR.seq[i]||SOLAR.next)+(el?' · '+esc(el):'')+'</div>'+
         (paid?'<div class="nm" style="margin-top:2px;color:var(--text-muted)">'+(showClear?'✓ 已經開了':'第 '+step+' 個節氣自動開')+'</div>':'')+'</div>';
     }).join("")+'</div>';
     if(paid)h+='<div style="text-align:center;margin-top:16px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+ic("download-simple")+'每逢節氣自動開一張，開了會通知你回來拿——點已開的靈符可開大圖儲存</div>';
