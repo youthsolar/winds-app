@@ -455,7 +455,7 @@ const jsonLd = prov ? [
       .lp-book .bw-next { min-width: 0; width: 100%; }
       .lp-book .bw-dates { margin: 0 -20px; padding: 0 20px 4px; }
       .lp-book .bw-times { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      .lp-book .bw-form { grid-template-columns: 1fr; }
+      .lp-book .bw-form .mwide { grid-column: 1 / -1; }
       .lp-book .bw-src { padding: 16px; }
     }
   </style>
@@ -563,8 +563,8 @@ const jsonLd = prov ? [
         var f = W.fields || {}; var TOPICS = ['愛情', '婚姻', '財運', '事業', '運勢', '健康'];
         // 通路來源（2026-10-06 拍板：必選、有「忘了」；朋友介紹／其他多一格選填；同 booking.astro）
         var HEARD = [['youtube', 'YouTube'], ['threads', 'Threads'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['google', 'Google 搜尋'], ['friend', '朋友介紹'], ['line', 'LINE'], ['edm', '電子報'], ['returning', '之前就約過'], ['other', '其他'], ['forgot', '忘了']];
-        /* 2026-10-06 DS：姓名／手機一列、Email 一列 → 「從哪裡知道」（必選）獨立一塊 → 想聊的主題（選填，安靜外框標籤）→ 想先讓老師知道的事；錯誤提示在各格底下 */
-        var inner = '<div class="bw-form">' + fld('姓名', 'wzName', f.name || '') + fld('手機', 'wzPhone', f.phone || '', 'tel') + fld('Email（限 Gmail）', 'wzEmail', f.email || '', 'email', 'wide') + '</div>' +
+        /* 2026-10-06 DS：（姓名改分兩格：姓｜名 一列、手機｜Email 一列；手機版姓名仍並排、手機與 Email 各一列） → 「從哪裡知道」（必選）獨立一塊 → 想聊的主題（選填，安靜外框標籤）→ 想先讓老師知道的事；錯誤提示在各格底下 */
+        var inner = '<div class="bw-form">' + fld('姓', 'wzLast', f.last || '') + fld('名', 'wzFirst', f.first || '') + fld('手機', 'wzPhone', f.phone || '', 'tel', 'mwide') + fld('Email（限 Gmail）', 'wzEmail', f.email || '', 'email', 'mwide') + '</div>' +
           '<div class="bw-src" id="wzSrc"><div class="bw-lbl">你是從哪裡知道風易揚老師的？<span class="bw-req">必選</span></div><div class="bw-topics">' + HEARD.map(function (h) { return '<button class="zf-chip sm' + (f.heard === h[0] ? ' selected' : '') + '" data-heard="' + h[0] + '" type="button">' + h[1] + '</button>'; }).join('') + '</div>' +
           '<label class="bw-fld" id="wzHeardNoteWrap"' + (f.heard === 'friend' || f.heard === 'other' ? '' : ' hidden') + '><span class="bw-lbl" id="wzHeardNoteLabel">' + (f.heard === 'other' ? '是哪裡呢？（選填）' : '介紹人（選填）') + '</span><input class="bw-in" id="wzHeardNote" type="text" maxlength="60" value="' + esc(f.heardNote || '') + '"></label>' +
           '<span class="bw-ferr" data-err="heard" hidden></span></div>' +
@@ -581,9 +581,9 @@ const jsonLd = prov ? [
         });
         on('[data-back]', stepTime);
         on('[data-next]', function () {
-          var name = val('wzName'), phone = val('wzPhone').replace(/[\s-]/g, ''), email = val('wzEmail');
+          var last = val('wzLast'), first = val('wzFirst'), name = last + first, phone = val('wzPhone').replace(/[\s-]/g, ''), email = val('wzEmail');   // 姓名分開（10/06，跟全站統一）
           // 錯誤一次全標在各格底下（10/06 拍板用 DS 的字）
-          var errs = { wzName: name ? '' : '請填姓名', wzPhone: /^09\d{8}$/.test(phone) ? '' : '手機請填 09 開頭的 10 碼', wzEmail: GMAIL.test(email) ? '' : '只收 Gmail，請填 @gmail.com 結尾的信箱', heard: W.heardPick ? '' : '請選一個' };
+          var errs = { wzLast: last ? '' : '請填姓', wzFirst: first ? '' : '請填名', wzPhone: /^09\d{8}$/.test(phone) ? '' : '手機請填 09 開頭的 10 碼', wzEmail: GMAIL.test(email) ? '' : '只收 Gmail，請填 @gmail.com 結尾的信箱', heard: W.heardPick ? '' : '請選一個' };
           var bad = false;
           Object.keys(errs).forEach(function (k) {
             var e = card.querySelector('[data-err="' + k + '"]'); if (!e) return;
@@ -592,7 +592,7 @@ const jsonLd = prov ? [
             if (errs[k]) bad = true;
           });
           if (bad) { var first = card.querySelector('.bad'); if (first && first.scrollIntoView) first.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
-          W.fields = { name: name, phone: phone, email: email, topic: W.topicPick, note: val('wzNote'), heard: W.heardPick, heardNote: (W.heardPick === 'friend' || W.heardPick === 'other') ? val('wzHeardNote') : '' };
+          W.fields = { name: name, last: last, first: first, phone: phone, email: email, topic: W.topicPick, note: val('wzNote'), heard: W.heardPick, heardNote: (W.heardPick === 'friend' || W.heardPick === 'other') ? val('wzHeardNote') : '' };
           stepConfirm();
         });
       }
@@ -620,7 +620,7 @@ const jsonLd = prov ? [
              不一樣就回 price_changed、不開單；這裡更新畫面請客人再按一次。20 秒沒回應就解鎖。 */
           var ac = new AbortController(), to = setTimeout(function () { ac.abort(); }, 20000);
           /* 送單冪等（gpt-6-astra 金流第四輪複核）：同一份預約資料重送帶同一個識別碼，逾時後重按拿回原單；資料有改就換新的 */
-          var payload = { service: W.svc.id, provider: prov.id, datetime: W.date + ' ' + W.time + ':00', location: W.loc.id, name: W.fields.name, phone: W.fields.phone, email: W.fields.email, topic: W.fields.topic || null, note: W.fields.note || null, heard_from: W.fields.heard || null, heard_from_note: W.fields.heardNote || null };
+          var payload = { service: W.svc.id, provider: prov.id, datetime: W.date + ' ' + W.time + ':00', location: W.loc.id, name: W.fields.name, last_name: W.fields.last, first_name: W.fields.first, phone: W.fields.phone, email: W.fields.email, topic: W.fields.topic || null, note: W.fields.note || null, heard_from: W.fields.heard || null, heard_from_note: W.fields.heardNote || null };
           /* 識別碼存在這個分頁的 sessionStorage：重新整理後資料沒改、一小時內還是同一個（gpt-6-astra 金流第五輪複核） */
           var REQ_KEY = 'winds-req-lp-fengyiyang', fp = JSON.stringify(payload), st = null, rid = '';
           try { st = JSON.parse(sessionStorage.getItem(REQ_KEY) || 'null'); } catch (e) {}
