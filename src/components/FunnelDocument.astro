@@ -2129,7 +2129,10 @@ function submitFree(){
     /* 2026-09-29 Jeffery 拍板：有分靈體的人按「改」換了生日或時辰，先確認——後端看到生日不同會清掉側寫、重新產生分靈體
        （名字和個性會變）。比對方式跟後端一樣：完整「YYYY-MM-DD HH:mm」字串不同就算換了。按取消就停在這一步。 */
     var rOld=STATE.retInfo;
-    if(rOld&&rOld.has_spirit&&rOld.date_of_birth&&payload.date_of_birth!==rOld.date_of_birth&&!confirm("改了生日或時辰，你的分靈體會重新認識你，名字和個性都會跟著變。確定要改嗎？"))return;
+    /* 2026-10-06（Astra V73）：Google 回訪沒帶 k、按「改」同時換了沒用過的信箱，後端會依新信箱另開帳號，原帳號的分靈體不受影響，
+       原本仍跳確認＝誤提示。只在送出會落到同一個帳號時才問：有 k（後端照 k 接回原帳號），或信箱跟原帳號相同（後端依信箱找人） */
+    var sameAcct=!!(rOld&&((STATE.retLog&&STATE.retToken)||String(rOld.email||"").trim().toLowerCase()===String(payload.email||"").trim().toLowerCase()));
+    if(rOld&&rOld.has_spirit&&sameAcct&&rOld.date_of_birth&&payload.date_of_birth!==rOld.date_of_birth&&!confirm("改了生日或時辰，你的分靈體會重新認識你，名字和個性都會跟著變。確定要改嗎？"))return;
     STATE.userName={surname:nm.surname,given:nm.given};
   }
   payload.free_flow=true;payload.question=STATE.text;payload.divination_method="雙占卜";
@@ -2160,6 +2163,10 @@ function submitFree(){
      if(!data)return;
      if(data.blocked){STATE.cooldown={message:data.message,available_at:data.available_at,last_log_id:data.last_log_id||null};STATE.submitting=false;go("cooldown");return;}
      if(data.success===false){STATE.submitting=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr(data.message||"發生錯誤，請再試一次。");},60);return;}
+     /* 2026-10-06（Astra V73，同 LINE 版 1f23f00）：按「改」送出成功後 retInfo 還是舊生日，再按「想再問一件別的事」維持新生日送出又跳一次確認。
+        送出成功就把 retInfo 換成剛送出的資料；換了生日（後端已清側寫）或落到別的帳號，has_spirit 都關掉 */
+     if(STATE.retInfo&&!STATE.ret){var _o=STATE.retInfo,_same=!!((STATE.retLog&&STATE.retToken)||String(_o.email||"").trim().toLowerCase()===String(payload.email||"").trim().toLowerCase()),_at=String(payload.email||"").indexOf("@");
+       STATE.retInfo={last_name:payload.last_name,first_name:payload.first_name,date_of_birth:payload.date_of_birth,gender:payload.gender,email:payload.email,email_masked:_at>0?payload.email.slice(0,Math.min(2,_at))+"***"+payload.email.slice(_at):"",has_spirit:_same&&!!_o.has_spirit&&payload.date_of_birth===_o.date_of_birth};}
      if(data.k){STATE.k=data.k;STATE.logId=String(data.log_id||"");var lsOk=false;try{localStorage.setItem("winds_ff_log",STATE.logId);localStorage.setItem("winds_ff_k",STATE.k);lsOk=true;}catch(e){}rememberK(STATE.logId,STATE.k);markUrl(STATE.logId,lsOk?"":STATE.k);}
      if(data.pending){if(data.warm_urls&&data.warm_urls.length){warmCards(data.warm_urls.slice());}pollStatus(data.log_id||"",true);return;}
      finishResult(data);
