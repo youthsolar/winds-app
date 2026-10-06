@@ -138,8 +138,8 @@ const jsonLd = prov ? [
         <section id="items" class="lp-block"><div class="lp-wrap">
           <div class="lp-head">
             <span class="lp-eyebrow">項目與價格</span>
-            <h2 class="lp-h2">先從這幾項開始</h2>
-            <p class="lp-lede-s">第一次找老師，不知道該選哪一項，可以先從下面幾項看起。價格是項目全額，線上先付四成訂金，時段就會保留下來。</p>
+            <h2 class="lp-h2">{featured.length === 1 ? '從這一項開始' : '先從這幾項開始'}</h2>   {/* 10/07 Jeffery 選項卡：只有 1 個項目的老師換字 */}
+            <p class="lp-lede-s">{featured.length === 1 ? '第一次找老師，可以直接選這一項。' : '第一次找老師，不知道該選哪一項，可以先從下面幾項看起。'}價格是項目全額，線上先付四成訂金，時段就會保留下來。</p>
           </div>
           <div class={'lp-featured n' + featured.length}>
             {featured.map((s: any) => (
