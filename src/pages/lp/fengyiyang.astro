@@ -224,7 +224,7 @@ const jsonLd = prov ? [
           </div>
         </div></section>
 
-        <!-- 浮動預約（DS）：手機底部霧面列；預約區進入畫面就收起，不蓋表單。手機這頁不顯示風小編浮動鈕（同一個位置）。 -->
+        <!-- 浮動預約（DS）：手機底部霧面列；預約區進入畫面就收起，不蓋表單。手機風小編在原位置（右下），列的右側讓出空間。 -->
         <div class="lp-bar" id="lpBar"><span>項目 <span data-nocjk style="white-space:nowrap">{ntd(minPrice)}</span> 起</span><a class="zf-btn primary md" href="#book">預約老師</a></div>
       </>
     )}
@@ -361,8 +361,9 @@ const jsonLd = prov ? [
     }
   </style>
   <style is:global>
-    /* 這頁手機版的浮動位置給底部預約列；桌機風小編照常，但預約區在畫面內時收起，不蓋表單（DS 稿） */
-    @media (max-width: 820px) { body:has(.lp-bar) #wcRoot { display: none; } }
+    /* 手機版風小編維持全站原本位置（右下 16px，10/06 Jeffery：位置要跟原本網站一樣）；底部預約列右側讓出風小編的空間，兩者不重疊。
+       預約區在畫面內時兩者都收起，不蓋表單（DS 稿） */
+    @media (max-width: 820px) { body:has(#wcRoot) .lp-bar { padding-right: 84px; } }
     body.lp-book-in #wcRoot { opacity: 0; pointer-events: none; transition: opacity var(--dur-base) var(--ease-soft); }
   </style>
 
