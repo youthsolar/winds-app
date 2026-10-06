@@ -2002,15 +2002,15 @@ var CJK_KEEP=['風易揚老師','風易揚','老師','找風問幸福','通靈�
 /* 第一次 render 可能早於 defer 的 budoux 載完：載完再補跑一次 */
 window.addEventListener('load',function(){cjkWrap(document.getElementById('root'));});
 /* 重畫時要停在哪裡（預設回最上面）：{anchor:元素 id} 捲到那一塊；{y:數字} 維持原本捲動位置。只用一次 */
-var RENDER_KEEP=null;
+var RENDER_KEEP=null,SCROLL_GEN=0;
 function renderScroll(){
-  var k=RENDER_KEEP;RENDER_KEEP=null;
+  var k=RENDER_KEEP;RENDER_KEEP=null;var gen=++SCROLL_GEN;   /* 下一次重畫就讓上一批對準計時器失效（Astra 第二輪 #7） */
   if(k&&k.anchor){var el=document.getElementById(k.anchor);if(el){
     /* 上方的圖片、解讀重畫後會陸續撐開把錨點往下推 → 前 2 秒內反覆對準；使用者一捲動／觸碰就停 */
     el.scrollIntoView({block:"start"});
     var stop=false,off=function(){stop=true;};
-    ["wheel","touchstart","keydown"].forEach(function(ev){window.addEventListener(ev,off,{once:true,passive:true});});
-    [120,350,700,1200,2000].forEach(function(ms){setTimeout(function(){if(stop)return;var e2=document.getElementById(k.anchor);if(e2)e2.scrollIntoView({block:"start"});},ms);});
+    ["wheel","touchstart","keydown","pointerdown"].forEach(function(ev){window.addEventListener(ev,off,{once:true,passive:true});});
+    [120,350,700,1200,2000].forEach(function(ms){setTimeout(function(){if(stop||gen!==SCROLL_GEN)return;var e2=document.getElementById(k.anchor);if(e2)e2.scrollIntoView({block:"start"});},ms);});
     return;}}
   if(k&&typeof k.y==="number"){window.scrollTo(0,k.y);return;}
   window.scrollTo(0,0);
@@ -2131,7 +2131,7 @@ function submitFree(){
     STATE.userName={surname:nm.surname,given:nm.given};
   }
   payload.free_flow=true;payload.question=STATE.text;payload.divination_method="雙占卜";
-  if(STATE.qtype)payload.question_type_hint=STATE.qtype;
+  if(STATE.qtype&&STATE.text===STATE.qtypeText)payload.question_type_hint=STATE.qtype;
   if(HOME){var hs=homeSitu(STATE.data.home);if(hs){payload.question=STATE.text+"　家的情形："+hs.l+"。";payload.home_situation=hs.k;}}
   /* 2026-09-26 好愛：兩排膠囊的答案併進問題字串，老師解卦吃得到；刻意不開新欄位（不動 worker 與資料庫） */
   if(LOVE){var lw=loveWho(STATE.data.loveWho),la=loveAngle(STATE.data.loveWho,STATE.data.loveAngle);
@@ -2483,6 +2483,7 @@ function takeHomeCast(h){
   STATE.cast={code:c.code,name:String(c.name||""),line:String(c.line||""),castAt:c.castAt,castLabel:String(c.castLabel||"")};
   /* 2026-10-06 Jeffery 選項卡：首頁四情境直接帶類別給後端抽籤（財運→關帝、愛情→觀音、健康→關帝、入煞→關帝），不靠關鍵字猜 */
   STATE.qtype={"work/wealth":"財運","love/reunion":"愛情","self/mind":"健康","self/luck":"入煞"}[d.key+"/"+(s.key||"")]||"";
+  STATE.qtypeText=STATE.text;   /* 類別綁在產生它的那句問題上：回上一步改了問題就不再帶（Astra 第二輪 #4） */
   STATE.step="hex";
 }
 var pending_k="";
