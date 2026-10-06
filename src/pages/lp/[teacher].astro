@@ -1,13 +1,17 @@
 ---
-// 一頁式預約頁：風易揚老師（2026-09-03 dev 預覽）
+// 一頁式預約頁（2026-09-03 風易揚老師起；2026-10-06 改成六位老師共用，各老師文案在 src/data/lp-teachers.ts）
 // 一頁講完一位老師：是誰、怎麼看事情、有哪些項目、怎麼進行 → 頁尾直接選時段付訂金，不跳頁。
 // 資料全部是真的：老師檔案/項目/價格/訂金 build 時抓 /sb-providers；時段 client 抓 /sb-slots；
 // 送單走現有 /sb-book（伺服器端重算金額 → 綠界正式商店收訂金）。
 // ⚠️ 文案（各段標題、FAQ）是佔位，等 Jeffery 改；老師檔案文字取 SB 現有欄位。
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { LP_TEACHERS } from '../../data/lp-teachers';
 
 const API = 'https://api.winds.tw';
-const PROVIDER_ID = '1';
+const slug = String(Astro.params.teacher || '');
+const cfg = LP_TEACHERS[slug];
+if (!cfg) return new Response(null, { status: 404 });
+const PROVIDER_ID = cfg.providerId;
 let prov: any = null;
 let locations: any[] = [];
 /* 2026-09-27：原本 catch 掉就發一個「老師資料載入失敗」的空殼頁上線，預約與付款入口整條失效，
@@ -28,16 +32,7 @@ if (!prov) return new Response('暫時讀不到資料，請稍後重新整理。
 
 const services: any[] = (prov?.services || []).filter((s: any) => Number(s.price) > 0);
 
-/* 落地頁專用文案（2026-09-24 小風審稿定稿）：SB 老師檔的自介／標籤／三張主打卡說明太文學，
-   這頁改成老師坐在個案面前講話的口吻。只蓋這頁的顯示，SB 資料與預約流程不動；其他頁仍吃 SB 原文。 */
-const LP_LEDE = ['有一件事情，你想很久了，還是想不通嗎？', '感情、工作、財運，或是一件你一直想知道原因的事，都可以直接跟老師說。', '先把事情看清楚，再決定接下來要怎麼處理。'];
-const LP_SKILLS = ['感情', '工作', '財運', '想知道原因的事'];
-const LP_SKILL_MAIN = '老師主要看：事情的原因、目前的狀況，以及接下來怎麼處理。';
-const LP_FEATURED_DESC: Record<string, string[]> = {
-  '4':   ['有一件事情一直想不通，或是很想知道「為什麼會變成這樣」，可以從這一項開始。', '把你想問的事告訴老師，老師用通靈水鏡法來看。'],
-  '6':   ['如果你想先知道自己目前的元辰宮狀況，可以選這一項。', '由老師代觀，先看目前看到的狀況，再跟你說接下來需不需要處理。'],
-  '136': ['這一項包含婚姻、事業與外煞三類元辰宮修補。', '做完之後，老師會交代後續要注意的事；至少要留 49 天靜養心神，讓自己適應。', '不確定自己是不是需要做到全修補，可以先預約元辰宮代觀，先看目前的狀況。'],
-};
+const LP_LEDE = cfg.lede, LP_SKILLS = cfg.skills, LP_SKILL_MAIN = cfg.skillMain, LP_FEATURED_DESC = cfg.featuredDesc;
 const ntd = (n: number) => 'NT$ ' + Number(n).toLocaleString('en-US');
 const clean = (n: string) => String(n || '').replace(/^【/, '').replace(/】$/, '');
 
@@ -62,9 +57,14 @@ const rest = services.filter((s) => !featured.includes(s));
 const restGroups = grouped.map((g) => ({ ...g, items: g.items.filter((s: any) => rest.includes(s)) })).filter((g) => g.items.length);
 const minPrice = services.length ? Math.min(...services.map((s) => Number(s.price))) : 0;
 
-const canonical = 'https://winds.tw/lp/fengyiyang/';
-const title = '風易揚老師 一對一預約｜通靈水鏡法・元辰宮觀修｜找風問幸福';
-const description = (LP_LEDE.join('') + '台北大安或遠端視訊一對一，線上付訂金保留時段。').slice(0, 155);
+const canonical = `https://winds.tw/lp/${slug}/`;
+const title = cfg.title;
+// 見面方式依老師實際有的地點講（只有台北實體的老師不提遠端）
+const hasPhysical = locations.some((l: any) => l.type !== 'online'), hasOnline = locations.some((l: any) => l.type === 'online');
+const eyebrowWhere = hasPhysical && hasOnline ? '台北大安 或 遠端視訊' : hasOnline ? '遠端視訊' : '台北大安';
+const balanceNote = hasPhysical && hasOnline ? '餘額實體當天現場結清；遠端依老師指示結清。' : hasOnline ? '餘額依老師指示結清。' : '餘額當天現場結清。';
+const faqBalance = hasPhysical && hasOnline ? '餘額實體當天現場結清，遠端依老師指示結清。' : balanceNote;   // 風易揚原文 FAQ 用逗號，照舊
+const description = (LP_LEDE.join('') + eyebrowWhere.replace(/ /g, '') + '一對一，線上付訂金保留時段。').slice(0, 155);
 const jsonLd = prov ? [
   {
     '@context': 'https://schema.org', '@type': 'Person', name: prov.name, url: canonical,
@@ -73,7 +73,7 @@ const jsonLd = prov ? [
     knowsAbout: prov.skills || [],
   },
   {
-    '@context': 'https://schema.org', '@type': 'ItemList', name: '風易揚老師 預約項目',
+    '@context': 'https://schema.org', '@type': 'ItemList', name: prov.name + ' 預約項目',
     itemListElement: services.map((s, i) => ({
       '@type': 'ListItem', position: i + 1,
       item: { '@type': 'Service', name: clean(s.name), description: s.desc || undefined, url: canonical + '#items',
@@ -95,7 +95,7 @@ const jsonLd = prov ? [
           <div class="lp-hero-glow"></div>
           <div class="lp-wrap lp-hero-grid">
             <div class="lp-hero-text">
-              <span class="lp-eyebrow">一對一預約 · 台北大安 或 遠端視訊</span>
+              <span class="lp-eyebrow">一對一預約 · {eyebrowWhere}</span>
               <div class="lp-name-row">
                 <div class="lp-name">
                   <h1 class="lp-h1">{prov.name}</h1>
@@ -130,7 +130,7 @@ const jsonLd = prov ? [
           </div>
           <div class="lp-tintcard">
             <p class="lp-skillmain">{LP_SKILL_MAIN}</p>
-            <div class="lp-chips">{String(prov.style || '').split('・').filter(Boolean).map((t: string) => <span class="zf-tag rose">{t}</span>)}</div>
+            <div class="lp-chips">{String(prov.style || '').split(/\s*[・·]\s*/).filter(Boolean).map((t: string) => <span class="zf-tag rose">{t}</span>)}</div>
           </div>
         </div></section>
 
@@ -192,9 +192,15 @@ const jsonLd = prov ? [
             <h2 class="lp-h2">想找老師，就從這裡選時間</h2>
           </div>
           <ol class="lp-steps">
-            <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>選實體或遠端</b></div><p>台北可以到大安區現場；不方便過來，也可以選遠端視訊。</p></li>
+            {hasPhysical && hasOnline ? (
+              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>選實體或遠端</b></div><p>台北可以到大安區現場；不方便過來，也可以選遠端視訊。</p></li>
+            ) : hasOnline ? (
+              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>遠端視訊</b></div><p>用手機或電腦連線，不用出門。</p></li>
+            ) : (
+              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>到台北大安區現場</b></div><p>老師在台北大安區見面，捷運忠孝復興站附近。</p></li>
+            )}
             <li><div class="lp-step-t"><span class="lp-step-n">2</span><b>選項目和時間</b></div><p>頁面會顯示老師未來四週可以預約的時間，挑一個你方便的就好。</p></li>
-            <li><div class="lp-step-t"><span class="lp-step-n">3</span><b>付四成訂金</b></div><p>線上付四成訂金後，時段就會保留下來。餘額實體當天現場結清；遠端依老師指示結清。</p></li>
+            <li><div class="lp-step-t"><span class="lp-step-n">3</span><b>付四成訂金</b></div><p>線上付四成訂金後，時段就會保留下來。{balanceNote}</p></li>
           </ol>
           <div class="lp-locs">
             {locations.map((l: any) => <span><i class={'ph ph-' + (l.type === 'online' ? 'video-camera' : 'map-pin')}></i>{(l.type === 'online' ? '遠端視訊：' : '台北實體：') + l.note}</span>)}
@@ -217,8 +223,9 @@ const jsonLd = prov ? [
             <h2 class="lp-h2">來之前想知道的</h2>
           </div>
           <div class="lp-faq-list">
-            <details><summary>訂金是多少？餘額什麼時候付？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>訂金為項目全額的四成，線上付款後時段即保留。餘額實體當天現場結清，遠端依老師指示結清。</p></details>
-            <details><summary>遠端視訊怎麼進行？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>預約完成後，連線方式會在對談前提供，時間到用手機或電腦點進去即可，不用另外安裝軟體。</p><!-- 2026-10-01（廣告前全站掃描）：原本寫「自動開啟會議室連結」，實際沒有程式會產生；照確認信的說法 --></details>
+            <details><summary>訂金是多少？餘額什麼時候付？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>訂金為項目全額的四成，線上付款後時段即保留。{faqBalance}</p></details>
+            {hasOnline && (<details><summary>遠端視訊怎麼進行？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>預約完成後，連線方式會在對談前提供，時間到用手機或電腦點進去即可，不用另外安裝軟體。</p></details>)}
+            <!-- 2026-10-01（廣告前全站掃描）：遠端那題原本寫「自動開啟會議室連結」，實際沒有程式會產生；照確認信的說法 -->
             <details><summary>為什麼 Email 只收 Gmail？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>預約確認信與會議連結都靠信箱送達，Gmail 送達率最穩定，避免你收不到通知。</p></details>
             <details><summary>要準備什麼？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>本人姓名、西元生日；如果知道出生時辰，也一起準備。</p><p>另外，把你最想問的一兩件事先放在心裡，來了直接跟老師說就好。</p></details>
           </div>
@@ -230,7 +237,7 @@ const jsonLd = prov ? [
     )}
   </div>
 
-  <script type="application/json" id="lpData" set:html={JSON.stringify({ prov, locations })} />
+  <script type="application/json" id="lpData" set:html={JSON.stringify({ prov, locations, slug })} />
 
   <style>
     /* 2026-10-06 照 DS 稿 contribution-to-ds/ui_kits/booking/lp-teacher.jsx 逐值改（交辦 lp-fengyiyang/BRIEF-lp-fengyiyang-2026-10-06.md）：
@@ -566,7 +573,7 @@ const jsonLd = prov ? [
         var HEARD = [['youtube', 'YouTube'], ['threads', 'Threads'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['google', 'Google 搜尋'], ['friend', '朋友介紹'], ['line', 'LINE'], ['edm', '電子報'], ['returning', '之前就約過'], ['other', '其他'], ['forgot', '忘了']];
         /* 2026-10-06 DS：（姓名改分兩格：姓｜名 一列、手機｜Email 一列；手機版姓名仍並排、手機與 Email 各一列） → 「從哪裡知道」（必選）獨立一塊 → 想聊的主題（選填，安靜外框標籤）→ 想先讓老師知道的事；錯誤提示在各格底下 */
         var inner = '<div class="bw-form">' + fld('姓', 'wzLast', f.last || '') + fld('名', 'wzFirst', f.first || '') + fld('手機', 'wzPhone', f.phone || '', 'tel', 'mwide') + fld('Email（限 Gmail）', 'wzEmail', f.email || '', 'email', 'mwide') + '</div>' +
-          '<div class="bw-src" id="wzSrc"><div class="bw-lbl">你是從哪裡知道風易揚老師的？<span class="bw-req">必選</span></div><div class="bw-topics">' + HEARD.map(function (h) { return '<button class="zf-chip sm' + (f.heard === h[0] ? ' selected' : '') + '" data-heard="' + h[0] + '" type="button">' + h[1] + '</button>'; }).join('') + '</div>' +
+          '<div class="bw-src" id="wzSrc"><div class="bw-lbl">你是從哪裡知道' + esc(prov.name) + '的？<span class="bw-req">必選</span></div><div class="bw-topics">' + HEARD.map(function (h) { return '<button class="zf-chip sm' + (f.heard === h[0] ? ' selected' : '') + '" data-heard="' + h[0] + '" type="button">' + h[1] + '</button>'; }).join('') + '</div>' +
           '<label class="bw-fld" id="wzHeardNoteWrap"' + (f.heard === 'friend' || f.heard === 'other' ? '' : ' hidden') + '><span class="bw-lbl" id="wzHeardNoteLabel">' + (f.heard === 'other' ? '是哪裡呢？（選填）' : '介紹人（選填）') + '</span><input class="bw-in" id="wzHeardNote" type="text" maxlength="60" value="' + esc(f.heardNote || '') + '"></label>' +
           '<span class="bw-ferr" data-err="heard" hidden></span></div>' +
           '<div class="bw-fld"><span class="bw-lbl">想聊的主題（選填）</span><div class="bw-tags">' + TOPICS.map(function (tp) { return '<button class="bw-tag' + (f.topic === tp ? ' on' : '') + '" data-topic="' + tp + '" type="button">' + tp + '</button>'; }).join('') + '</div></div>' +
@@ -623,7 +630,7 @@ const jsonLd = prov ? [
           /* 送單冪等（gpt-6-astra 金流第四輪複核）：同一份預約資料重送帶同一個識別碼，逾時後重按拿回原單；資料有改就換新的 */
           var payload = { service: W.svc.id, provider: prov.id, datetime: W.date + ' ' + W.time + ':00', location: W.loc.id, name: W.fields.name, last_name: W.fields.last, first_name: W.fields.first, phone: W.fields.phone, email: W.fields.email, topic: W.fields.topic || null, note: W.fields.note || null, heard_from: W.fields.heard || null, heard_from_note: W.fields.heardNote || null };
           /* 識別碼存在這個分頁的 sessionStorage：重新整理後資料沒改、一小時內還是同一個（gpt-6-astra 金流第五輪複核） */
-          var REQ_KEY = 'winds-req-lp-fengyiyang', fp = JSON.stringify(payload), st = null, rid = '';
+          var REQ_KEY = 'winds-req-lp-' + (D.slug || 'fengyiyang'), fp = JSON.stringify(payload), st = null, rid = '';
           try { st = JSON.parse(sessionStorage.getItem(REQ_KEY) || 'null'); } catch (e) {}
           // 暫存和記憶體兩邊都看，用對得上的那一份（gpt-6-astra 複核）
           var hit = [W.memReq, st].filter(function (x) { return x && x.fp === fp && Date.now() - x.t < 3600000; })[0];
