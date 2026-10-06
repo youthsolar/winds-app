@@ -1684,7 +1684,7 @@ function hexCardHero(paid){
     '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
     ((paid||HC)?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這張靈符是風易揚老師親手畫的。解鎖後就能看清楚。</span></div>')+
     '</div>'+
-    '<div class="tal-caption">'+ic("device-mobile")+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止 · 長按存成手機桌布':'先給你一張 · '+esc(HC.valid_until_label)+' 前有效 · 長按存成手機桌布'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</div>'+
+    '<div class="tal-caption">'+ic("device-mobile")+'<span style="text-align:center">'+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止<br>長按存成手機桌布':'先給你一張 · '+esc(HC.valid_until_label)+' 前有效<br>長按存成手機桌布'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</span></div>'+
     ((HC&&!HC.expired)?'<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("download-simple")+'存這張卦符</a></div>':'')+'</div>'+
     /* 2026-10-06 Jeffery 選項卡：有命卦的紀錄，這張卡是運卦 → 寫明「此刻的運卦」；舊紀錄照舊 */
     '<div class="hexcol"><span class="hex-name">'+((R.tian||R.tianPending)?'此刻的運卦，是「':'這次的卦，是「')+esc(R.hexName||'')+'」</span>'+
@@ -1710,7 +1710,7 @@ function hexTalismans(paid){
   if(list.length){
     /* 2026-09-26 逐值對齊 DS step4-result.jsx L398-403：標題 17 與標籤同列 gap 10、margin 0 0 6px、標籤 12/字距 0、說明 14（手機 13.5）；區塊上方留 DS hero 卡的 margin-bottom 20（手機 16） */
     h+='<div class="tal5-sec"><div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span class="tal5-t">對應卦象的 '+list.length+' 張量能靈符</span><span class="zf-tag rose outline" style="font-size:12px;letter-spacing:0">'+(R.tian?'隨你的命卦「'+esc(R.tian.name)+'」而對應':R.tianPending?'隨你的命卦而對應':'隨「'+esc(R.hexName||'本')+'卦」而對應')+'</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
-      '<p class="tal5-p">卦象、節氣和你現在的狀況，老師都看過了。</p><p class="tal5-p">這五張靈符，是風易揚老師照這次的卦象，一張一張親手畫的。不是隨機挑的。</p>'+
+      '<p class="tal5-p">卦象、節氣和你現在的狀況，老師都看過了。</p><p class="tal5-p">這五張靈符，是照這次的卦象，對應風易揚老師親書的靈符。不是隨機挑的。</p>'+
       /* 2026-10-06 天卦制：免費看到的是運卦，這五張配的是依生辰起的命卦，付款後揭曉（文案待 Jeffery 改定） */
       (!paid&&R.tianPending?'<p class="tal5-p">上面那一卦看的是此刻的運；這五張配的是依你的生辰起的命卦，拿到靈符解方時一起揭曉。</p>':'')+'</div>';
     h+='<div class="tal5-grid">'+list.map(function(c,i){
