@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* 2026-10-06：設計系統的外框款標籤叫 .outline（.zf-tag.outline、.tc-tag.outline），跟 Tailwind 的 .outline 工具撞名，
+   全站外框款標籤多出一圈 1px outline（看起來比 LINE 頁粗、亮）。全站沒有要用 Tailwind 這個工具的地方 → 不產生它 */
+@source not inline("outline");
 @import "./ds.css";
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* Phosphor icon 全站一律 flex 置中：消除 <i> display 不一致與 glyph baseline 偏移（2026-07-14）*/
