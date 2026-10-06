@@ -941,7 +941,7 @@ function buildResult(d){
     hexName:d.hexagram_name||"",upperGua:d.upper_gua||"",lowerGua:d.lower_gua||"",
     talismanImg:d.talisman_image_url||"",talismanElements:d.talisman_elements||[],talismanCards:d.talisman_cards||[],jieqi:d.jieqi||null,shengKe:d.sheng_ke||"",
     hexCode:d.hexagram_code||"",hexCard:d.hex_card||null,
-    tian:d.tian||null,tianPending:!!d.tian_pending,   /* 2026-10-06 天卦（命）：付款後才有 tian；付款前只有 tianPending */
+    tian:d.tian||null,tianPending:!!d.tian_pending,ask:d.ask||"",   /* 2026-10-06 天卦（命）：付款後才有 tian；付款前只有 tianPending */
     nextStep:d.next_step||null,   /* 2026-09-24：{focus,talisman_reason,needs_teacher,teacher_line}，舊紀錄 null */
     wuxing:wr?(function(){var ks=["木","火","土","金","水"],vs=ks.map(function(k){return +wr[k]||0}),mx=Math.max.apply(null,vs);return ks.map(function(k,i){return{k:k,v:mx>0?Math.round(vs[i]/mx*100):0}})})():[],
     fortuneLine:a.fortune_line||d.fortune_line||[],
@@ -1023,8 +1023,8 @@ function viewTopic(){
   // （每行 ~19 字）；後面的問題清單與補述框仍走 narrow——那是閱讀／填寫欄，680px 才對。
   return '<main class="shell'+(dir?' narrow':'')+'">'+h+'</main>';
 }
-function pickDir(k){STATE.dir=k;STATE.sub=null;STATE.q=null;STATE.text="";render()}
-function pickSub(k){STATE.sub=k;STATE.q=null;STATE.text="";render()}
+function pickDir(k){STATE.qtype="";STATE.dir=k;STATE.sub=null;STATE.q=null;STATE.text="";render()}
+function pickSub(k){STATE.qtype="";STATE.sub=k;STATE.q=null;STATE.text="";render()}
 function pickQ(el,qt){
   STATE.q=qt;
   var d=TOPICS.find(function(t){return t.key===STATE.dir})||{};
@@ -1395,21 +1395,24 @@ function tianPair(R){
   function one(label,name,up,lo,note){
     var sym=(GUA_UNI[up]||'')+(GUA_UNI[lo]||'');
     return '<div class="zf-card" style="flex:1 1 220px;min-width:0"><span class="eyebrow"><span class="dot"></span>'+label+'</span>'+
-      '<p class="hex-name" style="margin:8px 0 0">「'+esc(name)+'」</p>'+
-      (sym?'<p class="hex-read" style="font-size:22px;letter-spacing:6px;color:var(--accent-press);margin:8px 0 0">'+sym+'</p>':'')+
-      '<p style="font-family:var(--font-sans);font-size:13px;line-height:1.7;color:var(--text-muted);margin:8px 0 0">'+note+'</p></div>';
+      /* DS free-flow/page.jsx：卡內標題＝H4（serif 500／22／1.35／margin 8 0 6）、說明＝P（serif 300／14.5／1.8／text-secondary） */
+      '<p style="font-family:var(--font-serif);font-weight:500;font-size:22px;line-height:1.35;color:var(--text-primary);margin:8px 0 6px">「'+esc(name)+'」</p>'+
+      (sym?'<p style="font-size:22px;letter-spacing:6px;line-height:1.35;color:var(--accent-press);margin:0 0 6px">'+sym+'</p>':'')+
+      '<p style="font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.8;color:var(--text-secondary);margin:0">'+note+'</p></div>';
   }
   return '<div style="display:flex;flex-wrap:wrap;gap:16px">'+
     one("命卦",T.name,T.upper_gua,T.lower_gua,'依你的生辰'+(T.birth_label?'（'+esc(T.birth_label)+'）':'')+'與起卦那一刻起的卦，看這件事的方向。這次的五張靈符依它而配。')+
     one("運卦",R.hexName,R.upperGua,R.lowerGua,'你按下水鏡那一刻起的卦，看眼前這段時間的時機。')+
     '</div>'+
-    (T.same?'<p style="font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.8;color:var(--text-secondary);margin:14px 0 0"><b style="font-weight:500;color:var(--ink-900)">命與運落在同一卦：</b>這件事的方向很清楚。</p>':'');
+    (T.same?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.8;color:var(--text-secondary);margin:14px 0 0"><b style="font-weight:500;color:var(--text-primary)">命與運落在同一卦：</b>這件事的方向很清楚。</p>':'');
 }
 function viewReportPaid(R,q){
   var F=STATE.full||{};
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>已拿到靈符解方</span>'+
     '<h1 class="q">你的完整命理報告</h1>'+
-    (q?'<p class="sum-ask" style="margin:12px 0 0">你問的是——「'+esc(q)+'」</p>':'')+
+    (q?'<p class="sum-ask" style="margin:6px 0 10px">你問的是「'+esc(q)+'」</p>':'')+
+    /* 2026-10-06 Jeffery：卦符卡免費、付費都放最上面（同 9/25 免費頁的位置）；下面靈符解方區只留五張符 */
+    ((R.hexCard&&R.hexCard.url)||R.talismanImg||R.hexName?'<div style="margin-top:22px">'+hexCardHero(true)+'</div>':'')+
     '</div>';
   if(R.tian)h+=block("你的命卦與運卦","",tianPair(R));
   h+=block("完整解讀","",paywall(true));
@@ -1419,7 +1422,7 @@ function viewReportPaid(R,q){
   if(!(R.profile&&R.profile.trim()))h+=block("你的分靈體","",spiritCard(true));
   h+=tarotBlockFull(R);
   h+=qianBlockFull(R);
-  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("風易揚老師的靈符解方","老師親手畫、依你這一卦配的靈符；每逢節氣解鎖一張，依序設成手機桌布。",hexCardHero(true)+hexTalismans(true),true);
+  if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("風易揚老師的靈符解方","老師親手畫、依你這一卦配的靈符；每逢節氣解鎖一張，依序設成手機桌布。",hexTalismans(true),true);
   h+=recsSection();
   h+='<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:14px">'+
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
@@ -1431,7 +1434,8 @@ function viewReportPaid(R,q){
 function viewResult(){
   /* 2026-10-01（廣告前全站掃描）：STATE.text 是送給老師的整段模板（結尾「　實際情況是：」），原本整段印在「你問的是」，
      沒補述的人看到像沒填完的表單。改印客人點的那一句（STATE.q，起卦頁標題也是這句）；回訪沒有 q 才退回原本寫法 */
-  var R=STATE.result||{};var paid=STATE.paid||R.purchased;var q=STATE.q||STATE.text||"";
+  /* 2026-10-06 Jeffery：一開始要復述客人問的那一句——回看／換裝置時 STATE.q 是空的，改用後端從原問題取出的 R.ask */
+  var R=STATE.result||{};var paid=STATE.paid||R.purchased;var q=STATE.q||R.ask||STATE.text||"";
   if(HOME){var hs0=homeSitu(STATE.data.home);q="家裡的符"+(hs0?"・"+hs0.l:"");}
   if(LOVE){var la0=loveAngle(STATE.data.loveWho,STATE.data.loveAngle);q=(lvSingle()?"我的桃花":"這段感情")+(la0?"・"+la0.l:"");}
   if(paid)return viewReportPaid(R,q);
@@ -2001,7 +2005,13 @@ window.addEventListener('load',function(){cjkWrap(document.getElementById('root'
 var RENDER_KEEP=null;
 function renderScroll(){
   var k=RENDER_KEEP;RENDER_KEEP=null;
-  if(k&&k.anchor){var el=document.getElementById(k.anchor);if(el){el.scrollIntoView({block:"start"});return;}}
+  if(k&&k.anchor){var el=document.getElementById(k.anchor);if(el){
+    /* 上方的圖片、解讀重畫後會陸續撐開把錨點往下推 → 前 2 秒內反覆對準；使用者一捲動／觸碰就停 */
+    el.scrollIntoView({block:"start"});
+    var stop=false,off=function(){stop=true;};
+    ["wheel","touchstart","keydown"].forEach(function(ev){window.addEventListener(ev,off,{once:true,passive:true});});
+    [120,350,700,1200,2000].forEach(function(ms){setTimeout(function(){if(stop)return;var e2=document.getElementById(k.anchor);if(e2)e2.scrollIntoView({block:"start"});},ms);});
+    return;}}
   if(k&&typeof k.y==="number"){window.scrollTo(0,k.y);return;}
   window.scrollTo(0,0);
 }
@@ -2063,7 +2073,7 @@ function clearReportUrl(){STATE.reportMode=false;STATE.reportLogId="";try{var u=
 function back(){var map=(HOME||LOVE)?{cast:"landing",hex:"landing",ask:"hex",ret:"hex",result:"landing"}:{cast:"topic",hex:"topic",ask:"hex",ret:"hex",result:"topic"};if(STATE.step==="result")clearReportUrl();if(map[STATE.step])go(map[STATE.step])}
 function exitFlow(){location.href="/";}
 function openOA(){window.open(LINE_OA_URL,"_blank");}
-function askAnother(){
+function askAnother(){STATE.qtype="";
   /* 2026-10-01（廣告前全站掃描）：原本不重設 reportMode、也不清網址上的 ?log_id=&k=：從回看報告再問一卦，新結果頁沒有「上一步」，
      重新整理（或付款後按「完成後點我載入」）又回到舊報告。這裡歸零回看狀態、只拿掉網址的 log_id／k（utm 等照留），
      並清掉舊那一卦付款留下的 pending，否則還沒送出新卦前重新整理會被舊報告接管。 */
@@ -2121,6 +2131,7 @@ function submitFree(){
     STATE.userName={surname:nm.surname,given:nm.given};
   }
   payload.free_flow=true;payload.question=STATE.text;payload.divination_method="雙占卜";
+  if(STATE.qtype)payload.question_type_hint=STATE.qtype;
   if(HOME){var hs=homeSitu(STATE.data.home);if(hs){payload.question=STATE.text+"　家的情形："+hs.l+"。";payload.home_situation=hs.k;}}
   /* 2026-09-26 好愛：兩排膠囊的答案併進問題字串，老師解卦吃得到；刻意不開新欄位（不動 worker 與資料庫） */
   if(LOVE){var lw=loveWho(STATE.data.loveWho),la=loveAngle(STATE.data.loveWho,STATE.data.loveAngle);
@@ -2470,6 +2481,8 @@ function takeHomeCast(h){
   STATE.dir=d.key;STATE.sub=s.key||null;STATE.q=String(h.q||"");STATE.service=String(h.service||"");
   STATE.text="我目前最想處理的問題是「"+d.title+(s.name?" - "+s.name:"")+"」，狀況比較接近「"+STATE.q+"」。";
   STATE.cast={code:c.code,name:String(c.name||""),line:String(c.line||""),castAt:c.castAt,castLabel:String(c.castLabel||"")};
+  /* 2026-10-06 Jeffery 選項卡：首頁四情境直接帶類別給後端抽籤（財運→關帝、愛情→觀音、健康→關帝、入煞→關帝），不靠關鍵字猜 */
+  STATE.qtype={"work/wealth":"財運","love/reunion":"愛情","self/mind":"健康","self/luck":"入煞"}[d.key+"/"+(s.key||"")]||"";
   STATE.step="hex";
 }
 var pending_k="";
