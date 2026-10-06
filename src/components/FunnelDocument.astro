@@ -1685,7 +1685,7 @@ function hexCardHero(paid){
     ((paid||HC)?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這張靈符是風易揚老師親手畫的。解鎖後就能看清楚。</span></div>')+
     '</div>'+
     '<div class="tal-caption">'+ic("device-mobile")+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止 · 長按存成手機桌布':'先給你一張 · '+esc(HC.valid_until_label)+' 前有效 · 長按存成手機桌布'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</div>'+
-    ((HC&&!HC.expired)?'<a class="zf-btn secondary sm" style="margin-top:10px" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("download-simple")+'存這張卦符</a>':'')+'</div>'+
+    ((HC&&!HC.expired)?'<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("download-simple")+'存這張卦符</a></div>':'')+'</div>'+
     /* 2026-10-06 Jeffery 選項卡：有命卦的紀錄，這張卡是運卦 → 寫明「此刻的運卦」；舊紀錄照舊 */
     '<div class="hexcol"><span class="hex-name">'+((R.tian||R.tianPending)?'此刻的運卦，是「':'這次的卦，是「')+esc(R.hexName||'')+'」</span>'+
     (guaSym?'<p class="hex-read" style="font-size:24px;letter-spacing:6px;color:var(--accent-press);margin:10px 0 0">'+guaSym+'</p>':'')+
