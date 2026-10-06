@@ -101,6 +101,8 @@ const homeJsonLd = {
               {SCENARIOS.map((m) => (<div class="hc-qsizer" aria-hidden="true"><div class="hc-h1">{m.head}</div><p class="hc-lede">{m.lede}</p></div>))}
             </div>
           </div>
+          <!-- 10/7 DS：八卦照活動頁 .hg-bagua（48px、opacity .9、純裝飾），放量尺之後＝換選項不跳；手機桌機都置中（10/7 Jeffery）；手機上下間距相等 -->
+          <div class="hc-bagua" aria-hidden="true"><img src="/assets/bagua-nav.png" alt="" width="48" height="48"></div>
           <section class="hc-step1">
             <div class="hc-step"><span class="hc-num done" id="hmN1" aria-hidden="true">1</span><div class="hc-step-txt"><h3>現在的你，比較像——</h3></div></div>
             <div class="hc-opts" role="group" id="hmOpts">
@@ -431,6 +433,8 @@ const homeJsonLd = {
   .hc-left { display: flex; flex-direction: column; gap: 40px; padding-top: 8px; }
   .hc-side { position: sticky; top: 96px; }
   .hc-hero { display: flex; flex-direction: column; gap: 16px; }
+  .hc-bagua { display: flex; justify-content: center; margin: -16px 0 -8px; }
+  .hc-bagua img { display: block; width: 48px; height: 48px; opacity: .9; }
   .hc-q { display: grid; }
   .hc-qcur, .hc-qsizer { grid-area: 1 / 1; display: flex; flex-direction: column; gap: 16px; }
   .hc-qsizer { visibility: hidden; pointer-events: none; }
@@ -493,6 +497,7 @@ const homeJsonLd = {
     .hc-grid { display: flex; flex-direction: column; gap: 24px; align-items: stretch; }
     .hc-left { display: contents; }
     .hc-hero { order: 1; gap: 12px; }
+    .hc-bagua { order: 1; margin: 0; }
     .hc-qcur, .hc-qsizer { gap: 12px; }
     .hc-step1 { order: 2; }
     .hc-side { order: 3; position: static; }
