@@ -418,12 +418,12 @@ const jsonLd = prov ? [
     .lp-book .bw-more { all: unset; cursor: pointer; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 13.5px; color: var(--accent-press); }
     .lp-book .bw-none, .lp-book .bw-loading { font-family: var(--font-serif); font-weight: 300; color: var(--text-secondary); text-align: center; padding: 28px 0; }
     /* 聯絡方式 */
-    .lp-book .bw-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .lp-book .bw-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }   /* 10/06 iPhone 實測：姓名兩格並排把整頁撐寬 */
     .lp-book .bw-form .wide { grid-column: 1 / -1; }
     .lp-book .bw-fld { display: flex; flex-direction: column; gap: 8px; }
     .lp-book .bw-lbl { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-family: var(--font-sans); font-size: 14px; font-weight: 500; color: var(--ink-700); }
     .lp-book .bw-req { font-size: 11.5px; font-weight: 400; color: var(--accent-press); border: 1px solid var(--border-accent); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
-    .lp-book .bw-in { height: 44px; box-sizing: border-box; padding: 0 14px; font-family: var(--font-serif); font-size: 16px; color: var(--text-primary); background: var(--surface-card); border: 1px solid var(--border-strong); border-radius: var(--radius-md); outline: none; transition: border-color var(--dur-fast) var(--ease-soft); }
+    .lp-book .bw-in { width: 100%; min-width: 0; height: 44px; box-sizing: border-box; padding: 0 14px; font-family: var(--font-serif); font-size: 16px; color: var(--text-primary); background: var(--surface-card); border: 1px solid var(--border-strong); border-radius: var(--radius-md); outline: none; transition: border-color var(--dur-fast) var(--ease-soft); }
     .lp-book textarea.bw-in { height: auto; padding: 12px 14px; line-height: 1.7; resize: vertical; }
     .lp-book .bw-in:focus { border-color: var(--rose-400); box-shadow: 0 0 0 3px var(--focus-ring); }
     .lp-book .bw-in.bad { border-color: var(--critical); }
