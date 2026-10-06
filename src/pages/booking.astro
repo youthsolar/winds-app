@@ -318,12 +318,18 @@ import { PERSONAS } from '../data/booking-teachers';
       function stepInfo(){
         var f=W.fields||{};
         var TOPICS=['愛情','婚姻','財運','事業','運勢','健康'];
+        /* 通路來源（2026-10-06 拍板：必選、有「忘了」；朋友介紹／其他多一格選填） */
+        var HEARD=[['youtube','YouTube'],['threads','Threads'],['instagram','Instagram'],['facebook','Facebook'],['google','Google 搜尋'],['friend','朋友介紹'],['line','LINE'],['edm','電子報'],['returning','之前就約過'],['other','其他'],['forgot','忘了']];
         var inner='<div class="bw-form">'+
           fld('姓名','wzName',f.name||'')+fld('手機','wzPhone',f.phone||'','tel')+
           fld('Email（限 Gmail）','wzEmail',f.email||'','email')+
           '<div class="bw-fld"><span>想聊的主題（選填）</span><div class="bw-topics">'+TOPICS.map(function(tp){
             return '<button class="bk-chip'+(f.topic===tp?' on':'')+'" data-topic="'+tp+'" type="button">'+tp+'</button>';
           }).join('')+'</div></div>'+
+          '<div class="bw-fld"><span>你是從哪裡知道風易揚老師的？</span><div class="bw-topics">'+HEARD.map(function(h){
+            return '<button class="bk-chip'+(f.heard===h[0]?' on':'')+'" data-heard="'+h[0]+'" type="button">'+h[1]+'</button>';
+          }).join('')+'</div></div>'+
+          '<label class="bw-fld" id="wzHeardNoteWrap"'+(f.heard==='friend'||f.heard==='other'?'':' hidden')+'><span id="wzHeardNoteLabel">'+(f.heard==='other'?'是哪裡呢？（選填）':'介紹人（選填）')+'</span><input id="wzHeardNote" type="text" maxlength="60" value="'+esc(f.heardNote||'')+'"></label>'+
           '<label class="bw-fld"><span>想先讓老師知道的事（選填）</span><textarea id="wzNote" rows="3" maxlength="300" placeholder="也可以什麼都不寫，當面聊就好。">'+esc(f.note||'')+'</textarea></label>'+
           '<p class="bw-err" id="wzErr" hidden></p></div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-next type="button">下一步</button>';
@@ -333,6 +339,14 @@ import { PERSONAS } from '../data/booking-teachers';
           W.topicPick=(W.topicPick===b.dataset.topic)?'':b.dataset.topic;
           mount.querySelectorAll('[data-topic]').forEach(function(c){c.classList.toggle('on',c.dataset.topic===W.topicPick);});
         });});
+        W.heardPick=f.heard||'';
+        mount.querySelectorAll('[data-heard]').forEach(function(b){b.addEventListener('click',function(){
+          W.heardPick=b.dataset.heard;
+          mount.querySelectorAll('[data-heard]').forEach(function(c){c.classList.toggle('on',c.dataset.heard===W.heardPick);});
+          var wrap=document.getElementById('wzHeardNoteWrap');
+          wrap.hidden=!(W.heardPick==='friend'||W.heardPick==='other');
+          document.getElementById('wzHeardNoteLabel').textContent=W.heardPick==='other'?'是哪裡呢？（選填）':'介紹人（選填）';
+        });});
         mount.querySelector('[data-back]').addEventListener('click',stepTime);
         mount.querySelector('[data-next]').addEventListener('click',function(){
           var name=val('wzName'),phone=val('wzPhone'),email=val('wzEmail'),note=val('wzNote');
@@ -340,13 +354,16 @@ import { PERSONAS } from '../data/booking-teachers';
           if(!name){return showErr(err,'請輸入姓名。');}
           if(!/^09\d{8}$/.test(phone.replace(/[\s-]/g,''))){return showErr(err,'請輸入正確手機（09xxxxxxxx）。');}
           if(!GMAIL.test(email)){return showErr(err,'Email 目前僅接受 @gmail.com。');}
-          W.fields={name:name,phone:phone.replace(/[\s-]/g,''),email:email,topic:W.topicPick,note:note};
+          if(!W.heardPick){return showErr(err,'請選一下你是從哪裡知道風易揚老師的（記不得就選「忘了」）。');}
+          var hn=(W.heardPick==='friend'||W.heardPick==='other')?val('wzHeardNote'):'';
+          W.fields={name:name,phone:phone.replace(/[\s-]/g,''),email:email,topic:W.topicPick,note:note,heard:W.heardPick,heardNote:hn};
           stepConfirm();
         });
       }
       function fld(label,id,v,t){return '<label class="bw-fld"><span>'+label+'</span><input id="'+id+'" type="'+(t||'text')+'" value="'+esc(v)+'"></label>';}
       function val(id){var e=document.getElementById(id);return e?e.value.trim():'';}
       function showErr(el,m){if(!el)return;el.textContent=m;el.hidden=false;}   /* 節點可能已不在畫面上，不能讓它拋錯把後面的解鎖擋掉 */
+      var HEARD_LABEL={youtube:'YouTube',threads:'Threads',instagram:'Instagram',facebook:'Facebook',google:'Google 搜尋',friend:'朋友介紹',line:'LINE',edm:'電子報',returning:'之前就約過',other:'其他',forgot:'忘了'};
       function stepConfirm(){
         var dep=Number(W.svc.deposit)||Number(W.svc.price)||0;
         /* 2026-10-01（廣告前全站掃描）：不收訂金（訂金 0）或訂金＝總額的項目，原本也寫「線上付訂金…餘額現場結清」，其實線上已付全額。
@@ -361,6 +378,7 @@ import { PERSONAS } from '../data/booking-teachers';
           row('聯絡',W.fields.name+' · '+W.fields.phone)+
           (W.fields.topic?row('主題',W.fields.topic):'')+
           (W.fields.note?row('備註',W.fields.note):'')+
+          (W.fields.heard?row('從哪裡知道',(HEARD_LABEL[W.fields.heard]||'')+(W.fields.heardNote?'（'+W.fields.heardNote+'）':'')):'')+
           '<div class="bw-dep"><span>'+(isDep?'線上付訂金':'線上付清')+'</span><b>NT$ '+dep.toLocaleString('en-US')+'</b></div>'+
           /* 2026-10-01（廣告前全站掃描）：原本寫可用 CVS 付款，但綠界收銀台已排除 CVS／BARCODE（ecpay.ts IgnorePayment），客人進收銀台找不到；改成只寫線上付款 */
           '<p class="bw-note">'+(locNote?esc(locNote)+' ':'')+(isDep?'付訂金後即為你保留時段，餘額'+(online?'依老師指示':'現場')+'結清。':'付款後即為你保留時段。')+'僅接受 Gmail，採線上付款。</p>'+
@@ -383,7 +401,8 @@ import { PERSONAS } from '../data/booking-teachers';
           /* 送單冪等（gpt-6-astra 金流第四輪複核）：同一份預約資料重送帶同一個識別碼——逾時後重按會拿回原本那張單，
              不會多開一張、也不會被自己保留的時段擋住；資料有改就換新的 */
           var payload={service:W.svc.id,provider:W.prov.id,datetime:W.date+' '+W.time+':00',location:W.loc?W.loc.id:null,
-              name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null,note:W.fields.note||null};
+              name:W.fields.name,phone:W.fields.phone,email:W.fields.email,topic:W.fields.topic||null,note:W.fields.note||null,
+              heard_from:W.fields.heard||null,heard_from_note:W.fields.heardNote||null};
           /* 識別碼存在這個分頁的 sessionStorage：重新整理、關掉精靈再開，資料沒改、一小時內還是同一個（gpt-6-astra 金流第五輪複核） */
           var REQ_KEY='winds-req-booking',fp=JSON.stringify(payload),st=null,rid='';
           try{st=JSON.parse(sessionStorage.getItem(REQ_KEY)||'null');}catch(e){}
@@ -394,6 +413,7 @@ import { PERSONAS } from '../data/booking-teachers';
             window.__windsReqBooking={fp:fp,id:rid,t:Date.now()};
             try{sessionStorage.setItem(REQ_KEY,JSON.stringify(window.__windsReqBooking));}catch(e){}}
           payload.expected_amount=dep;payload.client_req_id=rid;
+          try{payload.first_touch=JSON.parse(localStorage.getItem('winds_first_touch')||'null');}catch(e){}   /* 第一次進站的來源（BaseLayout 記的），讀不到就不帶 */
           fetch(WORKER_API+'/sb-book',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},
             body:JSON.stringify(payload)})
            .then(function(r){return r.json().then(function(d){return{st:r.status,d:d};});}).then(function(o){var d=o.d;clearTimeout(to);

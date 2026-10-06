@@ -232,6 +232,18 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
       var q = new URLSearchParams(location.search);
       var c = q.get('utm_content');
       var s = q.get('utm_source');
+      /* 2026-10-06 預約通路來源：第一次帶 utm 或從外站進來，記在這台瀏覽器 90 天，預約送單時一起帶（booking-source-survey）。
+         已經有、而且沒過期就不蓋掉——要的是「第一次」從哪裡來。讀寫失敗（無痕、封鎖）就算了。 */
+      try {
+        var ft = JSON.parse(localStorage.getItem('winds_first_touch') || 'null');
+        if (!ft || Date.now() - Date.parse(ft.at) > 90 * 864e5) {
+          var ref = '';
+          try { ref = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : ''; } catch (e) {}
+          if (/(^|\.)winds\.tw$/.test(ref)) ref = '';
+          var ad = q.get('gclid') ? 'google-ads' : '';   // Google 廣告點擊通常不帶 utm，只帶 gclid
+          if (s || c || ref || ad) localStorage.setItem('winds_first_touch', JSON.stringify({ source: (s || ad).slice(0, 40), content: (c || '').slice(0, 80), referrer: ref.slice(0, 80), at: new Date().toISOString() }));
+        }
+      } catch (e) {}
       // 2026-09-02：原本 `if (!utm_content) return` 讓「有 utm_source 但沒 utm_content」的連結
       // 完全不記點——社群回覆裡的裸連結進站因此全部看不到，儀表長期是瞎的。改成兩者有一個就記。
       if (!c && !s) return;
