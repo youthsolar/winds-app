@@ -1505,7 +1505,8 @@ function getsList(){
     items.map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b>'+(x[1]?'<span>'+x[1]+'</span>':'')+'</div></div>';}).join('')+'</div>'+
     (LOVE?'<p class="veil-alt" style="margin-top:10px">一次 NT$ '+TALISMAN_PRICE+'，沒有訂閱，也不會自動續費。</p>':'');
 }
-function talismanName(){var R=STATE.result||{};return R.hexName?'<span class="tname">【'+esc(R.hexName)+' 靈符】</span>':'靈符';} /* 9/28：整組不換行（原本「【」會掉在行尾） */
+/* 2026-10-06 命卦：五張符配的是命卦——付款後寫命卦名；付款前不能露出是哪一卦，只寫「靈符」 */
+function talismanName(){var R=STATE.result||{};if(R.tian)return '<span class="tname">【'+esc(R.tian.name)+' 靈符】</span>';if(R.tianPending)return '靈符';return R.hexName?'<span class="tname">【'+esc(R.hexName)+' 靈符】</span>':'靈符';} /* 9/28：整組不換行（原本「【」會掉在行尾） */
 function block(title,note,inner,noteTag){return '<section class="res-block"><h3 class="res-h3">'+title+'</h3>'+(note?(noteTag?'<div class="res-note-tag"><span class="zf-tag rose outline">'+esc(note)+'</span></div>':'<p class="res-note">'+ic("sparkle")+esc(note)+'</p>'):'')+inner+'</section>'}
 function fact(l,v,s){return '<div class="fact"><div class="l">'+l+'</div><div class="v">'+v+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>'}
 /* ===== 完整命理檔案（逐值對齊 DS step4-result.jsx ProfileCard；real 有則用、缺則示意待後端）===== */
