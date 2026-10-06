@@ -2130,6 +2130,7 @@ function submitFree(){
        下面接到就問，按確定帶 confirm_spirit_reset 再送一次；前端自己比對猜不準最後寫進哪個帳號（換信箱可能落到另一個有分靈體的帳號）。 */
     STATE.userName={surname:nm.surname,given:nm.given};
   }
+  payload.spirit_confirm=1; /* 2026-10-06（Astra V101）：告訴後端這版頁面會處理「改生日要確認」的回覆 */
   if(STATE.spiritResetOk){payload.confirm_spirit_reset=true;STATE.spiritResetOk=false;}
   payload.free_flow=true;payload.question=STATE.text;payload.divination_method="雙占卜";
   if(STATE.qtype&&STATE.text===STATE.qtypeText)payload.question_type_hint=STATE.qtype;
