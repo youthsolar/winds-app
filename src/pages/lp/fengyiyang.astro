@@ -56,7 +56,10 @@ for (const s of services) {
   g.items.push(s);
 }
 const FEATURED_IDS = ['4', '6', '136'];
-const featured = FEATURED_IDS.map((id) => services.find((s) => String(s.id) === id)).filter(Boolean);
+// 2026-10-06 DS 稿（lp-fengyiyang）：主打卡最多 3 張（指定的先、不夠從其餘補）；超過 3 項才把其餘列進「全部項目」，3 項以內不重複列
+const featured = [...FEATURED_IDS.map((id) => services.find((s) => String(s.id) === id)).filter(Boolean), ...services.filter((s) => !FEATURED_IDS.includes(String(s.id)))].slice(0, 3);
+const rest = services.filter((s) => !featured.includes(s));
+const restGroups = grouped.map((g) => ({ ...g, items: g.items.filter((s: any) => rest.includes(s)) })).filter((g) => g.items.length);
 const minPrice = services.length ? Math.min(...services.map((s) => Number(s.price))) : 0;
 
 const canonical = 'https://winds.tw/lp/fengyiyang/';
@@ -87,15 +90,21 @@ const jsonLd = prov ? [
       <p class="lp-empty">老師資料載入失敗，請稍後再試。</p>
     ) : (
       <>
-        <!-- ① 是誰 -->
+        <!-- ① 是誰（2026-10-06 照 DS lp-teacher.jsx：容器 1120、hero 7fr／5fr；手機名字右邊 88px 頭像，首屏先看到名字與預約鈕） -->
         <section class="lp-hero">
           <div class="lp-hero-glow"></div>
           <div class="lp-wrap lp-hero-grid">
             <div class="lp-hero-text">
-              <span class="zf-ph-eyebrow">一對一預約 · 台北大安 或 遠端視訊</span>
-              <h1 class="lp-h1">{prov.name}</h1>
-              <p class="lp-style">{prov.style}</p>
-              {LP_LEDE.map((t) => <p class="lp-lede">{t}</p>)}
+              <span class="lp-eyebrow">一對一預約 · 台北大安 或 遠端視訊</span>
+              <div class="lp-name-row">
+                <div class="lp-name">
+                  <h1 class="lp-h1">{prov.name}</h1>
+                  <p class="lp-style">{prov.style}</p>
+                </div>
+                <img class="lp-avatar" src={prov.photo} alt="" width="88" height="110" loading="eager" />
+              </div>
+              <p class="lp-q">{LP_LEDE[0]}</p>
+              <p class="lp-lede">{LP_LEDE.slice(1).join('')}</p>
               <div class="lp-chips">{LP_SKILLS.map((k: string) => <span class="zf-tag rose">{k}</span>)}</div>
               <div class="lp-cta">
                 <a class="zf-btn primary lg" href="#book">預約老師<i class="ph ph-arrow-down"></i></a>
@@ -105,100 +114,118 @@ const jsonLd = prov ? [
               <p class="lp-meta">線上付訂金即保留時段 · 項目 <span data-nocjk style="white-space:nowrap">{ntd(minPrice)}</span> 起 · 共 {services.length} 個項目</p>
             </div>
             <figure class="lp-hero-photo">
-              <img src={prov.photo} alt={prov.name} width="520" height="520" loading="eager" />
+              <img src={prov.photo} alt={prov.name} width="400" height="500" loading="eager" />
             </figure>
           </div>
         </section>
 
         <!-- ② 怎麼看事情 -->
-        <section class="lp-wrap lp-block">
-          <div class="zf-section-heading">
-            <span class="zf-sh-eyebrow">老師怎麼看事情</span>
-            <h2 class="zf-sh-title">{prov.desc.split('：')[0]}</h2>
+        <section class="lp-block"><div class="lp-wrap lp-two">
+          <div>
+            <div class="lp-head">
+              <span class="lp-eyebrow">老師怎麼看事情</span>
+              <h2 class="lp-h2">{prov.desc.split('：')[0]}</h2>
+            </div>
+            <p class="lp-p">{prov.desc}</p>
           </div>
-          <div class="lp-two">
-            <div class="zf-prose ink"><p>{prov.desc}</p></div>
-            <div class="zf-prose"><p class="lp-skillmain">{LP_SKILL_MAIN}</p><p>{String(prov.style || '').split('・').filter(Boolean).map((t: string) => <span class="zf-tag rose outline" style="margin:0 6px 6px 0">{t}</span>)}</p></div>
+          <div class="lp-tintcard">
+            <p class="lp-skillmain">{LP_SKILL_MAIN}</p>
+            <div class="lp-chips">{String(prov.style || '').split('・').filter(Boolean).map((t: string) => <span class="zf-tag rose">{t}</span>)}</div>
           </div>
-        </section>
+        </div></section>
 
-        <!-- ③ 項目與價格 -->
-        <section id="items" class="lp-wrap lp-block">
-          <div class="zf-section-heading">
-            <span class="zf-sh-eyebrow">項目與價格</span>
-            <h2 class="zf-sh-title">先從這三項開始</h2>
-            <p class="zf-sh-lede">第一次找老師，不知道該選哪一項，可以先從下面三項看起。價格是項目全額，線上先付四成訂金，時段就會保留下來。</p>
+        <!-- ③ 項目與價格：1 項橫式寬卡、2 項兩欄、3 項三欄；超過 3 項其餘進「全部項目」 -->
+        <section id="items" class="lp-block"><div class="lp-wrap">
+          <div class="lp-head">
+            <span class="lp-eyebrow">項目與價格</span>
+            <h2 class="lp-h2">先從這幾項開始</h2>
+            <p class="lp-lede-s">第一次找老師，不知道該選哪一項，可以先從下面幾項看起。價格是項目全額，線上先付四成訂金，時段就會保留下來。</p>
           </div>
-          <div class="lp-featured">
+          <div class={'lp-featured n' + featured.length}>
             {featured.map((s: any) => (
               <article class="zf-card lp-fcard">
-                <div class="lp-fcard-top">
-                  <span class="zf-badge rose"><span class="zf-badge-dot"></span>{s.duration} 分鐘</span>
-                  <span class="lp-fcard-price">{ntd(s.price)}</span>
+                <div class="lp-fcard-main">
+                  <div class="lp-fcard-top">
+                    <span class="zf-tag rose">{s.duration} 分鐘</span>
+                    <span class="lp-fcard-price" data-nocjk>{ntd(s.price)}</span>
+                  </div>
+                  <h3>{clean(s.name)}</h3>
+                  {(LP_FEATURED_DESC[String(s.id)] || [s.desc]).map((t) => <p>{t}</p>)}
                 </div>
-                <h3>{clean(s.name)}</h3>
-                {(LP_FEATURED_DESC[String(s.id)] || [s.desc]).map((t) => <p>{t}</p>)}
-                <button class="zf-btn primary md" type="button" data-pick={s.id}>預約這項<i class="ph ph-arrow-right"></i></button>
-                <span class="lp-fcard-dep">訂金 <span data-nocjk style="white-space:nowrap">{ntd(s.deposit)}</span></span>
+                <div class="lp-fcard-act">
+                  <button class="zf-btn primary md" type="button" data-pick={s.id}>預約這項<i class="ph ph-arrow-right"></i></button>
+                  <span class="lp-fcard-dep">訂金 <span data-nocjk style="white-space:nowrap">{ntd(s.deposit)}</span></span>
+                </div>
               </article>
             ))}
           </div>
+          {restGroups.length > 0 && (
+            <>
+              <h3 class="lp-sub">全部項目</h3>
+              <div class="lp-groups">
+                {restGroups.map((g, gi) => (
+                  <details class="lp-group" open={gi === 0}>
+                    <summary><span>{g.name}</span><span class="lp-group-n">{g.items.length} 項</span><i class="ph ph-caret-down"></i></summary>
+                    <ul>
+                      {g.items.map((s: any) => (
+                        <li>
+                          <div class="lp-row-main">
+                            <span class="lp-row-name">{clean(s.name)}</span>
+                            <span class="lp-row-meta">{s.duration} 分鐘 · 訂金 <span data-nocjk style="white-space:nowrap">{ntd(s.deposit)}</span></span>
+                          </div>
+                          <span class="lp-row-price" data-nocjk>{ntd(s.price)}</span>
+                          <button class="zf-btn secondary sm" type="button" data-pick={s.id}>預約</button>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                ))}
+              </div>
+            </>
+          )}
+        </div></section>
 
-          <h3 class="lp-sub">全部項目</h3>
-          <div class="lp-groups">
-            {grouped.filter((g) => g.items.length).map((g) => (
-              <details class="lp-group" open={g.key === 'ask'}>
-                <summary><span>{g.name}</span><span class="lp-group-n">{g.items.length} 項</span><i class="ph ph-caret-down"></i></summary>
-                <ul>
-                  {g.items.map((s: any) => (
-                    <li>
-                      <div class="lp-row-main">
-                        <span class="lp-row-name">{clean(s.name)}</span>
-                        <span class="lp-row-meta">{s.duration} 分鐘 · 訂金 <span data-nocjk style="white-space:nowrap">{ntd(s.deposit)}</span></span>
-                      </div>
-                      <span class="lp-row-price">{ntd(s.price)}</span>
-                      <button class="zf-btn ghost sm" type="button" data-pick={s.id}>預約</button>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            ))}
-          </div>
-        </section>
-
-        <!-- ④ 怎麼進行 -->
-        <section class="lp-wrap lp-block">
-          <div class="zf-section-heading">
-            <span class="zf-sh-eyebrow">怎麼進行</span>
-            <h2 class="zf-sh-title">想找老師，就從這裡選時間</h2>
+        <!-- ④ 怎麼進行：三卡等高；地址移出第 1 張卡，改成卡下一條地點列（DS） -->
+        <section class="lp-block"><div class="lp-wrap">
+          <div class="lp-head">
+            <span class="lp-eyebrow">怎麼進行</span>
+            <h2 class="lp-h2">想找老師，就從這裡選時間</h2>
           </div>
           <ol class="lp-steps">
-            <li><span class="lp-step-n">1</span><div><b>選實體或遠端</b><p>台北可以到大安區現場；不方便過來，也可以選遠端視訊。</p><p>{locations.map((l: any) => l.type === 'online' ? '遠端視訊：' + l.note : '台北實體：' + l.note).join('；')}。</p></div></li>
-            <li><span class="lp-step-n">2</span><div><b>選項目和時間</b><p>頁面會顯示老師未來四週可以預約的時間，挑一個你方便的就好。</p></div></li>
-            <li><span class="lp-step-n">3</span><div><b>付四成訂金</b><p>線上付四成訂金後，時段就會保留下來。餘額實體當天現場結清；遠端依老師指示結清。</p></div></li>
+            <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>選實體或遠端</b></div><p>台北可以到大安區現場；不方便過來，也可以選遠端視訊。</p></li>
+            <li><div class="lp-step-t"><span class="lp-step-n">2</span><b>選項目和時間</b></div><p>頁面會顯示老師未來四週可以預約的時間，挑一個你方便的就好。</p></li>
+            <li><div class="lp-step-t"><span class="lp-step-n">3</span><b>付四成訂金</b></div><p>線上付四成訂金後，時段就會保留下來。餘額實體當天現場結清；遠端依老師指示結清。</p></li>
           </ol>
-        </section>
+          <div class="lp-locs">
+            {locations.map((l: any) => <span><i class={'ph ph-' + (l.type === 'online' ? 'video-camera' : 'map-pin')}></i>{(l.type === 'online' ? '遠端視訊：' : '台北實體：') + l.note}</span>)}
+          </div>
+        </div></section>
 
         <!-- ⑤ 預約（就在這頁）-->
-        <section id="book" class="lp-wrap lp-block">
-          <div class="zf-section-heading">
-            <span class="zf-sh-eyebrow">預約</span>
-            <h2 class="zf-sh-title">就在這裡，不用跳頁</h2>
+        <section id="book" class="lp-block"><div class="lp-wrap">
+          <div class="lp-head">
+            <span class="lp-eyebrow">預約</span>
+            <h2 class="lp-h2">就在這裡，不用跳頁</h2>
           </div>
           <div class="zf-card lp-book" id="bkCard"><div class="bw-loading"><span class="zf-spinner" style="width:18px;height:18px"></span></div></div>
-        </section>
+        </div></section>
 
         <!-- ⑥ 常見問題 -->
-        <section class="lp-wrap lp-block lp-faq">
-          <div class="zf-section-heading">
-            <span class="zf-sh-eyebrow">常見問題</span>
-            <h2 class="zf-sh-title">來之前想知道的</h2>
+        <section class="lp-block lp-faq"><div class="lp-wrap">
+          <div class="lp-head">
+            <span class="lp-eyebrow">常見問題</span>
+            <h2 class="lp-h2">來之前想知道的</h2>
           </div>
-          <details><summary>訂金是多少？餘額什麼時候付？</summary><p>訂金為項目全額的四成，線上付款後時段即保留。餘額實體當天現場結清，遠端依老師指示結清。</p></details>
-          <details><summary>遠端視訊怎麼進行？</summary><p>預約完成後，連線方式會在對談前提供，時間到用手機或電腦點進去即可，不用另外安裝軟體。</p><!-- 2026-10-01（廣告前全站掃描）：原本寫「自動開啟會議室連結」，實際沒有程式會產生；照確認信的說法 --></details>
-          <details><summary>為什麼 Email 只收 Gmail？</summary><p>預約確認信與會議連結都靠信箱送達，Gmail 送達率最穩定，避免你收不到通知。</p></details>
-          <details><summary>要準備什麼？</summary><p>本人姓名、西元生日；如果知道出生時辰，也一起準備。</p><p>另外，把你最想問的一兩件事先放在心裡，來了直接跟老師說就好。</p></details>
-        </section>
+          <div class="lp-faq-list">
+            <details><summary>訂金是多少？餘額什麼時候付？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>訂金為項目全額的四成，線上付款後時段即保留。餘額實體當天現場結清，遠端依老師指示結清。</p></details>
+            <details><summary>遠端視訊怎麼進行？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>預約完成後，連線方式會在對談前提供，時間到用手機或電腦點進去即可，不用另外安裝軟體。</p><!-- 2026-10-01（廣告前全站掃描）：原本寫「自動開啟會議室連結」，實際沒有程式會產生；照確認信的說法 --></details>
+            <details><summary>為什麼 Email 只收 Gmail？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>預約確認信與會議連結都靠信箱送達，Gmail 送達率最穩定，避免你收不到通知。</p></details>
+            <details><summary>要準備什麼？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>本人姓名、西元生日；如果知道出生時辰，也一起準備。</p><p>另外，把你最想問的一兩件事先放在心裡，來了直接跟老師說就好。</p></details>
+          </div>
+        </div></section>
+
+        <!-- 浮動預約（DS）：手機底部霧面列；預約區進入畫面就收起，不蓋表單。手機這頁不顯示風小編浮動鈕（同一個位置）。 -->
+        <div class="lp-bar" id="lpBar"><span>項目 <span data-nocjk style="white-space:nowrap">{ntd(minPrice)}</span> 起</span><a class="zf-btn primary md" href="#book">預約老師</a></div>
       </>
     )}
   </div>
@@ -206,124 +233,231 @@ const jsonLd = prov ? [
   <script type="application/json" id="lpData" set:html={JSON.stringify({ prov, locations })} />
 
   <style>
-    .lp { --lp-max: 1040px; }
-    .lp-wrap { max-width: var(--lp-max); margin: 0 auto; padding: 0 28px; box-sizing: border-box; }
-    .lp-block { padding-top: 64px; padding-bottom: 8px; }
-    /* 2026-10-01（廣告前全站掃描）：按「預約老師 ↓」跳到 #book，眉題「預約」被 sticky 導覽列蓋住 → 錨點停下時往下留 32px（加上區塊本身上方留白，手機眉題落在約 80px、導覽列底 65px） */
-    #book { scroll-margin-top: 32px; }
+    /* 2026-10-06 照 DS 稿 contribution-to-ds/ui_kits/booking/lp-teacher.jsx 逐值改（交辦 lp-fengyiyang/BRIEF-lp-fengyiyang-2026-10-06.md）：
+       容器＝Nav 的 1120（左右 32／手機 20）；區塊上下各 48（手機 32）→ 相鄰區塊 96／64；eyebrow→h2 8、h2→lede 12、標題組→內容 32／24。 */
+    .lp-wrap { max-width: var(--container); margin: 0 auto; padding: 0 32px; box-sizing: border-box; }
+    .lp-block { padding: 48px 0; }
+    #book, #items { scroll-margin-top: 88px; }
     .lp-empty { text-align: center; padding: 80px 20px; font-family: var(--font-serif); color: var(--text-muted); }
+    .lp-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: 12.5px; letter-spacing: .02em; color: var(--accent-press); }
+    .lp-eyebrow::before { content: ''; width: 5px; height: 5px; border-radius: 999px; background: var(--accent-press); }
+    .lp-head { display: flex; flex-direction: column; margin-bottom: 32px; }
+    .lp-h2 { margin: 8px 0 0; font-family: var(--font-serif); font-size: 32px; font-weight: 500; line-height: 1.3; color: var(--text-primary); }
+    .lp-lede-s, .lp-p { margin: 12px 0 0; font-family: var(--font-serif); font-size: 16.5px; font-weight: 300; line-height: 1.85; color: var(--text-secondary); max-width: none; }
+    .lp-p { margin: 0; }
 
     /* hero */
-    .lp-hero { position: relative; overflow: hidden; padding: 56px 0 64px; }
-    .lp-hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(680px 480px at 85% 10%, var(--rose-100), transparent 62%), radial-gradient(520px 420px at 6% 80%, var(--tint-glow), transparent 58%); }
-    .lp-hero-grid { position: relative; display: grid; grid-template-columns: 1.15fr .85fr; gap: 48px; align-items: center; }
-    .lp-h1 { font-family: var(--font-serif); font-size: 52px; font-weight: var(--w-medium); line-height: 1.15; letter-spacing: var(--ls-heading); color: var(--ink-900); margin: 14px 0 0; }
-    .lp-style { font-family: var(--font-sans); font-size: 14px; letter-spacing: .08em; color: var(--accent-press); margin: 12px 0 0; }
-    .lp-lede { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 18px; line-height: 1.85; color: var(--text-secondary); margin: 20px 0 0; max-width: 34em; }
-    .lp-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
-    .lp-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
-    .lp-meta { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin: 14px 0 0; }
-    .lp-hero-photo { margin: 0; position: relative; }
-    .lp-hero-photo img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-2xl); box-shadow: var(--shadow-lg); border: 1px solid var(--rose-100); background: var(--photo-1); }
-    .lp-hero-photo figcaption { position: relative; margin: -34px 18px 0; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 16px 18px 16px 44px; font-family: var(--font-serif); font-size: 15px; line-height: 1.7; color: var(--ink-700); box-shadow: var(--shadow-md); }
-    .lp-hero-photo figcaption i { position: absolute; left: 16px; top: 14px; font-size: 20px; color: var(--rose-400); }
+    .lp-hero { position: relative; overflow: hidden; padding: 80px 0 48px; }
+    .lp-hero-glow { position: absolute; right: -10%; top: -20%; width: 60%; height: 90%; pointer-events: none; background: radial-gradient(closest-side, var(--rose-100), transparent); opacity: .6; }
+    .lp-hero-grid { position: relative; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; align-items: center; }
+    .lp-hero-text { display: flex; flex-direction: column; }
+    .lp-name-row { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+    .lp-name { flex: 1; min-width: 0; }
+    .lp-h1 { margin: 0; font-family: var(--font-serif); font-size: 48px; font-weight: 500; line-height: 1.2; letter-spacing: .02em; color: var(--text-primary); }
+    .lp-style { margin: 8px 0 0; font-family: var(--font-sans); font-size: 14px; letter-spacing: .04em; color: var(--accent-press); }
+    .lp-avatar { display: none; }
+    .lp-q { margin: 24px 0 0; font-family: var(--font-serif); font-size: 21px; font-weight: 400; line-height: 1.6; color: var(--text-primary); }
+    .lp-lede { margin: 12px 0 0; font-family: var(--font-serif); font-size: 16.5px; font-weight: 300; line-height: 1.85; color: var(--text-secondary); max-width: none; }
+    .lp-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .lp-cta { display: flex; gap: 12px; margin-top: 32px; }
+    .lp-meta { margin: 12px 0 0; font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .lp-hero-photo { margin: 0; justify-self: end; width: 100%; max-width: 400px; }
+    .lp-hero-photo img, .lp-avatar { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius-xl); box-shadow: var(--shadow-md); background: var(--rose-100); }
 
     /* 怎麼看事情 */
-    .lp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 28px; }
-    .lp-skillmain { font-family: var(--font-sans); font-size: 13.5px; color: var(--accent-press); }
+    .lp-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: start; }
+    .lp-tintcard { margin-top: 36px; padding: 24px 28px; background: var(--surface-tint); border: 1px solid var(--rose-100); border-radius: var(--radius-lg); }
+    .lp-skillmain { margin: 0; font-family: var(--font-serif); font-size: 16px; line-height: 1.8; color: var(--text-primary); max-width: none; }
 
     /* 項目 */
-    .lp-featured { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 28px; }
-    .lp-fcard { padding: 22px 22px 20px; display: flex; flex-direction: column; gap: 12px; }
-    .lp-fcard-top { display: flex; justify-content: space-between; align-items: center; }
-    .lp-fcard-price { font-family: var(--font-serif); font-size: 20px; font-weight: var(--w-medium); color: var(--accent-press); }
-    .lp-fcard h3 { font-family: var(--font-serif); font-size: 21px; font-weight: var(--w-medium); color: var(--ink-900); margin: 0; line-height: 1.4; }
-    .lp-fcard p { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 15px; line-height: 1.8; color: var(--text-secondary); margin: 0; flex: 1; }
-    .lp-fcard-dep { font-family: var(--font-sans); font-size: 12px; color: var(--text-muted); text-align: center; }
-    .lp-sub { font-family: var(--font-serif); font-size: 19px; font-weight: var(--w-medium); color: var(--ink-900); margin: 44px 0 14px; }
-    .lp-groups { display: flex; flex-direction: column; gap: 10px; }
+    .lp-featured { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: stretch; }
+    .lp-featured.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lp-featured.n1 { grid-template-columns: 1fr; }
+    .lp-fcard { padding: 24px; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box; height: 100%; }
+    .lp-featured.n1 .lp-fcard { flex-direction: row; gap: 32px; }
+    .lp-fcard-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+    .lp-fcard-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .lp-fcard-price { font-family: var(--font-serif); font-size: 22px; color: var(--accent-press); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .lp-fcard h3 { margin: 0; font-family: var(--font-serif); font-size: 20px; font-weight: 500; line-height: 1.4; color: var(--text-primary); }
+    .lp-fcard p { margin: 0; font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.8; color: var(--text-secondary); max-width: none; }
+    .lp-fcard-act { display: flex; flex-direction: column; gap: 8px; margin-top: auto; justify-content: flex-end; }
+    .lp-featured.n1 .lp-fcard-act { min-width: 220px; }
+    .lp-fcard-act .zf-btn { width: 100%; justify-content: center; }
+    .lp-fcard-dep { text-align: center; font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .lp-sub { margin: 32px 0 12px; font-family: var(--font-serif); font-size: 17px; font-weight: 500; color: var(--text-primary); }
+    .lp-groups { display: flex; flex-direction: column; gap: 12px; }
     .lp-group { border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--surface-card); overflow: hidden; }
-    .lp-group summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 16px 20px; font-family: var(--font-serif); font-size: 17px; font-weight: var(--w-medium); color: var(--ink-900); }
+    .lp-group summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 16px 24px; font-family: var(--font-serif); font-size: 16.5px; font-weight: 500; color: var(--text-primary); }
     .lp-group summary::-webkit-details-marker { display: none; }
-    .lp-group-n { font-family: var(--font-sans); font-size: 12px; color: var(--text-muted); flex: 1; }
+    .lp-group-n { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); flex: 1; }
     .lp-group summary i { transition: transform var(--dur-fast); color: var(--text-muted); }
     .lp-group[open] summary i { transform: rotate(180deg); }
-    .lp-group ul { list-style: none; margin: 0; padding: 0 20px 8px; }
-    .lp-group li { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--border-soft); }
+    .lp-group ul { list-style: none; margin: 0; padding: 0; }
+    .lp-group li { display: flex; align-items: center; gap: 16px; padding: 16px 24px; border-top: 1px solid var(--border-soft); }
     .lp-row-main { flex: 1; min-width: 0; }
-    .lp-row-name { display: block; font-family: var(--font-serif); font-size: 15.5px; color: var(--ink-900); }
-    .lp-row-meta { display: block; font-family: var(--font-sans); font-size: 12px; color: var(--text-muted); margin-top: 3px; }
-    .lp-row-price { font-family: var(--font-serif); font-size: 15px; color: var(--ink-900); white-space: nowrap; }
+    .lp-row-name { display: block; font-family: var(--font-serif); font-size: 16px; color: var(--text-primary); }
+    .lp-row-meta { display: block; margin-top: 2px; font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); }
+    .lp-row-price { font-family: var(--font-serif); font-size: 16px; color: var(--text-primary); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-    /* 步驟 */
-    .lp-steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-    .lp-steps li { display: flex; gap: 14px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm); }
-    .lp-step-n { flex: none; width: 34px; height: 34px; border-radius: 999px; background: var(--rose-100); color: var(--rose-600); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-weight: var(--w-medium); }
-    .lp-steps b { display: block; font-family: var(--font-serif); font-size: 17px; font-weight: var(--w-medium); color: var(--ink-900); margin-bottom: 6px; }
-    .lp-steps p { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 14.5px; line-height: 1.75; color: var(--text-secondary); margin: 0; }
+    /* 怎麼進行 */
+    .lp-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: stretch; }
+    .lp-steps li { display: flex; flex-direction: column; gap: 12px; padding: 24px; background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+    .lp-step-t { display: flex; align-items: center; gap: 12px; }
+    .lp-step-n { flex: none; width: 32px; height: 32px; border-radius: 999px; background: var(--rose-50); border: 1px solid var(--rose-200); color: var(--accent-press); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-size: 15px; box-sizing: border-box; }
+    .lp-steps b { font-family: var(--font-serif); font-size: 17.5px; font-weight: 500; color: var(--text-primary); }
+    .lp-steps p { margin: 0; font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.8; color: var(--text-secondary); max-width: none; }
+    .lp-locs { display: flex; gap: 32px; margin-top: 24px; padding: 16px 24px; background: var(--surface-sunken); border-radius: var(--radius-md); }
+    .lp-locs span { display: flex; align-items: flex-start; gap: 8px; font-family: var(--font-sans); font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); }
+    .lp-locs i { flex: none; margin-top: 2px; font-size: 16px; color: var(--rose-500); }
+
+    /* 預約卡寬 760 */
+    .lp-book { max-width: 760px; }
 
     /* FAQ */
-    .lp-faq { padding-bottom: 72px; }
+    .lp-faq-list { max-width: 760px; border-top: 1px solid var(--border-soft); }
     .lp-faq details { border-bottom: 1px solid var(--border-soft); }
-    .lp-faq summary { cursor: pointer; list-style: none; padding: 16px 0; font-family: var(--font-serif); font-size: 16.5px; color: var(--ink-900); display: flex; justify-content: space-between; }
+    .lp-faq summary { cursor: pointer; list-style: none; min-height: 56px; box-sizing: border-box; padding: 16px 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; font-family: var(--font-serif); font-size: 16.5px; color: var(--text-primary); }
     .lp-faq summary::-webkit-details-marker { display: none; }
-    .lp-faq summary::after { content: '+'; color: var(--text-muted); }
-    .lp-faq details[open] summary::after { content: '−'; }
-    .lp-faq p { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 15px; line-height: 1.85; color: var(--text-secondary); margin: 0 0 16px; }
-    .lp-faq .zf-section-heading { margin-bottom: 12px; }
+    .lp-faq summary i { flex: none; font-size: 16px; color: var(--text-muted); }
+    .lp-faq .lp-mi, .lp-faq details[open] .lp-pl { display: none; }
+    .lp-faq details[open] .lp-mi { display: inline-block; }
+    .lp-faq p { margin: 0 0 16px; font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.85; color: var(--text-secondary); max-width: none; }
 
-    @media (max-width: 860px) {
-      .lp-hero-grid { grid-template-columns: 1fr; gap: 28px; }
-      .lp-hero-photo { order: -1; max-width: 340px; }
-      .lp-h1 { font-size: 38px; }
-      .lp-two, .lp-featured, .lp-steps { grid-template-columns: 1fr; }
-      .lp-wrap { padding: 0 18px; }
-      .lp-block { padding-top: 48px; }
-      .lp-group li { flex-wrap: wrap; }
+    /* 手機底部預約列（只在手機出現） */
+    .lp-bar { display: none; }
+
+    @media (max-width: 820px) {
+      .lp-wrap { padding: 0 20px; }
+      .lp-block { padding: 32px 0; }
+      .lp-head { margin-bottom: 24px; }
+      .lp-h2 { font-size: 26px; }
+      .lp-lede-s, .lp-p, .lp-lede { font-size: 15.5px; }
+      .lp-hero { padding: 32px 0; }
+      .lp-hero-grid { grid-template-columns: 1fr; gap: 0; }
+      .lp-hero-photo { display: none; }
+      .lp-avatar { display: block; flex: none; width: 88px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+      .lp-h1 { font-size: 34px; }
+      .lp-style { font-size: 13px; }
+      .lp-q { margin-top: 20px; font-size: 18px; }
+      .lp-cta { flex-direction: column; margin-top: 24px; }
+      .lp-cta .zf-btn { width: 100%; justify-content: center; }
+      .lp-two { grid-template-columns: 1fr; gap: 24px; }
+      .lp-tintcard { margin-top: 0; padding: 20px; }
+      .lp-featured, .lp-featured.n2 { grid-template-columns: 1fr; gap: 16px; }
+      .lp-featured.n1 .lp-fcard { flex-direction: column; gap: 16px; }
+      .lp-featured.n1 .lp-fcard-act { min-width: 0; }
+      .lp-fcard { padding: 20px; }
+      .lp-fcard h3 { font-size: 19px; }
+      .lp-sub { margin-top: 24px; }
+      .lp-group li { padding: 14px 16px; flex-wrap: wrap; }
+      .lp-group summary { padding: 14px 16px; }
+      .lp-steps { grid-template-columns: 1fr; gap: 12px; }
+      .lp-steps li { padding: 20px; }
+      .lp-locs { flex-direction: column; gap: 12px; margin-top: 16px; padding: 16px 20px; }
+      .lp-bar { display: flex; align-items: center; gap: 12px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); background: var(--bar-translucent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--border-soft); transition: opacity var(--dur-base) var(--ease-soft), transform var(--dur-base) var(--ease-soft); }
+      .lp-bar > span { flex: 1; font-family: var(--font-sans); font-size: 12.5px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+      .lp-bar.hide { opacity: 0; transform: translateY(100%); pointer-events: none; }
+      .lp { padding-bottom: 72px; }
     }
   </style>
+  <style is:global>
+    /* 這頁手機版的浮動位置給底部預約列；桌機風小編照常，但預約區在畫面內時收起，不蓋表單（DS 稿） */
+    @media (max-width: 820px) { body:has(.lp-bar) #wcRoot { display: none; } }
+    body.lp-book-in #wcRoot { opacity: 0; pointer-events: none; transition: opacity var(--dur-base) var(--ease-soft); }
+  </style>
 
-  <!-- 預約模組樣式（沿用 /booking 精靈 class，改成頁內卡片）-->
+  <!-- 預約模組樣式：2026-10-06 照 DS contribution-to-ds/ui_kits/booking/lp-wizard.jsx 逐值改 -->
   <style is:global>
     .lp-book { padding: 0; overflow: hidden; }
-    .lp-book .bw-head { padding: 22px 24px 16px; border-bottom: 1px solid var(--border-soft); }
-    .lp-book .bw-prog { display: flex; gap: 6px; margin-bottom: 14px; }
-    .lp-book .bw-dot { width: 26px; height: 4px; border-radius: 999px; background: var(--rice-300); }
+    .lp-book .bw-prog-wrap { display: flex; align-items: center; gap: 12px; padding: 24px 32px 0; }
+    .lp-book .bw-prog { display: flex; gap: 6px; flex: 1; }
+    .lp-book .bw-dot { flex: 1; height: 4px; border-radius: 999px; background: var(--border-soft); transition: background var(--dur-base) var(--ease-soft); }
     .lp-book .bw-dot.on { background: var(--accent); }
-    .lp-book .bw-title { font-family: var(--font-serif); font-size: 22px; font-weight: 500; color: var(--ink-900); }
-    .lp-book .bw-sub { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin-top: 3px; }
-    .lp-book .bw-body { padding: 20px 24px; }
-    .lp-book .bw-foot { display: flex; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--border-soft); }
-    .lp-book .bw-foot .zf-btn { flex: 1; }
+    .lp-book .bw-prog-n { flex: none; font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .lp-book .bw-body { padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 20px; }
+    .lp-book .bw-head { display: flex; flex-direction: column; gap: 4px; }
+    .lp-book .bw-title { font-family: var(--font-serif); font-size: 24px; font-weight: 500; line-height: 1.35; color: var(--text-primary); }
+    .lp-book .bw-sub { font-family: var(--font-sans); font-size: 13.5px; color: var(--text-muted); }
+    .lp-book .bw-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 32px; border-top: 1px solid var(--border-soft); background: var(--surface-sunken); }
+    .lp-book .bw-back { all: unset; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 4px; font-family: var(--font-sans); font-size: 14.5px; color: var(--text-secondary); }
+    .lp-book .bw-next { min-width: 200px; justify-content: center; }
+    .lp-book .bw-next[disabled] { opacity: .45; cursor: not-allowed; }
+    /* 選項列（見面方式、項目） */
     .lp-book .bw-list { display: flex; flex-direction: column; gap: 10px; }
-    .lp-book .bw-opt { all: unset; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface-card); transition: all var(--dur-fast); box-sizing: border-box; }
-    .lp-book .bw-opt:hover, .lp-book .bw-opt.on { border-color: var(--rose-300); background: var(--rose-50); }
-    .lp-book .bw-opt-nm { font-family: var(--font-serif); font-size: 16px; color: var(--ink-900); display: block; }
-    .lp-book .bw-opt-meta { font-family: var(--font-sans); font-size: 12px; color: var(--text-muted); }
-    .lp-book .bw-opt-price { font-family: var(--font-serif); font-size: 15px; color: var(--ink-900); text-align: right; white-space: nowrap; }
-    .lp-book .bw-opt-dep { display: block; font-family: var(--font-sans); font-size: 11px; color: var(--rose-600); }
-    .lp-book .bw-svc-group { font-family: var(--font-sans); font-size: 12px; letter-spacing: .06em; color: var(--text-muted); margin: 14px 0 4px; }
+    .lp-book .bw-opt { all: unset; cursor: pointer; box-sizing: border-box; width: 100%; min-height: 72px; display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: var(--radius-md); background: var(--surface-card); border: 1px solid var(--border-soft); transition: all var(--dur-fast) var(--ease-soft); }
+    .lp-book .bw-opt:hover { border-color: var(--rose-200); }
+    .lp-book .bw-opt.on { background: var(--surface-tint); border-color: var(--rose-300); }
+    .lp-book .bw-ic { flex: none; width: 40px; height: 40px; border-radius: 999px; background: var(--rose-50); color: var(--rose-500); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .lp-book .bw-opt-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .lp-book .bw-opt-nm { font-family: var(--font-serif); font-size: 16.5px; font-weight: 500; color: var(--text-primary); }
+    .lp-book .bw-opt-meta { font-family: var(--font-sans); font-size: 13px; line-height: 1.6; color: var(--text-muted); }
+    .lp-book .bw-opt-price { flex: none; display: flex; flex-direction: column; gap: 2px; text-align: right; font-family: var(--font-serif); font-size: 16.5px; color: var(--text-primary); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .lp-book .bw-opt-dep { font-family: var(--font-sans); font-size: 12px; color: var(--accent-press); }
+    .lp-book .bw-chk { flex: none; font-size: 18px; color: var(--text-muted); }
+    .lp-book .bw-opt.on .bw-chk { color: var(--accent); }
+    .lp-book .bw-svc-group { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); margin: 8px 0 0; }
     .lp-book .bw-svc-group:first-child { margin-top: 0; }
-    .lp-book .bw-dates { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 14px; }
-    .lp-book .bw-date { all: unset; cursor: pointer; flex: none; font-family: var(--font-sans); font-size: 14px; color: var(--ink-700); border: 1px solid var(--border-strong); border-radius: var(--radius-pill); padding: 8px 14px; }
-    .lp-book .bw-date.on { background: var(--accent); color: var(--text-on-accent); border-color: transparent; }
-    .lp-book .bw-times { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
-    .lp-book .bw-time { all: unset; cursor: pointer; text-align: center; font-family: var(--font-sans); font-size: 14px; color: var(--ink-700); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: 9px 0; }
-    .lp-book .bw-time.on { background: var(--accent); color: var(--text-on-accent); border-color: transparent; }
+    /* 日期橫軸＋時段分組 */
+    .lp-book .bw-dates { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .lp-book .bw-dates::-webkit-scrollbar { display: none; }
+    .lp-book .bw-date { all: unset; cursor: pointer; flex: none; width: 60px; box-sizing: border-box; padding: 10px 0; display: flex; flex-direction: column; align-items: center; border-radius: var(--radius-md); background: var(--surface-card); border: 1px solid var(--border-soft); }
+    .lp-book .bw-dw { font-family: var(--font-sans); font-size: 12px; color: var(--text-muted); }
+    .lp-book .bw-dd { margin: 2px 0; font-family: var(--font-serif); font-size: 20px; font-weight: 500; color: var(--text-primary); }
+    .lp-book .bw-dn { font-family: var(--font-sans); font-size: 10.5px; color: var(--sage-500); }
+    .lp-book .bw-date.on { background: var(--accent); border-color: transparent; }
+    .lp-book .bw-date.on .bw-dw, .lp-book .bw-date.on .bw-dn { color: var(--text-on-accent-soft); }
+    .lp-book .bw-date.on .bw-dd { color: var(--text-on-accent); }
+    .lp-book .bw-slotgroups { display: flex; flex-direction: column; gap: 20px; }
+    .lp-book .bw-sg { display: flex; flex-direction: column; gap: 10px; }
+    .lp-book .bw-sg-h { display: flex; align-items: baseline; gap: 8px; font-family: var(--font-serif); font-size: 15.5px; font-weight: 500; color: var(--text-primary); }
+    .lp-book .bw-sg-m { font-family: var(--font-sans); font-size: 12.5px; font-weight: 400; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .lp-book .bw-times { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+    .lp-book .bw-time { all: unset; cursor: pointer; text-align: center; height: 44px; line-height: 44px; box-sizing: border-box; border-radius: var(--radius-md); font-family: var(--font-sans); font-size: 15px; font-variant-numeric: tabular-nums; color: var(--text-primary); background: var(--surface-card); border: 1px solid var(--rose-200); }
+    .lp-book .bw-time.on { color: var(--text-on-accent); background: var(--accent); border-color: transparent; box-shadow: var(--shadow-sm); }
+    .lp-book .bw-more { all: unset; cursor: pointer; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 13.5px; color: var(--accent-press); }
     .lp-book .bw-none, .lp-book .bw-loading { font-family: var(--font-serif); font-weight: 300; color: var(--text-secondary); text-align: center; padding: 28px 0; }
-    .lp-book .bw-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    /* 聯絡方式 */
+    .lp-book .bw-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .lp-book .bw-form .wide { grid-column: 1 / -1; }
+    .lp-book .bw-fld { display: flex; flex-direction: column; gap: 8px; }
+    .lp-book .bw-lbl { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-family: var(--font-sans); font-size: 14px; font-weight: 500; color: var(--ink-700); }
+    .lp-book .bw-req { font-size: 11.5px; font-weight: 400; color: var(--accent-press); border: 1px solid var(--border-accent); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+    .lp-book .bw-in { height: 44px; box-sizing: border-box; padding: 0 14px; font-family: var(--font-serif); font-size: 16px; color: var(--text-primary); background: var(--surface-card); border: 1px solid var(--border-strong); border-radius: var(--radius-md); outline: none; transition: border-color var(--dur-fast) var(--ease-soft); }
+    .lp-book textarea.bw-in { height: auto; padding: 12px 14px; line-height: 1.7; resize: vertical; }
+    .lp-book .bw-in:focus { border-color: var(--rose-400); box-shadow: 0 0 0 3px var(--focus-ring); }
+    .lp-book .bw-in.bad { border-color: var(--critical); }
+    .lp-book .bw-ferr { display: flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 12.5px; color: var(--critical); }
+    .lp-book .bw-ferr[hidden] { display: none; }
+    .lp-book .bw-src { display: flex; flex-direction: column; gap: 12px; padding: 18px 20px; background: var(--surface-tint); border: 1px solid var(--rose-100); border-radius: var(--radius-md); }
+    .lp-book .bw-src.bad { border-color: var(--critical); }
     .lp-book .bw-topics { display: flex; gap: 8px; flex-wrap: wrap; }
-    .lp-book .bw-err { grid-column: 1 / -1; font-family: var(--font-sans); font-size: 13px; color: var(--critical); margin: 0; }
-    .lp-book .bw-confirm { display: flex; flex-direction: column; gap: 10px; }
-    .lp-book .bw-row { display: flex; gap: 16px; font-family: var(--font-serif); font-size: 15px; }
-    .lp-book .bw-k { flex: none; width: 4em; color: var(--text-muted); }
-    .lp-book .bw-v { color: var(--ink-900); }
-    .lp-book .bw-dep { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; padding: 14px 16px; background: var(--surface-tint); border-radius: var(--radius-md); font-family: var(--font-serif); }
-    .lp-book .bw-dep b { font-size: 22px; color: var(--accent-press); }
-    .lp-book .bw-note { font-family: var(--font-sans); font-size: 12.5px; line-height: 1.7; color: var(--text-muted); margin: 0; }
+    .lp-book .bw-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .lp-book .bw-tag { all: unset; cursor: pointer; padding: 5px 14px; border-radius: 999px; font-family: var(--font-sans); font-size: 13.5px; white-space: nowrap; color: var(--text-secondary); background: transparent; border: 1px solid var(--border-strong); }
+    .lp-book .bw-tag.on { color: var(--accent-press); background: var(--rose-50); border-color: var(--rose-300); }
+    .lp-book .bw-err { font-family: var(--font-sans); font-size: 13px; color: var(--critical); margin: 0; }
+    /* 確認頁 */
+    .lp-book .bw-confirm { display: flex; flex-direction: column; gap: 20px; }
+    .lp-book .bw-dl { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 24px; row-gap: 12px; }
+    .lp-book .bw-dl dt { font-family: var(--font-sans); font-size: 14px; color: var(--text-muted); white-space: nowrap; }
+    .lp-book .bw-dl dd { margin: 0; font-family: var(--font-serif); font-size: 15.5px; color: var(--text-primary); }
+    .lp-book .bw-dep { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 18px; background: var(--surface-tint); border: 1px solid var(--rose-100); border-radius: var(--radius-md); font-family: var(--font-serif); font-size: 16px; color: var(--text-primary); }
+    .lp-book .bw-dep b { font-size: 24px; font-weight: 500; color: var(--accent-press); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .lp-book .bw-price { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: var(--tint-gold-hi); border: 1px solid var(--gold-300); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: 13.5px; line-height: 1.6; color: var(--ink-700); }
+    .lp-book .bw-price i { flex: none; margin-top: 2px; font-size: 17px; color: var(--gold-500); }
+    .lp-book .bw-note { font-family: var(--font-sans); font-size: 13px; line-height: 1.7; color: var(--text-muted); margin: 0; }
     .lp-book .bw-done { text-align: center; padding: 28px 0; font-family: var(--font-serif); color: var(--ink-900); }
-    @media (max-width: 760px) { .lp-book .bw-times { grid-template-columns: repeat(4, 1fr); } .lp-book .bw-form { grid-template-columns: 1fr; } }
+    @media (max-width: 820px) {
+      .lp-book .bw-prog-wrap { padding: 20px 20px 0; }
+      .lp-book .bw-body { padding: 20px 20px 24px; }
+      .lp-book .bw-title { font-size: 22px; }
+      .lp-book .bw-foot { flex-direction: column-reverse; align-items: stretch; gap: 8px; padding: 16px 20px 20px; }
+      .lp-book .bw-foot.only-back { flex-direction: row; align-items: center; }
+      .lp-book .bw-next { min-width: 0; width: 100%; }
+      .lp-book .bw-dates { margin: 0 -20px; padding: 0 20px 4px; }
+      .lp-book .bw-times { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .lp-book .bw-form { grid-template-columns: 1fr; }
+      .lp-book .bw-src { padding: 16px; }
+    }
   </style>
 
   <script is:inline>
@@ -345,18 +479,23 @@ const jsonLd = prov ? [
       function ntd(n) { return 'NT$ ' + (Number(n) || 0).toLocaleString('en-US'); }
       function shell(step, title, inner, footer) {
         W.step = step;   // 記住目前在第幾步：時段請求回來時不在「選時間」就丟掉（gpt-6-astra 複核）
-        var dots = ''; for (var i = 1; i <= 5; i++) dots += '<span class="bw-dot' + (i <= step ? ' on' : '') + '"></span>';
+        // 2026-10-06 照 DS lp-wizard.jsx：5 段進度＋右側「N / 5」；底部列上一步＝安靜文字鈕、下一步＝主鈕
+        var dots = ''; for (var i = 1; i <= 5; i++) dots += '<i class="bw-dot' + (i <= step ? ' on' : '') + '"></i>';
         var sub = [W.loc && W.loc.name, W.svc && clean(W.svc.name), W.date && W.time && (W.date + ' ' + W.time)].filter(Boolean).join(' · ');
-        card.innerHTML = '<div class="bw-head"><div class="bw-prog">' + dots + '</div><div class="bw-title">' + esc(title) + '</div><div class="bw-sub">' + esc(sub || prov.name) + '</div></div>' +
-          '<div class="bw-body">' + inner + '</div>' + (footer ? '<div class="bw-foot">' + footer + '</div>' : '');
+        card.innerHTML = '<div class="bw-prog-wrap"><div class="bw-prog">' + dots + '</div><span class="bw-prog-n">' + step + ' / 5</span></div>' +
+          '<div class="bw-body"><div class="bw-head"><div class="bw-title">' + esc(title) + '</div><div class="bw-sub">' + esc(sub || prov.name) + '</div></div>' + inner + '</div>' +
+          (footer ? '<div class="bw-foot' + (footer.indexOf('bw-next') < 0 ? ' only-back' : '') + '">' + footer + '</div>' : '');
       }
+      var BACK = '<button class="bw-back" data-back type="button"><i class="ph ph-arrow-left"></i>上一步</button>';
+      function nextBtn(attr, label, disabled) { return '<button class="zf-btn md primary bw-next" ' + attr + ' type="button"' + (disabled ? ' disabled' : '') + '>' + label + (attr === 'data-next' ? '<i class="ph ph-arrow-right"></i>' : '') + '</button>'; }
       function q(sel) { return card.querySelectorAll(sel); }
       function on(sel, fn) { q(sel).forEach(function (el) { el.addEventListener('click', function () { fn(el); }); }); }
 
       function stepLocation() {
         var inner = '<div class="bw-list">' + LOCS.map(function (l, i) {
           var ic = l.type === 'online' ? 'video-camera' : 'map-pin';
-          return '<button class="bw-opt' + (W.loc && W.loc.id === l.id ? ' on' : '') + '" data-loc="' + i + '" type="button"><span><span class="bw-opt-nm"><i class="ph ph-' + ic + '" style="margin-right:7px;color:var(--rose-400)"></i>' + esc(l.name) + '</span>' + (l.note ? '<span class="bw-opt-meta">' + esc(l.note) + '</span>' : '') + '</span></button>';
+          var sel = W.loc && W.loc.id === l.id;
+          return '<button class="bw-opt' + (sel ? ' on' : '') + '" data-loc="' + i + '" type="button"><span class="bw-ic"><i class="ph-thin ph-' + ic + '"></i></span><span class="bw-opt-tx"><span class="bw-opt-nm">' + esc(l.name) + '</span>' + (l.note ? '<span class="bw-opt-meta">' + esc(l.note) + '</span>' : '') + '</span><i class="bw-chk ' + (sel ? 'ph-fill ph-check-circle' : 'ph ph-caret-right') + '"></i></button>';
         }).join('') + '</div>';
         shell(1, '想怎麼見面？', inner);
         on('[data-loc]', function (b) { W.loc = LOCS[+b.dataset.loc]; W.svc ? stepTime() : stepService(); });
@@ -369,11 +508,12 @@ const jsonLd = prov ? [
           inner += '<div class="bw-svc-group">' + g[0] + '</div>';
           items.forEach(function (s) {
             used[s.id] = 1;
-            inner += '<button class="bw-opt' + (W.svc && W.svc.id === s.id ? ' on' : '') + '" data-svc="' + s.id + '" type="button"><span><span class="bw-opt-nm">' + esc(clean(s.name)) + '</span><span class="bw-opt-meta">' + s.duration + ' 分鐘</span></span><span class="bw-opt-price">' + ntd(s.price) + '<span class="bw-opt-dep">訂金 ' + ntd(s.deposit) + '</span></span></button>';
+            var sel = W.svc && W.svc.id === s.id;
+            inner += '<button class="bw-opt' + (sel ? ' on' : '') + '" data-svc="' + s.id + '" type="button"><span class="bw-opt-tx"><span class="bw-opt-nm">' + esc(clean(s.name)) + '</span><span class="bw-opt-meta">' + s.duration + ' 分鐘</span></span><span class="bw-opt-price" data-nocjk>' + ntd(s.price) + '<span class="bw-opt-dep">訂金 ' + ntd(s.deposit) + '</span></span><i class="bw-chk ' + (sel ? 'ph-fill ph-check-circle' : 'ph ph-caret-right') + '"></i></button>';
           });
         });
         inner += '</div>';
-        shell(2, '選一個項目', inner, '<button class="zf-btn md secondary" data-back type="button">上一步</button>');
+        shell(2, '選一個項目', inner, BACK);
         on('[data-svc]', function (b) { W.svc = svcs.filter(function (s) { return String(s.id) === b.dataset.svc; })[0]; stepTime(); });
         on('[data-back]', stepLocation);
       }
@@ -387,36 +527,52 @@ const jsonLd = prov ? [
           .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); }).then(function (d) {
             if (W.svc !== reqSvc || seq !== W.slotSeq || W.step !== 3) return;
             var slots = (d && d.slots) || {}; var dates = Object.keys(slots).sort();
-            if (!dates.length) { shell(3, '選時間', '<p class="bw-none">老師近四週暫無可預約時段，請稍後再試。</p>', '<button class="zf-btn md secondary" data-back type="button">上一步</button>'); on('[data-back]', stepService); return; }
+            if (!dates.length) { shell(3, '選時間', '<p class="bw-none">老師近四週暫無可預約時段，請稍後再試。</p>', BACK); on('[data-back]', stepService); return; }
             W.date = W.date && slots[W.date] ? W.date : dates[0]; W.time = null;
             renderTime(slots, dates);
-          }).catch(function () { if (W.svc !== reqSvc || seq !== W.slotSeq || W.step !== 3) return; shell(3, '選時間', '<p class="bw-none">時段載入失敗，請稍後再試。</p>', '<button class="zf-btn md secondary" data-back type="button">上一步</button>'); on('[data-back]', stepService); });
+          }).catch(function () { if (W.svc !== reqSvc || seq !== W.slotSeq || W.step !== 3) return; shell(3, '選時間', '<p class="bw-none">時段載入失敗，請稍後再試。</p>', BACK); on('[data-back]', stepService); });
       }
       function renderTime(slots, dates) {
-        function dl(s) { var p = s.split('-'); return (+p[1]) + '/' + (+p[2]); }
-        var dchips = '<div class="bw-dates">' + dates.map(function (dt) { return '<button class="bw-date' + (dt === W.date ? ' on' : '') + '" data-d="' + dt + '" type="button">' + dl(dt) + '</button>'; }).join('') + '</div>';
-        var times = '<div class="bw-times">' + (slots[W.date] || []).map(function (t) { return '<button class="bw-time' + (t === W.time ? ' on' : '') + '" data-t="' + t + '" type="button">' + t + '</button>'; }).join('') + '</div>';
-        shell(3, '選時間', dchips + times, '<button class="zf-btn md secondary" data-back type="button">上一步</button><button class="zf-btn md primary" data-next type="button"' + (W.time ? '' : ' disabled') + '>下一步</button>');
+        /* 2026-10-06 DS：日期橫軸（週X／日／N 個）＋時段依上午／下午／晚上分組，每組先露一排、其餘收在「看全部 N 個時段」，選中的組自動展開 */
+        var WKD = '日一二三四五六';
+        var dchips = '<div class="bw-dates">' + dates.map(function (dt) {
+          var d = new Date(dt + 'T00:00:00'), n = (slots[dt] || []).length;
+          return '<button class="bw-date' + (dt === W.date ? ' on' : '') + '" data-d="' + dt + '" type="button"><span class="bw-dw">週' + WKD.charAt(d.getDay()) + '</span><span class="bw-dd">' + d.getDate() + '</span><span class="bw-dn">' + n + ' 個</span></button>';
+        }).join('') + '</div>';
+        var cols = window.matchMedia('(max-width: 820px)').matches ? 4 : 6, list = slots[W.date] || [];
+        W.slotOpen = W.slotOpen || {};
+        var groups = [['am', '上午', list.filter(function (t) { return t < '12:00'; })], ['pm', '下午', list.filter(function (t) { return t >= '12:00' && t < '18:00'; })], ['ev', '晚上', list.filter(function (t) { return t >= '18:00'; })]].filter(function (g) { return g[2].length; });
+        var times = '<div class="bw-slotgroups">' + groups.map(function (g) {
+          var open = W.slotOpen[W.date + g[0]] || g[2].indexOf(W.time) >= 0 || g[2].length <= cols, shown = open ? g[2] : g[2].slice(0, cols);
+          return '<div class="bw-sg"><div class="bw-sg-h"><span>' + g[1] + '</span><span class="bw-sg-m">' + g[2][0] + '–' + g[2][g[2].length - 1] + ' · ' + g[2].length + ' 個</span></div>' +
+            '<div class="bw-times">' + shown.map(function (t) { return '<button class="bw-time' + (t === W.time ? ' on' : '') + '" data-t="' + t + '" type="button">' + t + '</button>'; }).join('') + '</div>' +
+            (open ? '' : '<button class="bw-more" data-more="' + g[0] + '" type="button">看全部 ' + g[2].length + ' 個時段<i class="ph ph-caret-down"></i></button>') + '</div>';
+        }).join('') + '</div>';
+        var keepX = (card.querySelector('.bw-dates') || {}).scrollLeft || 0;
+        shell(3, '選時間', dchips + times, BACK + nextBtn('data-next', '下一步', !W.time));
+        var dts = card.querySelector('.bw-dates'); if (dts) dts.scrollLeft = keepX;
+        on('[data-more]', function (b) { W.slotOpen[W.date + b.dataset.more] = 1; renderTime(slots, dates); });
         on('[data-d]', function (b) { W.date = b.dataset.d; W.time = null; renderTime(slots, dates); });
         on('[data-t]', function (b) { W.time = b.dataset.t; renderTime(slots, dates); });
         on('[data-next]', function () { if (W.time) stepInfo(); });
         on('[data-back]', stepService);
       }
-      function fld(label, id, v, t, cls) { return '<label class="zf-field ' + (cls || '') + '"><span class="zf-field-label">' + label + '</span><input class="zf-input" id="' + id + '" type="' + (t || 'text') + '" value="' + esc(v) + '"></label>'; }
+      function fld(label, id, v, t, cls) { return '<label class="bw-fld ' + (cls || '') + '"><span class="bw-lbl">' + label + '</span><input class="bw-in" id="' + id + '" type="' + (t || 'text') + '" value="' + esc(v) + '"><span class="bw-ferr" data-err="' + id + '" hidden></span></label>'; }
       function val(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
       function stepInfo() {
         var f = W.fields || {}; var TOPICS = ['愛情', '婚姻', '財運', '事業', '運勢', '健康'];
         // 通路來源（2026-10-06 拍板：必選、有「忘了」；朋友介紹／其他多一格選填；同 booking.astro）
         var HEARD = [['youtube', 'YouTube'], ['threads', 'Threads'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['google', 'Google 搜尋'], ['friend', '朋友介紹'], ['line', 'LINE'], ['edm', '電子報'], ['returning', '之前就約過'], ['other', '其他'], ['forgot', '忘了']];
-        var inner = '<div class="bw-form">' + fld('姓名', 'wzName', f.name || '') + fld('手機', 'wzPhone', f.phone || '', 'tel') + fld('Email（限 Gmail）', 'wzEmail', f.email || '', 'email', 'wide') +
-          '<div class="zf-field wide"><span class="zf-field-label">想聊的主題（選填）</span><div class="bw-topics">' + TOPICS.map(function (tp) { return '<button class="zf-chip sm' + (f.topic === tp ? ' selected' : '') + '" data-topic="' + tp + '" type="button">' + tp + '</button>'; }).join('') + '</div></div>' +
-          '<div class="zf-field wide"><span class="zf-field-label">你是從哪裡知道風易揚老師的？</span><div class="bw-topics">' + HEARD.map(function (h) { return '<button class="zf-chip sm' + (f.heard === h[0] ? ' selected' : '') + '" data-heard="' + h[0] + '" type="button">' + h[1] + '</button>'; }).join('') + '</div></div>' +
-          '<label class="zf-field wide" id="wzHeardNoteWrap"' + (f.heard === 'friend' || f.heard === 'other' ? '' : ' hidden') + '><span class="zf-field-label" id="wzHeardNoteLabel">' + (f.heard === 'other' ? '是哪裡呢？（選填）' : '介紹人（選填）') + '</span><input class="zf-input" id="wzHeardNote" type="text" maxlength="60" value="' + esc(f.heardNote || '') + '"></label>' +
-          '<label class="zf-field wide"><span class="zf-field-label">想先讓老師知道的事（選填）</span><textarea class="zf-textarea" id="wzNote" rows="3" maxlength="300" placeholder="也可以什麼都不寫，當面聊就好。">' + esc(f.note || '') + '</textarea></label>' +
-          '<p class="bw-err" id="wzErr" hidden></p></div>';
-        shell(4, '留下聯絡方式', inner, '<button class="zf-btn md secondary" data-back type="button">上一步</button><button class="zf-btn md primary" data-next type="button">下一步</button>');
+        /* 2026-10-06 DS：姓名／手機一列、Email 一列 → 「從哪裡知道」（必選）獨立一塊 → 想聊的主題（選填，安靜外框標籤）→ 想先讓老師知道的事；錯誤提示在各格底下 */
+        var inner = '<div class="bw-form">' + fld('姓名', 'wzName', f.name || '') + fld('手機', 'wzPhone', f.phone || '', 'tel') + fld('Email（限 Gmail）', 'wzEmail', f.email || '', 'email', 'wide') + '</div>' +
+          '<div class="bw-src" id="wzSrc"><div class="bw-lbl">你是從哪裡知道風易揚老師的？<span class="bw-req">必選</span></div><div class="bw-topics">' + HEARD.map(function (h) { return '<button class="zf-chip sm' + (f.heard === h[0] ? ' selected' : '') + '" data-heard="' + h[0] + '" type="button">' + h[1] + '</button>'; }).join('') + '</div>' +
+          '<label class="bw-fld" id="wzHeardNoteWrap"' + (f.heard === 'friend' || f.heard === 'other' ? '' : ' hidden') + '><span class="bw-lbl" id="wzHeardNoteLabel">' + (f.heard === 'other' ? '是哪裡呢？（選填）' : '介紹人（選填）') + '</span><input class="bw-in" id="wzHeardNote" type="text" maxlength="60" value="' + esc(f.heardNote || '') + '"></label>' +
+          '<span class="bw-ferr" data-err="heard" hidden></span></div>' +
+          '<div class="bw-fld"><span class="bw-lbl">想聊的主題（選填）</span><div class="bw-tags">' + TOPICS.map(function (tp) { return '<button class="bw-tag' + (f.topic === tp ? ' on' : '') + '" data-topic="' + tp + '" type="button">' + tp + '</button>'; }).join('') + '</div></div>' +
+          '<label class="bw-fld"><span class="bw-lbl">想先讓老師知道的事（選填）</span><textarea class="bw-in" id="wzNote" rows="3" maxlength="300" placeholder="也可以什麼都不寫，當面聊就好。">' + esc(f.note || '') + '</textarea></label>';
+        shell(4, '留下聯絡方式', inner, BACK + nextBtn('data-next', '下一步'));
         W.topicPick = f.topic || '';
-        on('[data-topic]', function (b) { W.topicPick = W.topicPick === b.dataset.topic ? '' : b.dataset.topic; q('[data-topic]').forEach(function (c) { c.classList.toggle('selected', c.dataset.topic === W.topicPick); }); });
+        on('[data-topic]', function (b) { W.topicPick = W.topicPick === b.dataset.topic ? '' : b.dataset.topic; q('[data-topic]').forEach(function (c) { c.classList.toggle('on', c.dataset.topic === W.topicPick); }); });
         W.heardPick = f.heard || '';
         on('[data-heard]', function (b) {
           W.heardPick = b.dataset.heard; q('[data-heard]').forEach(function (c) { c.classList.toggle('selected', c.dataset.heard === W.heardPick); });
@@ -425,28 +581,35 @@ const jsonLd = prov ? [
         });
         on('[data-back]', stepTime);
         on('[data-next]', function () {
-          var name = val('wzName'), phone = val('wzPhone').replace(/[\s-]/g, ''), email = val('wzEmail'), err = document.getElementById('wzErr');
-          if (!name) { err.textContent = '請輸入姓名。'; err.hidden = false; return; }
-          if (!/^09\d{8}$/.test(phone)) { err.textContent = '請輸入正確手機（09xxxxxxxx）。'; err.hidden = false; return; }
-          if (!GMAIL.test(email)) { err.textContent = 'Email 目前僅接受 @gmail.com。'; err.hidden = false; return; }
-          if (!W.heardPick) { err.textContent = '請選一下你是從哪裡知道風易揚老師的（記不得就選「忘了」）。'; err.hidden = false; return; }
+          var name = val('wzName'), phone = val('wzPhone').replace(/[\s-]/g, ''), email = val('wzEmail');
+          // 錯誤一次全標在各格底下（10/06 拍板用 DS 的字）
+          var errs = { wzName: name ? '' : '請填姓名', wzPhone: /^09\d{8}$/.test(phone) ? '' : '手機請填 09 開頭的 10 碼', wzEmail: GMAIL.test(email) ? '' : '只收 Gmail，請填 @gmail.com 結尾的信箱', heard: W.heardPick ? '' : '請選一個' };
+          var bad = false;
+          Object.keys(errs).forEach(function (k) {
+            var e = card.querySelector('[data-err="' + k + '"]'); if (!e) return;
+            e.innerHTML = errs[k] ? '<i class="ph ph-warning-circle"></i>' + errs[k] : ''; e.hidden = !errs[k];
+            var box = k === 'heard' ? document.getElementById('wzSrc') : document.getElementById(k); if (box) box.classList.toggle('bad', !!errs[k]);
+            if (errs[k]) bad = true;
+          });
+          if (bad) { var first = card.querySelector('.bad'); if (first && first.scrollIntoView) first.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
           W.fields = { name: name, phone: phone, email: email, topic: W.topicPick, note: val('wzNote'), heard: W.heardPick, heardNote: (W.heardPick === 'friend' || W.heardPick === 'other') ? val('wzHeardNote') : '' };
           stepConfirm();
         });
       }
-      function row(k, v) { return '<div class="bw-row"><span class="bw-k">' + esc(k) + '</span><span class="bw-v">' + esc(v) + '</span></div>'; }
+      function row(k, v) { return '<dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd>'; }
       var HEARD_LABEL = { youtube: 'YouTube', threads: 'Threads', instagram: 'Instagram', facebook: 'Facebook', google: 'Google 搜尋', friend: '朋友介紹', line: 'LINE', edm: '電子報', returning: '之前就約過', other: '其他', forgot: '忘了' };
       function stepConfirm() {
         var dep = Number(W.svc.deposit) || Number(W.svc.price) || 0, online = W.loc && W.loc.type === 'online';
         /* 2026-10-01（廣告前全站掃描）：訂金 0 或訂金＝全額的項目收的是全額，原本照樣寫「線上付訂金…餘額結清」（同 booking.astro 的改法） */
         var isDep = Number(W.svc.deposit) > 0 && Number(W.svc.deposit) < (Number(W.svc.price) || 0), goLabel = isDep ? '確認並付訂金' : '確認並付款';
-        var inner = '<div class="bw-confirm">' + row('老師', prov.name) + row('項目', clean(W.svc.name)) + row('方式', W.loc.name) + row('時間', W.date + ' ' + W.time) + row('聯絡', W.fields.name + ' · ' + W.fields.phone) +
+        var pmsg = W.priceMsg; W.priceMsg = null;   // 價格剛更新：DS 的金色提示框（字沿用現行）
+        var inner = '<div class="bw-confirm">' + (pmsg ? '<div class="bw-price"><i class="ph ph-info"></i><span>' + esc(pmsg) + '</span></div>' : '') + '<dl class="bw-dl">' + row('老師', prov.name) + row('項目', clean(W.svc.name)) + row('方式', W.loc.name) + row('時間', W.date + ' ' + W.time) + row('聯絡', W.fields.name + ' · ' + W.fields.phone) +
           (W.fields.topic ? row('主題', W.fields.topic) : '') + (W.fields.note ? row('備註', W.fields.note) : '') +
-          (W.fields.heard ? row('從哪裡知道', HEARD_LABEL[W.fields.heard] + (W.fields.heardNote ? '（' + W.fields.heardNote + '）' : '')) : '') +
+          (W.fields.heard ? row('從哪裡知道', HEARD_LABEL[W.fields.heard] + (W.fields.heardNote ? '（' + W.fields.heardNote + '）' : '')) : '') + '</dl>' +
           '<div class="bw-dep"><span>' + (isDep ? '線上付訂金' : '線上付清') + '</span><b>' + ntd(dep) + '</b></div>' +
           '<p class="bw-note">' + (online ? '遠端視訊，連線方式會在對談前提供。' : '實體面談：' + esc(W.loc.note || W.loc.name) + '。') + (isDep ? ' 付訂金後即為你保留時段，餘額' + (online ? '依老師指示' : '現場') + '結清。' : ' 付款後即為你保留時段。') + '</p>' +
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
-        shell(5, '確認預約', inner, '<button class="zf-btn md secondary" data-back type="button">上一步</button><button class="zf-btn md primary" data-go type="button">' + goLabel + '</button>');
+        shell(5, '確認預約', inner, BACK + nextBtn('data-go', goLabel));
         on('[data-back]', function () { if (W.creating) return; stepInfo(); });   // 建單中不准回上一步
         on('[data-go]', function (btn) {
           if (btn.disabled) return;
@@ -481,8 +644,8 @@ const jsonLd = prov ? [
                 // 後端另回訂金與總價就分欄更新（2026-09-28 gpt-6-astra 複核：原本不收訂金的項目改收訂金，會把訂金誤寫成總價）
                 if (d.deposit != null || d.total != null) { if (d.deposit != null) W.svc.deposit = Number(d.deposit) || 0; if (d.total != null) W.svc.price = Number(d.total) || W.svc.price; }
                 else if (Number(W.svc.deposit) > 0) W.svc.deposit = Number(d.amount); else W.svc.price = Number(d.amount);
+                W.priceMsg = '金額剛更新為 ' + ntd(d.amount) + '（原本顯示 ' + ntd(dep) + '），確認沒問題再按一次。';
                 stepConfirm();
-                showE('金額剛更新為 ' + ntd(d.amount) + '（原本顯示 ' + ntd(dep) + '），確認沒問題再按一次。');
                 return;
               }
               showE((d && (d.message || d.error)) || '建立預約失敗，請稍後再試。');
@@ -544,6 +707,13 @@ const jsonLd = prov ? [
           })
           .catch(function () { clearTimeout(to); if (my !== PAID_SEQ) return; view('warning', '暫時查不到付款結果', '這不代表付款沒成功，請先不要重複付款。稍等一下再查一次。', retry); });
       }
+
+      // DS：預約區進入畫面時收起手機底部列與風小編浮動鈕，不蓋表單
+      (function () {
+        var bk = document.getElementById('book'), bar = document.getElementById('lpBar');
+        if (!bk || !window.IntersectionObserver) return;
+        new IntersectionObserver(function (es) { var inV = es[0].isIntersecting; if (bar) bar.classList.toggle('hide', inV); document.body.classList.toggle('lp-book-in', inV); }, { rootMargin: '0px 0px -20% 0px' }).observe(bk);
+      })();
 
       var paidNo = new URLSearchParams(location.search).get('paid');
       if (paidNo) {
