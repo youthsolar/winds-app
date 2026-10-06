@@ -1613,21 +1613,23 @@ function nameCard(paid){
 function genSpirit(){
   var R=STATE.result||{};var m=(R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/);
   if(!m){alert("找不到你的付款憑證，請重新整理頁面再試。");return;}
-  var tok=m[1];STATE.spiritGenerating=true;render();
+  var tok=m[1];STATE.spiritGenerating=true;RENDER_KEEP={anchor:"spiritAnchor"};render();
   fetch(WORKER_API+"/spirit-profile-generate",{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),body:JSON.stringify({delivery_token:tok})})
-   .then(function(r){return r.json()}).then(function(d){if(d.success===false){STATE.spiritGenerating=false;render();alert(d.error||d.message||"目前無法生成");return;}pollSpirit(tok,0);})
-   .catch(function(){STATE.spiritGenerating=false;render();alert("網路錯誤，請稍後再試");});
+   .then(function(r){return r.json()}).then(function(d){if(d.success===false){STATE.spiritGenerating=false;RENDER_KEEP={anchor:"spiritAnchor"};render();alert(d.error||d.message||"目前無法生成");return;}pollSpirit(tok,0);})
+   .catch(function(){STATE.spiritGenerating=false;RENDER_KEEP={anchor:"spiritAnchor"};render();alert("網路錯誤，請稍後再試");});
 }
 function pollSpirit(tok,n){
-  if(n>=30){STATE.spiritGenerating=false;STATE.spiritPolling=false;if(STATE.result)STATE.result.profileGenerating=false;render();return;}   /* 等太久：收掉「還在整理」，讓生成按鈕重新出現可以再按 */
+  if(n>=30){STATE.spiritGenerating=false;STATE.spiritPolling=false;if(STATE.result)STATE.result.profileGenerating=false;RENDER_KEEP={y:window.scrollY};render();return;}   /* 等太久：收掉「還在整理」，讓生成按鈕重新出現可以再按 */
   setTimeout(function(){
     fetch(WORKER_API+"/delivery-content?token="+tok+kParam(),{headers:authHeaders()}).then(function(r){return r.json()}).then(function(d){
-      if(d&&d.personality_profile){if(STATE.result){STATE.result.profile=d.personality_profile;STATE.result.profileGenerating=false;}STATE.spiritGenerating=false;STATE.spiritPolling=false;render();}
+      if(d&&d.personality_profile){if(STATE.result){STATE.result.profile=d.personality_profile;STATE.result.profileGenerating=false;}STATE.spiritGenerating=false;STATE.spiritPolling=false;RENDER_KEEP={y:window.scrollY};render();}   /* 生成好了：使用者可能正在看別段，原地換內容不跳 */
       else pollSpirit(tok,n+1);
     }).catch(function(){pollSpirit(tok,n+1)});
   },10000);
 }
-function spiritCard(paid){
+/* 2026-10-06 Jeffery：按「生成我的分靈體」畫面被拉回最上面 → 分靈體這塊包一層錨點，重畫後停回這裡 */
+function spiritCard(paid){return '<div id="spiritAnchor" style="scroll-margin-top:96px">'+spiritCardInner(paid)+'</div>';}
+function spiritCardInner(paid){
   var R=STATE.result||{};
   /* 2026-09-11：側寫付款後才生成——未付款一律顯示鎖定說明 */
   if(!paid){
@@ -1773,8 +1775,9 @@ function loadFullContent(retry){
       else{STATE.fullError=true;}
     }
     else{STATE.fullError=true;STATE.fullNeedLogin=!!(d&&d.ok&&d.summary_mode);}
-    if(STATE.step==="result")render();
-  }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result")render();});
+    /* 背景載入／每 6 秒輪詢後的重畫：原地換內容，不把正在往下看的人拉回最上面（2026-10-06） */
+    if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}
+  }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}});
 }
 /* 量能靈符逐節氣自動開（FI-SYNC：機制與 liff/delivery.html 一致——每 14 天（節氣）一張、到期自動開＋通知；9/11 起不收 NT$100，與後端 talisman-gate.ts 對齊） */
 function daysUntilUnlock(paidAt,step){
@@ -1994,6 +1997,14 @@ function cjkWrap(root){ /* 2026-09-26 第二版：改由 /assets/cjk-wrap.js 全
 var CJK_KEEP=['風易揚老師','風易揚','老師','找風問幸福','通靈水鏡法','元辰宮代觀','元辰宮','水鏡','分靈體','符令','靈符','卦符','解方','命盤','節氣','起卦','卦象','一張','五張','就能','不是','而是','可以','需要','留意','隨機','親手','繪製','書寫','開光','桌布','手機','家裡','新家','入住','房子','狀況','完整解讀','陪伴','七天','7 天'];
 /* 第一次 render 可能早於 defer 的 budoux 載完：載完再補跑一次 */
 window.addEventListener('load',function(){cjkWrap(document.getElementById('root'));});
+/* 重畫時要停在哪裡（預設回最上面）：{anchor:元素 id} 捲到那一塊；{y:數字} 維持原本捲動位置。只用一次 */
+var RENDER_KEEP=null;
+function renderScroll(){
+  var k=RENDER_KEEP;RENDER_KEEP=null;
+  if(k&&k.anchor){var el=document.getElementById(k.anchor);if(el){el.scrollIntoView({block:"start"});return;}}
+  if(k&&typeof k.y==="number"){window.scrollTo(0,k.y);return;}
+  window.scrollTo(0,0);
+}
 function render(){
   if(interpTimer){interpTimer();interpTimer=null;}
   document.body.classList.toggle("show-concierge",STATE.step==="result"||STATE.step==="cooldown");
@@ -2003,7 +2014,7 @@ function render(){
     root.innerHTML=siteHeader()+viewResult()+siteFooter();
     cjkWrap(root);
     wireSiteChrome();
-    window.scrollTo(0,0);
+    renderScroll();
     updateFabCta();
     return;
   }
@@ -2017,7 +2028,7 @@ function render(){
   if(STATE.step==="cast"||STATE.step==="landing")ffCastWire();
   else if(STATE.step==="hex")ffRipStart(false);
   else if(STATE.step==="ask"&&ASK[STATE.ask]==="year")ffDialWire();
-  window.scrollTo(0,0);
+  renderScroll();
   if(STATE.step==="interpreting")startInterp();
   updateFabCta();
 }
