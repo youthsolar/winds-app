@@ -246,6 +246,8 @@ import { PERSONAS } from '../data/booking-teachers';
       function wizClose(){if(W&&W.creating)return;   /* 2026-09-28（gpt-6-astra 體檢）：建單中不准關，否則舊回應會把新流程導去舊老師／項目的付款頁 */
         mount.innerHTML='';document.body.style.overflow='';W=null;}   /* 2026-09-27：也要清掉 W，否則慢回來的時段請求會把精靈自己彈回來 */
       function shell(step, title, inner, footer){
+        /* 2026-10-08：同一步重畫（選日期／時段）保留視窗內捲動位置，換步才回最上面 */
+        var ob=mount.querySelector('.bw-body'),keep=(ob&&W.step===step)?ob.scrollTop:0;
         W.step=step;   /* 記住目前在第幾步：時段請求回來時已經不在「選時間」就丟掉（gpt-6-astra 複核） */
         var nn=W.nSteps||4, arr=[]; for(var i=1;i<=nn;i++)arr.push(i);
         var dots=arr.map(function(n){return '<span class="bw-dot'+(n<=step?' on':'')+'"></span>';}).join('');
@@ -258,6 +260,7 @@ import { PERSONAS } from '../data/booking-teachers';
           (W.svc&&step>=sn(2)&&step<sn(4)?'<div class="bw-sub">'+esc(W.svc.name)+'</div>':'')+'</div>'+
           '<div class="bw-body">'+inner+'</div>'+(footer?'<div class="bw-foot">'+footer+'</div>':'')+'</div>';
         document.body.style.overflow='hidden';
+        if(keep){var nb=mount.querySelector('.bw-body');if(nb)nb.scrollTop=keep;}
         mount.querySelectorAll('[data-wclose]').forEach(function(el){el.addEventListener('click',wizClose);});
       }
       function openWiz(id, svcId){

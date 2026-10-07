@@ -2013,9 +2013,12 @@ function renderScroll(){
     [120,350,700,1200,2000].forEach(function(ms){setTimeout(function(){if(stop||gen!==SCROLL_GEN)return;var e2=document.getElementById(k.anchor);if(e2)e2.scrollIntoView({block:"start"});},ms);});
     return;}}
   if(k&&typeof k.y==="number"){window.scrollTo(0,k.y);return;}
-  window.scrollTo(0,0);
+  window.scrollTo(0,SAME_VIEW?KEEP_Y:0);   /* 2026-10-08：同一個畫面裡點選（生日年月日等）不捲回頁首 */
 }
+var LAST_VIEW=null,SAME_VIEW=false,KEEP_Y=0;
+function markView(){var vk=[STATE.step,STATE.step==="ask"?STATE.ask:"",STATE.dir||"",STATE.sub||""].join("|");KEEP_Y=window.scrollY;SAME_VIEW=vk===LAST_VIEW;LAST_VIEW=vk;}
 function render(){
+  markView();
   if(interpTimer){interpTimer();interpTimer=null;}
   document.body.classList.toggle("show-concierge",STATE.step==="result"||STATE.step==="cooldown");
   var root=document.getElementById("root");
