@@ -104,9 +104,20 @@ import { PERSONAS } from '../data/booking-teachers';
     .booking-root .bw-opt-meta{font-family:var(--font-sans);font-size:12px;color:var(--text-muted);}
     .booking-root .bw-opt-price{font-family:var(--font-serif);font-size:15px;color:var(--ink-900);text-align:right;white-space:nowrap;}
     .booking-root .bw-opt-dep{display:block;font-family:var(--font-sans);font-size:11px;color:var(--rose-600);}
-    .booking-root .bw-dates{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;}
-    .booking-root .bw-date{all:unset;cursor:pointer;flex:none;font-family:var(--font-sans);font-size:14px;color:var(--ink-700);border:1px solid var(--border-strong);border-radius:var(--radius-pill);padding:8px 14px;}
-    .booking-root .bw-date.on{background:var(--accent);color:var(--text-on-accent);border-color:transparent;}
+    /* 2026-10-08 Jeffery：選時間照 LINE 預約（liff/booking.html .lbl-row／.date-cell）——日期卡＝週幾＋日＋幾個時段 */
+    .booking-root .bw-lbl{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+    .booking-root .bw-lbl .t{font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);}
+    .booking-root .bw-lbl i{color:var(--rose-500);}
+    .booking-root .bw-lbl.second{margin-top:24px;}
+    .booking-root .bw-dates{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;}
+    .booking-root .bw-date{all:unset;cursor:pointer;flex:none;width:62px;text-align:center;padding:11px 0;border-radius:var(--radius-md);background:var(--surface-card);border:1px solid var(--border-soft);transition:all var(--dur-fast) var(--ease-soft);}
+    .booking-root .bw-date.on{background:var(--accent);border-color:transparent;}
+    .booking-root .bw-date .w{display:block;font-family:var(--font-sans);font-size:12px;color:var(--text-muted);}
+    .booking-root .bw-date.on .w{color:var(--bar-translucent);}
+    .booking-root .bw-date .d{display:block;font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900);margin:2px 0;}
+    .booking-root .bw-date.on .d{color:var(--text-on-accent);}
+    .booking-root .bw-date .n{display:block;font-family:var(--font-sans);font-size:10.5px;color:var(--sage-500);}
+    .booking-root .bw-date.on .n{color:var(--bar-translucent);}
     .booking-root .bw-times{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
     .booking-root .bw-time{all:unset;cursor:pointer;text-align:center;font-family:var(--font-serif);font-size:16.5px;font-weight:500;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-md);padding:14px 0;transition:all var(--dur-fast) var(--ease-soft);}
     .booking-root .bw-time.on{background:var(--accent);color:var(--text-on-accent);border-color:transparent;box-shadow:var(--shadow-sm);}
@@ -319,8 +330,12 @@ import { PERSONAS } from '../data/booking-teachers';
           }).catch(function(){if(req!==W||seq!==W.slotSeq||W.step!==sn(2)) return;shell(sn(2),'選時間','<p class="bw-none">時段載入失敗，請稍後再試。</p>');});
       }
       function renderTime(slots,dates){
-        function dlabel(s){var p=s.split('-');return (+p[1])+'/'+(+p[2]);}
-        var dchips='<div class="bw-dates">'+dates.map(function(dt){return '<button class="bw-date'+(dt===W.date?' on':'')+'" data-d="'+dt+'" type="button">'+dlabel(dt)+'</button>';}).join('')+'</div>';
+        var WK=['日','一','二','三','四','五','六'];
+        function dobj(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+        var dchips='<div class="bw-lbl"><i class="ph ph-calendar-dots"></i><span class="t">選日期</span></div><div class="bw-dates">'+dates.map(function(dt){var d=dobj(dt);
+          return '<button class="bw-date'+(dt===W.date?' on':'')+'" data-d="'+dt+'" type="button"><span class="w">週'+WK[d.getDay()]+'</span><span class="d">'+d.getDate()+'</span><span class="n">'+(slots[dt]||[]).length+' 個</span></button>';}).join('')+'</div>';
+        var sd=dobj(W.date);
+        dchips+='<div class="bw-lbl second"><i class="ph ph-clock"></i><span class="t">'+(sd.getMonth()+1)+'/'+sd.getDate()+'（週'+WK[sd.getDay()]+'）可預約</span></div>';
         var times='<div class="bw-times">'+(slots[W.date]||[]).map(function(t){return '<button class="bw-time'+(t===W.time?' on':'')+'" data-t="'+t+'" type="button">'+t+'</button>';}).join('')+'</div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary'+(W.time?'':' disabled')+'" data-next type="button">下一步</button>';
         var nt=W.notice?'<p class="bw-err">'+esc(W.notice)+'</p>':''; W.notice=null;
