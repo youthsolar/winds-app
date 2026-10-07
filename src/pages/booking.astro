@@ -276,8 +276,10 @@ import { PERSONAS } from '../data/booking-teachers';
         mount.querySelectorAll('[data-loc]').forEach(function(b){b.addEventListener('click',function(){W.loc=W.locOpts[+b.dataset.loc];stepService();});});
       }
       function stepService(){
-        var svcs = W.prov.services||[];
-        var inner = '<div class="bw-list">'+svcs.map(function(s,i){
+        /* 2026-10-07：項目可限定地點（例：命書籤詩問事只能遠端）。只列在選好的地點能約的項目；s.locations 是後端算好的
+           「這位老師做這一項時可選的地點」，沒有這欄（舊快取）就不篩，送單時後端照樣會擋 */
+        var svcs = (W.prov.services||[]).filter(function(s){return !W.loc||!s.locations||s.locations.indexOf(W.loc.id)>=0;});
+        var inner = !svcs.length ? '<p class="bw-note">這個見面方式目前沒有可預約的項目，請回上一步換一個。</p>' : '<div class="bw-list">'+svcs.map(function(s,i){
           return '<button class="bw-opt" data-svc="'+i+'" type="button"><span class="bw-opt-main"><span class="bw-opt-nm">'+esc(s.name)+'</span>'+
             (s.duration?'<span class="bw-opt-meta">'+s.duration+' 分鐘</span>':'')+'</span>'+
             '<span class="bw-opt-price">NT$ '+(Number(s.price)||0).toLocaleString('en-US')+(s.deposit?'<span class="bw-opt-dep">訂金 NT$ '+Number(s.deposit).toLocaleString('en-US')+'</span>':'')+'</span></button>';

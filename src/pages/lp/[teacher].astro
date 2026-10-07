@@ -499,19 +499,24 @@ const jsonLd = prov ? [
       function q(sel) { return card.querySelectorAll(sel); }
       function on(sel, fn) { q(sel).forEach(function (el) { el.addEventListener('click', function () { fn(el); }); }); }
 
+      /* 2026-10-07：項目可限定地點（例：命書籤詩問事只能遠端）。s.locations＝後端算好的「這位老師做這一項時可選的地點」；
+         沒有這欄就不限。已選項目時地點只列能約的，只剩一個就直接帶上、不讓客人看到不能選的地點 */
+      function okAt(s, l) { return !s || !l || !s.locations || s.locations.indexOf(String(l.id)) >= 0; }
       function stepLocation() {
-        var inner = '<div class="bw-list">' + LOCS.map(function (l, i) {
+        var opts = LOCS.filter(function (l) { return okAt(W.svc, l); });
+        if (W.svc && opts.length === 1) { W.loc = opts[0]; stepTime(); return; }
+        var inner = '<div class="bw-list">' + opts.map(function (l, i) {
           var ic = l.type === 'online' ? 'video-camera' : 'map-pin';
           var sel = W.loc && W.loc.id === l.id;
           return '<button class="bw-opt' + (sel ? ' on' : '') + '" data-loc="' + i + '" type="button"><span class="bw-ic"><i class="ph-thin ph-' + ic + '"></i></span><span class="bw-opt-tx"><span class="bw-opt-nm">' + esc(l.name) + '</span>' + (l.note ? '<span class="bw-opt-meta">' + esc(l.note) + '</span>' : '') + '</span><i class="bw-chk ' + (sel ? 'ph-fill ph-check-circle' : 'ph ph-caret-right') + '"></i></button>';
         }).join('') + '</div>';
         shell(1, '想怎麼見面？', inner);
-        on('[data-loc]', function (b) { W.loc = LOCS[+b.dataset.loc]; W.svc ? stepTime() : stepService(); });
+        on('[data-loc]', function (b) { W.loc = opts[+b.dataset.loc]; W.svc ? stepTime() : stepService(); });
       }
       function stepService() {
         var used = {}, inner = '<div class="bw-list">';
         GROUPS.forEach(function (g) {
-          var items = svcs.filter(function (s) { return !used[s.id] && g[1].test(s.name); });
+          var items = svcs.filter(function (s) { return !used[s.id] && g[1].test(s.name) && okAt(s, W.loc); });
           if (!items.length) return;
           inner += '<div class="bw-svc-group">' + g[0] + '</div>';
           items.forEach(function (s) {
@@ -521,9 +526,10 @@ const jsonLd = prov ? [
           });
         });
         inner += '</div>';
+        if (inner === '<div class="bw-list"></div>') inner = '<p class="bw-none">這個見面方式目前沒有可預約的項目，請回上一步換一個。</p>';
         shell(2, '選一個項目', inner, BACK);
         on('[data-svc]', function (b) { W.svc = svcs.filter(function (s) { return String(s.id) === b.dataset.svc; })[0]; stepTime(); });
-        on('[data-back]', stepLocation);
+        on('[data-back]', function () { W.svc = null; stepLocation(); });   // 回去換地點：先放掉項目，否則只限一個地點的項目會直接把人帶回選時間
       }
       function stepTime() {
         shell(3, '選時間', '<div class="bw-loading"><span class="zf-spinner" style="width:18px;height:18px;vertical-align:middle;margin-right:8px"></span>載入老師未來四週的空檔…</div>');
@@ -666,6 +672,7 @@ const jsonLd = prov ? [
         b.addEventListener('click', function () {
           if (W.creating) { document.getElementById('book').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }   // 建單中不准換項目，否則舊的回應會把人帶去付上一個項目（gpt-6-astra 複核）
           W.svc = svcs.filter(function (s) { return String(s.id) === b.dataset.pick; })[0] || null; W.date = null; W.time = null;
+          if (W.loc && !okAt(W.svc, W.loc)) W.loc = null;   // 先前選的地點這一項不能約（例：選了台北現場又點命書籤詩）→ 重選地點
           W.loc ? stepTime() : stepLocation();
           document.getElementById('book').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
