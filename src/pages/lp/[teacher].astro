@@ -533,7 +533,7 @@ const jsonLd = prov ? [
         inner += '</div>';
         if (inner === '<div class="bw-list"></div>') inner = '<p class="bw-none">這個見面方式目前沒有可預約的項目，請回上一步換一個。</p>';
         shell(2, '選一個項目', inner, BACK);
-        on('[data-svc]', function (b) { W.svc = svcs.filter(function (s) { return String(s.id) === b.dataset.svc; })[0]; stepTime(); });
+        on('[data-svc]', function (b) { W.svc = svcs.filter(function (s) { return String(s.id) === b.dataset.svc; })[0]; W.loc && okAt(W.svc, W.loc) ? stepTime() : (W.loc = null, stepLocation()); });   // 還沒有能用的地點就先去選（只剩一個會自動帶），Astra 10/7 第 2 輪
         on('[data-back]', function () { W.svc = null; stepLocation(); });   // 回去換地點：先放掉項目，否則只限一個地點的項目會直接把人帶回選時間
       }
       function stepTime() {
