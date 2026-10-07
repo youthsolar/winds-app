@@ -64,7 +64,7 @@ const paused = isSB && item.bookable === false;
 // 老師資料只是加分，讀不到就回到原本只有價格的卡
 // ⚠️ 網址的 sb-NN 是站內目錄編號，老師名單用的是 SimplyBook 編號（sb_id），兩套不同
 const SB_ID = isSB ? item.sbId : '';
-let teachers: { name: string; photo: string; title: string; line: string }[] = [];
+let teachers: { id: string; name: string; photo: string; title: string; line: string }[] = [];
 if (SB_ID) {
   const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 4000);
   try {
@@ -75,12 +75,14 @@ if (SB_ID) {
       .sort((x: any, y: any) => Number(x.id) - Number(y.id))
       .map((p: any) => {
         const desc = String(p.desc || ''); const k = desc.indexOf('：');
-        return { name: String(p.name || ''), photo: String(p.photo || ''),
+        return { id: String(p.id || ''), name: String(p.name || ''), photo: String(p.photo || ''),
           title: k > 0 ? desc.slice(0, k).trim() : '', line: (k > 0 ? desc.slice(k + 1) : desc).replace(/\s+/g, '').trim() };
       });
   } catch { teachers = []; } finally { clearTimeout(t); }
 }
 const canonical = `https://winds.tw/services/${item.slug}/`;
+// 2026-10-08 Jeffery 手機抓到：按「預約老師」只到 /booking 全部老師清單。只有一位老師就直接開那位老師＋這個項目的預約步驟；多位老師就只列會做這一項的老師
+const bookHref = teachers.length === 1 && teachers[0].id ? `/booking?book=${encodeURIComponent(teachers[0].id)}&svc=${encodeURIComponent(SB_ID)}` : SB_ID ? `/booking?svc=${encodeURIComponent(SB_ID)}` : '/booking';
 const priceTxt = item.price ? `NT$ ${item.price.toLocaleString('en-US')}` : '';
 const durTxt = item.duration ? `${item.duration} 分鐘` : '';
 const lede = item.llm || item.desc;
@@ -182,7 +184,7 @@ const jsonLd = [
           </>
         ) : (
           <>
-            <a class="zf-btn primary lg full sd-btn" href={isSB ? '/booking' : (item.url || '/booking')}
+            <a class="zf-btn primary lg full sd-btn" href={isSB ? bookHref : (item.url || '/booking')}
                {...(isSB ? {} : { target: '_blank', rel: 'noopener' })}>
               {isSB ? '預約老師' : '前往購買'}
             </a>

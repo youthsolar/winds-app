@@ -220,10 +220,13 @@ import { PERSONAS } from '../data/booking-teachers';
             '<button class="zfbtn md secondary" data-book="'+esc(t.id)+'" type="button">預約 <i class="ph-bold ph-arrow-right"></i></button>'+
           '</div></article>';
       }
+      var SVC_Q = new URLSearchParams(location.search).get('svc') || '';
       function apply(){
         if (active==='all'){descEl.hidden=true;descEl.textContent='';}
         else {descEl.hidden=false;descEl.textContent=descMap[active]||'';}
         var list = active==='all' ? teachers : teachers.filter(function(t){return t.persona===active;});
+        /* 2026-10-08：從項目頁進來（?svc=項目）只列會做這一項的老師 */
+        if (SVC_Q) list = list.filter(function(t){return (t.services||[]).some(function(x){return String(x.id)===SVC_Q;});});
         grid.innerHTML = list.map(card).join('');
         empty.hidden = list.length !== 0;
       }
@@ -254,11 +257,13 @@ import { PERSONAS } from '../data/booking-teachers';
         document.body.style.overflow='hidden';
         mount.querySelectorAll('[data-wclose]').forEach(function(el){el.addEventListener('click',wizClose);});
       }
-      function openWiz(id){
+      function openWiz(id, svcId){
         if(W&&W.creating)return;
         W = { prov: teachers.filter(function(t){return String(t.id)===String(id);})[0] };
         if(!W.prov) return;
-        var locIds = W.prov.locations || [];
+        /* 2026-10-08：從項目頁進來（?book=老師&svc=項目）直接定好項目，地點只列這個項目能約的；項目對不上就照一般流程 */
+        W.fixSvc = svcId ? (W.prov.services||[]).filter(function(s){return String(s.id)===String(svcId);})[0] : null;
+        var locIds = (W.fixSvc && W.fixSvc.locations) ? (W.prov.locations||[]).filter(function(l){return W.fixSvc.locations.indexOf(l)>=0;}) : (W.prov.locations || []);
         W.locOpts = LOCATIONS.filter(function(l){return locIds.indexOf(l.id)>=0;});
         W.multiLoc = W.locOpts.length>1;
         W.nSteps = W.multiLoc ? 5 : 4;
@@ -279,6 +284,7 @@ import { PERSONAS } from '../data/booking-teachers';
         /* 2026-10-07：項目可限定地點（例：命書籤詩問事只能遠端）。只列在選好的地點能約的項目；s.locations 是後端算好的
            「這位老師做這一項時可選的地點」，沒有這欄（舊快取）就不篩，送單時後端照樣會擋 */
         var svcs = (W.prov.services||[]).filter(function(s){return !W.loc||!s.locations||s.locations.indexOf(W.loc.id)>=0;});
+        if(W.fixSvc&&svcs.indexOf(W.fixSvc)>=0){W.svc=W.fixSvc;stepTime();return;}
         var inner = !svcs.length ? '<p class="bw-note">這個見面方式目前沒有可預約的項目，請回上一步換一個。</p>' : '<div class="bw-list">'+svcs.map(function(s,i){
           return '<button class="bw-opt" data-svc="'+i+'" type="button"><span class="bw-opt-main"><span class="bw-opt-nm">'+esc(s.name)+'</span>'+
             (s.duration?'<span class="bw-opt-meta">'+s.duration+' 分鐘</span>':'')+'</span>'+
@@ -316,7 +322,7 @@ import { PERSONAS } from '../data/booking-teachers';
         mount.querySelectorAll('[data-d]').forEach(function(b){b.addEventListener('click',function(){W.date=b.dataset.d;W.time=null;renderTime(slots,dates);});});
         mount.querySelectorAll('[data-t]').forEach(function(b){b.addEventListener('click',function(){W.time=b.dataset.t;renderTime(slots,dates);});});
         var nx=mount.querySelector('[data-next]'); if(nx)nx.addEventListener('click',function(){if(W.time)stepInfo();});
-        var bk=mount.querySelector('[data-back]'); if(bk)bk.addEventListener('click',stepService);
+        var bk=mount.querySelector('[data-back]'); if(bk)bk.addEventListener('click',function(){W.fixSvc=null;stepService();});   /* 項目頁帶進來的項目，按上一步就放開讓他改選 */
       }
       function stepInfo(){
         var f=W.fields||{};
@@ -440,7 +446,7 @@ import { PERSONAS } from '../data/booking-teachers';
       }
       function row(k,v){return '<div class="bw-row"><span class="bw-k">'+esc(k)+'</span><span class="bw-v">'+esc(v)+'</span></div>';}
 
-      grid.addEventListener('click',function(e){var b=e.target.closest('[data-book]');if(b)openWiz(b.dataset.book);});
+      grid.addEventListener('click',function(e){var b=e.target.closest('[data-book]');if(b)openWiz(b.dataset.book,SVC_Q);});
 
       fetch(WORKER_API + '/sb-providers').then(function(r){return r.json();}).then(function(d){
         teachers = (d && d.providers) || [];
@@ -449,7 +455,7 @@ import { PERSONAS } from '../data/booking-teachers';
         LOCATIONS = (d && d.locations) || [];
         if (!teachers.length){ grid.innerHTML=''; empty.hidden=false; empty.textContent='老師清單載入中或暫無，稍後再試。'; return; }
         apply();
-        var bp = new URLSearchParams(location.search).get('book'); if (bp) openWiz(bp);
+        var bp = new URLSearchParams(location.search).get('book'); if (bp) openWiz(bp, SVC_Q);
       }).catch(function(){ grid.innerHTML=''; empty.hidden=false; empty.textContent='老師清單載入失敗，請稍後再試。'; });
     })();
   </script>
