@@ -90,6 +90,7 @@ import { PERSONAS } from '../data/booking-teachers';
     .booking-root .bw-dot.on{background:var(--accent);}
     .booking-root .bw-title{font-family:var(--font-serif);font-size:22px;font-weight:500;color:var(--ink-900);}
     .booking-root .bw-sub{font-family:var(--font-sans);font-size:13px;color:var(--text-muted);margin-top:3px;}
+    .booking-root .bw-sub + .bw-sub{margin-top:0;line-height:1.5;}   /* 第二行＝項目名（10/08），貼緊老師名字 */
     .booking-root .bw-body{padding:20px 24px;overflow:auto;flex:1;}
     .booking-root .bw-foot{display:flex;gap:12px;padding:16px 24px;border-top:1px solid var(--border-soft);}
     .booking-root .bw-foot .zfbtn{flex:1;}
@@ -252,7 +253,9 @@ import { PERSONAS } from '../data/booking-teachers';
           '<button class="bw-x" data-wclose type="button"><i class="ph ph-x"></i></button>'+
           '<div class="bw-prog">'+dots+'</div>'+
           '<div class="bw-title">'+esc(title)+'</div>'+
-          '<div class="bw-sub">'+esc(W.prov?W.prov.name:'')+'</div></div>'+
+          '<div class="bw-sub">'+esc(W.prov?W.prov.name:'')+'</div>'+
+          /* 2026-10-08 Jeffery：選時間、填資料也要看得到項目，樣式同老師名字 */
+          (W.svc&&step>=sn(2)&&step<sn(4)?'<div class="bw-sub">'+esc(W.svc.name)+'</div>':'')+'</div>'+
           '<div class="bw-body">'+inner+'</div>'+(footer?'<div class="bw-foot">'+footer+'</div>':'')+'</div>';
         document.body.style.overflow='hidden';
         mount.querySelectorAll('[data-wclose]').forEach(function(el){el.addEventListener('click',wizClose);});
