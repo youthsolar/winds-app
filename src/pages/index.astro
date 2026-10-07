@@ -16,7 +16,7 @@ const SCENARIOS = [
 ];
 const DEFAULT = 1;   // 一進來先選好「有沒有未來」，大標題就有一句完整的問句
 const DAILY_QUOTE = '有些事情想很久，還是沒有答案。那就換個角度看看。';   // 今日一句讀不到時的備用句（10/7 起改讀 D1 金句庫 /daily-quote）
-const FIELDS = ['姓', '名', '西元生日（陽曆）', '出生時間', '手機', '電子郵件'];
+const FIELDS = ['姓', '名', '西元生日', '出生時間', '手機', '電子郵件'];
 // 預約項目：接真實 SB 服務（services.json = D1，source==='simplybook'），連到真項目頁
 const sbServices = (servicesData as any[]).filter((s) => s.source === 'simplybook' && (s.price ?? 0) > 0);
 const glyphOf = (name: string) => {
