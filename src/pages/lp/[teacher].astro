@@ -74,8 +74,8 @@ const title = cfg.title;
 // 見面方式依老師實際有的地點講（只有台北實體的老師不提遠端）
 const hasPhysical = locations.some((l: any) => l.type !== 'online'), hasOnline = locations.some((l: any) => l.type === 'online');
 const eyebrowWhere = hasPhysical && hasOnline ? '台北大安 或 遠端視訊' : hasOnline ? '遠端視訊' : '台北大安';
-const balanceNote = hasPhysical && hasOnline ? '餘額實體當天現場結清；遠端依老師指示結清。' : hasOnline ? '餘額依老師指示結清。' : '餘額當天現場結清。';
-const faqBalance = hasPhysical && hasOnline ? '餘額實體當天現場結清，遠端依老師指示結清。' : balanceNote;   // 風易揚原文 FAQ 用逗號，照舊
+const balanceNote = hasPhysical && hasOnline ? '餘額當天現場結清；遠端依老師指示結清。' : hasOnline ? '餘額依老師指示結清。' : '餘額當天現場結清。';
+const faqBalance = hasPhysical && hasOnline ? '餘額當天現場結清，遠端依老師指示結清。' : balanceNote;   // 風易揚原文 FAQ 用逗號，照舊
 const description = (LP_LEDE.join('') + eyebrowWhere.replace(/ /g, '') + '一對一，線上付訂金保留時段。').slice(0, 155);
 const jsonLd = prov ? [
   {
