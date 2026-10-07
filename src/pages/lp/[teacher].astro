@@ -505,6 +505,11 @@ const jsonLd = prov ? [
       function stepLocation() {
         var opts = LOCS.filter(function (l) { return okAt(W.svc, l); });
         if (W.svc && opts.length === 1) { W.loc = opts[0]; stepTime(); return; }
+        if (!opts.length) {   // 這一項沒有能約的地點（資料壞掉之類）：說清楚、給退路，不留空畫面（Astra 10/7）
+          shell(1, '想怎麼見面？', '<p class="bw-none">這個項目目前沒有可預約的見面方式，請換一個項目。</p>', BACK);
+          on('[data-back]', function () { W.svc = null; W.loc = null; stepService(); });
+          return;
+        }
         var inner = '<div class="bw-list">' + opts.map(function (l, i) {
           var ic = l.type === 'online' ? 'video-camera' : 'map-pin';
           var sel = W.loc && W.loc.id === l.id;
