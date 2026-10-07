@@ -40,3 +40,22 @@
     clear: function () { try { localStorage.removeItem(KEY); } catch (e) {} current = resolve(); apply(current); }
   };
 })();
+
+/* 2026-10-07（Jeffery 手機重開分頁整頁沒樣式）：每次部署 /_astro/*.css 檔名換新、舊檔刪除；
+ * iPhone 重開分頁時用快取的舊 HTML，去抓已經不存在的舊樣式檔 → 只剩文字。
+ * 這支在每頁 <head> 樣式表之前同步載入：抓到 /_astro/ 樣式檔載不到，就帶 _r 參數重抓一次最新頁面
+ * （新網址＝瀏覽器與 CDN 都不會用舊快取）；網址已經帶 _r 就不再重抓，避免無限重新整理；載完把 _r 拿掉。 */
+(function () {
+  var fired = false;   // 好幾個樣式檔一起壞時只重抓一次
+  function hasR() { return /[?&]_r=/.test(location.search); }
+  window.addEventListener("error", function (e) {
+    var t = e.target;
+    if (fired || !t || t.tagName !== "LINK" || !/\/_astro\//.test(t.href || "") || hasR()) return;
+    fired = true;
+    try { var u = new URL(location.href); u.searchParams.set("_r", Date.now()); location.replace(u.toString()); } catch (_) {}
+  }, true);
+  window.addEventListener("load", function () {
+    if (!hasR()) return;
+    try { var u = new URL(location.href); u.searchParams.delete("_r"); history.replaceState(history.state, "", u.toString()); } catch (_) {}
+  });
+})();
