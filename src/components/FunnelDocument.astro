@@ -594,7 +594,6 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-share{margin-top:14px}
     .ff-share.zf-card{padding:14px 16px}
     .ff-share .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:10px}
-    .ff-share .note{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);margin-top:8px;text-align:center}
     @media (prefers-reduced-motion:reduce){.ff-sheen,.ff-rips span,.ff-bub{animation:none!important}.ff-rips span{opacity:0}}
     /* ===== 2026-09-26 DS 逐值對齊（真值 step4-result.jsx；對賬表見本日收工檔）。只改數值與手機斷點，不動結構；要調版面請改上面原規則或這裡 ===== */
     .res-note{font-size:14.5px}
@@ -1692,11 +1691,10 @@ function hexCardHero(paid){
     '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+SOLAR.next+'</b>（'+SOLAR.date+'）。'+SOLAR.line+'</span></div></div>'+
     '</div></div>';
   /* 病毒環路（9/9 拍板）：把這一卦傳給那個該看到的人——圖（長按存）／連結（零登入收卡頁，縮圖＝同一張卡） */
-  if(HC&&!HC.expired&&STATE.shareUrl)h+='<div class="zf-card ff-share"><span class="eyebrow"><span class="dot"></span>把這一卦傳給那個該看到的人</span>'+
-    '<p class="ff-p" style="margin:8px 0 0;font-size:13.5px">同一張卡、同一個卦。對方不用登入就看得到。</p>'+
+  if(HC&&!HC.expired&&STATE.shareUrl)h+='<div class="zf-card ff-share"><span class="eyebrow"><span class="dot"></span>把這一卦分享給那個人</span>'+
     '<div class="row"><a class="zf-btn secondary md" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("image","thin")+'存成圖片</a>'+
     '<button class="zf-btn primary md" onclick="shareCard(this)">'+ic("link-simple","thin")+'複製連結</button></div>'+
-    '<div class="note">連結的縮圖＝這張卦符卡</div></div>';
+    '</div>';
   return h;
 }
 function hexTalismans(paid){
