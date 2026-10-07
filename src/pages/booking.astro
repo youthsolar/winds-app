@@ -402,7 +402,7 @@ import { PERSONAS } from '../data/booking-teachers';
         var isDep=Number(W.svc.deposit)>0&&Number(W.svc.deposit)<(Number(W.svc.price)||0);
         var goLabel=isDep?'確認並付訂金':'確認並付款';
         var online=W.loc&&W.loc.type==='online';
-        var locNote=W.loc?(online?'遠端諮詢，連線方式會在對談前提供。'   /* 2026-10-01（廣告前全站掃描）：原本承諾「自動開啟會議室連結」，實際沒有程式會產生；照確認信（sb.ts）的說法 */:'實體面談：'+(W.loc.note||W.loc.name)+'。'):'';
+        var locNote=W.loc?(online?'遠端諮詢，透過官方 LINE 通話。'   /* 2026-10-01（廣告前全站掃描）：原本承諾「自動開啟會議室連結」，實際沒有程式會產生；照確認信（sb.ts）的說法 */:'實體面談：'+(W.loc.note||W.loc.name)+'。'):'';
         var inner='<div class="bw-confirm">'+
           row('老師',W.prov.name)+row('項目',W.svc.name)+
           (W.loc?row('方式',W.loc.name):'')+row('時間',W.date+' '+W.time)+
