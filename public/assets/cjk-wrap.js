@@ -11,6 +11,11 @@
  *   5. JS 後來才畫的內容用 MutationObserver 補；視窗寬度改變就依新寬度重算。
  * 需要先載 /assets/budoux-zh-hant.min.js（沒有也能跑：長句退回逐字斷）。 */
 (function () {
+  /* 2026-10-07 Jeffery 選項卡「改回瀏覽器原本的換行」：詞黏在一起不拆，行尾放不下就整塊掉下一行，
+     老師頁每頁 7～13 行右邊空 2～6 字（「老師用／通靈水鏡法來看」「捷運忠／孝復興站」）。
+     現在只留：清掉舊的隱形字、數字＋單位不拆（120 分鐘）、標點不落行首（line-break:strict）；其餘交給瀏覽器。
+     代價（他知道）：「卻不／知道」這類詞中斷行會回來。要恢復舊做法把 NATIVE 改 false。 */
+  var NATIVE = true;
   var KEEP = ['風易揚老師','風易揚','找風問幸福','找風問好愛','通靈水鏡法','元辰宮代觀','元辰宮','分靈體','完整解讀','7 天'];
   var TAIL = /^[的了著過嗎呢吧啊呀喔哦嘛囉們得地]/;
   var HEAD = /[不沒還也都就才再又很在把被讓給跟和與對向從最更太只往為]$/;
@@ -192,6 +197,7 @@
     parent.classList.add('cjk');
     /* 數字＋中文單位（30 分鐘、7 天）黏住：空白換成不斷行空白 */
     if (/\d\s+[\u3400-\u9fff]/.test(v)) { v = v.replace(/(\d)\s+(?=[\u3400-\u9fff])/g, '$1\u00a0'); node.nodeValue = v; }
+    if (NATIVE) return;
     var joinPrev = inlineSib(node, -1) && !/^[，。、；：？！…」』）》〉,.;:?!\s]/.test(v);
     var joinNext = inlineSib(node, 1);
     if (!joinPrev && !joinNext && parent !== blockOf(parent)) { joinPrev = inlineSib(parent, -1); joinNext = inlineSib(parent, 1); }
