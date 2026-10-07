@@ -333,7 +333,7 @@ import '../styles/global.css';
       var days="";for(var d=1;d<=31;d++)days+='<option value="'+d+'"'+selA(d,pD)+'>'+d+' 日</option>';
       var sco=TG_SC.map(function(x){return '<option value="'+x[1]+'"'+selA(x[1],pT)+'>'+x[0]+'</option>'}).join("");
       var caret='<span class="caret">'+ic("caret-down","bold")+'</span>';
-      return '<label style="display:block"><span class="f-label">對象西元生日（陽曆）</span><div class="zf-select-row">'+
+      return '<label style="display:block"><span class="f-label">對象西元生日</span><div class="zf-select-row">'+
         '<div class="zf-select-wrap"><select id="tgYear" class="zf-select"><option value="" disabled'+(pY?"":" selected")+'>年</option>'+years+'</select>'+caret+'</div>'+
         '<div class="zf-select-wrap"><select id="tgMonth" class="zf-select"><option value="" disabled'+(pM?"":" selected")+'>月</option>'+months+'</select>'+caret+'</div>'+
         '<div class="zf-select-wrap"><select id="tgDay" class="zf-select"><option value="" disabled'+(pD?"":" selected")+'>日</option>'+days+'</select>'+caret+'</div></div></label>'+
