@@ -6,6 +6,7 @@
 // ⚠️ 文案（各段標題、FAQ）是佔位，等 Jeffery 改；老師檔案文字取 SB 現有欄位。
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { LP_TEACHERS } from '../../data/lp-teachers';
+import { getCollection } from 'astro:content';
 
 const API = 'https://api.winds.tw';
 const slug = String(Astro.params.teacher || '');
@@ -56,6 +57,17 @@ const featured = [...FEATURED_IDS.map((id) => services.find((s) => String(s.id) 
 const rest = services.filter((s) => !featured.includes(s));
 const restGroups = grouped.map((g) => ({ ...g, items: g.items.filter((s: any) => rest.includes(s)) })).filter((g) => g.items.length);
 const minPrice = services.length ? Math.min(...services.map((s) => Number(s.price))) : 0;
+
+// 頁尾老師署名文章（10/08 Jeffery 拍板）：每次 3 篇、每天換一組（台北日期＋老師當種子，同一天看到的一樣）；
+// 先挑跟老師項目有關的（標題／分類對到老師項目所屬的分組），不夠再用其他署名文章補；沒有署名文章就不出這區
+const ymd = new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 10);
+let seed = 0; for (const ch of ymd + slug) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+const rnd = () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296);
+const shuffle = <T,>(a: T[]) => { const r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
+const myGroupRes = GROUPS.filter((g) => g.key !== 'other' && services.some((s) => g.re.test(s.name))).map((g) => g.re);
+const myPosts = (await getCollection('blog')).filter((p) => !p.data.draft && p.data.author === prov.name);
+const isRelated = (p: any) => myGroupRes.some((re) => re.test(p.data.title + ' ' + (p.data.category || '')));
+const posts = [...shuffle(myPosts.filter(isRelated)), ...shuffle(myPosts.filter((p) => !isRelated(p)))].slice(0, 3);
 
 const canonical = `https://winds.tw/lp/${slug}/`;
 const title = cfg.title;
@@ -231,6 +243,26 @@ const jsonLd = prov ? [
           </div>
         </div></section>
 
+        <!-- ⑦ 老師的文章 -->
+        {posts.length > 0 && (
+          <section class="lp-block"><div class="lp-wrap">
+            <div class="lp-head">
+              <span class="lp-eyebrow">老師的文章</span>
+              <h2 class="lp-h2">{prov.name}寫的文章</h2>
+            </div>
+            <ul class={'lp-posts n' + posts.length}>
+              {posts.map((p: any) => (
+                <li><a class="zf-card lp-post" href={`/blog/${p.id}/`}>
+                  {p.data.category && <span class="lp-post-cat">{p.data.category}</span>}
+                  <h3>{p.data.title}</h3>
+                  <p>{p.data.description}</p>
+                  <span class="lp-post-more">閱讀全文<i class="ph ph-arrow-right"></i></span>
+                </a></li>
+              ))}
+            </ul>
+          </div></section>
+        )}
+
         <!-- 浮動預約（DS）：手機底部霧面列；預約區進入畫面就收起，不蓋表單。手機風小編在原位置（右下），列的右側讓出空間。 -->
         <div class="lp-bar" id="lpBar"><span>項目 <span data-nocjk style="white-space:nowrap">{ntd(minPrice)}</span> 起</span><a class="zf-btn primary md" href="#book">預約老師</a></div>
       </>
@@ -330,6 +362,17 @@ const jsonLd = prov ? [
     .lp-faq details[open] .lp-mi { display: inline-block; }
     .lp-faq p { margin: 0 0 16px; font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.85; color: var(--text-secondary); max-width: none; }
 
+    /* 老師的文章 */
+    .lp-posts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: stretch; }
+    .lp-posts.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lp-posts.n1 { grid-template-columns: minmax(0, 1fr); max-width: 760px; }
+    .lp-post { display: flex; flex-direction: column; gap: 10px; height: 100%; box-sizing: border-box; padding: 24px; text-decoration: none; color: inherit; transition: border-color var(--dur-fast) var(--ease-soft); }
+    .lp-post:hover { border-color: var(--rose-200); }
+    .lp-post-cat { font-family: var(--font-sans); font-size: 12.5px; color: var(--accent-press); }
+    .lp-post h3 { margin: 0; font-family: var(--font-serif); font-size: 18px; font-weight: 500; line-height: 1.5; color: var(--text-primary); }
+    .lp-post p { margin: 0; font-family: var(--font-serif); font-weight: 300; font-size: 15px; line-height: 1.8; color: var(--text-secondary); max-width: none; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .lp-post-more { margin-top: auto; padding-top: 4px; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 13.5px; color: var(--accent-press); }
+
     /* 手機底部預約列（只在手機出現） */
     .lp-bar { display: none; }
 
@@ -359,6 +402,8 @@ const jsonLd = prov ? [
       .lp-group li { padding: 14px 16px; flex-wrap: wrap; }
       .lp-group summary { padding: 14px 16px; }
       .lp-steps { grid-template-columns: 1fr; gap: 12px; }
+      .lp-posts, .lp-posts.n2 { grid-template-columns: 1fr; gap: 12px; }
+      .lp-post { padding: 20px; }
       .lp-steps li { padding: 20px; }
       .lp-locs { flex-direction: column; gap: 12px; margin-top: 16px; padding: 16px 20px; }
       .lp-bar { display: flex; align-items: center; gap: 12px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 12px 20px calc(17px + env(safe-area-inset-bottom));   /* 底部 17：按鈕（約 44 高）中線落在離底 39px，跟風小編（bottom 16、高約 46）對齊（10/06 Jeffery 截圖） */ background: var(--bar-translucent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--border-soft); transition: opacity var(--dur-base) var(--ease-soft), transform var(--dur-base) var(--ease-soft); }
