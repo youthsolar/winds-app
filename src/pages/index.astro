@@ -15,7 +15,7 @@ const SCENARIOS = [
   { key: '總覺得怪怪', head: '最近有些事讓你覺得怪怪的，卻又說不上來？', lede: '先不用往壞處想，起一卦，把你在意的事說清楚。', dir: 'self', sub: 'luck', service: 'karma', ask: '最近總覺得哪裡怪怪的，想請老師幫我看看是不是沖到了。' },
 ];
 const DEFAULT = 1;   // 一進來先選好「有沒有未來」，大標題就有一句完整的問句
-const DAILY_QUOTE = '有些事情想很久，還是沒有答案。那就換個角度看看。';
+const DAILY_QUOTE = '有些事情想很久，還是沒有答案。那就換個角度看看。';   // 今日一句讀不到時的備用句（10/7 起改讀 D1 金句庫 /daily-quote）
 const FIELDS = ['姓', '名', '西元生日（陽曆）', '出生時間', '手機', '電子郵件'];
 // 預約項目：接真實 SB 服務（services.json = D1，source==='simplybook'），連到真項目頁
 const sbServices = (servicesData as any[]).filter((s) => s.source === 'simplybook' && (s.price ?? 0) > 0);
@@ -127,7 +127,7 @@ const homeJsonLd = {
 
       <div class="hc-daily">
         <i class="ph-thin ph-quotes"></i>
-        <div class="hc-daily-row"><span class="hc-daily-k">今日一句</span><p>{'「' + DAILY_QUOTE + '」'}</p></div>
+        <div class="hc-daily-row"><span class="hc-daily-k">今日一句</span><p id="hmDaily">{'「' + DAILY_QUOTE + '」'}</p></div>
       </div>
     </header>
 
@@ -318,6 +318,16 @@ const homeJsonLd = {
   /* JS 注入元素無 Astro scope → 樣式一律 inline（gotcha：scoped <style> 不套用到 innerHTML 元素）*/
   function escH(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 
+  /* 今日一句：接 D1 金句庫（10/7 Jeffery 拍板：八類輪播、老師與名人都放；照台北日期每天換一句）。讀不到就留備用句 */
+  (function(){
+    var el = document.getElementById('hmDaily'); if(!el) return;
+    fetch('https://api.winds.tw/daily-quote').then(function(r){return r.ok ? r.json() : null;}).then(function(d){
+      if(!d || !d.text) return;
+      el.textContent = '「' + d.text + '」';
+      if(d.author){ var by = document.createElement('span'); by.className = 'hc-daily-by'; by.textContent = d.author; el.appendChild(by); }
+    }).catch(function(){});
+  })();
+
   /* 預約對談卡：接真 SB 老師（圓形彩色頭像 + 真人數）*/
   (function(){
     var box = document.getElementById('homeReaders'); if(!box) return;
@@ -474,6 +484,7 @@ const homeJsonLd = {
   .hc-daily-row { min-width: 0; display: flex; align-items: baseline; gap: 16px; }
   .hc-daily-k { flex: none; font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.02em; color: var(--text-muted); white-space: nowrap; }
   .hc-daily p { margin: 0; font-family: var(--font-serif); font-size: 18px; font-weight: 400; line-height: 1.7; color: var(--ink-700); max-width: none; }
+  .hc-daily p :global(.hc-daily-by) { margin-left: 10px; font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.02em; color: var(--text-muted); white-space: nowrap; }
 
   /* social proof（DS Avatar 36／-10 疊、字 13.5；手機 32／12.5） */
   .social { display: flex; align-items: center; gap: 12px; }
