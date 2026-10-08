@@ -1037,7 +1037,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       const target = document.getElementById('g_id_signin_ziwei');
       if (target) {
         target.removeAttribute('data-fb');   // GSI 晚到就把外開引導換回真按鈕
-        g.renderButton(target, { theme: 'outline', size: 'large', text: 'signin_with', locale: 'zh_TW', width: 280 });
+        g.renderButton(target, { theme: ((window as any).ZFTheme && (window as any).ZFTheme.isDark()) ? 'filled_black' : 'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
       }
     };
     // App 內嵌瀏覽器：Google 直接封鎖 OAuth，按鈕就算渲染出來也登不進去 → 不掛 GSI，直接出引導。
