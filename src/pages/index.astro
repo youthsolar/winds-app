@@ -9,7 +9,7 @@ import '../styles/cast-landing.css';   // 水鏡＋起卦區塊（與 /home-gua�
 // 2026-10-03 Jeffery：四個情境照老師多年問事的四大類改成「財、情、健康、入煞」各一個（文案 OpenAI 修過、選項卡逐題拍板）。
 // dir／sub／ask／service＝交給 /divination 的題目（dir、sub 對 FunnelDocument TOPICS 的 key，ask 是寫進問題字串給老師看的那句）
 const SCENARIOS = [
-  { key: '錢總留不住', head: '明明有在賺錢，怎麼月底又沒剩多少？', lede: '先別急著怪自己，起一卦看看錢卡在哪裡。', dir: 'work', sub: 'wealth', service: 'karma', ask: '我最近錢一直留不住，想知道問題出在哪裡。' },
+  { key: '錢總留不住', head: '明明有在賺錢，怎麼月底又沒剩多少？', lede: '先別急著怪自己，起一卦看看財運卡在哪裡。', dir: 'work', sub: 'wealth', service: 'karma', ask: '我最近錢一直留不住，想知道問題出在哪裡。' },
   { key: '有沒有未來', head: '你們還有沒有可能？', lede: '先不用急著決定，起一卦看看你在這段關係裡的猶豫。', dir: 'love', sub: 'reunion', service: 'fortune', ask: '我們還有沒有可能？' },
   { key: '累卻睡不好', head: '白天累得要命，躺上床卻又睡不好？', lede: '睡不好可以找醫師討論，心裡掛著的事，起一卦看看。', dir: 'self', sub: 'mind', service: 'fortune', ask: '最近總是很累、睡不好，想知道是怎麼了。' },
   { key: '總覺得怪怪', head: '最近有些事讓你覺得怪怪的，卻又說不上來？', lede: '先不用往壞處想，起一卦，把你在意的事說清楚。', dir: 'self', sub: 'luck', service: 'karma', ask: '最近總覺得哪裡怪怪的，想請老師幫我看看是不是沖到了。' },
