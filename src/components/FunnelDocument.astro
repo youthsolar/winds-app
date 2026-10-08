@@ -1694,7 +1694,7 @@ function hexCardHero(paid){
     '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
     ((paid||HC)?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這張靈符是風易揚老師親手畫的。解鎖後就能看清楚。</span></div>')+
     '</div>'+
-    '<div class="tal-caption">'+ic("device-mobile")+'<span style="text-align:center">'+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止<br>長按存成手機桌布':'讓這張卦符陪你改善氣場，手機桌布放滿七天<br>'+esc(HC.valid_until_label)+' 前有效 · 長按存成手機桌布'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</span></div>'+
+    '<div class="tal-caption">'+ic("device-mobile")+'<span style="text-align:center">'+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止<br>長按存成手機桌布':'<span style="white-space:nowrap">讓這張卦符陪你改善氣場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">'+esc(HC.valid_until_label)+' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</span></div>'+
     ((HC&&!HC.expired)?'<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("download-simple")+'存這張卦符</a></div>':'')+'</div>'+
     /* 2026-10-06 Jeffery 選項卡：有命卦的紀錄，這張卡是運卦 → 寫明「此刻的運卦」；舊紀錄照舊 */
     '<div class="hexcol"><span class="hex-name">'+((R.tian||R.tianPending)?'此刻的運卦，是「':'這次的卦，是「')+esc(R.hexName||'')+'」</span>'+
