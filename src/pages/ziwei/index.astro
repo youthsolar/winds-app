@@ -1044,6 +1044,13 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     // 其餘環境照舊掛 GSI，3.5 秒後掛載點還空的才接手（tryRender 是無限重試、沒有逾時）。
     const inApp = !!((window as any).ZFInApp && (window as any).ZFInApp());
     if (!inApp) tryRender();
+    // 切換亮暗時重畫，按鈕跟著換色（同 login／gift）
+    window.addEventListener('zf-theme-change', () => {
+      const target = document.getElementById('g_id_signin_ziwei');
+      if (inApp || !target || target.hasAttribute('data-fb') || !target.childNodes.length) return;
+      target.innerHTML = '';
+      tryRender();
+    });
     const showFb = (force: boolean) => {
       const target = document.getElementById('g_id_signin_ziwei');
       if (!target) return;
