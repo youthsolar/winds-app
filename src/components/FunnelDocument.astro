@@ -1084,8 +1084,8 @@ function viewLanding(){
         '<section class="lc-sec">'+lcStep(1,"lcN1","你現在比較像哪一種？","",!!STATE.data.home)+
           '<div class="lc-opts lc-opts2" role="group" id="hgChips">'+HOME_SITU.map(function(x){return lcOpt(STATE.data.home===x.k,"hgPick('"+x.k+"',this)",x.l,"")}).join("")+'</div></section>'+
       '</div>'+
-      '<div class="lc-side"><div class="lc-card">'+lcStep(2,"lcN3","把手放在水鏡上。","按著三秒，不要急著放開。卦會自己浮上來。",false)+
-        '<div class="lc-guide"><p class="hg-guide">選一個。然後，把手放到水鏡上。</p></div>'+
+      '<div class="lc-side"><div class="lc-card">'+lcStep(2,"lcN3","把手指放在水鏡上。","按著三秒，卦會自己浮上來。",false)+
+        '<div class="lc-guide"><p class="hg-guide">選一個。然後，把手指放到水鏡上。</p></div>'+
         '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
         '<div class="ff-clock" id="ffClock"></div></div>'+
       '</div></div></div>'+
@@ -1099,7 +1099,7 @@ function viewLanding(){
 /* 找風問好愛落地頁（2026-09-26 文案規格 V1）。版型／元件／DS 全部沿用家裡的符那一頁，只換文字與兩排膠囊。
    改文案：這裡與 LoveGuaStatic.astro 兩份要一起改（靜態版給不跑 JavaScript 的抓取工具看）。 */
 function lvGuideHtml(){
-  if(!STATE.data.loveWho)return '<p class="hg-guide">選一個，再選一件你最想先知道的事。然後，把手放到水鏡上。</p>';
+  if(!STATE.data.loveWho)return '<p class="hg-guide">選一個，再選一件你最想先知道的事。然後，把手指放到水鏡上。</p>';
   if(lvSingle())return '<p class="hg-guide">想著現在的自己。</p><p class="hg-guide">不用急著想下一個人會是誰。</p><p class="hg-guide">先看看，你現在是不是已經準備好讓一個人走進來。</p>';
   return '<p class="hg-guide">想著那個人。</p><p class="hg-guide">想著你們最近發生的事。</p><p class="hg-guide">不用替他回答。</p><p class="hg-guide">這一卦，先看你們現在站在哪裡。</p>';
 }
@@ -1125,7 +1125,7 @@ function viewLoveLanding(){
       '</div>'+
       /* 2026-10-01（廣告前全站掃描）：② 在選完 ① 前是 display:none，水鏡卡寫死 ③，首屏看到 ①→③ 跳號。
          還沒選 ① 時水鏡卡標 2，選了（lvPickWho 會改成 3，回訪 lvRestore 已填回）就標 3 */
-      '<div class="lc-side"><div class="lc-card">'+lcStep(STATE.data.loveWho?3:2,"lcN3","把手放在水鏡上。","按著三秒，不要急著放開。卦會自己浮上來。",false)+
+      '<div class="lc-side"><div class="lc-card">'+lcStep(STATE.data.loveWho?3:2,"lcN3","把手指放在水鏡上。","按著三秒，卦會自己浮上來。",false)+
         '<div class="lc-guide" id="lvGuide">'+lvGuideHtml()+'</div>'+
         '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
         '<div class="ff-clock" id="ffClock"></div></div>'+
