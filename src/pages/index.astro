@@ -16,7 +16,6 @@ const SCENARIOS = [
 ];
 const DEFAULT = 1;   // 一進來先選好「有沒有未來」，大標題就有一句完整的問句
 const DAILY_QUOTE = '有些事情想很久，還是沒有答案。那就換個角度看看。';   // 今日一句讀不到時的備用句（10/7 起改讀 D1 金句庫 /daily-quote）
-const FIELDS = ['姓', '名', '西元生日', '出生時間', '手機', '電子郵件'];
 // 預約項目：接真實 SB 服務（services.json = D1，source==='simplybook'），連到真項目頁
 const sbServices = (servicesData as any[]).filter((s) => s.source === 'simplybook' && (s.price ?? 0) > 0);
 const glyphOf = (name: string) => {
@@ -130,18 +129,6 @@ const homeJsonLd = {
         <div class="hc-daily-row"><span class="hc-daily-k">今日一句</span><p id="hmDaily">{'「' + DAILY_QUOTE + '」'}</p></div>
       </div>
     </header>
-
-    <!-- Selling point -->
-    <section class="selling">
-      <div class="wrap selling-row">
-        <div class="selling-claim">
-          <span>只要 <em>6 個</em> 基本資料</span><span class="plus">＋</span><span><em>30 秒</em> 得到幸福</span>
-        </div>
-        <div class="fields">
-          {FIELDS.map((f, i) => (<span class="field"><span class="fn">{String(i + 1).padStart(2, '0')}</span>{f}</span>))}
-        </div>
-      </div>
-    </section>
 
     <!-- 預約項目 -->
     <section class="wrap block">
@@ -530,22 +517,13 @@ const homeJsonLd = {
     .hc-daily p { font-size: 16px; }
   }
 
-  /* selling point */
-  .selling { border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); background: var(--surface-sunken); }
-  .selling-row { padding-top: 30px; padding-bottom: 30px; display: flex; align-items: center; justify-content: space-between; gap: 32px; }
-  @media (max-width: 760px) { .selling-row { flex-direction: column; align-items: flex-start; gap: 16px; padding-top: 26px; padding-bottom: 26px; } }
-  .selling-claim { display: flex; align-items: baseline; gap: 14px; white-space: nowrap; font-family: var(--font-serif); font-size: 23px; font-weight: 500; color: var(--ink-900); }
-  .selling-claim em { font-style: normal; color: var(--accent-press); }
-  .selling-claim .plus { font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); letter-spacing: 0.04em; }
-  @media (max-width: 760px) { .selling-claim .plus { font-size: 12px; } } /* 10/1 Jeffery 拍板：賣點改回 DS 原句 */
-  @media (max-width: 760px) { .selling-claim { font-size: 16px; gap: 4px 9px; white-space: normal; flex-wrap: wrap; } }
-  .fields { display: flex; gap: 8px; flex-wrap: wrap; }
-  .field { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 12.5px; color: var(--ink-500); background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-pill); padding: 5px 12px; }
-  .field .fn { font-size: 10px; color: var(--rose-300); font-weight: 700; }
 
   /* sections */
   .block { padding-top: 84px; }
+  /* 2026-10-08 DS 回稿（BRIEF-six-fields-move）：「6 個基本資料」搬到起卦後那一步，首屏之後直接接「預約老師」：今日一句底 → 標題頂＝桌機 64+32、手機 40+24 */
+  .hc + .block { padding-top: 32px; }
   @media (max-width: 760px) { .block { padding-top: 56px; } }
+  @media (max-width: 760px) { .hc + .block { padding-top: 24px; } }
   .sh { margin-bottom: 30px; }
   @media (max-width: 760px) { .sh { margin-bottom: 22px; } }
   #deepen { padding-bottom: 16px; }
