@@ -726,7 +726,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
 )}{mode === 'divination' && (
   <!-- 占卜漏斗的靜態版（2026-09-24）：不跑 JavaScript 的抓取工具只看得到這一段；render() 一啟動整塊換掉。文字對齊 viewTopic() 與首頁定稿 -->
   <main class="shell narrow ff hg">
-    <section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 想問一件事</span><h1 class="hg-h1">今天，想讓哪件事安心？</h1><p class="lede">先選一個大方向，我再陪你找出那個不安的點</p></section>
+    <section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 想問一件事</span><h1 class="hg-h1">今天，想聊聊哪件事？</h1><p class="lede">先選一個主題，我陪你找個最接近心事的問題</p></section>
     <section class="hg-cols">
       <div class="zf-card hg-card"><h3>感情與婚姻</h3><p>關於感情、婚姻、那個人的事。想看清彼此真實的想法與走向。</p></div>
       <div class="zf-card hg-card"><h3>事業與財富</h3><p>包含工作方向、轉職創業、財務壓力與收入穩定度。想釐清下一步。</p></div>
@@ -996,7 +996,7 @@ function viewTopic(){
   var h='';
   var intro = dir
     ? {e:"想問一件事",t:"好，我們繼續往下看。",l:"先選一個最接近你的問題。"}
-    : {e:"想問一件事",t:"今天，想讓哪件事安心？",l:"先選一個大方向，我再陪你找出那個不安的點"};
+    : {e:"想問一件事",t:"今天，想聊聊哪件事？",l:"先選一個主題，我陪你找個最接近心事的問題"};
   h+='<div class="step-intro"><span class="eyebrow"><span class="dot"></span>'+intro.e+'</span><h1>'+intro.t+'</h1><p class="lede">'+intro.l+'</p></div>';
   if(dir){
     h+='<div class="crumbs"><button class="crumb" onclick="pickDir(null)">'+esc(dir.title)+ic("pencil-simple")+'</button>';
