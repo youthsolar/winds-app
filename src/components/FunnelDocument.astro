@@ -596,6 +596,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-inp{width:100%;box-sizing:border-box;padding:12px 16px;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);outline:none;transition:border-color .15s,box-shadow .15s}
     .ff-inp:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring,var(--accent-quiet))}
     .ff-inp.bad{border-color:var(--critical)}
+    .ff-name{display:grid;grid-template-columns:1fr 2fr;gap:8px} /* 2026-10-09 Jeffery：姓、名分兩格（CRM 不再猜拆） */
     .ff-hint{margin-top:7px;font-family:var(--font-sans);font-size:var(--t-caption);color:var(--critical);min-height:1em}
     .ff-chip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-pill);padding:8px 8px 8px 16px;font-family:var(--font-serif);font-size:14px;color:var(--text-primary)}
     .ff-chip a{flex:none;font-family:var(--font-sans);font-size:12.5px;color:var(--accent-press);border:1px solid var(--border-accent);border-radius:999px;padding:3px 10px;text-decoration:none}
@@ -906,7 +907,7 @@ var READING_LINES=["老師正在看你的卦……","再看你的命盤和節氣
 
 /* ===== state ===== */
 var STATE={step:"topic",paid:false,dir:null,sub:null,q:null,text:"",gender:"",service:"",
- cast:null,ask:0,data:{year:1990,month:null,day:null,shi:6,gender:"",name:"",email:"",home:"",loveWho:"",loveAngle:""},ret:false,retInfo:null,retLog:"",retToken:"",k:"",ref:"",shareUrl:"",
+ cast:null,ask:0,data:{year:1990,month:null,day:null,shi:6,gender:"",surname:"",given:"",email:"",home:"",loveWho:"",loveAngle:""},ret:false,retInfo:null,retLog:"",retToken:"",k:"",ref:"",shareUrl:"",
  lineUserId:"",logId:"",talismanName:"量能靈符",
  submitting:false,ordering:false,soulConfirmed:false,reportMode:false,
  prefill:null,cooldown:null,repeatWall:null,result:null,error:""};
@@ -1228,7 +1229,7 @@ function viewAsk(){
   var QS={year:(HOME||LOVE)?"好。要配符給你，得先看你的命盤。你哪一年出生的？":"這一卦我看到了。要配符給你，得先看你的命盤。你哪一年出生的？",
     month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就放在中午。",gender:"命盤要分陰陽。你是？",name:"我要怎麼稱呼你？",
     email:"留個信箱。這張卦符七天內有效，到期前我提醒你回來。"};
-  function ansOf(key){switch(key){case "year":return d.year+" 年";case "month":return d.month+" 月";case "day":return d.month+" 月 "+d.day+" 日";case "shi":return shiName(d.shi);case "gender":return esc(d.gender);case "name":return esc(d.name||"—");}return "";}
+  function ansOf(key){switch(key){case "year":return d.year+" 年";case "month":return d.month+" 月";case "day":return d.month+" 月 "+d.day+" 日";case "shi":return shiName(d.shi);case "gender":return esc(d.gender);case "name":return esc((String(d.surname||"").trim()+String(d.given||"").trim())||"—");}return "";}
   var all=[];
   for(var qi=0;qi<=STATE.ask;qi++){if(qi>0)all.push(ffBub(ansOf(ASK[qi-1]),1));all.push(ffBub(QS[ASK[qi]]));}
   var bubbles=all.slice(-3).join("");
@@ -1243,7 +1244,7 @@ function viewAsk(){
       '<div class="ff-shilabel">'+shiName(d.shi)+'<small>'+SHI[d.shi][1]+'</small></div>';
   }
   if(k==="gender")ctl='<div class="ff-seals">'+["女","男"].map(function(g){return '<button type="button" class="'+(d.gender===g?'on':'')+'" onclick="ffSet(\'gender\',\''+g+'\')">'+g+'</button>'}).join("")+'</div>';
-  if(k==="name")ctl='<input class="ff-inp" id="ffName" type="text" value="'+esc(d.name)+'" placeholder="姓名，或你想被叫的名字" autocomplete="name" oninput="STATE.data.name=this.value">';
+  if(k==="name")ctl='<div class="ff-name"><input class="ff-inp" id="ffSur" type="text" value="'+esc(d.surname)+'" placeholder="姓" aria-label="姓" autocomplete="family-name" oninput="STATE.data.surname=this.value"><input class="ff-inp" id="ffGiven" type="text" value="'+esc(d.given)+'" placeholder="名" aria-label="名" autocomplete="given-name" oninput="STATE.data.given=this.value"></div>';
   if(k==="email"){var bad=!!d.email&&!validGmail(d.email);ctl='<input class="ff-inp'+(bad?' bad':'')+'" id="ffEmail" type="email" inputmode="email" autocomplete="email" value="'+esc(d.email)+'" placeholder="信箱" oninput="STATE.data.email=this.value.trim();ffNextState()">'+
     '<div class="ff-hint" id="ffEmailHint">'+(bad?'目前只收 Gmail 信箱，再看一下拼法':'')+'</div>';}
   var canNext=!((k==="month"&&!d.month)||(k==="day"&&!d.day)||(k==="gender"&&!d.gender)||(k==="email"&&!validGmail(d.email)));
@@ -1287,12 +1288,8 @@ function viewRet(){
     '<div class="ff-next"><button class="zf-btn primary sm" onclick="submitFree()">就用這個</button></div></div></main>';
 }
 function ffEditRet(){var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);
-  STATE.data={year:+ymd[0]||1990,month:+ymd[1]||null,day:+ymd[2]||null,shi:isNaN(hh)?6:Math.floor(((hh+1)%24)/2),gender:r.gender||"",name:(r.last_name||"")+(r.first_name||""),email:r.email||"",home:STATE.data.home||"",loveWho:STATE.data.loveWho||"",loveAngle:STATE.data.loveAngle||""}; /* 2026-09-26 Codex 抓到：原本只留 home，好愛兩題被清掉 → 送出時被踢回重選 */
+  STATE.data={year:+ymd[0]||1990,month:+ymd[1]||null,day:+ymd[2]||null,shi:isNaN(hh)?6:Math.floor(((hh+1)%24)/2),gender:r.gender||"",surname:r.last_name||"",given:r.first_name||"",email:r.email||"",home:STATE.data.home||"",loveWho:STATE.data.loveWho||"",loveAngle:STATE.data.loveAngle||""}; /* 2026-09-26 Codex 抓到：原本只留 home，好愛兩題被清掉 → 送出時被踢回重選 */
   STATE.ret=false;STATE.ask=0;go("ask");}
-/* 稱呼拆姓名：中文 2～4 字＝首字（複姓兩字）為姓；其餘整串當名 */
-function splitName(s){s=String(s||"").trim();if(!s)return{surname:"",given:""};var dbl=["歐陽","司馬","諸葛","上官","司徒","東方","皇甫","尉遲","公孫","慕容","端木","夏侯","令狐"];
-  if(/^[一-鿿]{2,4}$/.test(s)){for(var i=0;i<dbl.length;i++)if(s.indexOf(dbl[i])===0&&s.length>2)return{surname:dbl[i],given:s.slice(2)};return{surname:s.charAt(0),given:s.slice(1)};}
-  var sp=s.split(/\s+/);if(sp.length>=2)return{surname:sp[0],given:sp.slice(1).join(" ")};return{surname:"",given:s};}
 
 /* ===== Step 3 interpreting ===== */
 var interpTimer=null;
@@ -2136,11 +2133,10 @@ function submitFree(){
     if(HOME&&!d.home){showFfErr("先說一聲這張符要守哪裡。");go("hex");return;}
     if(LOVE&&!lvReady()){showFfErr("先回到上一步，把兩個選項選完。");go("landing");return;}
     if(!d.month||!d.day||!d.gender||!validGmail(d.email)){showFfErr("老師還有幾題沒問完。");go("ask");return;}
-    var nm=splitName(d.name);
-    payload={date_of_birth:d.year+"-"+pad2(d.month)+"-"+pad2(d.day)+" "+SHI[d.shi][2],last_name:nm.surname,first_name:nm.given,gender:d.gender,email:d.email};
+    payload={date_of_birth:d.year+"-"+pad2(d.month)+"-"+pad2(d.day)+" "+SHI[d.shi][2],last_name:String(d.surname||"").trim(),first_name:String(d.given||"").trim(),gender:d.gender,email:d.email};
     /* 2026-09-29 Jeffery 拍板：有分靈體的人改了生日或時辰要先確認。2026-10-06（Astra V73→V99）改由後端判斷：會清掉分靈體時回 409 spirit_reset_confirm，
        下面接到就問，按確定帶 confirm_spirit_reset 再送一次；前端自己比對猜不準最後寫進哪個帳號（換信箱可能落到另一個有分靈體的帳號）。 */
-    STATE.userName={surname:nm.surname,given:nm.given};
+    STATE.userName={surname:payload.last_name,given:payload.first_name};
   }
   payload.spirit_confirm=1; /* 2026-10-06（Astra V101）：告訴後端這版頁面會處理「改生日要確認」的回覆 */
   if(STATE.spiritResetOk){payload.confirm_spirit_reset=true;STATE.spiritResetOk=false;}
