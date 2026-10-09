@@ -915,7 +915,7 @@ var READING_LINES=["老師正在看你的卦……","再看你的命盤和節氣
 
 /* ===== state ===== */
 var STATE={step:"topic",paid:false,dir:null,sub:null,q:null,text:"",gender:"",service:"",
- cast:null,ask:0,data:{year:1990,month:null,day:null,shi:6,gender:"",surname:"",given:"",email:"",home:"",loveWho:"",loveAngle:""},ret:false,retInfo:null,retLog:"",retToken:"",k:"",ref:"",shareUrl:"",
+ cast:null,ask:0,data:{year:1990,month:null,day:null,shi:6,gender:"",surname:"",given:"",phone:"",email:"",home:"",loveWho:"",loveAngle:""},ret:false,retInfo:null,retLog:"",retToken:"",k:"",ref:"",shareUrl:"",
  lineUserId:"",logId:"",talismanName:"量能靈符",
  submitting:false,ordering:false,soulConfirmed:false,reportMode:false,
  prefill:null,cooldown:null,repeatWall:null,result:null,error:""};
@@ -1055,7 +1055,7 @@ function pickQ(el,qt){
 
 /* ===== Step 2 起卦（水鏡）→ 看到卦 → 老師逐題問／回訪一行（2026-09-10 去表單化；DS 真值 ui_kits/free-flow/page.jsx＋water-mirror.jsx）===== */
 var SHI=[["子","23–01","00:00"],["丑","01–03","02:00"],["寅","03–05","04:00"],["卯","05–07","06:00"],["辰","07–09","08:00"],["巳","09–11","10:00"],["午","11–13","12:00"],["未","13–15","14:00"],["申","15–17","16:00"],["酉","17–19","18:00"],["戌","19–21","20:00"],["亥","21–23","22:00"]];
-var ASK=["year","month","day","shi","gender","name","email"];   /* home 模式的「家的情形」放在看到卦那一頁，不進逐題問 */
+var ASK=["year","month","day","shi","gender","name","phone","email"];   /* home 模式的「家的情形」放在看到卦那一頁，不進逐題問 */
 var FF_STARS=(function(){var s=7;function rnd(){s=(s*9301+49297)%233280;return s/233280;}var pts=[];for(var i=0;i<26;i++){var a=rnd()*Math.PI*2,r=0.18+Math.sqrt(rnd())*0.72;pts.push({x:0.5+r*0.5*Math.cos(a),y:0.5+r*0.5*Math.sin(a),r:0.6+rnd()*1.3,o:0.22+rnd()*0.5,d:rnd()*6});}return pts;})();
 var FF_REDUCE=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
 function ffStars(size){return '<svg class="ff-stars" viewBox="0 0 '+size+' '+size+'">'+FF_STARS.map(function(p,i){return '<circle cx="'+(p.x*size).toFixed(1)+'" cy="'+(p.y*size).toFixed(1)+'" r="'+p.r.toFixed(2)+'" opacity="'+p.o.toFixed(2)+'"'+(FF_REDUCE?'':' style="animation:ffTwinkle '+(5+(i%4))+'s ease-in-out '+p.d.toFixed(2)+'s infinite alternate"')+'/>'}).join("")+'</svg>';}
@@ -1221,7 +1221,7 @@ function viewHex(){
     ((HOME||LOVE)
       ? '<p class="ff-p" style="margin-top:14px">卦已經起好了。接下來，老師要合你的命盤，才能繼續往下看。</p>'
       : '<p class="ff-p" style="margin-top:14px">有一張卦符可以先護住你的炁。要配得更準，老師得看你的命卦。</p>')+
-    (STATE.ret?'':'<div class="six"><div class="six-claim"><span>只要 <em>6 個</em> 基本資料</span><span class="plus">＋</span><span><em>30 秒</em> 得到幸福</span></div><div class="six-fields"><span><b>01</b>姓</span><span><b>02</b>名</span><span><b>03</b>西元生日</span><span><b>04</b>出生時間</span><span><b>05</b>手機</span><span><b>06</b>電子郵件</span></div></div>')+
+    (STATE.ret?'':'<div class="six"><div class="six-claim"><span>只要 <em>6 個</em> 基本資料</span><span class="plus">＋</span><span><em>30 秒</em> 得到幸福</span></div><div class="six-fields"><span><b>01</b>姓名</span><span><b>02</b>西元生日</span><span><b>03</b>出生時間</span><span><b>04</b>性別</span><span><b>05</b>手機</span><span><b>06</b>電子郵件</span></div></div>')+
     '<button class="zf-btn primary lg" style="width:100%" '+(((HOME&&!STATE.data.home)||(LOVE&&!lvReady()))?'disabled ':'')+'onclick="go(\''+(STATE.ret?'ret':'ask')+'\')">'+(STATE.ret?'好，用上次的資料':'好，讓老師認識我')+'</button></main>';
 }
 
@@ -1235,12 +1235,12 @@ function viewAsk(){
   var k=ASK[STATE.ask],d=STATE.data;
   /* 問句照 ASK 順序長出來；home 模式多了第一題「家的情形」，年份那題的開場跟著改口 */
   var QS={year:(HOME||LOVE)?"好。要配符給你，得先看你的命盤。你哪一年出生的？":"這一卦我看到了。要配符給你，得先看你的命盤。你哪一年出生的？",
-    month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就放在中午。",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",
-    email:"留個信箱。這張卦符七天內有效，到期前我提醒你回來。"};
-  function ansOf(key){switch(key){case "year":return d.year+" 年";case "month":return d.month+" 月";case "day":return d.month+" 月 "+d.day+" 日";case "shi":return shiName(d.shi);case "gender":return esc(d.gender);case "name":return esc((String(d.surname||"").trim()+String(d.given||"").trim())||"—");}return "";}
+    month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就放在中午。",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，帳號有狀況時好確認是你。",
+    email:"提醒信要寄到哪個信箱？卦符有效七天。"};
+  function ansOf(key){switch(key){case "year":return d.year+" 年";case "month":return d.month+" 月";case "day":return d.month+" 月 "+d.day+" 日";case "shi":return shiName(d.shi);case "gender":return esc(d.gender);case "name":return esc((String(d.surname||"").trim()+String(d.given||"").trim())||"—");case "phone":return esc(d.phone);}return "";}
   var all=[];
   for(var qi=0;qi<=STATE.ask;qi++){if(qi>0)all.push(ffBub(ansOf(ASK[qi-1]),1));all.push(ffBub(QS[ASK[qi]]));}
-  var bubbles=all.slice(-3).join("");
+  var bubbles=STATE.retPhone?ffBub(QS.phone):all.slice(-3).join("");
   var ctl="";
   if(k==="year")ctl=ffMirror("dial",{year:d.year,size:216});
   if(k==="month"){ctl='<div class="ff-petals">';for(var m=1;m<=12;m++){var a=(m-3)*30*Math.PI/180;var x=100+78*Math.cos(a),yv=100+78*Math.sin(a);ctl+='<button type="button" class="'+(d.month===m?'on':'')+'" style="left:'+x.toFixed(1)+'px;top:'+yv.toFixed(1)+'px" onclick="ffSet(\'month\','+m+')">'+m+'</button>';}ctl+='<div class="c">'+(d.month?d.month+' 月':'—')+'<small>國曆</small></div></div>';}
@@ -1253,23 +1253,26 @@ function viewAsk(){
   }
   if(k==="gender")ctl='<div class="ff-seals">'+["女","男"].map(function(g){return '<button type="button" class="'+(d.gender===g?'on':'')+'" onclick="ffSet(\'gender\',\''+g+'\')">'+g+'</button>'}).join("")+'</div>';
   if(k==="name")ctl='<div class="ff-name"><input class="ff-inp" id="ffSur" type="text" value="'+esc(d.surname)+'" placeholder="姓" aria-label="姓" autocomplete="family-name" oninput="STATE.data.surname=this.value"><input class="ff-inp" id="ffGiven" type="text" value="'+esc(d.given)+'" placeholder="名" aria-label="名" autocomplete="given-name" oninput="STATE.data.given=this.value"></div>';
+  if(k==="phone"){var pb=ffPhoneBad(d.phone);ctl='<input class="ff-inp'+(pb?' bad':'')+'" id="ffPhone" type="tel" inputmode="tel" autocomplete="tel" value="'+esc(d.phone)+'" placeholder="0912345678" aria-label="手機" oninput="STATE.data.phone=this.value.trim();ffNextState()">'+
+    '<div class="ff-hint" id="ffPhoneHint">'+(pb?'台灣手機請填 09 開頭 10 碼，國外號碼請加 + 國碼':'')+'</div>';}
   if(k==="email"){var bad=!!d.email&&!validGmail(d.email);ctl='<input class="ff-inp'+(bad?' bad':'')+'" id="ffEmail" type="email" inputmode="email" autocomplete="email" value="'+esc(d.email)+'" placeholder="信箱" oninput="STATE.data.email=this.value.trim();ffNextState()">'+
     '<div class="ff-hint" id="ffEmailHint">'+(bad?'目前只收 Gmail 信箱，再看一下拼法':'')+'</div>';}
-  var canNext=!((k==="month"&&!d.month)||(k==="day"&&!d.day)||(k==="gender"&&!d.gender)||(k==="email"&&!validGmail(d.email)));
+  var canNext=!((k==="month"&&!d.month)||(k==="day"&&!d.day)||(k==="gender"&&!d.gender)||(k==="email"&&!validGmail(d.email))||(k==="phone"&&!phoneE164(d.phone)));
   return '<main class="shell narrow ff">'+
     '<div class="ff-prog">'+ASK.map(function(_,i){return '<i class="'+(i<=STATE.ask?'on':'')+'"></i>'}).join("")+'</div>'+
     '<div class="ff-chat">'+ffWho()+bubbles+'<div class="ff-ctl">'+ctl+'</div>'+
     '<div class="ff-next">'+(STATE.ask>0?'<button class="zf-btn secondary sm" onclick="ffPrev()">上一題</button>':'')+
-    '<button class="zf-btn primary sm" id="ffNext" '+(canNext?'':'disabled')+' onclick="ffNext()">'+(STATE.ask===ASK.length-1?'排命盤':'下一題')+'</button></div></div></main>';
+    '<button class="zf-btn primary sm" id="ffNext" '+(canNext?'':'disabled')+' onclick="ffNext()">'+(STATE.ask===ASK.length-1||STATE.retPhone?'排命盤':'下一題')+'</button></div></div></main>';
 }
 /* 該月有幾天（閏年跟著年份走）：日子只列到月底；改了年或月，原本選的日子超過月底就清掉 */
 function ffDaysIn(y,m){return new Date(y||1990,m||1,0).getDate();}
 function ffSet(key,val){STATE.data[key]=val;var d=STATE.data;if((key==="month"||key==="year")&&d.day&&d.day>ffDaysIn(d.year,d.month))d.day=null;render();}
-function ffNextState(){var b=document.getElementById("ffNext");if(!b)return;var d=STATE.data,k=ASK[STATE.ask];var ok=!((k==="email"&&!validGmail(d.email)));b.disabled=!ok;var h=document.getElementById("ffEmailHint"),inp=document.getElementById("ffEmail");if(h){var bad=!!d.email&&!validGmail(d.email);h.textContent=bad?'目前只收 Gmail 信箱，再看一下拼法':'';if(inp)inp.classList.toggle("bad",bad);}}
-function ffPrev(){if(STATE.ask>0){STATE.ask--;render();}}
+function ffNextState(){var b=document.getElementById("ffNext");if(!b)return;var d=STATE.data,k=ASK[STATE.ask];var ok=!((k==="email"&&!validGmail(d.email))||(k==="phone"&&!phoneE164(d.phone)));b.disabled=!ok;ffPhoneHint();var h=document.getElementById("ffEmailHint"),inp=document.getElementById("ffEmail");if(h){var bad=!!d.email&&!validGmail(d.email);h.textContent=bad?'目前只收 Gmail 信箱，再看一下拼法':'';if(inp)inp.classList.toggle("bad",bad);}}
+function ffPrev(){if(STATE.retPhone){STATE.retPhone=false;go("ret");return;}if(STATE.ask>0){STATE.ask--;render();}}
 function ffNext(){
   var k=ASK[STATE.ask],d=STATE.data;
   if(k==="day"&&d.month&&d.day>new Date(d.year,d.month,0).getDate()){showFfErr(d.month+" 月沒有 "+d.day+" 日，再選一次。");return;}
+  if(k==="phone"&&STATE.retPhone){if(!phoneE164(d.phone)){ffNextState();return;}submitFree();return;}
   if(k==="email"){if(!validGmail(d.email)){ffNextState();return;}if(EMAILV.email===d.email&&EMAILV.verdict==="bad"){showFfErr("這個信箱好像有誤（查無此信箱），再確認一次。");return;}submitFree();return;}
   STATE.ask++;render();
 }
@@ -1296,8 +1299,8 @@ function viewRet(){
     '<div class="ff-next"><button class="zf-btn primary sm" onclick="submitFree()">就用這個</button></div></div></main>';
 }
 function ffEditRet(){var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);
-  STATE.data={year:+ymd[0]||1990,month:+ymd[1]||null,day:+ymd[2]||null,shi:isNaN(hh)?6:Math.floor(((hh+1)%24)/2),gender:r.gender||"",surname:r.last_name||"",given:r.first_name||"",email:r.email||"",home:STATE.data.home||"",loveWho:STATE.data.loveWho||"",loveAngle:STATE.data.loveAngle||""}; /* 2026-09-26 Codex 抓到：原本只留 home，好愛兩題被清掉 → 送出時被踢回重選 */
-  STATE.ret=false;STATE.ask=0;go("ask");}
+  STATE.data={year:+ymd[0]||1990,month:+ymd[1]||null,day:+ymd[2]||null,shi:isNaN(hh)?6:Math.floor(((hh+1)%24)/2),gender:r.gender||"",surname:r.last_name||"",given:r.first_name||"",phone:r.phone||"",email:r.email||"",home:STATE.data.home||"",loveWho:STATE.data.loveWho||"",loveAngle:STATE.data.loveAngle||""}; /* 2026-09-26 Codex 抓到：原本只留 home，好愛兩題被清掉 → 送出時被踢回重選 */
+  STATE.ret=false;STATE.retPhone=false;STATE.ask=0;go("ask");}
 
 /* ===== Step 3 interpreting ===== */
 var interpTimer=null;
@@ -2123,7 +2126,10 @@ function checkEmailLive(email){
 }
 document.addEventListener("focusout",function(ev){var t=ev.target;if(t&&t.id==="ffEmail")checkEmailLive(t.value.trim());});
 function validPhoneTW(p){return /^09\d{8}$/.test((p||"").replace(/[\s-]/g,""));}
-function phoneE164(p){p=(p||"").replace(/[\s-]/g,"");return p.indexOf("0")===0?"+886"+p.slice(1):p;}
+function phoneE164(p){p=String(p||"").replace(/[\s\-().]/g,"");if(/^09\d{8}$/.test(p))p="+886"+p.slice(1);else if(/^8869\d{8}$/.test(p))p="+"+p;else if(/^\+8860?9\d{8}$/.test(p))p="+886"+p.slice(-9);return /^\+[1-9]\d{7,14}$/.test(p)?p:"";}
+/* 2026-10-09 起卦補問手機（Jeffery：必填、存 E.164 才進得了 CRM）：打到 10 碼還不對才提示，不在打字途中就變紅 */
+function ffPhoneBad(p){return !!p&&String(p).replace(/\D/g,"").length>=10&&!phoneE164(p);}
+function ffPhoneHint(){var h=document.getElementById("ffPhoneHint"),i=document.getElementById("ffPhone");if(!h)return;var bad=ffPhoneBad(STATE.data.phone);h.textContent=bad?"台灣手機請填 09 開頭 10 碼，國外號碼請加 + 國碼":"";if(i)i.classList.toggle("bad",bad);}
 
 /* ===== 送出（去表單化：零登入，靠 log token 看結果）→ interpreting → 輪詢 ===== */
 function submitFree(){
@@ -2136,18 +2142,23 @@ function submitFree(){
     if(HOME&&!d.home){showFfErr("先說一聲這張符要守哪裡。");go("hex");return;}
     if(LOVE&&!lvReady()){showFfErr("先回到上一步，把兩個選項選完。");go("landing");return;}
     var r=STATE.retInfo;
+    /* 2026-10-09 起卦補問手機（必填）：回訪的人沒留過手機，只補問手機這一題（STATE.retPhone），其餘照上次原樣送。
+       不走 ffEditRet：那會把出生時間換成時辰代表時間，誤觸「改生日要確認」（Astra 抓到） */
+    var needPhone=!(r.has_phone||r.phone);
+    if(needPhone&&!phoneE164(d.phone)){STATE.retPhone=true;STATE.ask=ASK.indexOf("phone");go("ask");return;}
     payload={date_of_birth:r.date_of_birth||"",last_name:r.last_name||"",first_name:r.first_name||"",gender:r.gender||"",email:r.email||""};
+    if(needPhone)payload.phone=phoneE164(d.phone);
     STATE.userName={surname:r.last_name||"",given:r.first_name||""};
   }else{
     if(HOME&&!d.home){showFfErr("先說一聲這張符要守哪裡。");go("hex");return;}
     if(LOVE&&!lvReady()){showFfErr("先回到上一步，把兩個選項選完。");go("landing");return;}
-    if(!d.month||!d.day||!d.gender||!validGmail(d.email)){showFfErr("老師還有幾題沒問完。");go("ask");return;}
-    payload={date_of_birth:d.year+"-"+pad2(d.month)+"-"+pad2(d.day)+" "+SHI[d.shi][2],last_name:String(d.surname||"").trim(),first_name:String(d.given||"").trim(),gender:d.gender,email:d.email};
+    if(!d.month||!d.day||!d.gender||!phoneE164(d.phone)||!validGmail(d.email)){showFfErr("老師還有幾題沒問完。");go("ask");return;}
+    payload={date_of_birth:d.year+"-"+pad2(d.month)+"-"+pad2(d.day)+" "+SHI[d.shi][2],last_name:String(d.surname||"").trim(),first_name:String(d.given||"").trim(),gender:d.gender,phone:phoneE164(d.phone),email:d.email};
     /* 2026-09-29 Jeffery 拍板：有分靈體的人改了生日或時辰要先確認。2026-10-06（Astra V73→V99）改由後端判斷：會清掉分靈體時回 409 spirit_reset_confirm，
        下面接到就問，按確定帶 confirm_spirit_reset 再送一次；前端自己比對猜不準最後寫進哪個帳號（換信箱可能落到另一個有分靈體的帳號）。 */
     STATE.userName={surname:payload.last_name,given:payload.first_name};
   }
-  payload.spirit_confirm=1; /* 2026-10-06（Astra V101）：告訴後端這版頁面會處理「改生日要確認」的回覆 */
+  payload.spirit_confirm=1;payload.phone_ask=1; /* 2026-10-06（Astra V101）：告訴後端這版頁面會處理「改生日要確認」的回覆 */
   if(STATE.spiritResetOk){payload.confirm_spirit_reset=true;STATE.spiritResetOk=false;}
   payload.free_flow=true;payload.question=STATE.text;payload.divination_method="雙占卜";
   if(STATE.qtype&&STATE.text===STATE.qtypeText)payload.question_type_hint=STATE.qtype;
@@ -2179,7 +2190,8 @@ function submitFree(){
            STATE.evAsked=false;showFfErr("這個信箱之前在這裡用過，要收信確認是你本人才能接著看。不是你的信箱，就回上一步換一個。");
          });
          return null;}
-       if(d.error==="email_duplicate"){STATE.submitting=false;STATE.ret=false;STATE.ask=ASK.length-1;go("ask");setTimeout(function(){showFfErr(d.message||"這個信箱已被其他帳號使用。");},60);return null;}
+       if(d.error==="phone_invalid"){STATE.submitting=false;if(STATE.ret)STATE.retPhone=true;STATE.ask=ASK.indexOf("phone");go("ask");setTimeout(function(){showFfErr(d.message||"手機號碼格式不對，再看一下。");},60);return null;}
+       if(d.error==="email_duplicate"){STATE.submitting=false;var _dupRet=STATE.ret;STATE.retPhone=false;if(!_dupRet)STATE.ask=ASK.length-1;go(_dupRet?"ret":"ask");setTimeout(function(){showFfErr(d.message||"這個信箱已被其他帳號使用。");},60);return null;}   /* 2026-10-09（Astra）：回訪的人（含補手機）信箱重複時留在回訪那一行按「改」；原本 ret=false 會掉進沒帶資料的逐題問答 */
        if(d.error==="spirit_reset_confirm"){STATE.submitting=false;if(confirm(d.message||"改了生日或時辰，你的分靈體會重新認識你，名字和個性都會跟著變。確定要改嗎？")){STATE.spiritResetOk=true;submitFree();}else{go(STATE.ret?"ret":"ask");}return null;}
        throw new Error(d.message||d.error||("HTTP "+resp.status));
      });}
@@ -2191,8 +2203,9 @@ function submitFree(){
      STATE.evAsked=false;
      if(data.success===false){STATE.submitting=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr(data.message||"發生錯誤，請再試一次。");},60);return;}
      /* 2026-10-06（Astra V73，同 LINE 版 1f23f00）：按「改」送出成功後，回訪那一行換成剛送出的資料（確認與否已交給後端判斷） */
+     if(STATE.ret&&STATE.retInfo&&payload.phone)STATE.retInfo.has_phone=true;STATE.retPhone=false;
      if(STATE.retInfo&&!STATE.ret){var _at=String(payload.email||"").indexOf("@");
-       STATE.retInfo={last_name:payload.last_name,first_name:payload.first_name,date_of_birth:payload.date_of_birth,gender:payload.gender,email:payload.email,email_masked:_at>0?payload.email.slice(0,Math.min(2,_at))+"***"+payload.email.slice(_at):""};}
+       STATE.retInfo={last_name:payload.last_name,first_name:payload.first_name,date_of_birth:payload.date_of_birth,gender:payload.gender,phone:payload.phone||"",email:payload.email,email_masked:_at>0?payload.email.slice(0,Math.min(2,_at))+"***"+payload.email.slice(_at):""};}
      if(data.k){STATE.k=data.k;STATE.logId=String(data.log_id||"");var lsOk=false;try{localStorage.setItem("winds_ff_log",STATE.logId);localStorage.setItem("winds_ff_k",STATE.k);lsOk=true;}catch(e){}rememberK(STATE.logId,STATE.k);markUrl(STATE.logId,lsOk?"":STATE.k);}
      if(data.pending){if(data.warm_urls&&data.warm_urls.length){warmCards(data.warm_urls.slice());}pollStatus(data.log_id||"",true);return;}
      finishResult(data);
@@ -2420,7 +2433,7 @@ function doPrefill(){
      if(!d||!d.found)return;
      /* Google 老用戶：資料還在就走「回訪一行」，不再看表單 */
      var em=String(d.email||""),at=em.indexOf("@");
-     if(d.date_of_birth){STATE.retInfo={last_name:d.last_name||"",first_name:d.first_name||"",date_of_birth:d.date_of_birth||"",gender:d.gender||"",has_spirit:!!d.personality_profile,email:em,email_masked:at>0?em.slice(0,Math.min(2,at))+"***"+em.slice(at):""};STATE.ret=true;}
+     if(d.date_of_birth){STATE.retInfo={last_name:d.last_name||"",first_name:d.first_name||"",date_of_birth:d.date_of_birth||"",gender:d.gender||"",has_spirit:!!d.personality_profile,phone:d.phone||"",email:em,email_masked:at>0?em.slice(0,Math.min(2,at))+"***"+em.slice(at):""};STATE.ret=true;}
      if(STATE.step==="hex")render();
    }).catch(function(){});
 }
