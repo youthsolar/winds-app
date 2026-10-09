@@ -32,6 +32,7 @@
 .hg-bagua-row{display:flex;justify-content:center;margin:18px 0 28px}
 .hg-bagua{height:48px;width:48px;opacity:.9}
 .hg .hg-hero{display:flex;flex-direction:column;gap:12px;margin:6px 0 30px}
+.hg .hg-hero + .lc{padding-top:0} /* 2026-10-10 起卦區搬到大標正下方，收掉原本留給說明卡的間距 */
 .hg .hg-h1{font-size:30px;font-weight:500;line-height:1.3;color:var(--ink-900);letter-spacing:.01em;margin:0;text-wrap:auto}
 @media(max-width:760px){.hg .hg-h1{font-size:24px}}
 .hg .hg-hero .lede{font-size:18px}
@@ -80,6 +81,7 @@
   .lc-grid{display:flex;flex-direction:column;gap:40px;align-items:stretch} /* 桌機的 align-items:start 在單欄會讓短選項欄縮窄 */
   .lc-side{position:static}
   .lc-opts2{grid-template-columns:1fr}
+  #hgChips.lc-opts2{grid-template-columns:1fr 1fr} /* 2026-10-10 Jeffery：家裡的符四個情形手機排兩欄，跟首頁一樣 */
   .lc-num{margin-top:1px}
   .lc-step-txt h3{font-size:19px}
   .lc-step-txt p{font-size:15px}

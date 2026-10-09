@@ -1102,6 +1102,17 @@ function viewLanding(){
     '<div class="hg-bagua-row"><img class="hg-bagua" src="/assets/bagua-nav.png" alt="" aria-hidden="true"></div>'+
     '<section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 家裡的符</span>'+
       '<h1 class="hg-h1">卦怎麼走，符就怎麼給</h1><p class="lede">想看看現在住的家，或還在考慮的房子？按住水鏡三秒，先起一卦。</p></section>'+
+    '<section class="lc'+(STATE.data.home?' ready':'')+'" id="hgCast"><span class="lc-eyebrow"><i></i>起卦</span>'+
+      '<div class="lc-grid"><div class="lc-qs">'+
+        '<section class="lc-sec">'+lcStep(1,"lcN1","你現在比較像哪一種？","",!!STATE.data.home)+
+          '<div class="lc-opts lc-opts2" role="group" id="hgChips">'+HOME_SITU.map(function(x){return lcOpt(STATE.data.home===x.k,"hgPick('"+x.k+"',this)",x.l,"")}).join("")+'</div></section>'+
+      '</div>'+
+      '<div class="lc-side"><div class="lc-card">'+lcStep(2,"lcN3","把手指放在水鏡上。","按著三秒，卦會自己浮上來。",false)+
+        '<div class="lc-guide"><p class="hg-guide">想著你住的地方，把手指放到水鏡上。</p><p class="hg-guide">起卦之後，老師依你的卦給一張親手畫的靈符解方。</p></div>'+
+        '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
+        '<div class="ff-clock" id="ffClock"></div></div>'+
+      '</div></div></div>'+
+      '</section>'+
     '<section class="hg-cols">'+
       '<div class="zf-card hg-card"><h3>家也會有狀況</h3><p>住得舒不舒服，你自己最有感覺。</p><p>可能是最近回家總靜不下來，也可能是搬進新家以後，事情就一直不太順。</p><p>也不一定真的出了什麼問題。</p><p>只是人住在裡面久了，家裡的變化，多少都會跟著反映在人的身上。</p><p>想替家裡常備一張符，或還在挑房子，也可以從你現在最在意的事開始看。</p><p>所以我會先看卦。</p></div>'+
       '<div class="zf-card hg-card"><h3>老師怎麼看</h3><p>我不急著跟你講吉凶。</p><p>你把手指按在水鏡上三秒。</p><p>那一刻起出來的卦，我就把它當成這個家現在給我的訊息。</p><p>卦怎麼走，我就照著卦給符。</p><p>不是隨機抽一張現成的圖給你。</p><p>每一卦都有它自己的符，每一張符，都是我親手畫的真跡。</p></div>'+
@@ -1109,17 +1120,6 @@ function viewLanding(){
     '</section>'+
     '<section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 符令親繪</span></div></section>'+
     /* 2026-09-26 Jeffery 選項卡：/love 的 DS 起卦區塊（love-cast.jsx）同一套套到家裡的符——兩步：① 選狀況 ② 水鏡卡（選了才亮） */
-    '<section class="lc'+(STATE.data.home?' ready':'')+'" id="hgCast"><span class="lc-eyebrow"><i></i>起卦</span>'+
-      '<div class="lc-grid"><div class="lc-qs">'+
-        '<section class="lc-sec">'+lcStep(1,"lcN1","你現在比較像哪一種？","",!!STATE.data.home)+
-          '<div class="lc-opts lc-opts2" role="group" id="hgChips">'+HOME_SITU.map(function(x){return lcOpt(STATE.data.home===x.k,"hgPick('"+x.k+"',this)",x.l,"")}).join("")+'</div></section>'+
-      '</div>'+
-      '<div class="lc-side"><div class="lc-card">'+lcStep(2,"lcN3","把手指放在水鏡上。","按著三秒，卦會自己浮上來。",false)+
-        '<div class="lc-guide"><p class="hg-guide">選一個。然後，把手指放到水鏡上。</p></div>'+
-        '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
-        '<div class="ff-clock" id="ffClock"></div></div>'+
-      '</div></div></div>'+
-      '</section>'+
     '<footer class="hg-foot">'+
       '<div class="hg-links"><a href="https://home.winds.tw/">找風問好窩</a><a href="/divination">問別的事</a><a href="/terms">使用條款</a><a href="/privacy">隱私權政策</a></div>'+
       '<p class="hg-legal">© '+new Date().getFullYear()+' 找風問幸福 · 靈學的溫柔陪伴 · 不涉及醫療或投資建議</p></footer>'+
@@ -1129,7 +1129,7 @@ function viewLanding(){
 /* 找風問好愛落地頁（2026-09-26 文案規格 V1）。版型／元件／DS 全部沿用家裡的符那一頁，只換文字與兩排膠囊。
    改文案：這裡與 LoveGuaStatic.astro 兩份要一起改（靜態版給不跑 JavaScript 的抓取工具看）。 */
 function lvGuideHtml(){
-  if(!STATE.data.loveWho)return '<p class="hg-guide">選一個，再選一件你最想先知道的事。然後，把手指放到水鏡上。</p>';
+  if(!STATE.data.loveWho)return '<p class="hg-guide">想著心裡最在意的那件事，把手指放到水鏡上。</p><p class="hg-guide">起卦之後，老師依你的卦給一張親手畫的靈符解方。</p>';
   if(lvSingle())return '<p class="hg-guide">想著現在的自己。</p><p class="hg-guide">不用急著想下一個人會是誰。</p><p class="hg-guide">先看看，你現在是不是已經準備好讓一個人走進來。</p>';
   return '<p class="hg-guide">想著那個人。</p><p class="hg-guide">想著你們最近發生的事。</p><p class="hg-guide">不用替他回答。</p><p class="hg-guide">這一卦，先看你們現在站在哪裡。</p>';
 }
@@ -1140,12 +1140,6 @@ function viewLoveLanding(){
     '<section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 找風問好愛</span>'+
       '<h1 class="hg-h1">心裡有一個人，卻不知道你們會走到哪裡？</h1>'+
       '<p class="lede">有些感情，不是沒有答案，只是你還沒看見彼此站在哪裡。</p></section>'+
-    '<section class="hg-cols">'+
-      '<div class="zf-card hg-card"><h3>放不下的，往往不是愛不愛</h3><p>感情最讓人放不下的，往往不是一句「愛不愛」。</p><p>而是他為什麼變了、你們為什麼卡住了，以及這段關係，究竟還有沒有往前走的可能。</p><p>先不用替這段感情下結論。</p><p>想著那個人，為你們起一卦。</p></div>'+
-      '<div class="zf-card hg-card"><h3>老師怎麼看</h3><p>我不急著替他回答愛不愛。</p><p>你把手指按在水鏡上三秒。</p><p>那一刻起出來的卦，我就把它當成這段感情現在給我的訊息。</p><p>卦怎麼走，我就照著卦給符。</p><p>不是隨機抽一張現成的圖給你。</p><p>每一卦都有它自己的符，每一張符，都是我親手畫的真跡。</p></div>'+
-      '<div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來以後，我會先留一張這一卦的【卦符】給你。</p><p>先放在手機裡七天，助你改善當下的炁場。</p><p>不用貼在牆上，不用擺供桌，也不用燒。</p><p>就存成手機桌布帶著。</p><p>七天以後，如果這段感情還有一些事情想繼續看，我再照著你的卦，往後解五張靈符。</p><p>不用急著決定。</p><p>先起一卦，就知道了。</p></div>'+
-    '</section>'+
-    '<section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 符令親繪</span></div></section>'+
     '<section class="lc'+(lvReady()?' ready':'')+'" id="hgCast"><span class="lc-eyebrow"><i></i>起卦</span>'+
       '<div class="lc-grid"><div class="lc-qs">'+
         '<section class="lc-sec">'+lcStep(1,"lcN1","現在的你，心裡有特定的人嗎？","",!!STATE.data.loveWho)+
@@ -1161,6 +1155,12 @@ function viewLoveLanding(){
         '<div class="ff-clock" id="ffClock"></div></div>'+
       '</div></div></div>'+
       '</section>'+
+    '<section class="hg-cols">'+
+      '<div class="zf-card hg-card"><h3>放不下的，往往不是愛不愛</h3><p>感情最讓人放不下的，往往不是一句「愛不愛」。</p><p>而是他為什麼變了、你們為什麼卡住了，以及這段關係，究竟還有沒有往前走的可能。</p><p>先不用替這段感情下結論。</p><p>想著那個人，為你們起一卦。</p></div>'+
+      '<div class="zf-card hg-card"><h3>老師怎麼看</h3><p>我不急著替他回答愛不愛。</p><p>你把手指按在水鏡上三秒。</p><p>那一刻起出來的卦，我就把它當成這段感情現在給我的訊息。</p><p>卦怎麼走，我就照著卦給符。</p><p>不是隨機抽一張現成的圖給你。</p><p>每一卦都有它自己的符，每一張符，都是我親手畫的真跡。</p></div>'+
+      '<div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來以後，我會先留一張這一卦的【卦符】給你。</p><p>先放在手機裡七天，助你改善當下的炁場。</p><p>不用貼在牆上，不用擺供桌，也不用燒。</p><p>就存成手機桌布帶著。</p><p>七天以後，如果這段感情還有一些事情想繼續看，我再照著你的卦，往後解五張靈符。</p><p>不用急著決定。</p><p>先起一卦，就知道了。</p></div>'+
+    '</section>'+
+    '<section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 符令親繪</span></div></section>'+
     '<footer class="hg-foot">'+
       '<div class="hg-links"><a href="/home-gua">家裡的符</a><a href="/divination">問別的事</a><a href="/terms">使用條款</a><a href="/privacy">隱私權政策</a></div>'+
       '<p class="hg-legal">© '+new Date().getFullYear()+' 找風問幸福 · 靈學的溫柔陪伴 · 不涉及醫療或投資建議</p></footer>'+
