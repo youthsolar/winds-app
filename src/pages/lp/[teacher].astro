@@ -707,7 +707,9 @@ const jsonLd = prov ? [
               clearTimeout(to);
               // 2026-10-01（廣告前全站掃描）：付款頁的「返回商店」寫死回 LIFF 預約頁，網頁來客回不到這頁 → 帶上這頁網址（back），
               // 後端 /pay-booking 接上 back 之前會直接忽略這個參數，行為不變
-              if (d && d.ok && d.payment_url) { location.href = d.payment_url + (String(d.payment_url).indexOf('?') < 0 ? '?' : '&') + 'back=' + encodeURIComponent(location.origin + location.pathname); return; }
+              if (d && d.ok && d.payment_url) { /* 從付款頁按上一頁回來（BFCache 會保留「處理中、按鈕鎖住」的狀態）→ 解鎖；預約識別碼還在，再按一次會拿回同一張單（Astra 最終驗收 #6） */
+                window.addEventListener('pageshow', function (e) { if (e.persisted) unlockGo(); }, { once: true });
+                location.href = d.payment_url + (String(d.payment_url).indexOf('?') < 0 ? '?' : '&') + 'back=' + encodeURIComponent(location.origin + location.pathname); return; }
               unlockGo();
               if (d && d.error === 'email_verify_required') {
                 if (window.ZFEmailVerify) ZFEmailVerify.clear(W.fields.email);

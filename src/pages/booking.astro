@@ -462,7 +462,7 @@ import { PERSONAS } from '../data/booking-teachers';
           fetch(WORKER_API+'/sb-book',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},
             body:JSON.stringify(payload)})
            .then(function(r){return r.json().then(function(d){return{st:r.status,d:d};});}).then(function(o){var d=o.d;clearTimeout(to);
-             if(d&&d.ok&&d.payment_url){location.href=d.payment_url;}
+             if(d&&d.ok&&d.payment_url){/* 從付款頁按上一頁回來（BFCache 會保留「處理中、按鈕鎖住」的狀態）→ 解鎖；預約識別碼還在，再按一次會拿回同一張單（Astra 最終驗收 #6） */window.addEventListener('pageshow',function(e){if(e.persisted)unlockGo();},{once:true});location.href=d.payment_url;}
              else if(d&&d.error==='email_verify_required'){unlockGo();if(window.ZFEmailVerify)ZFEmailVerify.clear(W.fields.email);
                if(!evRetried&&window.ZFEmailVerify){goBook(true,'');return;}
                showErr(document.getElementById('wzErr2'),d.message||'付款前先確認一下信箱。');}

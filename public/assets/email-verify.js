@@ -173,6 +173,8 @@
           if (d.ok && d.token) {
             var em = target.email || d.email || '';
             if (em) save(em, d.token, d.expires_at);
+            // 從那一卦驗的：後端回這一卦的本人 k（Astra 最終驗收 #1），留給頁面換掉手上的一般 k
+            if (target.log_id && d.k) window.ZFEmailVerify.lastLogK = { logId: String(target.log_id), k: d.k };
             finish(d.token);
             return;
           }

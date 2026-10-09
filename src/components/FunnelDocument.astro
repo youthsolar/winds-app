@@ -66,14 +66,20 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <script is:inline src="/assets/email-verify.js?v=1" defer></script>
 
   <!-- 量測層（2026-08-15）：此頁不走 BaseLayout，底座另裝一份（GA4 ＋ Meta Pixel）-->
-  <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-2E65WJ8M93"></script>
   <script is:inline>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-2E65WJ8M93');
+    /* 2026-10-09（Astra 最終驗收 #2，同 BaseLayout）：網址帶看結果憑證（?log_id=&k=、登入頁 return 裡夾帶的 k）整頁不載 GA／Pixel */
+    window.__windsNoTrack = /[?&](k|token)=|k%3D/i.test(location.search);
+    if (!window.__windsNoTrack) {
+      var _g = document.createElement('script'); _g.async = true; _g.src = 'https://www.googletagmanager.com/gtag/js?id=G-2E65WJ8M93';
+      document.head.appendChild(_g);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function(){dataLayer.push(arguments);};
+      gtag('js', new Date());
+      gtag('config', 'G-2E65WJ8M93');
+    }
   </script>
   <script is:inline>
+    if (!window.__windsNoTrack) {
     !function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
     n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -84,6 +90,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     'https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', '1460549484341275');
     fbq('track', 'PageView');
+    }
   </script>
   <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1460549484341275&ev=PageView&noscript=1"/></noscript>
 
@@ -964,7 +971,7 @@ function buildResult(d){
     mmtarot:(d.ben_ming_tarots||[]).map(function(t){return {name:t.card_name||"",glyph:(t.card_name||"").slice(0,1),el:t.element||"",line:t.line||"",pos:t.label||""}}),
     spiritName:d.spirit_name||"",spiritTraits:(d.spirit_traits&&d.spirit_traits.length)?d.spirit_traits:null,
     name:null,
-    profile:d.personality_profile||"",profileGenerating:!!d.personality_generating,
+    profile:d.personality_profile||"",profileGenerating:!!d.personality_generating,accountHidden:!!d.account_hidden,
     oracle:parseOracle(d.oracle_type,d.oracle_sign_text),oracleRaw:d.oracle_sign_text||"",
     kongming:parseKongmingText(d.secondary_oracle_sign_text),
     recs:null
@@ -1658,6 +1665,7 @@ function spiritCardInner(paid){
   }
   /* 付款後、還沒有側寫：按鈕生成（2026-09-11） */
   if(!(R.profile&&R.profile.trim())){
+    if(R.accountHidden)return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">先確認一下信箱，確認是你本人，就看得到你的分靈體。</p><div style="margin-top:14px"><button class="zf-btn primary sm" onclick="restoreAccount(this)">'+ic("envelope-simple")+'確認信箱</button></div></div>';
     if(R.profileGenerating||STATE.spiritGenerating)return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">老師還在整理你的分靈體側寫，大約要 2～3 分鐘。好了就會放在這裡。</p></div>';
     return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">老師的解方已經在你手上，接下來讓分靈體認識你。</p><div style="margin-top:14px"><button class="zf-btn primary sm" onclick="genSpirit()">'+ic("sparkle")+'生成我的分靈體</button></div></div>';
   }
@@ -2211,6 +2219,8 @@ function pollStatus(logId,alreadyWarm){
        return r.json();
      }).then(function(d){
        if(!d)return;
+       /* 網址帶的是一般 k（付款回跳、舊連結），這台裝置另存了這一卦收碼換到的本人 k → 帳號資料被遮就換那把再查一次（Astra 複核二 #1） */
+       if(d.account_hidden&&STATE.kAlt){STATE.k=STATE.kAlt;STATE.kAlt="";return;}
        if(d.warm_urls&&d.warm_urls.length&&!warmed){warmed=true;warmCards(d.warm_urls.slice());}
        if(d.ready&&d.summary){clearInterval(timer);finishResult(d,logId);}
        else if(attempts>=max){clearInterval(timer);pollGiveUp("老師還在寫，稍後再回來這一頁看。");}
@@ -2244,9 +2254,30 @@ function loginReturnUrl(){
    k 預設不放進網址（boot 會從 localStorage 補回），localStorage 寫不進去才帶 k，否則重載後讀不到報告。 */
 /* 2026-10-01（廣告前全站掃描）：winds_ff_k 只記最新一卦，同一台裝置回到較舊那一卦的 ?log_id= 會拿不到 k、被導去登入（信箱客人沒有 Google 帳號就卡住）。
    另記最近 10 卦的 k（登出時跟其他 winds_ 鍵一起清掉，見 nav-auth.js） */
-function rememberK(id,k){try{var m=JSON.parse(localStorage.getItem("winds_ff_ks")||"{}")||{};m[String(id)]=k;var ks=Object.keys(m);while(ks.length>10){delete m[ks.shift()];}localStorage.setItem("winds_ff_ks",JSON.stringify(m));}catch(e){}}
+function rememberK(id,k){try{var m=JSON.parse(localStorage.getItem("winds_ff_ks")||"{}")||{};m[String(id)]=k;var ks=Object.keys(m);while(ks.length>10){delete m[ks.shift()];}localStorage.setItem("winds_ff_ks",JSON.stringify(m));return recallK(id)===k;}catch(e){return false;}}   /* 回傳有沒有真的存妥（Astra 複核二 #2） */
 function recallK(id){try{var m=JSON.parse(localStorage.getItem("winds_ff_ks")||"{}")||{};return m[String(id)]||"";}catch(e){return "";}}
-function markUrl(id,k){id=String(id||"");if(!id)return;try{var u=new URLSearchParams(location.search);if(u.get("log_id")===id)return;history.replaceState(null,"",location.pathname+"?log_id="+encodeURIComponent(id)+(k?"&k="+encodeURIComponent(k):""));}catch(e){}}
+/* 2026-10-09（Astra 最終驗收 #2）：存不進 localStorage 才把 k 寫回網址，改放 # 後面——這時 GA／Pixel 已經載入，? 後面的會被當成頁面網址送出去，# 後面的不會 */
+/* 從這一卦驗過信箱：換成後端發的本人 k（Astra 最終驗收 #1；一般 k 驗過之後讀不到帳號資料）。
+   記憶體、localStorage、網址上原本有 k 的地方（? 或 #）全部一起換，重新整理才不會又拿回一般 k（複核 #4） */
+function adoptTrustedK(logId){
+  var nk=window.ZFEmailVerify&&ZFEmailVerify.lastLogK;logId=String(logId||"");
+  if(!logId||!nk||nk.logId!==logId||!/^[a-f0-9]{24}$/.test(nk.k))return false;
+  STATE.k=nk.k;STATE.kAlt="";
+  try{if(localStorage.getItem("winds_ff_log")===logId)localStorage.setItem("winds_ff_k",nk.k);}catch(e){}
+  var lsOk=rememberK(logId,nk.k);   /* 以「這一卦的本人 k 確實存妥」為準，存不妥就寫進網址 # 後面（複核二 #2） */
+  if(new URLSearchParams(location.search).get("k")||/[#&]k=/.test(location.hash)||!lsOk){try{history.replaceState(null,"",location.pathname+"?log_id="+encodeURIComponent(logId)+"#k="+encodeURIComponent(nk.k));}catch(e){}}
+  return true;
+}
+/* 帳號資料被遮（手上是一般 k、帳號已驗過信箱）：收碼證明是本人 → 換本人 k 重新載入（Astra 最終驗收複核 #3） */
+function restoreAccount(btn){
+  var lid=STATE.logId||STATE.reportLogId;if(!window.ZFEmailVerify||!lid||!STATE.k)return;
+  if(btn)btn.disabled=true;
+  ZFEmailVerify.ensure({logId:lid,k:STATE.k}).then(function(t){
+    if(t&&adoptTrustedK(lid)){location.reload();return;}
+    if(btn)btn.disabled=false;
+  });
+}
+function markUrl(id,k){id=String(id||"");if(!id)return;try{var u=new URLSearchParams(location.search);if(u.get("log_id")===id)return;history.replaceState(null,"",location.pathname+"?log_id="+encodeURIComponent(id)+(k?"#k="+encodeURIComponent(k):""));}catch(e){}}
 function finishResult(d,logId){
   STATE.submitting=false;
   STATE.logId=d.log_id||d.reading_id||logId||"";
@@ -2330,7 +2361,10 @@ function createOrder(){
        /* 有這一卦的 k 就讓後端寄到這一卦的信箱（從提醒信、付款回跳進來時頁面不知道完整信箱）；沒有才用頁面上的信箱 */
        var _t=STATE.k?{logId:STATE.logId,k:STATE.k,masked:d.email_masked}:{email:_knownEmail,masked:d.email_masked};
        if(!_t.k&&!_t.email){STATE.orderEvAsked=false;alert(d.message||"付款前先確認一下信箱。");return;}
-       ZFEmailVerify.ensure(_t).then(function(t){if(t){STATE.evToken=t;createOrder();}else STATE.orderEvAsked=false;});
+       ZFEmailVerify.ensure(_t).then(function(t){
+         /* 從這一卦驗過信箱：換成後端發的本人 k（Astra 最終驗收 #1；原本那把一般 k 驗過之後讀不到帳號資料） */
+         if(t)adoptTrustedK(STATE.logId);
+         if(t){STATE.evToken=t;createOrder();}else STATE.orderEvAsked=false;});
        return;
      }
      STATE.orderEvAsked=false;
@@ -2344,7 +2378,7 @@ function createOrder(){
        /* 2026-10-01（廣告前全站掃描）：pending 原本不綁頁面，開了付款頁沒付、回首頁再進別的漏斗，會被這一卦的舊報告接管一次。
           一併記下當時的頁面，boot 只在同一頁重新載入時才接管（見 boot 的 pendingPath） */
        try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);sessionStorage.setItem("winds_pending_path",location.pathname);}catch(e){}
-       var w=window.open(d.pay_url,"_blank");if(!w){location.href=d.pay_url;return;}
+       var w=window.open(d.pay_url,"_blank");if(!w){/* 從付款頁按上一頁回來（BFCache 會保留「處理中、按鈕鎖住」的狀態）→ 解鎖；預約識別碼還在，再按一次會拿回同一張單（Astra 最終驗收 #6） */window.addEventListener("pageshow",function(e){if(e.persisted&&btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}},{once:true});location.href=d.pay_url;return;}
        if(btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}
      }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert(d.message||d.error||"建立訂單失敗，請再試一次。");}   /* 2026-10-01（廣告前全站掃描）：後端 errorResponse 回的是 error 欄位（例如「登入身分與請求不符，請重新登入」），原本只讀 message，只看得到通用訊息 */
    }).catch(function(e){STATE.ordering=false;STATE.orderEvAsked=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert("付款錯誤："+e.message);});
@@ -2475,7 +2509,7 @@ function boot(){
   homeCast=homeCastOk(hashCast)?hashCast:(homeCastOk(storedCast)?storedCast:null);
   var saved="";try{saved=localStorage.getItem("winds_google_token")||"";}catch(e){}
   if(saved&&!adoptGoogleToken(saved)){try{localStorage.removeItem("winds_google_token");}catch(e){}}
-  var rid=params.get("log_id"),kk=params.get("k")||"",ret=params.get("ret")||"",ref=params.get("ref")||"",pending="";try{pending=sessionStorage.getItem("winds_pending_log_id")||"";}catch(e){}
+  var rid=params.get("log_id"),kk=params.get("k")||(location.hash.match(/[#&]k=([a-f0-9]{24})/)||[])[1]||"",ret=params.get("ret")||"",ref=params.get("ref")||"",pending="";try{pending=sessionStorage.getItem("winds_pending_log_id")||"";}catch(e){}
   /* 2026-10-01（廣告前全站掃描）：pending 綁寫入時的頁面，換到別的漏斗就不接管（見 createOrder）；舊版沒記頁面的照舊接管 */
   var pendingPath="";try{pendingPath=sessionStorage.getItem("winds_pending_path")||"";}catch(e){}
   if(pending&&pendingPath&&pendingPath!==location.pathname)pending="";
@@ -2485,7 +2519,7 @@ function boot(){
   /* 去表單化：?log_id=&k= 用 log token 看結果，零登入（提醒信、付完款回跳都走這條） */
   /* 2026-09-28（Codex 複核）：pending 讀出來就清，任何報告分支 return 之前都要清到，否則殘留的 pending 會在下次進 /divination 接管 */
   try{sessionStorage.removeItem("winds_pending_log_id");sessionStorage.removeItem("winds_pending_path");}catch(e){}
-  if(rid&&kk){STATE.k=kk;STATE.reportMode=true;STATE.step="interpreting";render();pollStatus(rid);return;}
+  if(rid&&kk){STATE.k=kk;var _sk=recallK(rid);if(_sk&&_sk!==kk)STATE.kAlt=_sk;STATE.reportMode=true;STATE.step="interpreting";render();pollStatus(rid);return;}
   if(!kk&&rid){try{var sk=localStorage.getItem("winds_ff_log")||"",skk=localStorage.getItem("winds_ff_k")||"";if(sk===String(rid)&&skk)STATE.k=skk;}catch(e){}if(!STATE.k)STATE.k=recallK(rid);}
   if(rid||pending){
     if(pending&&!rid){try{pending_k=localStorage.getItem("winds_ff_log")===pending?(localStorage.getItem("winds_ff_k")||""):"";if(pending_k)STATE.k=pending_k;}catch(e){}}

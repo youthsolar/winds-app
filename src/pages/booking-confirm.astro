@@ -109,7 +109,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           .then(function (r) { return r.json().then(function (j) { return { st: r.status, j: j }; }); })
           .then(function (o) {
             clearTimeout(to); var j = o.j || {};
-            if (j.ok && j.payment_url) { location.href = j.payment_url; return; }
+            if (j.ok && j.payment_url) { /* 從付款頁按上一頁回來（BFCache 會保留「處理中、按鈕鎖住」的狀態）→ 解鎖；預約識別碼還在，再按一次會拿回同一張單（Astra 最終驗收 #6） */
+              window.addEventListener('pageshow', function (e) { if (e.persisted) unlock(); }, { once: true });
+              location.href = j.payment_url; return; }
             unlock();
             if (j.error === 'email_verify_required') {
               if (window.ZFEmailVerify) ZFEmailVerify.clear(D.email);

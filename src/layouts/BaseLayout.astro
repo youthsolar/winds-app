@@ -76,14 +76,21 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
 
   <!-- 量測層（2026-08-15）：GA4 ＋ Meta Pixel 底座 → 全站 PageView；轉換事件掛在各頁 -->
   {!noTracking && <Fragment>
-  <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-2E65WJ8M93"></script>
   <script is:inline>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-2E65WJ8M93');
+    /* 2026-10-09（Astra 最終驗收 #2）：網址帶這一卦的看結果憑證（領取信、提醒信、付款回跳的 ?log_id=&k=）時整頁不載 GA／Pixel——
+       兩邊預設都會把完整網址（含 k）送出去，拿到 k 就能免登入讀那一卦。其他頁照舊。 */
+    window.__windsNoTrack = /[?&](k|token)=|k%3D/i.test(location.search);   // k%3D：登入頁 ?return= 裡夾帶的 k
+    if (!window.__windsNoTrack) {
+      var _g = document.createElement('script'); _g.async = true; _g.src = 'https://www.googletagmanager.com/gtag/js?id=G-2E65WJ8M93';
+      document.head.appendChild(_g);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function(){dataLayer.push(arguments);};
+      gtag('js', new Date());
+      gtag('config', 'G-2E65WJ8M93');
+    }
   </script>
   <script is:inline>
+    if (!window.__windsNoTrack) {
     !function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
     n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -94,6 +101,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
     'https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', '1460549484341275');
     fbq('track', 'PageView');
+    }
   </script>
   <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1460549484341275&ev=PageView&noscript=1"/></noscript>
   </Fragment>}
