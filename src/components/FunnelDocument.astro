@@ -63,6 +63,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     };
   </script>
   <script src="/assets/nav-auth.js?v=6" defer></script>
+  <script is:inline src="/assets/email-verify.js?v=1" defer></script>
 
   <!-- 量測層（2026-08-15）：此頁不走 BaseLayout，底座另裝一份（GA4 ＋ Meta Pixel）-->
   <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-2E65WJ8M93"></script>
@@ -2151,6 +2152,8 @@ function submitFree(){
   if(STATE.ref)payload.ref_log_id=Number(STATE.ref)||undefined;
   var edmTok="";try{edmTok=localStorage.getItem("winds_edm_token")||"";}catch(e){}
   if(edmTok)payload.edm_token=edmTok;
+  /* 2026-10-09 信箱驗證碼：這個瀏覽器驗過這個信箱就帶上憑證（30 天）；信箱已經有帳號又沒驗過，後端回 email_verify_required，下面接到就開驗證碼視窗 */
+  var evTok=STATE.evSubmitTok||(window.ZFEmailVerify?ZFEmailVerify.token(payload.email):"");STATE.evSubmitTok="";if(evTok)payload.ev_token=evTok;   /* 剛在視窗驗好的優先（瀏覽器存不進去也不會再問一次） */
   STATE.submitting=true;STATE.logId="";STATE.k="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;
   go("interpreting");
   fetch(API.submit,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
@@ -2159,6 +2162,15 @@ function submitFree(){
        if(d.recast){STATE.submitting=false;STATE.cast=null;go("cast");setTimeout(function(){showFfErr(d.message||"回到水鏡重新按一次。");},60);return null;}
        if(d.repeat_wall){STATE.repeatWall=d;STATE.logId=d.last_log_id||"";STATE.submitting=false;go("repeatwall");return null;}
        if(resp.status===429||d.blocked){STATE.cooldown={message:d.message,available_at:d.available_at,last_log_id:d.last_log_id||null};STATE.submitting=false;go("cooldown");return null;}
+       if(d.error==="email_verify_required"){STATE.submitting=false;go(STATE.ret?"ret":"ask");
+         if(evTok&&window.ZFEmailVerify)ZFEmailVerify.clear(payload.email);
+         if(!window.ZFEmailVerify||STATE.evAsked){STATE.evAsked=false;setTimeout(function(){showFfErr(d.message||"這個信箱要先確認是你本人。");},60);return null;}
+         STATE.evAsked=true;
+         ZFEmailVerify.ensure({email:payload.email,masked:d.email_masked}).then(function(t){
+           if(t){STATE.evSubmitTok=t;submitFree();return;}
+           STATE.evAsked=false;showFfErr("這個信箱之前在這裡用過，要收信確認是你本人才能接著看。不是你的信箱，就回上一步換一個。");
+         });
+         return null;}
        if(d.error==="email_duplicate"){STATE.submitting=false;STATE.ret=false;STATE.ask=ASK.length-1;go("ask");setTimeout(function(){showFfErr(d.message||"這個信箱已被其他帳號使用。");},60);return null;}
        if(d.error==="spirit_reset_confirm"){STATE.submitting=false;if(confirm(d.message||"改了生日或時辰，你的分靈體會重新認識你，名字和個性都會跟著變。確定要改嗎？")){STATE.spiritResetOk=true;submitFree();}else{go(STATE.ret?"ret":"ask");}return null;}
        throw new Error(d.message||d.error||("HTTP "+resp.status));
@@ -2168,6 +2180,7 @@ function submitFree(){
    .then(function(data){
      if(!data)return;
      if(data.blocked){STATE.cooldown={message:data.message,available_at:data.available_at,last_log_id:data.last_log_id||null};STATE.submitting=false;go("cooldown");return;}
+     STATE.evAsked=false;
      if(data.success===false){STATE.submitting=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr(data.message||"發生錯誤，請再試一次。");},60);return;}
      /* 2026-10-06（Astra V73，同 LINE 版 1f23f00）：按「改」送出成功後，回訪那一行換成剛送出的資料（確認與否已交給後端判斷） */
      if(STATE.retInfo&&!STATE.ret){var _at=String(payload.email||"").indexOf("@");
@@ -2176,7 +2189,7 @@ function submitFree(){
      if(data.pending){if(data.warm_urls&&data.warm_urls.length){warmCards(data.warm_urls.slice());}pollStatus(data.log_id||"",true);return;}
      finishResult(data);
    })
-   .catch(function(e){STATE.submitting=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr("送出失敗："+e.message);},60);});
+   .catch(function(e){STATE.submitting=false;STATE.evAsked=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr("送出失敗："+e.message);},60);});
 }
 
 /* 預抓要一張接一張（同時抓＝多開無頭瀏覽器互搶，反而更慢還會 404）：卦符卡先，再第 1 張模糊卡（後端會五張一起出），其餘直接命中 */
@@ -2302,10 +2315,25 @@ function createOrder(){
   STATE.ordering=true;
   if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'建立訂單中…';}
   var _pressToken="";try{_pressToken=localStorage.getItem("winds_press_token")||"";}catch(e){}
+  /* 2026-10-09 信箱驗證碼：付款前網站信箱身分要驗過信箱。帶這個瀏覽器存的憑證（剛在視窗驗過的優先）；後端說還沒驗就開視窗、驗過再建一次單 */
+  var _knownEmail=(STATE.data&&STATE.data.email)||(STATE.retInfo&&STATE.retInfo.email)||"";
+  var _ev=STATE.evToken||(window.ZFEmailVerify&&_knownEmail?ZFEmailVerify.token(_knownEmail):"");
   fetch(API.order,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
-    body:JSON.stringify({google_sub:STATE.userId,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken,k:STATE.k||undefined})})
+    body:JSON.stringify({google_sub:STATE.userId,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken,k:STATE.k||undefined,ev_token:_ev||undefined})})
    .then(function(r){return r.json();}).then(function(d){
      STATE.ordering=false;
+     if(d&&d.error==="email_verify_required"){
+       if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}
+       STATE.evToken="";
+       if(!window.ZFEmailVerify||STATE.orderEvAsked){STATE.orderEvAsked=false;alert(d.message||"付款前先確認一下信箱。");return;}
+       STATE.orderEvAsked=true;
+       /* 有這一卦的 k 就讓後端寄到這一卦的信箱（從提醒信、付款回跳進來時頁面不知道完整信箱）；沒有才用頁面上的信箱 */
+       var _t=STATE.k?{logId:STATE.logId,k:STATE.k,masked:d.email_masked}:{email:_knownEmail,masked:d.email_masked};
+       if(!_t.k&&!_t.email){STATE.orderEvAsked=false;alert(d.message||"付款前先確認一下信箱。");return;}
+       ZFEmailVerify.ensure(_t).then(function(t){if(t){STATE.evToken=t;createOrder();}else STATE.orderEvAsked=false;});
+       return;
+     }
+     STATE.orderEvAsked=false;
      if(d.success&&d.free_unlock){
        /* 媒體 token 核銷成功：免付費，直接重載進完整解讀 */
        try{localStorage.removeItem("winds_press_token");}catch(e){}
@@ -2319,7 +2347,7 @@ function createOrder(){
        var w=window.open(d.pay_url,"_blank");if(!w){location.href=d.pay_url;return;}
        if(btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}
      }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert(d.message||d.error||"建立訂單失敗，請再試一次。");}   /* 2026-10-01（廣告前全站掃描）：後端 errorResponse 回的是 error 欄位（例如「登入身分與請求不符，請重新登入」），原本只讀 message，只看得到通用訊息 */
-   }).catch(function(e){STATE.ordering=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert("付款錯誤："+e.message);});
+   }).catch(function(e){STATE.ordering=false;STATE.orderEvAsked=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert("付款錯誤："+e.message);});
 }
 
 /* ===== 分享（Web Share API / 剪貼簿）===== */
@@ -2369,6 +2397,8 @@ function adoptGoogleToken(tok){
     if(p.exp&&p.exp*1000<Date.now())return false;
     googleIdToken=tok;STATE.userId=p.sub||"";
     STATE.gEmail=p.email||"";
+    /* 2026-10-09：Google 已確認過這個信箱，換一張信箱驗證憑證存起來，用同一個 Gmail 起卦、付款就不用再收驗證碼（email-verify.js 是 defer，晚到就等 load） */
+    if(window.ZFEmailVerify)ZFEmailVerify.fromGoogle(tok);else window.addEventListener("load",function(){if(window.ZFEmailVerify)ZFEmailVerify.fromGoogle(tok);});
     return !!STATE.userId;
   }catch(e){return false;}
 }

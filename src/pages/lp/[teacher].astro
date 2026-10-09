@@ -670,11 +670,22 @@ const jsonLd = prov ? [
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
         shell(5, '確認預約', inner, BACK + nextBtn('data-go', goLabel));
         on('[data-back]', function () { if (W.creating) return; stepInfo(); });   // 建單中不准回上一步
-        on('[data-go]', function (btn) {
+        on('[data-go]', function goBook(btn, evRetried, evGiven) {
           if (btn.disabled) return;
           btn.disabled = true; btn.textContent = '建立訂單中…'; W.creating = true;
           function unlockGo() { W.creating = false; btn.disabled = false; btn.textContent = goLabel; }
           function showE(m) { var e = document.getElementById('wzErr2'); if (e) { e.textContent = m; e.hidden = false; } }
+          /* 2026-10-09 信箱驗證碼（Jeffery 拍板）：付訂金前先確認信箱收得到（確認信、前一天提醒都寄這裡）。
+             這個瀏覽器 30 天內驗過就直接帶憑證；沒有就開驗證碼視窗，驗過再接著送單。視窗開著時 W.creating 維持 true，不准回上一步 */
+          var evTok = evGiven || (window.ZFEmailVerify ? ZFEmailVerify.token(W.fields.email) : '');   // 剛在視窗驗好的直接用（瀏覽器存不進去也不會再問一次）
+          if (!evTok && window.ZFEmailVerify) {
+            btn.textContent = '確認信箱中…';
+            ZFEmailVerify.ensure({ email: W.fields.email }).then(function (t) {
+              unlockGo();
+              if (t) goBook(btn, evRetried, t); else showE('付款前要先確認信箱，預約確認信會寄到這裡。');
+            });
+            return;
+          }
           /* 2026-09-28（gpt-6-astra 金流複核第三輪）：同預約頁——帶「畫面上的訂金」expected_amount，後端開單佔時段之前比對，
              不一樣就回 price_changed、不開單；這裡更新畫面請客人再按一次。20 秒沒回應就解鎖。 */
           var ac = new AbortController(), to = setTimeout(function () { ac.abort(); }, 20000);
@@ -688,6 +699,7 @@ const jsonLd = prov ? [
           if (hit) { W.memReq = hit; rid = hit.id; }
           else { rid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); W.memReq = { fp: fp, id: rid, t: Date.now() }; try { sessionStorage.setItem(REQ_KEY, JSON.stringify(W.memReq)); } catch (e) {} }
           payload.expected_amount = dep; payload.client_req_id = rid;
+          if (evTok) payload.ev_token = evTok;   // 放在識別碼算完之後：憑證不影響「同一份預約資料」的判斷
           try { payload.first_touch = JSON.parse(localStorage.getItem('winds_first_touch') || 'null'); } catch (e) {}   // 第一次進站的來源（BaseLayout 記的）
           fetch(API + '/sb-book', { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload) })
@@ -697,6 +709,11 @@ const jsonLd = prov ? [
               // 後端 /pay-booking 接上 back 之前會直接忽略這個參數，行為不變
               if (d && d.ok && d.payment_url) { location.href = d.payment_url + (String(d.payment_url).indexOf('?') < 0 ? '?' : '&') + 'back=' + encodeURIComponent(location.origin + location.pathname); return; }
               unlockGo();
+              if (d && d.error === 'email_verify_required') {
+                if (window.ZFEmailVerify) ZFEmailVerify.clear(W.fields.email);
+                if (!evRetried && window.ZFEmailVerify) { goBook(btn, true, ''); return; }
+                showE(d.message || '付款前先確認一下信箱。'); return;
+              }
               if (d && d.error === 'already_paid') { W.memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} showE(d.message || '這筆預約已經付款完成，我們會為你安排。'); return; }
               if (d && d.error === 'req_conflict') { W.memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} showE(d.message || '資料跟上一次不一樣，請再按一次。'); return; }
               if (d && d.error === 'price_changed' && d.amount) {
