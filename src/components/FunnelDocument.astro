@@ -1253,7 +1253,7 @@ function viewAsk(){
   var k=ASK[STATE.ask],d=STATE.data;
   /* 問句照 ASK 順序長出來；home 模式多了第一題「家的情形」，年份那題的開場跟著改口 */
   var QS={year:(HOME||LOVE)?"好。要配符給你，得先看你的命盤。你哪一年出生的？":"這一卦我知道了。接下來看你的命盤，就可以給你更正確的命卦靈符。你哪一年出生的？",
-    month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就先假設中午",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，帳號有狀況時好確認是你。",
+    month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就先假設中午。",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，帳號有狀況時好確認是你。",
     email:"提醒信要寄到哪個信箱？卦符有效七天。"};
   function ansOf(key){switch(key){case "year":return d.year+" 年";case "month":return d.month+" 月";case "day":return d.month+" 月 "+d.day+" 日";case "shi":return shiName(d.shi);case "gender":return esc(d.gender);case "name":return esc((String(d.surname||"").trim()+String(d.given||"").trim())||"—");case "phone":return esc(d.phone);}return "";}
   var all=[];
@@ -1680,7 +1680,7 @@ function spiritCardInner(paid){
           ?'當你又開始懷疑「是不是自己遇不到對的人」，或新的感情機會出現、心裡不知道該怎麼判斷時，都可以再和祂聊聊。'
           :'突然想起他的時候、想傳訊息卻不知道該不該傳的時候，或心裡又冒出一個問題的時候，都可以再和祂聊聊。')+
         '<br>要不要繼續，是你決定。')
-      :'拿到風易揚老師親手畫的靈符解方後，分靈體會依這次的卦象和最懂你的狀態陪伴你聊聊心事。<br>接下來 7 天，祂會陪著你，你也可以隨時和祂聊聊。';
+      :'拿到風易揚老師親手畫的靈符解方後，分靈體會依這次的卦象和最懂你的狀態陪伴你聊聊心事。<br>接下來 7 天，祂會陪著你，有想不通的事隨時可以問祂。';
     return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">'+sTxt+'</p></div>';
   }
   /* 付款後、還沒有側寫：按鈕生成（2026-09-11） */
@@ -1771,7 +1771,7 @@ function hexTalismans(paid){
         '<div class="nm">'+(SOLAR.seq[i]||SOLAR.next)+(el?' · '+esc(el):'')+'</div>'+
         (paid?'<div class="nm" style="margin-top:2px;color:var(--text-muted)">'+(showClear?'✓ 已經開了':'第 '+step+' 個節氣自動開')+'</div>':'')+'</div>';
     }).join("")+'</div>';
-    if(paid)h+='<div style="text-align:center;margin-top:16px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+ic("download-simple")+'每逢節氣自動開一張，持續改善你的炁場與問題。開了會通知你回來拿——點已開的靈符可開大圖儲存</div>';
+    if(paid)h+='<div style="text-align:center;margin-top:16px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+ic("download-simple")+'每逢節氣自動開一張，持續改善你的炁場與問題。點靈符可存大圖。</div>';
   }
   return h;
 }
