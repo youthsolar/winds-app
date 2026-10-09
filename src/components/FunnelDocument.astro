@@ -1252,8 +1252,8 @@ function shiName(i){return SHI[i][0]+"時";}
 function viewAsk(){
   var k=ASK[STATE.ask],d=STATE.data;
   /* 問句照 ASK 順序長出來；home 模式多了第一題「家的情形」，年份那題的開場跟著改口 */
-  var QS={year:(HOME||LOVE)?"好。要配符給你，得先看你的命盤。你哪一年出生的？":"這一卦我看到了。要配符給你，得先看你的命盤。你哪一年出生的？",
-    month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就放在中午。",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，帳號有狀況時好確認是你。",
+  var QS={year:(HOME||LOVE)?"好。要配符給你，得先看你的命盤。你哪一年出生的？":"這一卦我知道了。接下來看你的命盤，就可以給你更正確的命卦靈符。你哪一年出生的？",
+    month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就先假設中午",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，帳號有狀況時好確認是你。",
     email:"提醒信要寄到哪個信箱？卦符有效七天。"};
   function ansOf(key){switch(key){case "year":return d.year+" 年";case "month":return d.month+" 月";case "day":return d.month+" 月 "+d.day+" 日";case "shi":return shiName(d.shi);case "gender":return esc(d.gender);case "name":return esc((String(d.surname||"").trim()+String(d.given||"").trim())||"—");case "phone":return esc(d.phone);}return "";}
   var all=[];
@@ -1312,7 +1312,7 @@ function viewRet(){
   var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);var shi=isNaN(hh)?6:Math.floor(((hh+1)%24)/2);
   var line=[(r.last_name||"")+(r.first_name||""),ymd.length===3?(+ymd[0])+"/"+(+ymd[1])+"/"+(+ymd[2]):"",shiName(shi),r.gender||"",r.email_masked||""].filter(Boolean).join("・");
   return '<main class="shell narrow ff"><div class="step-intro"><span class="eyebrow"><span class="dot"></span>老師開口</span></div>'+
-    '<div class="ff-chat">'+ffWho()+ffBub("這一卦我看到了。上次你留過命盤，還是用同一份嗎？")+
+    '<div class="ff-chat">'+ffWho()+ffBub("這一卦我知道了。上次你留過生辰，還是用同一份嗎？")+
     '<div class="ff-chip"><span>'+esc(line)+'</span><a href="#" onclick="ffEditRet();return false;">改</a></div>'+
     '<div class="ff-next"><button class="zf-btn primary sm" onclick="submitFree()">就用這個</button></div></div></main>';
 }
@@ -1477,7 +1477,7 @@ function viewResult(){
   if(paid)return viewReportPaid(R,q);
   /* 第一眼那句大字（9/9 拍板：Jeffery 親寫，逐字照用；放這一頁不放首頁）。2026-09-26：好愛改用規格 06A／06B 那兩句 */
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">'+
-    (LOVE?(lvSingle()?'這一卦，看見的是你現在的桃花狀態':'這一卦，看見的是你們現在的關係'):'風易揚老師一張符令就能改善')+'</h1>';
+    (LOVE?(lvSingle()?'這一卦，看見的是你現在的桃花狀態':'這一卦，看見的是你們現在的關係'):'風易揚老師的幾張符令就能改善問題')+'</h1>';
   if(LOVE)h+=(lvSingle()
     ?'<p class="lede" style="margin:10px 0 4px">桃花不是單純的「有人追」或「沒人追」。<br>有時候機會已經出現，只是你沒有注意。<br>有時候身邊明明有人，卻始終遇不到真正適合自己的關係。<br>也有些時候，是上一段感情留下的東西，還沒有真正離開。<br>先看看，你現在的感情正在什麼位置。</p>'
     :'<p class="lede" style="margin:10px 0 4px">有些人明明彼此在意，卻一直停在原地。<br>有些人越靠越近，其中一個卻突然退開。<br>也有些感情真正卡住的，從來不是「愛不愛」，而是兩個人已經站在不同的位置。<br>先別急著問結果。<br>先看看，你們現在怎麼了。</p>');
@@ -1538,8 +1538,7 @@ function getsList(){
       ['你的節氣運勢與完整分析','看見目前所處的位置，以及接下來值得留意的變化。'],
       ['專屬分靈體・陪伴 7 天','解方完成後生成，這 7 天裡，有想不通的地方可以再和祂聊聊。']];
   return '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>'+
-    items.map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b>'+(x[1]?'<span>'+x[1]+'</span>':'')+'</div></div>';}).join('')+'</div>'+
-    (LOVE?'<p class="veil-alt" style="margin-top:10px">一次 NT$ '+TALISMAN_PRICE+'，沒有訂閱，也不會自動續費。</p>':'');
+    items.map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b>'+(x[1]?'<span>'+x[1]+'</span>':'')+'</div></div>';}).join('')+'</div>';
 }
 /* 2026-10-06 命卦：五張符配的是命卦——付款後寫命卦名；付款前不能露出是哪一卦，只寫「靈符」 */
 function talismanName(){var R=STATE.result||{};if(R.tian)return '<span class="tname">【'+esc(R.tian.name)+' 靈符】</span>';if(R.tianPending)return '靈符';return R.hexName?'<span class="tname">【'+esc(R.hexName)+' 靈符】</span>':'靈符';} /* 9/28：整組不換行（原本「【」會掉在行尾） */
@@ -1681,7 +1680,7 @@ function spiritCardInner(paid){
           ?'當你又開始懷疑「是不是自己遇不到對的人」，或新的感情機會出現、心裡不知道該怎麼判斷時，都可以再和祂聊聊。'
           :'突然想起他的時候、想傳訊息卻不知道該不該傳的時候，或心裡又冒出一個問題的時候，都可以再和祂聊聊。')+
         '<br>要不要繼續，是你決定。')
-      :'拿到風易揚老師親手畫的靈符解方後，分靈體會依這次的卦象和你的狀態出現。<br>接下來 7 天，祂會陪著你，你也可以隨時和祂聊聊。';
+      :'拿到風易揚老師親手畫的靈符解方後，分靈體會依這次的卦象和最懂你的狀態陪伴你聊聊心事。<br>接下來 7 天，祂會陪著你，你也可以隨時和祂聊聊。';
     return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">'+sTxt+'</p></div>';
   }
   /* 付款後、還沒有側寫：按鈕生成（2026-09-11） */
@@ -1746,7 +1745,7 @@ function hexTalismans(paid){
   if(list.length){
     /* 2026-09-26 逐值對齊 DS step4-result.jsx L398-403：標題 17 與標籤同列 gap 10、margin 0 0 6px、標籤 12/字距 0、說明 14（手機 13.5）；區塊上方留 DS hero 卡的 margin-bottom 20（手機 16） */
     h+='<div class="tal5-sec"><div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span class="tal5-t">對應卦象的 '+list.length+' 張量能靈符</span><span class="zf-tag rose outline" style="font-size:12px;letter-spacing:0">'+(R.tian?'隨你的命卦「'+esc(R.tian.name)+'」而對應':R.tianPending?'隨你的命卦而對應':'隨「'+esc(R.hexName||'本')+'卦」而對應')+'</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
-      '<p class="tal5-p">卦象、節氣和你現在的狀況，老師都看過了。</p><p class="tal5-p">這五張靈符，是照這次的卦象，對應風易揚老師親書的靈符。不是隨機挑的。</p>'+
+      '<p class="tal5-p">卦象、節氣和你現在的狀況，老師都知道了。</p><p class="tal5-p">這五張靈符，是照這次的卦象，對應風易揚老師親書的靈符。不是隨機挑的。</p>'+
       /* 2026-10-06 天卦制：免費看到的是運卦，這五張配的是依生辰起的命卦，付款後揭曉（文案待 Jeffery 改定） */
       (!paid&&R.tianPending?'<p class="tal5-p">上面那一卦看的是此刻的運；這五張配的是依你的生辰起的命卦靈符解方。</p>':'')+'</div>';
     h+='<div class="tal5-grid">'+list.map(function(c,i){
@@ -1772,7 +1771,7 @@ function hexTalismans(paid){
         '<div class="nm">'+(SOLAR.seq[i]||SOLAR.next)+(el?' · '+esc(el):'')+'</div>'+
         (paid?'<div class="nm" style="margin-top:2px;color:var(--text-muted)">'+(showClear?'✓ 已經開了':'第 '+step+' 個節氣自動開')+'</div>':'')+'</div>';
     }).join("")+'</div>';
-    if(paid)h+='<div style="text-align:center;margin-top:16px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+ic("download-simple")+'每逢節氣自動開一張，開了會通知你回來拿——點已開的靈符可開大圖儲存</div>';
+    if(paid)h+='<div style="text-align:center;margin-top:16px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+ic("download-simple")+'每逢節氣自動開一張，持續改善你的炁場與問題。開了會通知你回來拿——點已開的靈符可開大圖儲存</div>';
   }
   return h;
 }
@@ -1883,7 +1882,7 @@ function recsInner(recs){
   /* 2026-09-26：好愛「有那個人」時改用規格 16（桃花版 Jeffery 沒寫，維持原本通用那段） */
   return (LOVE&&!lvSingle()
     ?'<div class="head"><h2>如果看完這一卦，你還是放不下那個人</h2><p>有些感情，知道方向之後，心裡就會慢慢有答案。</p><p>但有些事情，你真正想知道的是：<br>他為什麼突然變了？<br>我們之間是不是發生了我不知道的事？<br>他心裡現在究竟怎麼看我？<br>為什麼我們總是在靠近之後又分開？<br>這段關係是不是還有更深的原因？</p><p>當你想查的已經不只是這一卦的方向，就可以再往裡面問。</p></div>'
-    :'<div class="head"><h2>如果看完這一卦，你心裡還有一件事放不下</h2><p>有些問題，卦象可以給你方向；<br>但有些事情，需要再往原因裡查。</p><p>如果你想知道的，不只是「接下來會怎麼樣」，而是「為什麼會變成這樣」，可以再找老師談談。</p></div>')+
+    :'<div class="head"><h2>如果看完這一卦，心裡還放不下</h2><p>有些問題，卦象可以給你方向；<br>但有些事情，需要再往原因裡查。</p><p>如果你想知道的，不只是「接下來會怎麼樣」，而是「為什麼會變成這樣」，可以再找老師談談。</p></div>')+
     '<div class="rec-grid">'+recs.map(function(r){
       var book=r.source==='simplybook';var price=r.price?('NT$ '+Number(r.price).toLocaleString()+(book?' 起':'')):'';
       var url=r.url||r.purchase_url||'';
@@ -2210,7 +2209,7 @@ function submitFree(){
          return null;}
        if(d.error==="phone_invalid"){STATE.submitting=false;if(STATE.ret)STATE.retPhone=true;STATE.ask=ASK.indexOf("phone");go("ask");setTimeout(function(){showFfErr(d.message||"手機號碼格式不對，再看一下。");},60);return null;}
        if(d.error==="email_duplicate"){STATE.submitting=false;var _dupRet=STATE.ret;STATE.retPhone=false;if(!_dupRet)STATE.ask=ASK.length-1;go(_dupRet?"ret":"ask");setTimeout(function(){showFfErr(d.message||"這個信箱已被其他帳號使用。");},60);return null;}   /* 2026-10-09（Astra）：回訪的人（含補手機）信箱重複時留在回訪那一行按「改」；原本 ret=false 會掉進沒帶資料的逐題問答 */
-       if(d.error==="spirit_reset_confirm"){STATE.submitting=false;if(confirm(d.message||"改了生日或時辰，你的分靈體會重新認識你，名字和個性都會跟著變。確定要改嗎？")){STATE.spiritResetOk=true;submitFree();}else{go(STATE.ret?"ret":"ask");}return null;}
+       if(d.error==="spirit_reset_confirm"){STATE.submitting=false;if(confirm(d.message||"改了生日或時辰，你的分靈體會重新與你連結，名字和個性都會跟著變。確定要改嗎？")){STATE.spiritResetOk=true;submitFree();}else{go(STATE.ret?"ret":"ask");}return null;}
        throw new Error(d.message||d.error||("HTTP "+resp.status));
      });}
      return resp.json();
