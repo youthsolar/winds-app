@@ -1253,7 +1253,7 @@ function viewAsk(){
   var k=ASK[STATE.ask],d=STATE.data;
   /* 問句照 ASK 順序長出來；home 模式多了第一題「家的情形」，年份那題的開場跟著改口 */
   var QS={year:(HOME||LOVE)?"好。要配符給你，得先看你的命盤。你哪一年出生的？":"這一卦我知道了。接下來看你的命盤，就可以給你更正確的命卦靈符。你哪一年出生的？",
-    month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就先假設中午。",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，帳號有狀況時好確認是你。",
+    month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就先假設中午。",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，帳號有狀況時，才能確認是你。",
     email:"提醒信要寄到哪個信箱？卦符有效七天。"};
   function ansOf(key){switch(key){case "year":return d.year+" 年";case "month":return d.month+" 月";case "day":return d.month+" 月 "+d.day+" 日";case "shi":return shiName(d.shi);case "gender":return esc(d.gender);case "name":return esc((String(d.surname||"").trim()+String(d.given||"").trim())||"—");case "phone":return esc(d.phone);}return "";}
   var all=[];
