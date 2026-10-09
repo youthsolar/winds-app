@@ -1027,7 +1027,7 @@ function viewTopic(){
       }).join("")+'</div>';
     if(STATE.q){
       h+='<div class="fade"><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">'+
-        '<span style="font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--ink-700)">接著補上實際情況，愈具體愈準。</span>'+
+        '<span style="font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--ink-700)">請補上實際情況，越具體越準。</span>'+
         '<span style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted)">'+STATE.text.length+' / 300</span></div>'+
         '<textarea class="f-textarea" maxlength="300" rows="'+Math.max(4,Math.min(10,Math.ceil(STATE.text.length/22)+1))+'" oninput="STATE.text=this.value;this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'" style="font-size:18px">'+esc(STATE.text)+'</textarea>'+
         '<p class="hint" style="margin-top:8px">'+ic("sparkle")+'占卜前，靜心默想一位神尊或天使做主。</p>'+
@@ -1220,7 +1220,7 @@ function viewHex(){
     (c.line?'<div class="zf-card" style="padding:14px 16px"><p class="ff-p" style="margin:0;color:var(--text-primary)">'+esc(c.line)+'</p></div>':'')+
     ((HOME||LOVE)
       ? '<p class="ff-p" style="margin-top:14px">卦已經起好了。接下來，老師要合你的命盤，才能繼續往下看。</p>'
-      : '<p class="ff-p" style="margin-top:14px">有一張卦符可以先護住你。要配得更準，老師得看你的命盤。</p>')+
+      : '<p class="ff-p" style="margin-top:14px">有一張卦符可以先護住你的炁。要配得更準，老師得看你的命卦。</p>')+
     (STATE.ret?'':'<div class="six"><div class="six-claim"><span>只要 <em>6 個</em> 基本資料</span><span class="plus">＋</span><span><em>30 秒</em> 得到幸福</span></div><div class="six-fields"><span><b>01</b>姓</span><span><b>02</b>名</span><span><b>03</b>西元生日</span><span><b>04</b>出生時間</span><span><b>05</b>手機</span><span><b>06</b>電子郵件</span></div></div>')+
     '<button class="zf-btn primary lg" style="width:100%" '+(((HOME&&!STATE.data.home)||(LOVE&&!lvReady()))?'disabled ':'')+'onclick="go(\''+(STATE.ret?'ret':'ask')+'\')">'+(STATE.ret?'好，用上次的資料':'好，讓老師認識我')+'</button></main>';
 }
