@@ -1023,21 +1023,67 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     // → 退回全站同一顆公開 client id（login／gift／FunnelDocument 同款），按鈕與外開引導都會出來
     const clientId = (document.querySelector('[data-client_id]') as HTMLElement | null)?.dataset.client_id
       || '35219881811-2rnl87e0qmb9vsuhuqnfooo0a0af5ggd.apps.googleusercontent.com';
+    // 2026-10-10：載入時 Google 先出暫代鈕、約 0.2 秒後才換成真按鈕，切亮暗又是先清空再重畫 → 會閃
+    // → 同 2pr.ai 登入頁：新按鈕畫在看不見的那層，框載入完、暫代字消失、再過兩幀才換上；舊的留到那一刻
+    let inited = false, activeKey = '', pendingKey = '', gen = 0;
+    let cancelPending: (() => void) | null = null;
+    const renderBtn = () => {
+      const target = document.getElementById('g_id_signin_ziwei');
+      const g = (window as any).google?.accounts?.id;
+      if (!target || !g) return;
+      const key = ((window as any).ZFTheme && (window as any).ZFTheme.isDark()) ? 'filled_black' : 'outline';
+      if (key === pendingKey) return;
+      if (cancelPending) cancelPending();
+      if (key === activeKey) return;
+      const my = ++gen; pendingKey = key;
+      const slot = document.createElement('div');
+      slot.className = 'gsi-slot gsi-slot--pending'; slot.setAttribute('aria-hidden', 'true'); (slot as any).inert = true;
+      slot.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:inherit;opacity:0;pointer-events:none;';
+      target.appendChild(slot);
+      let timer = 0, frameEl: HTMLIFrameElement | null = null, loaded = false;
+      const watch = new MutationObserver(() => check());
+      const done = () => { watch.disconnect(); clearTimeout(timer); if (cancelPending === cancel) cancelPending = null; };
+      const cancel = () => { done(); slot.remove(); if (my === gen && pendingKey === key) pendingKey = ''; };
+      const swap = () => {
+        if (my !== gen || pendingKey !== key) return;
+        done();
+        Array.from(target.children).forEach((n) => { if (n !== slot) n.remove(); });   // 舊按鈕、外開引導一起換掉
+        slot.className = 'gsi-slot'; slot.removeAttribute('aria-hidden'); (slot as any).inert = false;
+        slot.style.opacity = ''; slot.style.pointerEvents = '';
+        activeKey = key; pendingKey = '';
+      };
+      const check = () => {
+        const f = slot.querySelector('iframe');
+        if (f && f !== frameEl) {
+          frameEl = f; loaded = false;
+          f.addEventListener('load', () => { if (f === frameEl) { loaded = true; check(); } }, { once: true });
+        }
+        if (f && loaded && !(slot.textContent || '').trim()) requestAnimationFrame(() => requestAnimationFrame(swap));
+      };
+      cancelPending = cancel;
+      watch.observe(slot, { childList: true, subtree: true });
+      // 6 秒還沒好：已有按鈕就留舊的；第一次載入就先把暫代鈕露出來（照舊可按）
+      timer = window.setTimeout(() => { if (target.querySelector('.gsi-slot:not(.gsi-slot--pending)')) cancel(); else swap(); }, 6000);
+      g.renderButton(slot, { theme: key, size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
+    };
     // 等 GIS script 載入
     const tryRender = () => {
       const g = (window as any).google?.accounts?.id;
       if (!g) { setTimeout(tryRender, 200); return; }
-      g.initialize({
-        client_id: clientId,
-        callback: (resp: { credential: string }) => {
-          try { localStorage.setItem('winds_google_token', resp.credential); } catch {}
-          location.reload();
-        },
-      });
+      if (!inited) {
+        g.initialize({
+          client_id: clientId,
+          callback: (resp: { credential: string }) => {
+            try { localStorage.setItem('winds_google_token', resp.credential); } catch {}
+            location.reload();
+          },
+        });
+        inited = true;
+      }
       const target = document.getElementById('g_id_signin_ziwei');
       if (target) {
         target.removeAttribute('data-fb');   // GSI 晚到就把外開引導換回真按鈕
-        g.renderButton(target, { theme: ((window as any).ZFTheme && (window as any).ZFTheme.isDark()) ? 'filled_black' : 'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
+        renderBtn();
       }
     };
     // App 內嵌瀏覽器：Google 直接封鎖 OAuth，按鈕就算渲染出來也登不進去 → 不掛 GSI，直接出引導。
@@ -1047,9 +1093,8 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     // 切換亮暗時重畫，按鈕跟著換色（同 login／gift）
     window.addEventListener('zf-theme-change', () => {
       const target = document.getElementById('g_id_signin_ziwei');
-      if (inApp || !target || target.hasAttribute('data-fb') || !target.childNodes.length) return;
-      target.innerHTML = '';
-      tryRender();
+      if (inApp || !inited || !target || target.hasAttribute('data-fb')) return;
+      renderBtn();
     });
     const showFb = (force: boolean) => {
       const target = document.getElementById('g_id_signin_ziwei');
@@ -1181,7 +1226,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
   .auth-desc { color: var(--ink-700); font-size: 14px; line-height: 1.7; margin: 0 0 24px; }
   .auth-note { color: var(--ink-500); font-family: var(--font-sans); font-size: 12px; margin: 16px 0 0; }
   .auth-note a { color: var(--rose-600); text-decoration: underline; }
-  #g_id_signin_ziwei { display: flex; justify-content: center; }
+  #g_id_signin_ziwei { display: flex; justify-content: center; position: relative; min-height: 40px; }
   #g_id_signin_ziwei[data-fb] { display: block; }
   .auth-fb-t { font-family: var(--font-serif); font-size: 16px; font-weight: 500; color: var(--ink-900); margin: 0; }
   .auth-fb-d { margin: 8px auto 14px; max-width: 22em; font-family: var(--font-serif); font-weight: 300; font-size: 13.5px; line-height: 1.75; color: var(--text-secondary); }
