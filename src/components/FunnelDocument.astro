@@ -1534,7 +1534,7 @@ function getsList(){
         ['這段關係接下來的發展方向',''],['依照這次解方，由風易揚老師親書並開光的五張'+talismanName(),''],
         ['完整節氣與感情狀態分析',''],['專屬分靈體 7 天陪伴','']])
     :[['這次起卦的完整解讀','把前面還沒說完的卦象與提醒，完整看清楚。'],
-      ['五張為這次解方親書的'+talismanName(),'由我依照這次起卦所呈現的狀態親自書寫並開光。'],
+      ['五張為這次解方親書的'+talismanName(),'由我依照這次卦象所呈現的狀態親自書寫並開光。'],
       ['你的節氣運勢與完整分析','看見目前所處的位置，以及接下來值得留意的變化。'],
       ['專屬分靈體・陪伴 7 天','解方完成後生成，這 7 天裡，有想不通的地方可以再和祂聊聊。']];
   return '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>'+
@@ -1854,9 +1854,9 @@ function paywall(paid){
          :'前面的卦象、你們目前的關係、彼此之間的阻礙，以及這段感情正在發展的方向，都會影響最後出現的解方。')+'</p>'+
        '<p>所以出現在這裡的五張<strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>，不是從一堆符令裡隨機挑五張給你。<br>'+
          '而是依照這次起卦呈現的狀態，找出'+(lvSingle()?'目前':'目前這段關係')+'需要調整與處理的位置。</p>'+
-       '<p>我會依照這次的解方，親手為你書寫五張<strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>並開光。節氣到了開一張，並且自動通知你。</p>'+
+       '<p>我會依照這次的解方，為你挑選親繪的五張<strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>並開光。節氣到了開一張，並且自動通知你。</p>'+
        '<p>你拿到的，不只是五張靈符。<br>而是這一卦看完'+(lvSingle()?'你的桃花狀態':'你們的關係')+'之後，接下來給你的解方。</p>'
-      :'<p>我會依照這次的解方，親手為你書寫五張<strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>。節氣到了開一張，並且自動通知你。</p><p>這五張靈符，是風易揚老師看完這一卦後，親手畫給你的解方。</p>')+
+      :'<p>我會依照這次的解方，為你挑選親繪的五張<strong style="font-weight:500;color:var(--ink-900)">'+talismanName()+'</strong>。節氣到了開一張，並且自動通知你。</p>')+
     getsList()+
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
@@ -1882,7 +1882,7 @@ function recsInner(recs){
   /* 2026-09-26：好愛「有那個人」時改用規格 16（桃花版 Jeffery 沒寫，維持原本通用那段） */
   return (LOVE&&!lvSingle()
     ?'<div class="head"><h2>如果看完這一卦，你還是放不下那個人</h2><p>有些感情，知道方向之後，心裡就會慢慢有答案。</p><p>但有些事情，你真正想知道的是：<br>他為什麼突然變了？<br>我們之間是不是發生了我不知道的事？<br>他心裡現在究竟怎麼看我？<br>為什麼我們總是在靠近之後又分開？<br>這段關係是不是還有更深的原因？</p><p>當你想查的已經不只是這一卦的方向，就可以再往裡面問。</p></div>'
-    :'<div class="head"><h2>如果看完這一卦，心裡還放不下</h2><p>有些問題，卦象可以給你方向；<br>但有些事情，需要再往原因裡查。</p><p>如果你想知道的，不只是「接下來會怎麼樣」，而是「為什麼會變成這樣」，可以再找老師談談。</p></div>')+
+    :'<div class="head"><h2>如果看完這一卦，心裡還放不下</h2><p>有些問題，卦象可以給你方向；如果有些事情，想要更深入了解，可以再找老師談談。</p></div>')+
     '<div class="rec-grid">'+recs.map(function(r){
       var book=r.source==='simplybook';var price=r.price?('NT$ '+Number(r.price).toLocaleString()+(book?' 起':'')):'';
       var url=r.url||r.purchase_url||'';
