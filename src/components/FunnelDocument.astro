@@ -2352,8 +2352,9 @@ function createOrder(){
 
 /* ===== 分享（Web Share API / 剪貼簿）===== */
 function shareResult(btn){
-  /* 2026-09-28（Codex 體檢）：沒登入就付款的人 userId 是空的，原本會組出打不開的 share?uid=。
-     這時改用這一卦自己的收卡頁連結（shareCard，零登入可開）；兩個都沒有就請他登入。 */
+  /* 2026-10-09（Jeffery 拍板止血，Astra V116 #2）：share?uid=<Google sub> 分享網址退役（網址就帶身分碼，後端 /share-profile 同日停用）。
+     一律改用這一卦自己的收卡頁連結（shareCard，唯讀、零登入可開）。下面舊流程留著不再執行 */
+  if(STATE.shareUrl){shareCard(btn);}else{alert("這一卦還在準備分享卡，稍等一下再按一次。");}return;
   if(!STATE.userId){if(STATE.shareUrl){shareCard(btn);}else{alert("登入 Google 後才能產生分享頁。");}return;}
   var orig=btn?btn.innerHTML:"";
   if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'生成分享圖中…';}

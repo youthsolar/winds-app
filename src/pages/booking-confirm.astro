@@ -1,0 +1,138 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+// 預約小幫手確認頁（2026-10-09 Jeffery 拍板「接共用驗證頁」）
+// 小幫手（全站聊天泡泡、/booking-chat、LINE 內頁版）不直接建單，付款卡片帶到這頁：
+// 讀伺服器端草稿（/booking-draft?d=）→ 確認信箱（6 位數驗證碼，email-verify.js；這個瀏覽器 30 天內驗過就跳過）
+// → /sb-book 帶草稿碼建單、佔時段 → 前往綠界。預約資料只在伺服器端，這頁改不到。
+// 草稿碼放在網址 # 後面（Astra V117 #1）：不送伺服器、不進 GA、跳去付款時不帶在 Referer；這頁也不載 GA／Pixel（noTracking）。
+// 樣式逐值沿用預約頁「確認預約」那一步（booking.astro .bk-* ／ .bw-*，照 DS lp-wizard）＋ DS Card、Button。
+---
+<BaseLayout
+  title="確認預約 · 找風問幸福"
+  description="確認預約內容與信箱，就可以前往付款。"
+  noindex={true}
+  noTracking={true}
+>
+  <div class="bc-root">
+    <main class="bk-main">
+      <div class="bk-intro">
+        <span class="bk-eyebrow"><span class="bk-eyebrow-dot"></span>預約老師</span>
+        <h1 class="bk-title">確認預約</h1>
+      </div>
+      <div class="bc-card" id="bcCard">
+        <p class="bw-note" id="bcLoading">正在讀取預約內容…</p>
+      </div>
+    </main>
+  </div>
+  <style is:global>
+    .bc-root .bk-main{max-width:640px;margin:0 auto;width:100%;box-sizing:border-box;padding:44px 28px 64px;}
+    .bc-root .bk-intro{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:34px;}
+    .bc-root .bk-eyebrow{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;color:var(--accent-press);}
+    .bc-root .bk-eyebrow-dot{width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none;}
+    .bc-root .bk-title{font-family:var(--font-serif);font-size:38px;font-weight:500;line-height:1.3;letter-spacing:0.01em;margin:0;color:var(--ink-900);}
+    /* DS Card（paper） */
+    .bc-root .bc-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:var(--space-6,24px);box-shadow:var(--shadow-sm);}
+    /* 同 booking.astro 確認步驟 */
+    .bc-root .bw-confirm{display:flex;flex-direction:column;gap:0;}
+    .bc-root .bw-row{display:flex;gap:14px;padding:11px 0;border-bottom:1px solid var(--border-soft);}
+    .bc-root .bw-k{font-family:var(--font-sans);font-size:13px;color:var(--text-muted);flex:none;width:54px;}
+    .bc-root .bw-v{font-family:var(--font-serif);font-size:15.5px;color:var(--ink-900);overflow-wrap:anywhere;}
+    .bc-root .bw-dep{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:14px 16px;background:var(--surface-tint);border-radius:var(--radius-md);font-family:var(--font-serif);}
+    .bc-root .bw-dep span{font-size:15px;color:var(--ink-700);}
+    .bc-root .bw-dep b{font-size:20px;color:var(--ink-900);}
+    .bc-root .bw-note{font-family:var(--font-serif);font-weight:300;font-size:13px;line-height:1.7;color:var(--text-muted);margin:12px 0 0;}
+    .bc-root .bw-err{font-family:var(--font-sans);font-size:13px;color:var(--critical);margin:12px 0 0;}
+    /* DS Button md primary（fullWidth） */
+    .bc-root .bc-go{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:11px 22px;min-height:44px;font-family:var(--font-serif);font-size:var(--t-body);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;border-radius:var(--radius-pill);border:1px solid transparent;background:var(--accent);color:var(--text-on-accent);box-shadow:var(--shadow-sm);cursor:pointer;transition:background var(--dur-fast) var(--ease-soft);}
+    .bc-root .bc-go:hover:not([disabled]){background:var(--accent-hover);}
+    .bc-root .bc-go[disabled]{opacity:.45;cursor:not-allowed;}
+    /* DS TextLink */
+    .bc-root .bc-back{display:inline-flex;margin-top:14px;font-family:var(--font-sans);font-size:14px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);line-height:1.5;text-decoration:none;}
+    @media (max-width:640px){
+      .bc-root .bk-main{padding:28px 18px 40px;}
+      .bc-root .bk-intro{margin-bottom:24px;}
+      .bc-root .bk-title{font-size:26px;}
+    }
+  </style>
+  <script is:inline>
+    (function () {
+      var API = 'https://api.winds.tw';
+      var card = document.getElementById('bcCard');
+      var d = (location.hash.match(/(?:^#|&)d=([a-f0-9]{32})/) || [])[1] || new URLSearchParams(location.search).get('d') || '';
+      /* 讀到就從網址拿掉（之後的事件、分享、上一頁都不帶），先記在這個分頁裡，重新整理還找得回來（Astra V118 #2） */
+      try { if (d) sessionStorage.setItem('winds_bc_draft', d); else d = sessionStorage.getItem('winds_bc_draft') || ''; } catch (e) {}
+      var dKept = (function () { try { return sessionStorage.getItem('winds_bc_draft') === d; } catch (e) { return false; } })();
+      if (d && dKept) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }   // 存不進去就留在網址 # 後面，重新整理才不會找不回來
+      var D = null, creating = false, evRetried = false;
+      function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+      function row(k, v) { return '<div class="bw-row"><span class="bw-k">' + esc(k) + '</span><span class="bw-v">' + esc(v) + '</span></div>'; }
+      function ntd(n) { return 'NT$ ' + Number(n || 0).toLocaleString('en-US'); }
+      function fmtTime(dt) {
+        var m = String(dt || '').match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/); if (!m) return dt || '';
+        var wk = ['日', '一', '二', '三', '四', '五', '六'][new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).getUTCDay()];
+        return (+m[2]) + '/' + (+m[3]) + '（' + wk + '）' + m[4] + ':' + m[5];
+      }
+      function backLink() { return '<a class="bc-back" href="/booking-chat/">回到預約小幫手</a>'; }
+      function fail(msg) { card.innerHTML = '<p class="bw-err">' + esc(msg) + '</p>' + backLink(); }
+      function showErr(msg) { var e = document.getElementById('bcErr'); if (e) { e.textContent = msg; e.hidden = false; } }
+      function render() {
+        var isDep = D.pay_mode === 'deposit';
+        card.innerHTML = '<div class="bw-confirm">' +
+          row('老師', D.provider_name) + row('項目', D.service_name) +
+          (D.location_name ? row('方式', D.location_name) : '') +
+          row('時間', fmtTime(D.datetime)) +
+          row('聯絡', (D.name || '') + ' · ' + (D.phone || '')) +
+          row('信箱', D.email) +
+          '<div class="bw-dep"><span>' + (isDep ? '線上付訂金' : D.pay_mode === 'promo_full' ? '線上付清（優惠價）' : '線上付清') + '</span><b>' + ntd(D.amount) + '</b></div>' +
+          '<p class="bw-note">按下確認後會先寄一組 6 位數驗證碼到上面的信箱，確認後才保留時段、前往付款。' + (isDep ? '付訂金後即為你保留時段。' : '付款後即為你保留時段。') + '</p>' +
+          '<p class="bw-err" id="bcErr" hidden></p></div>' +
+          '<button class="bc-go" id="bcGo" type="button">' + (isDep ? '確認並付訂金' : '確認並付款') + '</button>' + backLink();
+        document.getElementById('bcGo').addEventListener('click', function () { go(''); });
+      }
+      function unlock() { creating = false; var b = document.getElementById('bcGo'); if (b) { b.disabled = false; b.textContent = D.pay_mode === 'deposit' ? '確認並付訂金' : '確認並付款'; } }
+      function go(evGiven) {
+        if (creating || !D) return;
+        var btn = document.getElementById('bcGo');
+        creating = true; btn.disabled = true; btn.textContent = '處理中…';
+        var ev = evGiven || (window.ZFEmailVerify ? ZFEmailVerify.token(D.email) : '');
+        if (!ev && window.ZFEmailVerify) {
+          btn.textContent = '確認信箱中…';
+          ZFEmailVerify.ensure({ email: D.email }).then(function (t) {
+            unlock();
+            if (t) go(t); else showErr('付款前要先確認信箱，預約確認信會寄到這裡。');
+          });
+          return;
+        }
+        var ac = new AbortController(), to = setTimeout(function () { ac.abort(); }, 20000);
+        fetch(API + '/sb-book', { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ draft_id: d, ev_token: ev || undefined, expected_amount: D.amount, expected_total: D.total, expected_pay_mode: D.pay_mode }) })
+          .then(function (r) { return r.json().then(function (j) { return { st: r.status, j: j }; }); })
+          .then(function (o) {
+            clearTimeout(to); var j = o.j || {};
+            if (j.ok && j.payment_url) { location.href = j.payment_url; return; }
+            unlock();
+            if (j.error === 'email_verify_required') {
+              if (window.ZFEmailVerify) ZFEmailVerify.clear(D.email);
+              if (!evRetried && window.ZFEmailVerify) { evRetried = true; go(''); return; }
+              showErr(j.message || '付款前先確認一下信箱。'); return;
+            }
+            if (j.error === 'price_changed' && j.amount) {
+              // 金額變了，付款方式也可能跟著變（原本付清改收訂金等），照後端回的訂金／總價重算（Astra V117 #5）
+              D.amount = Number(j.amount);
+              if (j.total != null) D.total = Number(j.total);
+              D.pay_mode = j.pay_mode || ((Number(j.deposit) > 0 && Number(j.amount) === Number(j.deposit) && Number(j.deposit) < Number(j.total)) ? 'deposit' : 'full');
+              render(); showErr('付款內容剛更新為 ' + ntd(j.amount) + (D.pay_mode === 'deposit' ? '（訂金，總價 ' + ntd(D.total) + '）' : '') + '，確認沒問題再按一次。'); return; }
+            if (j.error === 'draft_expired') { fail(j.message || '這個確認連結過期了，回到預約小幫手再約一次。'); return; }
+            if (o.st === 409) { fail('這個時段剛被約走了，回到預約小幫手重新挑一個時間。'); return; }
+            showErr(j.message || j.error || '建立預約失敗，請稍後再試。');
+          })
+          .catch(function () { clearTimeout(to); unlock(); showErr('網路太久沒回應，再按一次就好，不會重複開單。'); });
+      }
+      if (!/^[a-f0-9]{32}$/.test(d)) { fail('這個確認連結不正確。'); return; }
+      fetch(API + '/booking-draft?d=' + encodeURIComponent(d)).then(function (r) { return r.json(); }).then(function (j) {
+        if (!j || !j.ok) { fail((j && j.message) || '這個確認連結過期了，回到預約小幫手再約一次。'); return; }
+        D = j; render();
+      }).catch(function () { fail('讀不到預約內容，請重新整理再試一次。'); });
+    })();
+  </script>
+</BaseLayout>
