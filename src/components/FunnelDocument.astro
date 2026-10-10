@@ -624,7 +624,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-share{margin-top:14px}
     .ff-share.zf-card{padding:14px 16px}
     .ff-share .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:10px}
-    @media (prefers-reduced-motion:reduce){.ff-sheen,.ff-rips span,.ff-bub{animation:none!important}.ff-rips span{opacity:0}}
+    .ff-chat.still .ff-bub{animation-name:none}
+@media (prefers-reduced-motion:reduce){.ff-sheen,.ff-rips span,.ff-bub{animation:none!important}.ff-rips span{opacity:0}}
     /* ===== 2026-09-26 DS 逐值對齊（真值 step4-result.jsx；對賬表見本日收工檔）。只改數值與手機斷點，不動結構；要調版面請改上面原規則或這裡 ===== */
     .res-note{font-size:14.5px}
     .res-note-tag .zf-tag{font-size:12px}
@@ -1259,6 +1260,7 @@ function ffBub(t,me){return '<div class="ff-row'+(me?' me':'')+'">'+(me?'':'<spa
 function shiName(i){return SHI[i][0]+"時";}
 function viewAsk(){
   var k=ASK[STATE.ask],d=STATE.data;
+  var still=!!STATE.ffStill;STATE.ffStill=false;
   /* 問句照 ASK 順序長出來；home 模式多了第一題「家的情形」，年份那題的開場跟著改口 */
   var QS={year:"這一卦我知道了。接下來看你的命盤，就可以給你更正確的命卦靈符。你哪一年出生的？",
     month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就先假設中午。",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，取回帳號時，才能確認是你。",
@@ -1286,13 +1288,14 @@ function viewAsk(){
   var canNext=!((k==="month"&&!d.month)||(k==="day"&&!d.day)||(k==="gender"&&!d.gender)||(k==="email"&&!validGmail(d.email))||(k==="phone"&&!phoneE164(d.phone)));
   return '<main class="shell narrow ff">'+
     '<div class="ff-prog">'+ASK.map(function(_,i){return '<i class="'+(i<=STATE.ask?'on':'')+'"></i>'}).join("")+'</div>'+
-    '<div class="ff-chat">'+ffWho()+bubbles+'<div class="ff-ctl">'+ctl+'</div>'+
+    '<div class="ff-chat'+(still?' still':'')+'">'+ffWho()+bubbles+'<div class="ff-ctl">'+ctl+'</div>'+
     '<div class="ff-next">'+(STATE.ask>0?'<button class="zf-btn secondary sm" onclick="ffPrev()">上一題</button>':'')+
     '<button class="zf-btn primary sm" id="ffNext" '+(canNext?'':'disabled')+' onclick="ffNext()">'+(STATE.ask===ASK.length-1||STATE.retPhone?'排命盤':'下一題')+'</button></div></div></main>';
 }
 /* 該月有幾天（閏年跟著年份走）：日子只列到月底；改了年或月，原本選的日子超過月底就清掉 */
 function ffDaysIn(y,m){return new Date(y||1990,m||1,0).getDate();}
-function ffSet(key,val){STATE.data[key]=val;var d=STATE.data;if((key==="month"||key==="year")&&d.day&&d.day>ffDaysIn(d.year,d.month))d.day=null;render();}
+/* 10/10 Jeffery：選月份／日期／時辰會整頁重畫，泡泡的進場動畫跟著重播（看起來跳一下）→ 同一題裡的重畫不播 */
+function ffSet(key,val){STATE.data[key]=val;STATE.ffStill=true;var d=STATE.data;if((key==="month"||key==="year")&&d.day&&d.day>ffDaysIn(d.year,d.month))d.day=null;render();}
 function ffNextState(){var b=document.getElementById("ffNext");if(!b)return;var d=STATE.data,k=ASK[STATE.ask];var ok=!((k==="email"&&!validGmail(d.email))||(k==="phone"&&!phoneE164(d.phone)));b.disabled=!ok;ffPhoneHint();var h=document.getElementById("ffEmailHint"),inp=document.getElementById("ffEmail");if(h){var bad=!!d.email&&!validGmail(d.email);h.textContent=bad?'目前只收 Gmail 信箱，再看一下拼法':'';if(inp)inp.classList.toggle("bad",bad);}}
 function ffPrev(){if(STATE.retPhone){STATE.retPhone=false;go("ret");return;}if(STATE.ask>0){STATE.ask--;render();}}
 function ffNext(){
