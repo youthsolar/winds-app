@@ -1477,7 +1477,7 @@ function viewReportPaid(R,q){
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
     '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
     (F.purchased_at?'<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin:0">購買時間：'+esc(fmtPaidAt(F.purchased_at))+'</p>':'')+
-    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">'+((LOVE||HOME)?'重新起卦':'想再問一件別的事')+'</button></div>';
+    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">重新起卦</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
 function viewResult(){
@@ -1519,7 +1519,7 @@ function viewResult(){
   h+='<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">'+
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
     '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
-    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">'+((LOVE||HOME)?'重新起卦':'想再問一件別的事')+'</button></div>';
+    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">重新起卦</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
 function teacherFirstBlock(){
