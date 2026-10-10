@@ -752,7 +752,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
       <div class="zf-card hg-card"><h3>事業與財富</h3><p>工作到了選擇的時候，或正為收入與開銷煩心，想釐清下一步。</p></div>
       <div class="zf-card hg-card"><h3>身心與平安</h3><p>身體不太舒服，或心裡有些說不出的不安，想找個方向讓自己安定下來。</p></div>
     </section>
-    <section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 符令親繪</span></div></section>
+    <section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 靈符親繪</span></div></section>
     <section class="hg-cast"><span class="eyebrow"><span class="dot"></span>怎麼走</span><p class="hg-guide">選好方向，挑一個最接近你的問題，手指放上水鏡按著三秒，卦會自己浮上來。</p><p class="hg-situ">卦出來，老師先解這一卦，再依這一卦配上親筆卦符，放在手機桌布七天，助你改善當下的炁場。算半天，你就缺風易揚老師一張符令。</p><p class="hg-situ">起卦要按住水鏡，請用手機或電腦瀏覽器開啟這一頁。</p></section>
     <footer class="hg-foot"><p>想讓老師親自看？可以直接<a href="/booking-chat/">預約老師</a>，或到<a href="/services/">預約項目</a>看看哪一項最接近你現在的狀況。</p></footer>
   </main>
@@ -797,7 +797,7 @@ var LOVE=(document.body.getAttribute("data-mode")==="love");
 var LOVE_WHO=[{k:"someone",l:"有，心裡有個人",d:"曖昧沒下文、交往變冷淡、分手想復合，心裡還是有他。"},{k:"single",l:"沒有，想看桃花",d:"心裡還沒人，想知道最近有沒有戀愛的機會。"}];
 var LOVE_ANGLE={
   someone:[{k:"where",l:"我們現在算什麼"},{k:"heart",l:"他心離我的距離"},{k:"stuck",l:"我們到底卡在哪"},{k:"next",l:"我們接下來怎麼走"}],
-  single:[{k:"where",l:"我的桃花有動靜嗎"},{k:"heart",l:"機會快到了嗎"},{k:"stuck",l:"怎麼總是沒下文"},{k:"next",l:"新戀情快到了嗎"}]
+  single:[{k:"where",l:"什麼時候會來"},{k:"heart",l:"他是什麼樣的人"},{k:"stuck",l:"卡在哪裡"},{k:"next",l:"會在哪遇見他"}]   /* 10/10 晚 Jeffery＋OpenAI：四個拆成時機／對象／卡點／相遇，不再全問時機 */
 };
 function loveWho(k){return LOVE_WHO.find(function(x){return x.k===k})||null;}
 function loveAngle(who,k){return (LOVE_ANGLE[who]||[]).find(function(x){return x.k===k})||null;}
@@ -823,7 +823,9 @@ function lvPickWho(k,btn){
    讀到關係版的字。存進瀏覽器、按這一卦的編號取回；只補這一處，不動後端。 */
 function lvRemember(){try{if(LOVE&&STATE.logId&&STATE.data.loveWho)localStorage.setItem("winds_love_"+STATE.logId,STATE.data.loveWho+"|"+STATE.data.loveAngle);}catch(e){}}
 /* 10/10 改寫前的舊說法（後台存的是當時的字），對回同一個選項 */
-var LOVE_ANGLE_OLD={"你們現在站在哪裡":"where","他的心離你多遠":"heart","真正卡住的地方":"stuck","接下來會往哪裡走":"next","我的桃花走到哪裡":"where","機會離我多遠":"heart","為什麼一直沒有開始":"stuck","下一段正在靠近嗎":"next"};
+var LOVE_ANGLE_OLD={"你們現在站在哪裡":"where","他的心離你多遠":"heart","真正卡住的地方":"stuck","接下來會往哪裡走":"next","我的桃花走到哪裡":"where","機會離我多遠":"where","為什麼一直沒有開始":"stuck","下一段正在靠近嗎":"where",
+  /* 10/10 晚沒對象那組改成四個面向：問時機的舊選項都對到「什麼時候會來」 */
+  "我的桃花有動靜嗎":"where","機會快到了嗎":"where","怎麼總是沒下文":"stuck","新戀情快到了嗎":"where"};
 function lvRestore(fc){
   if(!LOVE||STATE.data.loveWho||!STATE.logId)return;
   /* 2026-09-26 Jeffery 選項卡：先用後台存的（任何裝置打開同一卦都對），舊紀錄沒有才退回這台瀏覽器記的 */
@@ -1132,7 +1134,7 @@ function viewLanding(){
 function lpHero(eyebrow,h1,lede){
   return '<section class="lpd-hero"><img class="lpd-bagua" src="/assets/bagua-nav.png" alt="" aria-hidden="true">'+
     '<span class="eyebrow"><span class="dot"></span>'+eyebrow+'</span><h1 class="hg-h1">'+h1+'</h1><p class="lede">'+lede+'</p>'+
-    '<p class="lpd-by"><span class="zf-avatar ring lpd-av"><img src="https://cdn.winds.tw/sb-images/81de98ee043b2bc5cf3e9680d02e3366.png" alt="" width="32" height="32"></span><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 符令親繪</span></p></section>';
+    '<p class="lpd-by"><span class="zf-avatar ring lpd-av"><img src="https://cdn.winds.tw/sb-images/81de98ee043b2bc5cf3e9680d02e3366.png" alt="" width="32" height="32"></span><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 靈符親繪</span></p></section>';
 }
 function lpMirror(){
   return '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?216:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
