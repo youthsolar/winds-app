@@ -173,10 +173,10 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .zf-footer-in{max-width:var(--container);margin:0 auto;padding:52px 32px 60px;}
     .zf-footer-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:28px;}
     .zf-footer-brand .zf-logo img{height:54px;width:auto;display:block;}
-    .zf-footer-brand p{font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-muted);margin:14px 0 0;max-width:22em;}
-    .zf-footer-cols{display:flex;gap:56px;}
-    .zf-fh{font-family:var(--font-sans);font-size:12px;letter-spacing:0.02em;color:var(--text-muted);margin-bottom:14px;}
-    .zf-fcol a{display:block;font-family:var(--font-serif);font-size:14px;color:var(--ink-700);margin-bottom:9px;text-decoration:none;}
+    .zf-footer-brand p{font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-muted);margin:14px 0 0;max-width:22em;}
+    .zf-footer-cols{display:flex;gap:56px;flex-wrap:wrap;row-gap:28px;}
+    .zf-fh{font-family:var(--font-sans);font-size:12.5px;letter-spacing:0.02em;color:var(--text-muted);margin-bottom:14px;}
+    .zf-fcol a{display:block;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700);margin-bottom:9px;text-decoration:none;}
     .zf-fcol a:hover{color:var(--accent-press);text-decoration:none;}
     .zf-footer-legal{border-top:1px solid var(--border-soft);margin-top:36px;padding-top:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--font-sans);font-size:12px;color:var(--text-muted);}
     @media (max-width:760px){
@@ -1096,37 +1096,44 @@ function ffRipStop(){if(FF_RIP.timer){clearInterval(FF_RIP.timer);FF_RIP.timer=n
 /* ── 0 活動頁落地（home 模式首屏；文案 D 版逐字，Jeffery 2026-09-23 定稿）── */
 function viewLanding(){
   if(LOVE)return viewLoveLanding();
-  /* 2026-09-25 Jeffery：落地頁改用站台標準 Nav（siteHeader），不再用活動頁自己的小頁首 */
+  /* 2026-10-10 Jeffery 選 DS 定案款 D（landing-trim.jsx plan D）：八卦置中保留、名牌縮成大標下一行、
+     拿掉「起卦」眉題與水鏡上的步驟標題、水鏡在提示框上面、三張說明卡改三條各自收合、頁尾用正式 Footer。
+     改文案：這裡與 HomeGuaStatic.astro 兩份要一起改。 */
   return siteHeader()+
-    '<main class="shell narrow ff hg">'+
-    '<div class="hg-bagua-row"><img class="hg-bagua" src="/assets/bagua-nav.png" alt="" aria-hidden="true"></div>'+
-    '<section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 家裡的符</span>'+
-      '<h1 class="hg-h1">卦怎麼走，符就怎麼給</h1><p class="lede">想看看現在住的家，或還在考慮的房子？按住水鏡三秒，先起一卦。</p></section>'+
-    '<section class="lc'+(STATE.data.home?' ready':'')+'" id="hgCast"><span class="lc-eyebrow"><i></i>起卦</span>'+
+    '<main class="shell narrow ff hg lpd">'+
+    '<section class="lc'+(STATE.data.home?' ready':'')+'" id="hgCast">'+
       '<div class="lc-grid"><div class="lc-qs">'+
+        lpHero("找風問幸福 · 風水","卦怎麼走，符就怎麼給","想看看現在住的家，或還在考慮的房子？按住水鏡三秒，先起一卦。")+
         '<section class="lc-sec">'+lcStep(1,"lcN1","你現在比較像哪一種？","",!!STATE.data.home)+
           '<div class="lc-opts lc-opts2" role="group" id="hgChips">'+HOME_SITU.map(function(x){return lcOpt(STATE.data.home===x.k,"hgPick('"+x.k+"',this)",x.l,"")}).join("")+'</div></section>'+
       '</div>'+
-      '<div class="lc-side"><div class="lc-card">'+lcStep(2,"lcN3","把手指放在水鏡上。","按著三秒，卦會自己浮上來。",false)+
+      '<div class="lc-side">'+lpMirror()+
         '<div class="lc-guide"><p class="hg-guide">想著你住的地方，把手指放到水鏡上。</p><p class="hg-guide">起卦之後，老師依你的卦給一張親手畫的靈符解方。</p></div>'+
-        '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
-        '<div class="ff-clock" id="ffClock"></div></div>'+
-      '</div></div></div>'+
+      '</div></div>'+
       '</section>'+
-    '<section class="hg-cols">'+
-      '<div class="zf-card hg-card"><h3>家也會有狀況</h3><p>住得舒不舒服，你自己最有感覺。</p><p>可能是最近回家總靜不下來，也可能是搬進新家以後，事情就一直不太順。</p><p>也不一定真的出了什麼問題。</p><p>只是人住在裡面久了，家裡的變化，多少都會跟著反映在人的身上。</p><p>想替家裡常備一張符，或還在挑房子，也可以從你現在最在意的事開始看。</p><p>所以我會先看卦。</p></div>'+
-      '<div class="zf-card hg-card"><h3>老師怎麼看</h3><p>我不急著跟你講吉凶。</p><p>你把手指按在水鏡上三秒。</p><p>那一刻起出來的卦，我就把它當成這個家現在給我的訊息。</p><p>卦怎麼走，我就照著卦給符。</p><p>不是隨機抽一張現成的圖給你。</p><p>每一卦都有它自己的符，每一張符，都是我親手畫的真跡。</p></div>'+
-      '<div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來以後，我會先留一張這一卦的【卦符】給你。</p><p>先放在手機裡七天，助你和家裡改善當下的炁場。</p><p>不用貼在牆上，不用擺供桌，也不用燒。</p><p>就存成手機桌布帶著。</p><p>七天以後，如果你覺得這個家還有一些事情想繼續看，我再照著你的卦，往後解五張五行符。</p><p>不用急著決定。</p><p>先起一卦，就知道了。</p></div>'+
-    '</section>'+
-    '<section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 符令親繪</span></div></section>'+
-    /* 2026-09-26 Jeffery 選項卡：/love 的 DS 起卦區塊（love-cast.jsx）同一套套到家裡的符——兩步：① 選狀況 ② 水鏡卡（選了才亮） */
-    '<footer class="hg-foot">'+
-      '<div class="hg-links"><a href="https://home.winds.tw/">找風問好窩</a><a href="/divination">問別的事</a><a href="/terms">使用條款</a><a href="/privacy">隱私權政策</a></div>'+
-      '<p class="hg-legal">© '+new Date().getFullYear()+' 找風問幸福 · 靈學的溫柔陪伴 · 不涉及醫療或投資建議</p></footer>'+
-    '</main>';
+    lpFolds([
+      ["家也會有狀況",["住久了，家裡的變化會反映在人身上。","所以我會先看卦。"]],
+      ["老師怎麼看",["按住水鏡三秒，起出來的卦，就是這個家現在給我的訊息。","卦怎麼走，我就照著卦給符，每一張都是我親手畫的。"]],
+      ["你會拿到什麼",["先送你一張這一卦的【卦符】，存成手機桌布，七天內幫你和家裡改善炁場。","還想往下看，我再照你的卦解五張靈符。"]]])+
+    '</main>'+siteFooter(true);
+}
+/* 落地頁 D 案共用小件（/home-gua、/love） */
+function lpHero(eyebrow,h1,lede){
+  return '<section class="lpd-hero"><img class="lpd-bagua" src="/assets/bagua-nav.png" alt="" aria-hidden="true">'+
+    '<span class="eyebrow"><span class="dot"></span>'+eyebrow+'</span><h1 class="hg-h1">'+h1+'</h1><p class="lede">'+lede+'</p>'+
+    '<p class="lpd-by"><span class="ff-av">風</span><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 符令親繪</span></p></section>';
+}
+function lpMirror(){
+  return '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?216:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
+    '<div class="ff-clock" id="ffClock"></div></div>';
+}
+function lpFolds(cards){
+  return '<section class="lpd-folds">'+cards.map(function(c){
+    return '<details name="lp-fold"><summary>'+c[0]+'</summary>'+c[1].map(function(t){return '<p>'+t+'</p>'}).join("")+'</details>';
+  }).join("")+'</section>';
 }
 
-/* 找風問好愛落地頁（2026-09-26 文案規格 V1）。版型／元件／DS 全部沿用家裡的符那一頁，只換文字與兩排膠囊。
+/* 找風問好愛落地頁（2026-09-26 文案規格 V1；2026-10-10 改 DS 定案款 D，版型同 viewLanding）。
    改文案：這裡與 LoveGuaStatic.astro 兩份要一起改（靜態版給不跑 JavaScript 的抓取工具看）。 */
 function lvGuideHtml(){
   if(!STATE.data.loveWho)return '<p class="hg-guide">想著心裡最在意的那件事，把手指放到水鏡上。</p><p class="hg-guide">起卦之後，老師依你的卦給一張親手畫的靈符解方。</p>';
@@ -1135,36 +1142,24 @@ function lvGuideHtml(){
 }
 function viewLoveLanding(){
   return siteHeader()+
-    '<main class="shell narrow ff hg">'+
-    '<div class="hg-bagua-row"><img class="hg-bagua" src="/assets/bagua-nav.png" alt="" aria-hidden="true"></div>'+
-    '<section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 找風問好愛</span>'+
-      '<h1 class="hg-h1">心裡有一個人，卻不知道你們會走到哪裡？</h1>'+
-      '<p class="lede">有些感情，不是沒有答案，只是你還沒看見彼此站在哪裡。</p></section>'+
-    '<section class="lc'+(lvReady()?' ready':'')+'" id="hgCast"><span class="lc-eyebrow"><i></i>起卦</span>'+
+    '<main class="shell narrow ff hg lpd">'+
+    '<section class="lc'+(lvReady()?' ready':'')+'" id="hgCast">'+
       '<div class="lc-grid"><div class="lc-qs">'+
+        lpHero("找風問幸福 · 愛情","心裡有一個人，卻不知道你們會走到哪裡？","有些感情，不是沒有答案，只是你還沒看見彼此站在哪裡。")+
         '<section class="lc-sec">'+lcStep(1,"lcN1","現在的你，心裡有特定的人嗎？","",!!STATE.data.loveWho)+
           '<div class="lc-opts" role="group" id="lvWho">'+LOVE_WHO.map(function(x){return lcOpt(STATE.data.loveWho===x.k,"lvPickWho('"+x.k+"',this)",x.l,x.d)}).join("")+'</div></section>'+
         '<section class="lc-sec" id="lvAngleWrap"'+(STATE.data.loveWho?'':' style="display:none"')+'>'+lcStep(2,"lcN2","那，你最想先知道哪一件？","",!!STATE.data.loveAngle)+
           '<div class="lc-opts lc-opts2" role="group" id="lvAngle">'+lvAngleChips()+'</div></section>'+
       '</div>'+
-      /* 2026-10-01（廣告前全站掃描）：② 在選完 ① 前是 display:none，水鏡卡寫死 ③，首屏看到 ①→③ 跳號。
-         還沒選 ① 時水鏡卡標 2，選了（lvPickWho 會改成 3，回訪 lvRestore 已填回）就標 3 */
-      '<div class="lc-side"><div class="lc-card">'+lcStep(STATE.data.loveWho?3:2,"lcN3","把手指放在水鏡上。","按著三秒，卦會自己浮上來。",false)+
+      '<div class="lc-side">'+lpMirror()+
         '<div class="lc-guide" id="lvGuide">'+lvGuideHtml()+'</div>'+
-        '<div class="lc-mirror">'+ffMirror("cast",{size:window.innerWidth<900?232:256,hint:"按住水鏡起卦",code:(STATE.cast&&STATE.cast.code)||"000000",rising:0,name:(STATE.cast&&STATE.cast.name)||""})+
-        '<div class="ff-clock" id="ffClock"></div></div>'+
-      '</div></div></div>'+
+      '</div></div>'+
       '</section>'+
-    '<section class="hg-cols">'+
-      '<div class="zf-card hg-card"><h3>放不下的，往往不是愛不愛</h3><p>感情最讓人放不下的，往往不是一句「愛不愛」。</p><p>而是他為什麼變了、你們為什麼卡住了，以及這段關係，究竟還有沒有往前走的可能。</p><p>先不用替這段感情下結論。</p><p>想著那個人，為你們起一卦。</p></div>'+
-      '<div class="zf-card hg-card"><h3>老師怎麼看</h3><p>我不急著替他回答愛不愛。</p><p>你把手指按在水鏡上三秒。</p><p>那一刻起出來的卦，我就把它當成這段感情現在給我的訊息。</p><p>卦怎麼走，我就照著卦給符。</p><p>不是隨機抽一張現成的圖給你。</p><p>每一卦都有它自己的符，每一張符，都是我親手畫的真跡。</p></div>'+
-      '<div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來以後，我會先留一張這一卦的【卦符】給你。</p><p>先放在手機裡七天，助你改善當下的炁場。</p><p>不用貼在牆上，不用擺供桌，也不用燒。</p><p>就存成手機桌布帶著。</p><p>七天以後，如果這段感情還有一些事情想繼續看，我再照著你的卦，往後解五張靈符。</p><p>不用急著決定。</p><p>先起一卦，就知道了。</p></div>'+
-    '</section>'+
-    '<section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 符令親繪</span></div></section>'+
-    '<footer class="hg-foot">'+
-      '<div class="hg-links"><a href="/home-gua">家裡的符</a><a href="/divination">問別的事</a><a href="/terms">使用條款</a><a href="/privacy">隱私權政策</a></div>'+
-      '<p class="hg-legal">© '+new Date().getFullYear()+' 找風問幸福 · 靈學的溫柔陪伴 · 不涉及醫療或投資建議</p></footer>'+
-    '</main>';
+    lpFolds([
+      ["放不下的，往往不是愛不愛",["感情最讓人放不下的，往往不是愛不愛，而是你們為什麼卡住了。","想著那個人，或想著現在的自己，起一卦。"]],
+      ["老師怎麼看",["按住水鏡三秒，起出來的卦，就是這段感情現在給我的訊息。","卦怎麼走，我就照著卦給符，每一張都是我親手畫的。"]],
+      ["你會拿到什麼",["先送你一張這一卦的【卦符】，存成手機桌布，七天內幫你改善炁場。","還想往下看，我再照你的卦解五張靈符。"]]])+
+    '</main>'+siteFooter(true);
 }
 
 /* ── 2 起卦 ── */
@@ -2006,7 +2001,8 @@ function siteHeader(){
       '<div id="auth-button-m" class="zf-account-m"></div>'+
     '</div></nav>';
 }
-function siteFooter(){
+function siteFooter(legal){
+  /* legal：落地頁（/home-gua、/love）在版權列加「使用條款・隱私權政策」（2026-10-10 Jeffery） */
   return '<footer class="zf-footer"><div class="zf-footer-in">'+
     '<div class="zf-footer-top">'+
       '<div class="zf-footer-brand"><a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福"></a><p>選擇比努力更重要，命理是對自己的溫柔。</p></div>'+
@@ -2014,9 +2010,11 @@ function siteFooter(){
         '<div class="zf-fcol"><div class="zf-fh">命理項目</div><a href="/divination">易經</a><a href="/divination">塔羅</a><a href="/ziwei">紫微</a><a href="/spirit">分靈體</a></div>'+
         '<div class="zf-fcol"><div class="zf-fh">探索</div><a href="/blog">案例專欄</a><a href="/services">預約項目</a><a href="/booking">老師介紹</a><a href="/shop">法器選物</a><a href="/course">靈修課程</a></div>'+
         '<div class="zf-fcol"><div class="zf-fh">關於</div><a href="/about">品牌故事</a><a href="/account">會員中心</a><a href="/faq">常見問題</a></div>'+
+        /* 2026-10-10 對齊 BaseLayout：找風站群是第四欄（七站唯一從有權重網域進來的路徑，別拿掉） */
+        '<div class="zf-fcol"><div class="zf-fh">找風站群</div><a href="https://love.winds.tw/">找風問好愛</a><a href="https://home.winds.tw/">找風問好窩</a><a href="https://beauty.winds.tw/">找風問好美</a><a href="https://food.winds.tw/">找風問好食</a><a href="https://wine.winds.tw/">找風問好酒</a><a href="https://oc.com.tw/">超頻者天堂</a><a href="https://2pr.winds.tw/">2PR.ai</a></div>'+
       '</div>'+
     '</div>'+
-    '<div class="zf-footer-legal"><span>© '+new Date().getFullYear()+' 找風問幸福</span><span>靈學的溫柔陪伴 · 不涉及醫療或投資建議</span></div>'+
+    '<div class="zf-footer-legal"><span>© '+new Date().getFullYear()+' 找風問幸福'+(legal?'<span class="zf-legal-links"><a href="/terms">使用條款</a>・<a href="/privacy">隱私權政策</a></span>':'')+'</span><span>靈學的溫柔陪伴 · 不涉及醫療或投資建議</span></div>'+
     '</div></footer>';
 }
 function wireSiteChrome(){

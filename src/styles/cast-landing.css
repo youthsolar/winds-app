@@ -92,3 +92,47 @@
   .lc-guide .hg-guide{font-size:15px}
 }
 @media (prefers-reduced-motion:reduce){.ff-sheen,.ff-rips span{animation:none!important}.ff-rips span{opacity:0}}
+/* ===== 落地頁 D 案（/home-gua、/love；DS landing-trim.jsx plan D，2026-10-10 Jeffery 拍板）=====
+   只作用在 main.lpd，首頁 index.astro 的起卦區不受影響。 */
+.lpd .lc{padding:64px 0 0}
+.lpd .lc-qs{gap:32px}
+.lpd .lc-side{top:24px;display:flex;flex-direction:column;gap:16px}
+.lpd-hero{display:flex;flex-direction:column;align-items:flex-start}
+.lpd-bagua{width:40px;height:40px;align-self:center;margin:0 0 16px;opacity:.9}
+.lpd .lpd-hero .eyebrow{font-size:12.5px;font-weight:400}
+.lpd .hg-h1{font-size:40px;line-height:1.3;margin:8px 0 0}
+.lpd .lpd-hero .lede{font-size:17px;line-height:1.75;margin:12px 0 0}
+.lpd-by{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:16px 0 0;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)}
+.lpd-by .ff-av{width:24px;height:24px;font-size:11px}
+.lpd-by b{font-family:var(--font-serif);font-size:14px;font-weight:400;color:var(--text-secondary)}
+.lpd .lc-step-txt h3{font-size:20px;line-height:1.45}
+.lpd .lc-opt{font-size:16.5px;padding:14px 18px;min-height:48px}
+.lpd .lc-opt-desc{display:none}
+.lpd .lc-opt.on .lc-opt-desc{display:block}
+.lpd .lc-guide{background:var(--tint-rose-soft);padding:14px 20px}
+.lpd .lc-guide .hg-guide{font-size:15px;line-height:1.75;color:var(--ink-700)}
+.lpd-folds{max-width:640px;margin:48px auto 0;border-top:1px solid var(--border-soft)}
+.lpd-folds details{border-bottom:1px solid var(--border-soft)}
+.lpd-folds summary{min-height:52px;box-sizing:border-box;padding:14px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:var(--font-serif);font-size:15.5px;color:var(--text-primary);cursor:pointer;list-style:none}
+.lpd-folds summary::-webkit-details-marker{display:none}
+.lpd-folds summary::after{content:"+";flex:none;font-family:var(--font-sans);font-size:18px;line-height:1;color:var(--text-muted)}
+.lpd-folds details[open] summary::after{content:"−"}
+.lpd-folds p{margin:0;font-family:var(--font-serif);font-size:14.5px;font-weight:300;line-height:1.8;color:var(--text-secondary)}
+.lpd-folds p:last-child{padding-bottom:16px}
+.zf-legal-links{margin-left:12px}
+.zf-legal-links a{color:inherit;text-decoration:none}
+.zf-legal-links a:hover{color:var(--accent-press)}
+@media (max-width:899px){
+  .lpd .lc{padding:20px 0 0}
+  .lpd .lc-grid{gap:24px}
+  .lpd .lc-qs{gap:24px}
+  .lpd-bagua{margin-bottom:12px}
+  .lpd .hg-h1{font-size:26px}
+  .lpd .lpd-hero .lede{font-size:15.5px;margin-top:8px}
+  .lpd-by{margin-top:12px}
+  .lpd .lc-step-txt h3{font-size:18px}
+  .lpd .lc-opt{font-size:16px;padding:12px 14px}
+  .lpd .lc-guide{padding:12px 16px}
+  .lpd .lc-guide .hg-guide{font-size:14.5px}
+  .lpd-folds{max-width:none;margin-top:24px}
+}

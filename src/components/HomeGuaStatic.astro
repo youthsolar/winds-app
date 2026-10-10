@@ -2,15 +2,14 @@
 /* /home-gua 落地文案的靜態版（2026-09-24）。兩處共用同一份：
    1) FunnelDocument.astro home 模式 #root 內（不跑 JavaScript 的抓取工具只看得到這段；render() 一啟動整塊換掉）
    2) /home-gua/text/ 純文字版（零 script，給 ChatGPT 這類讀不動 150KB 內嵌程式的讀取端）
-   文字＝D 版定稿，與 viewLanding() 同一份；改文案只改這裡。 */
+   文字＝10/10 D 案（DS landing-trim.jsx plan D），與 viewLanding() 同一份；改文案只改這裡。 */
 ---
-  <main class="shell narrow ff hg">
-    <section class="hg-hero"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 家裡的符</span><h1 class="hg-h1">卦怎麼走，符就怎麼給</h1><p class="lede">想看看現在住的家，或還在考慮的房子？按住水鏡三秒，先起一卦。</p></section>
-    <section class="hg-cast"><span class="eyebrow"><span class="dot"></span>起卦</span><p class="hg-guide">把手指放在水鏡上。</p><p class="hg-guide">按著三秒，卦會自己浮上來。</p><p class="hg-guide hg-q">你現在比較像哪一種？</p><ul class="hg-list"><li>住得不太順</li><li>新家剛入住</li><li>想替家裡常備一張</li><li>房子還在挑</li></ul><p class="hg-guide">想著你住的地方，把手指放到水鏡上。</p><p class="hg-guide">起卦之後，老師依你的卦給一張親手畫的靈符解方。</p><p class="hg-situ">起卦要按住水鏡，請用手機或電腦瀏覽器開啟這一頁。</p></section>
-    <section class="hg-cols">
-      <div class="zf-card hg-card"><h3>家也會有狀況</h3><p>住得舒不舒服，你自己最有感覺。</p><p>可能是最近回家總靜不下來，也可能是搬進新家以後，事情就一直不太順。</p><p>也不一定真的出了什麼問題。</p><p>只是人住在裡面久了，家裡的變化，多少都會跟著反映在人的身上。</p><p>想替家裡常備一張符，或還在挑房子，也可以從你現在最在意的事開始看。</p><p>所以我會先看卦。</p></div>
-      <div class="zf-card hg-card"><h3>老師怎麼看</h3><p>我不急著跟你講吉凶。</p><p>你把手指按在水鏡上三秒。</p><p>那一刻起出來的卦，我就把它當成這個家現在給我的訊息。</p><p>卦怎麼走，我就照著卦給符。</p><p>不是隨機抽一張現成的圖給你。</p><p>每一卦都有它自己的符，每一張符，都是我親手畫的真跡。</p></div>
-      <div class="zf-card hg-card"><h3>你會拿到什麼</h3><p>卦出來以後，我會先留一張這一卦的【卦符】給你。</p><p>先放在手機裡七天，助你和家裡改善當下的炁場。</p><p>不用貼在牆上，不用擺供桌，也不用燒。</p><p>就存成手機桌布帶著。</p><p>七天以後，如果你覺得這個家還有一些事情想繼續看，我再照著你的卦，往後解五張五行符。</p><p>不用急著決定。</p><p>先起一卦，就知道了。</p></div>
+  <main class="shell narrow ff hg lpd">
+    <section class="lpd-hero"><img class="lpd-bagua" src="/assets/bagua-nav.png" alt="" aria-hidden="true"><span class="eyebrow"><span class="dot"></span>找風問幸福 · 風水</span><h1 class="hg-h1">卦怎麼走，符就怎麼給</h1><p class="lede">想看看現在住的家，或還在考慮的房子？按住水鏡三秒，先起一卦。</p><p class="lpd-by"><span class="ff-av">風</span><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 符令親繪</span></p></section>
+    <section class="hg-cast"><p class="hg-guide hg-q">你現在比較像哪一種？</p><ul class="hg-list"><li>住得不太順</li><li>新家剛入住</li><li>想替家裡常備一張</li><li>房子還在挑</li></ul><p class="hg-guide">想著你住的地方，把手指放到水鏡上。</p><p class="hg-guide">起卦之後，老師依你的卦給一張親手畫的靈符解方。</p><p class="hg-situ">起卦要按住水鏡，請用手機或電腦瀏覽器開啟這一頁。</p></section>
+    <section class="lpd-folds">
+      <details name="lp-fold"><summary>家也會有狀況</summary><p>住久了，家裡的變化會反映在人身上。</p><p>所以我會先看卦。</p></details>
+      <details name="lp-fold"><summary>老師怎麼看</summary><p>按住水鏡三秒，起出來的卦，就是這個家現在給我的訊息。</p><p>卦怎麼走，我就照著卦給符，每一張都是我親手畫的。</p></details>
+      <details name="lp-fold"><summary>你會拿到什麼</summary><p>先送你一張這一卦的【卦符】，存成手機桌布，七天內幫你和家裡改善炁場。</p><p>還想往下看，我再照你的卦解五張靈符。</p></details>
     </section>
-    <section class="hg-teacher"><span class="ff-av">風</span><div><b>風易揚老師</b><span>通靈水鏡法 · 元辰宮代觀 · 符令親繪</span></div></section>
   </main>
