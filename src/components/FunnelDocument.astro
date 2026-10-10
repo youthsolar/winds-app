@@ -1477,7 +1477,7 @@ function viewReportPaid(R,q){
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
     '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
     (F.purchased_at?'<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin:0">購買時間：'+esc(fmtPaidAt(F.purchased_at))+'</p>':'')+
-    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">想再問一件別的事</button></div>';
+    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">'+((LOVE||HOME)?'重新起卦':'想再問一件別的事')+'</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
 function viewResult(){
@@ -1513,14 +1513,11 @@ function viewResult(){
   h+=recsSection();
   h+=blogSection();
   h+=socialCta();
-  /* 2026-09-26：好愛在最後補規格 21 的重新起卦段 */
-  if(LOVE)h+='<section class="recs" style="margin-top:44px"><div class="head"><h2>還有另一個人，或另一件放不下的事嗎？</h2>'+
-    '<p>剛才那一卦之後，如果你心裡浮現的是另一個人、另一段關係，或另一個真正想知道的問題。</p>'+
-    '<p>靜一下。<br>再為那件事，重新起一卦。</p></div></section>';
+  /* 10/10 Jeffery 選項卡：好愛結尾「還有另一個人…」那段拿掉，好愛／家結尾一致 */
   h+='<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">'+
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
     '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'看分享頁</button>'+
-    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">'+(LOVE?'重新起卦':'想再問一件別的事')+'</button></div>';
+    '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">'+((LOVE||HOME)?'重新起卦':'想再問一件別的事')+'</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
 function teacherFirstBlock(){
@@ -2070,7 +2067,8 @@ function render(){
   document.body.classList.toggle("show-concierge",STATE.step==="result"||STATE.step==="cooldown");
   var root=document.getElementById("root");
   // 完整報告模式：以 log_id 回訪、已渲染結果頁 → 套站台 Nav/Footer（取代 funnel 進度條）。
-  if(STATE.reportMode&&STATE.step==="result"){
+  /* 10/10 Jeffery 選項卡：結果頁一律套網站導覽列＋頁尾（原本只有回訪才套，剛算完是起卦進度列、沒頁尾） */
+  if(STATE.step==="result"){
     root.innerHTML=siteHeader()+viewResult()+siteFooter();
     cjkWrap(root);
     wireSiteChrome();
@@ -2093,10 +2091,10 @@ function render(){
   updateFabCta();
 }
 /* ===== 浮動付款 CTA（2026-07-20 拍板：點擊捲至付費牆／捲過第一屏浮出／付費牆可見隱藏）===== */
-var fabObs=null,fabPwVisible=false;
+var fabObs=null,fabPwVisible=false,fabEndVisible=false;
 function fabScroll(){
   var b=document.getElementById("fabCta");if(!b)return;
-  b.classList.toggle("show",window.scrollY>window.innerHeight*0.7&&!fabPwVisible);
+  b.classList.toggle("show",window.scrollY>window.innerHeight*0.7&&!fabPwVisible&&!fabEndVisible);
 }
 function updateFabCta(){
   var old=document.getElementById("fabCta");
@@ -2111,9 +2109,12 @@ function updateFabCta(){
     b.onclick=function(){var p=document.querySelector(".paywall");if(p)p.scrollIntoView({behavior:"smooth",block:"center"});};
     document.body.appendChild(b);
   }
-  fabPwVisible=false;
+  fabPwVisible=false;fabEndVisible=false;
   fabObs=new IntersectionObserver(function(es){fabPwVisible=es[0].isIntersecting;fabScroll();},{threshold:.15});
   fabObs.observe(pw);
+  /* 10/10：捲到結尾按鈕／頁尾時收起來，不蓋住「重新起卦」和版權列 */
+  var endEls=[document.querySelector(".res-end"),document.querySelector(".zf-footer")].filter(Boolean);
+  if(endEls.length){var endSeen={};var eo=new IntersectionObserver(function(es){es.forEach(function(e){endSeen[e.target.className]=e.isIntersecting;});fabEndVisible=Object.keys(endSeen).some(function(k){return endSeen[k];});fabScroll();});endEls.forEach(function(el){eo.observe(el);});var po=fabObs;fabObs={disconnect:function(){po.disconnect();eo.disconnect();}};}
   window.addEventListener("scroll",fabScroll,{passive:true});
   fabScroll();
 }
