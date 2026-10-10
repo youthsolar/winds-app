@@ -13,13 +13,13 @@
 .ff-mirror.dial{cursor:ew-resize}
 .ff-stars{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .ff-stars circle{fill:var(--water-glint)}
-.ff-sheen{position:absolute;left:14%;top:10%;width:42%;height:26%;border-radius:50%;background:radial-gradient(ellipse at center,var(--water-glint) 0%,transparent 70%);filter:blur(6px);pointer-events:none;animation:ffSheen 9s ease-in-out infinite alternate}
-.ff-rips{position:absolute;inset:0;pointer-events:none}
+.ff-sheen{position:absolute;left:14%;top:10%;width:42%;height:26%;border-radius:50%;background:radial-gradient(ellipse at center,var(--water-glint) 0%,transparent 70%);filter:blur(6px);clip-path:inset(-12px round 50%);pointer-events:none;animation:ffSheen 9s ease-in-out infinite alternate}
+.ff-rips{position:absolute;inset:0;pointer-events:none;clip-path:circle(50%)}
 .ff-rips span{position:absolute;left:50%;top:50%;width:20px;height:20px;border-radius:var(--radius-pill);border:1.2px solid var(--water-glint);opacity:.85;transform:translate(-50%,-50%);animation:ffRip 3.2s cubic-bezier(.16,.6,.3,1) forwards}
 @keyframes ffRip{to{width:110%;height:110%;opacity:0}}
 @keyframes ffSheen{to{transform:translate(6%,4%);opacity:.75}}
 @keyframes ffTwinkle{to{opacity:.08}}
-.ff-hexc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.ff-hexc{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;clip-path:circle(50%)}
 .ff-yaos{display:flex;flex-direction:column;gap:9px;width:94px}
 .ff-mirror[style*="216"] .ff-yaos{width:86px}
 .ff-yao{display:flex;gap:12px;height:8px;opacity:0;transform:translateY(14px);filter:blur(6px);transition:opacity .9s var(--ease-soft),transform .9s var(--ease-soft),filter .9s var(--ease-soft)}
