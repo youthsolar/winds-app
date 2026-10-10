@@ -1148,8 +1148,8 @@ function lpFolds(cards){
    改文案：這裡與 LoveGuaStatic.astro 兩份要一起改（靜態版給不跑 JavaScript 的抓取工具看）。 */
 function lvGuideHtml(){
   if(!STATE.data.loveWho)return '<p class="hg-guide">想著最在意的感情事，手指放上水鏡。</p><p class="hg-guide">起卦後，老師依卦給你一張親手畫的靈符解方。</p>';
-  if(lvSingle())return '<p class="hg-guide">把心思放回自己。</p><p class="hg-guide">下一個是誰，先不用急著想。</p><p class="hg-guide">先看看，現在的你準備好迎接一段感情了嗎？</p>';
-  return '<p class="hg-guide">就想著他。</p><p class="hg-guide">想起最近那次對話。</p><p class="hg-guide">別急著替他答。</p><p class="hg-guide">先看這一卦：你們現在算什麼？</p>';
+  if(lvSingle())return '<p class="hg-guide">把心思放回自己。</p><p class="hg-guide">下一個是誰，先不用急著想。</p><p class="hg-guide">先看看，現在的你準備好迎接一段感情了嗎？</p><p class="hg-guide">然後，手指輕放水鏡上。</p>';
+  return '<p class="hg-guide">就想著他。</p><p class="hg-guide">想起最近那次對話。</p><p class="hg-guide">別急著替他答。</p><p class="hg-guide">先看這一卦：你們現在算什麼？</p><p class="hg-guide">然後，手指輕放水鏡上。</p>';
 }
 function viewLoveLanding(){
   return siteHeader()+
