@@ -816,7 +816,7 @@ function lvPickWho(k,btn){
   var n3=document.getElementById("lcN3");if(n3)n3.textContent="3";   /* 2026-10-01（廣告前全站掃描）：② 出現了，水鏡卡從 2 改成 3 */
   var g=document.getElementById("lvGuide");if(g)g.innerHTML=lvGuideHtml();
   var e=document.getElementById("ffErr");if(e)e.style.display="none";
-  lcSync();
+  lcSync();  lpScrollTo(document.querySelector(".lpd #lvAngleWrap"));
 }
 /* 2026-09-26（Codex 唯讀複審抓到）：兩個選擇只活在記憶體，後端也沒把問題字串帶回前端，
    所以付款跳回、重新整理或用 ?log_id= 回訪時會空掉，選「沒有對象」的人會被當成有對象、
@@ -850,8 +850,10 @@ function lcStep(n,id,title,sub,done){
     '<h3>'+esc(title)+'</h3>'+(sub?'<p>'+esc(sub)+'</p>':'')+'</div></div>';
 }
 /* 2026-10-10 Jeffery：落地頁選完（/home-gua 一題、/love 兩題）自動捲到水鏡；水鏡已整個在畫面內就不動（桌機在右欄，通常不用捲） */
-function lpToMirror(){
-  var m=document.querySelector(".lpd #hgCast .ff-mirror");if(!m)return;
+function lpToMirror(){lpScrollTo(document.querySelector(".lpd #hgCast .ff-mirror"));}
+/* 10/10 Jeffery：/love 選完第一題直接捲到第二題，捲法跟捲到水鏡一樣 */
+function lpScrollTo(m){
+  if(!m)return;
   var r=m.getBoundingClientRect();if(r.top>=0&&r.bottom<=window.innerHeight)return;
   var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   setTimeout(function(){m.scrollIntoView({behavior:reduce?"auto":"smooth",block:"center"});},120);
