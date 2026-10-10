@@ -1459,7 +1459,7 @@ function viewReportPaid(R,q){
   var F=STATE.full||{};
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>已拿到靈符解方</span>'+
     '<h1 class="q">你的完整命理報告</h1>'+
-    (q?'<p class="sum-ask" style="margin:6px 0 10px">你問的是「'+esc(q)+'」</p>':'')+
+    (q?'<p class="sum-ask" style="margin:24px 0 10px">你問的是「'+esc(q)+'」</p>':'')+
     /* 2026-10-06 Jeffery：卦符卡免費、付費都放最上面（同 9/25 免費頁的位置）；下面靈符解方區只留五張符 */
     ((R.hexCard&&R.hexCard.url)||R.talismanImg||R.hexName?'<div style="margin-top:22px">'+hexCardHero(true)+'</div>':'')+
     '</div>';
@@ -1494,7 +1494,7 @@ function viewResult(){
   if(LOVE)h+=(lvSingle()
     ?'<p class="lede" style="margin:10px 0 4px">桃花不是單純的「有人追」或「沒人追」。<br>有時候機會已經出現，只是你沒有注意。<br>有時候身邊明明有人，卻始終遇不到真正適合自己的關係。<br>也有些時候，是上一段感情留下的東西，還沒有真正離開。<br>先看看，你現在的感情正在什麼位置。</p>'
     :'<p class="lede" style="margin:10px 0 4px">有些人明明彼此在意，卻一直停在原地。<br>有些人越靠越近，其中一個卻突然退開。<br>也有些感情真正卡住的，從來不是「愛不愛」，而是兩個人已經站在不同的位置。<br>先別急著問結果。<br>先看看，你們現在怎麼了。</p>');
-  if(q)h+='<p class="sum-ask" style="margin:6px 0 10px">你問的是「'+esc(q)+'」</p>';
+  if(q)h+='<p class="sum-ask" style="margin:24px 0 10px">你問的是「'+esc(q)+'」</p>';
   h+='<div style="margin-top:22px">'+hexCardHero(paid)+'</div>';
   if(R.summary)h+='<div class="sum-body">'+md(R.summary)+'</div>';
   h+='</div>';
