@@ -103,7 +103,9 @@
 .lpd .hg-h1{font-size:40px;line-height:1.3;margin:8px 0 0}
 .lpd .lpd-hero .lede{font-size:17px;line-height:1.75;margin:12px 0 0}
 .lpd-by{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:16px 0 0;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)}
-.lpd-by .ff-av{width:24px;height:24px;font-size:11px}
+/* 10/10 Jeffery 選項卡：老師頭像改網站圓形頭像（同預約項目頁 zf-avatar ring） */
+.lpd-by .lpd-av{width:32px;height:32px;margin-right:4px}
+.lpd-by .lpd-av img{width:100%;height:100%;object-fit:cover;display:block}
 .lpd-by b{font-family:var(--font-serif);font-size:14px;font-weight:400;color:var(--text-secondary)}
 .lpd .lc-step-txt h3{font-size:20px;line-height:1.45}
 .lpd .lc-opt{font-size:16.5px;padding:14px 18px;min-height:48px}
