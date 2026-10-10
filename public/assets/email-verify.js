@@ -163,7 +163,7 @@
       }
       function verify() {
         if (busy) return;
-        var code = String(inp.value || '').replace(/\D/g, '');
+        var code = String(inp.value || '').replace(/\D/g, '').slice(0, 6);
         if (code.length !== 6) { bad(true); err.textContent = '請輸入信裡的 6 位數字。'; inp.focus(); return; }
         busy = true; go.disabled = true; go.textContent = '確認中…'; err.textContent = '';
         var body = { code: code };
@@ -206,7 +206,9 @@
 
       inp.addEventListener('input', function () {
         bad(false);
-        var d = String(inp.value || '').replace(/\D/g, '');
+        // 2026-10-10 Jeffery 在 IG 內建瀏覽器實測：Gmail 自動填寫會塞兩次（090109090109），只留前 6 碼
+        var d = String(inp.value || '').replace(/\D/g, '').slice(0, 6);
+        if (inp.value !== d) inp.value = d;
         if (d.length === 6 && !go.disabled) verify();   // 貼上整串或填滿 6 碼就直接送
       });
       inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') verify(); });
