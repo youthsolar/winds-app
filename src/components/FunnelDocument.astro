@@ -772,7 +772,7 @@ var LINE_OA_URL="https://lin.ee/tQHsgWB";
    同一條流程、同一個後端；差別：首屏是落地文案＋水鏡（landing）、不選題、卦出來第一題先問「家的情形」四選一，
    答案併進問題字串（老師解卦吃得到）並另存 home_situation（卦符卡那句話依此換）。非 home 模式一行都不走。 */
 var HOME=(document.body.getAttribute("data-mode")==="home");
-var HOME_SITU=[{k:"unsettled",l:"住得不太順"},{k:"moved",l:"新家剛入住"},{k:"keep",l:"想替家裡常備一張"},{k:"choosing",l:"房子還在挑"}];
+var HOME_SITU=[{k:"unsettled",l:"住得卡卡的"},{k:"moved",l:"新家剛住進"},{k:"keep",l:"想備張符在家"},{k:"choosing",l:"還沒挑定房"}];
 function homeSitu(k){return HOME_SITU.find(function(x){return x.k===k})||null;}
 /* 落地頁選狀況：只切換按鈕，不重畫整頁（重畫會跳回頁首，9/25 Jeffery 真機抓到） */
 function hgPick(k,btn){STATE.data.home=k;var ch=document.getElementById("hgChips");if(ch)Array.prototype.forEach.call(ch.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});var e=document.getElementById("ffErr");if(e)e.style.display="none";lcSync();lpToMirror();}
@@ -782,8 +782,8 @@ function hgPick(k,btn){STATE.data.home=k;var ch=document.getElementById("hgChips
 function hgRemember(){try{if(HOME&&STATE.logId&&STATE.data.home)localStorage.setItem("winds_home_"+STATE.logId,STATE.data.home);}catch(e){}}
 function hgRestore(fc){
   if(!HOME||STATE.data.home||!STATE.logId)return;
-  /* 9/25 前的舊說法對到現行選項（Jeffery 選項卡 9/27）：想常備一張→想替家裡常備一張 */
-  var HOME_OLD={"想常備一張":"keep"};
+  /* 舊說法對到現行選項：9/25 前（Jeffery 選項卡 9/27）＋10/10 改寫前的四個 */
+  var HOME_OLD={"想常備一張":"keep","住得不太順":"unsettled","新家剛入住":"moved","想替家裡常備一張":"keep","房子還在挑":"choosing"};
   if(fc&&fc.home){var hs=HOME_SITU.filter(function(x){return x.l===fc.home;})[0];var hk=hs?hs.k:HOME_OLD[fc.home];if(hk){STATE.data.home=hk;return;}}
   try{var v=localStorage.getItem("winds_home_"+STATE.logId)||"";if(homeSitu(v))STATE.data.home=v;}catch(e){}
 }
@@ -794,10 +794,10 @@ function hgRestore(fc){
    刻意不新增資料庫欄位、不改 worker：A／B 一律只切前端文字（Jeffery 規格：不為文案需求重構程式）。
    五張符的叫法沿用站上現行的【卦名 靈符】（拍板），不改成規格初稿的「節靈符」。 */
 var LOVE=(document.body.getAttribute("data-mode")==="love");
-var LOVE_WHO=[{k:"someone",l:"有，我心裡有一個人",d:"曖昧、交往、冷淡、分手、復合，或是一個始終放不下的人。"},{k:"single",l:"沒有，想看自己的桃花",d:"目前沒有特定對象，想看看最近的感情機會與桃花狀態。"}];
+var LOVE_WHO=[{k:"someone",l:"有，心裡有個人",d:"曖昧沒下文、交往變冷淡、分手想復合，心裡還是有他。"},{k:"single",l:"沒有，想看桃花",d:"心裡還沒人，想知道最近有沒有戀愛的機會。"}];
 var LOVE_ANGLE={
-  someone:[{k:"where",l:"你們現在站在哪裡"},{k:"heart",l:"他的心離你多遠"},{k:"stuck",l:"真正卡住的地方"},{k:"next",l:"接下來會往哪裡走"}],
-  single:[{k:"where",l:"我的桃花走到哪裡"},{k:"heart",l:"機會離我多遠"},{k:"stuck",l:"為什麼一直沒有開始"},{k:"next",l:"下一段正在靠近嗎"}]
+  someone:[{k:"where",l:"我們現在算什麼"},{k:"heart",l:"他心離我的距離"},{k:"stuck",l:"我們到底卡在哪"},{k:"next",l:"我們接下來怎麼走"}],
+  single:[{k:"where",l:"我的桃花有動靜嗎"},{k:"heart",l:"機會快到了嗎"},{k:"stuck",l:"怎麼總是沒下文"},{k:"next",l:"新戀情快到了嗎"}]
 };
 function loveWho(k){return LOVE_WHO.find(function(x){return x.k===k})||null;}
 function loveAngle(who,k){return (LOVE_ANGLE[who]||[]).find(function(x){return x.k===k})||null;}
@@ -822,10 +822,12 @@ function lvPickWho(k,btn){
    所以付款跳回、重新整理或用 ?log_id= 回訪時會空掉，選「沒有對象」的人會被當成有對象、
    讀到關係版的字。存進瀏覽器、按這一卦的編號取回；只補這一處，不動後端。 */
 function lvRemember(){try{if(LOVE&&STATE.logId&&STATE.data.loveWho)localStorage.setItem("winds_love_"+STATE.logId,STATE.data.loveWho+"|"+STATE.data.loveAngle);}catch(e){}}
+/* 10/10 改寫前的舊說法（後台存的是當時的字），對回同一個選項 */
+var LOVE_ANGLE_OLD={"你們現在站在哪裡":"where","他的心離你多遠":"heart","真正卡住的地方":"stuck","接下來會往哪裡走":"next","我的桃花走到哪裡":"where","機會離我多遠":"heart","為什麼一直沒有開始":"stuck","下一段正在靠近嗎":"next"};
 function lvRestore(fc){
   if(!LOVE||STATE.data.loveWho||!STATE.logId)return;
   /* 2026-09-26 Jeffery 選項卡：先用後台存的（任何裝置打開同一卦都對），舊紀錄沒有才退回這台瀏覽器記的 */
-  if(fc&&LOVE_ANGLE[fc.love_who]){STATE.data.loveWho=fc.love_who;var hit=(LOVE_ANGLE[fc.love_who]||[]).filter(function(x){return x.l===fc.love_angle;})[0];STATE.data.loveAngle=hit?hit.k:"";return;}
+  if(fc&&LOVE_ANGLE[fc.love_who]){STATE.data.loveWho=fc.love_who;var hit=(LOVE_ANGLE[fc.love_who]||[]).filter(function(x){return x.l===fc.love_angle;})[0];STATE.data.loveAngle=hit?hit.k:(LOVE_ANGLE_OLD[fc.love_angle]||"");return;}
   try{var v=(localStorage.getItem("winds_love_"+STATE.logId)||"").split("|");
     if(LOVE_ANGLE[v[0]]){STATE.data.loveWho=v[0];STATE.data.loveAngle=loveAngle(v[0],v[1])?v[1]:"";}}catch(e){}
 }
@@ -1110,18 +1112,18 @@ function viewLanding(){
     '<main class="shell narrow ff hg lpd">'+
     '<section class="lc'+(STATE.data.home?' ready':'')+'" id="hgCast">'+
       '<div class="lc-grid"><div class="lc-qs">'+
-        lpHero("找風問幸福 · 風水","卦怎麼走，符就怎麼給","想看看現在住的家，或還在考慮的房子？按住水鏡三秒，先起一卦。")+
-        '<section class="lc-sec">'+lcStep(1,"lcN1","你現在比較像哪一種？","",!!STATE.data.home)+
+        lpHero("找風問幸福 · 風水","家，怎麼越住越悶？","這個家，適合現在的你嗎？按住水鏡三秒，起一卦。")+
+        '<section class="lc-sec">'+lcStep(1,"lcN1","你家現在是哪種狀況？","",!!STATE.data.home)+
           '<div class="lc-opts lc-opts2" role="group" id="hgChips">'+HOME_SITU.map(function(x){return lcOpt(STATE.data.home===x.k,"hgPick('"+x.k+"',this)",x.l,"")}).join("")+'</div></section>'+
       '</div>'+
       '<div class="lc-side">'+lpMirror()+
-        '<div class="lc-guide"><p class="hg-guide">想著你住的地方，把手指放到水鏡上。</p><p class="hg-guide">起卦之後，老師依你的卦給一張親手畫的靈符解方。</p></div>'+
+        '<div class="lc-guide"><p class="hg-guide">想著你的家，手指輕放水鏡上。</p><p class="hg-guide">起卦後，老師依卦給你一張親手畫的靈符解方。</p></div>'+
       '</div></div>'+
       '</section>'+
     lpFolds([
-      ["家也會有狀況",["住久了，家裡的變化會反映在人身上。","所以我會先看卦。"]],
-      ["老師怎麼看",["按住水鏡三秒，起出來的卦，就是這個家現在給我的訊息。","卦怎麼走，我就照著卦給符，每一張都是我親手畫的。"]],
-      ["你會拿到什麼",["先送你一張這一卦的【卦符】，存成手機桌布，七天內幫你和家裡改善炁場。","還想往下看，我再照你的卦解五張靈符。"]]])+
+      ["家裡哪裡卡住",["住久了，家裡的變化會反映在人身上。","所以我會先看卦。"]],
+      ["老師如何看卦",["按住水鏡三秒，起出來的卦，就是這個家現在給我的訊息。","卦怎麼走，我就照著卦給符，每一張都是我親手畫的。"]],
+      ["這次會拿到什麼",["先送你一張這一卦的【卦符】，存成手機桌布，七天內幫你和家裡改善炁場。","還想往下看，我再照你的卦解五張靈符。"]]])+
     '</main>'+siteFooter(true);
 }
 /* 落地頁 D 案共用小件（/home-gua、/love） */
@@ -1143,19 +1145,19 @@ function lpFolds(cards){
 /* 找風問好愛落地頁（2026-09-26 文案規格 V1；2026-10-10 改 DS 定案款 D，版型同 viewLanding）。
    改文案：這裡與 LoveGuaStatic.astro 兩份要一起改（靜態版給不跑 JavaScript 的抓取工具看）。 */
 function lvGuideHtml(){
-  if(!STATE.data.loveWho)return '<p class="hg-guide">想著心裡最在意的那件事，把手指放到水鏡上。</p><p class="hg-guide">起卦之後，老師依你的卦給一張親手畫的靈符解方。</p>';
-  if(lvSingle())return '<p class="hg-guide">想著現在的自己。</p><p class="hg-guide">不用急著想下一個人會是誰。</p><p class="hg-guide">先看看，你現在是不是已經準備好讓一個人走進來。</p>';
-  return '<p class="hg-guide">想著那個人。</p><p class="hg-guide">想著你們最近發生的事。</p><p class="hg-guide">不用替他回答。</p><p class="hg-guide">這一卦，先看你們現在站在哪裡。</p>';
+  if(!STATE.data.loveWho)return '<p class="hg-guide">想著最在意的感情事，手指放上水鏡。</p><p class="hg-guide">起卦後，老師依卦給你一張親手畫的靈符解方。</p>';
+  if(lvSingle())return '<p class="hg-guide">把心思放回自己。</p><p class="hg-guide">下一個是誰，先不用急著想。</p><p class="hg-guide">先看看，現在的你準備好迎接一段感情了嗎？</p>';
+  return '<p class="hg-guide">就想著他。</p><p class="hg-guide">想起最近那次對話。</p><p class="hg-guide">別急著替他答。</p><p class="hg-guide">先看這一卦：你們現在算什麼？</p>';
 }
 function viewLoveLanding(){
   return siteHeader()+
     '<main class="shell narrow ff hg lpd">'+
     '<section class="lc'+(lvReady()?' ready':'')+'" id="hgCast">'+
       '<div class="lc-grid"><div class="lc-qs">'+
-        lpHero("找風問幸福 · 愛情","心裡有一個人，卻不知道你們會走到哪裡？","有些感情，不是沒有答案，只是你還沒看見彼此站在哪裡。")+
-        '<section class="lc-sec">'+lcStep(1,"lcN1","現在的你，心裡有特定的人嗎？","",!!STATE.data.loveWho)+
+        lpHero("找風問幸福 · 愛情","你們，到底算什麼？","有對象，想看清關係；沒對象，想知道桃花在哪。")+
+        '<section class="lc-sec">'+lcStep(1,"lcN1","心裡，有個在意的人嗎？","",!!STATE.data.loveWho)+
           '<div class="lc-opts" role="group" id="lvWho">'+LOVE_WHO.map(function(x){return lcOpt(STATE.data.loveWho===x.k,"lvPickWho('"+x.k+"',this)",x.l,x.d)}).join("")+'</div></section>'+
-        '<section class="lc-sec" id="lvAngleWrap"'+(STATE.data.loveWho?'':' style="display:none"')+'>'+lcStep(2,"lcN2","那，你最想先知道哪一件？","",!!STATE.data.loveAngle)+
+        '<section class="lc-sec" id="lvAngleWrap"'+(STATE.data.loveWho?'':' style="display:none"')+'>'+lcStep(2,"lcN2","哪件事，你最想問？","",!!STATE.data.loveAngle)+
           '<div class="lc-opts lc-opts2" role="group" id="lvAngle">'+lvAngleChips()+'</div></section>'+
       '</div>'+
       '<div class="lc-side">'+lpMirror()+
@@ -1163,9 +1165,9 @@ function viewLoveLanding(){
       '</div></div>'+
       '</section>'+
     lpFolds([
-      ["放不下的，往往不是愛不愛",["感情最讓人放不下的，往往不是愛不愛，而是你們為什麼卡住了。","想著那個人，或想著現在的自己，起一卦。"]],
-      ["老師怎麼看",["按住水鏡三秒，起出來的卦，就是這段感情現在給我的訊息。","卦怎麼走，我就照著卦給符，每一張都是我親手畫的。"]],
-      ["你會拿到什麼",["先送你一張這一卦的【卦符】，存成手機桌布，七天內幫你改善炁場。","還想往下看，我再照你的卦解五張靈符。"]]])+
+      ["最難的，是放不下",["對話重看好多次，還是猜不透？","有對象看關係，沒對象看桃花，先起一卦。"]],
+      ["老師如何看卦",["按住水鏡三秒，先起卦看感情；老師依卦給符，每張都親手畫。"]],
+      ["這次會拿到什麼",["先送你一張這一卦的【卦符】，存成手機桌布，七天內幫你改善炁場。","還想往下看，我再照你的卦解五張靈符。"]]])+
     '</main>'+siteFooter(true);
 }
 
