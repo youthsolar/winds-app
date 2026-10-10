@@ -775,7 +775,7 @@ var HOME=(document.body.getAttribute("data-mode")==="home");
 var HOME_SITU=[{k:"unsettled",l:"住得不太順"},{k:"moved",l:"新家剛入住"},{k:"keep",l:"想替家裡常備一張"},{k:"choosing",l:"房子還在挑"}];
 function homeSitu(k){return HOME_SITU.find(function(x){return x.k===k})||null;}
 /* 落地頁選狀況：只切換按鈕，不重畫整頁（重畫會跳回頁首，9/25 Jeffery 真機抓到） */
-function hgPick(k,btn){STATE.data.home=k;var ch=document.getElementById("hgChips");if(ch)Array.prototype.forEach.call(ch.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});var e=document.getElementById("ffErr");if(e)e.style.display="none";lcSync();}
+function hgPick(k,btn){STATE.data.home=k;var ch=document.getElementById("hgChips");if(ch)Array.prototype.forEach.call(ch.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});var e=document.getElementById("ffErr");if(e)e.style.display="none";lcSync();lpToMirror();}
 /* 2026-09-26（Codex 唯讀複審抓到）：STATE.data.home 只活在記憶體，後端也沒把問題字串帶回前端，
    所以付款跳回或用 ?log_id= 回訪時會是空字串，結果頁標題就從「家裡的符・新家剛入住」掉成只剩
    「家裡的符」。做法與 love 模式相同：存進瀏覽器、按這一卦的編號取回，取回時驗過才用。不動後端。 */
@@ -834,7 +834,7 @@ function lvPickAngle(k,btn){
   var r2=document.getElementById("lvAngle");if(r2)Array.prototype.forEach.call(r2.querySelectorAll(".lc-opt"),function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});
   var e=document.getElementById("ffErr");if(e)e.style.display="none";
   var g=document.getElementById("lvGuide");if(g)g.innerHTML=lvGuideHtml();
-  lcSync();
+  lcSync();lpToMirror();
 }
 /* ===== 起卦區塊（DS ui_kits/free-flow/love-cast.jsx，2026-09-26 Jeffery「這一段的設計有一點亂」→ DS 重出稿）=====
    三步：① 問題一 ② 問題二（選完①才出現）③ 水鏡卡（兩題都選才亮、可按）。選項＝DS OptionRow。 */
@@ -846,6 +846,13 @@ function lcOpt(on,click,title,desc){
 function lcStep(n,id,title,sub,done){
   return '<div class="lc-step"><span class="lc-num'+(done?' done':'')+'" id="'+id+'" aria-hidden="true">'+n+'</span><div class="lc-step-txt">'+
     '<h3>'+esc(title)+'</h3>'+(sub?'<p>'+esc(sub)+'</p>':'')+'</div></div>';
+}
+/* 2026-10-10 Jeffery：落地頁選完（/home-gua 一題、/love 兩題）自動捲到水鏡；水鏡已整個在畫面內就不動（桌機在右欄，通常不用捲） */
+function lpToMirror(){
+  var m=document.querySelector(".lpd #hgCast .ff-mirror");if(!m)return;
+  var r=m.getBoundingClientRect();if(r.top>=0&&r.bottom<=window.innerHeight)return;
+  var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  setTimeout(function(){m.scrollIntoView({behavior:reduce?"auto":"smooth",block:"center"});},120);
 }
 function lcSync(){
   var a=document.getElementById("lcN1");if(a)a.classList.toggle("done",HOME?!!STATE.data.home:!!STATE.data.loveWho);
