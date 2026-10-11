@@ -7,6 +7,7 @@ export interface LpTeacher {
   skills: string[];                      // 開頭主題標籤
   skillMain: string;                     // 「老師怎麼看事情」右欄那句
   featuredDesc: Record<string, string[]>; // 項目卡說明（依項目 id）
+  hidePosts?: string[];                  // 不放進「老師專欄」的文章（slug）
 }
 
 export const LP_TEACHERS: Record<string, LpTeacher> = {
@@ -60,6 +61,7 @@ export const LP_TEACHERS: Record<string, LpTeacher> = {
   yiziliang: {
     providerId: "35",
     title: "伊紫蓮老師 一對一預約｜因果查看・通靈水鏡法｜找風問幸福",
+    hidePosts: ["aboutakashic"], // 2026-10-12 不做阿卡西了
     lede: ["同樣的問題一直出現，你也想知道原因嗎？", "可能是一段放不下的感情，也可能是生活中反覆遇到的難題。", "老師陪你看看事情怎麼一路走到這裡，再想下一步。"],
     skills: ["感情放不下", "事情一直重演", "想查原因", "人生卡住"],
     skillMain: "老師主要看：反覆發生的事情與背後脈絡，陪你理解問題從哪裡開始。",
