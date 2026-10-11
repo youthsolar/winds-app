@@ -6,3 +6,8 @@
 
 /llm.txt
   Content-Type: text/plain
+
+# 2026-10-11（全站效率整理）：/_astro/ 檔名都帶內容雜湊，內容變了檔名就變 → 可以放心長快取，
+# 不然每次重新整理都要回伺服器問一次（原本 max-age=0, must-revalidate）。
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

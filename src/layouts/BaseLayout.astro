@@ -1,4 +1,8 @@
 ---
+import '../styles/phosphor-regular.css';
+import '../styles/phosphor-thin.css';
+import '../styles/phosphor-fill.css';
+import '../styles/phosphor-bold.css';
 import '../styles/global.css';
 import ConciergeWidget from '../components/ConciergeWidget.astro';
 import SiteNav from '../components/SiteNav.astro';
@@ -38,7 +42,6 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script is:inline src="/assets/theme-init.js"></script>
-  <script is:inline src="/assets/budoux-zh-hant.min.js" defer></script>
   <script is:inline src="/assets/cjk-wrap.js" defer></script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -112,10 +115,6 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <!-- Phosphor icons（DS 元件用）-->
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
 
   <!-- Google Identity Services (One Tap + Sign In) -->
   {GOOGLE_CLIENT_ID && (

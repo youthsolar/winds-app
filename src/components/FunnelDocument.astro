@@ -9,6 +9,10 @@ import LoveGuaStatic from './LoveGuaStatic.astro';
  * 視覺＝新設計（design .jsx 為真值來源）；token 走 global.css（不重定 :root）。
  * 全螢幕 funnel，自帶 ProgressHeader，不掛 site Nav/Footer。
  */
+import '../styles/phosphor-regular.css';
+import '../styles/phosphor-thin.css';
+import '../styles/phosphor-bold.css';
+import '../styles/phosphor-fill.css';
 import '../styles/global.css';
 import '../styles/cast-landing.css';   /* 水鏡＋起卦區塊，與首頁共用 */
 import ConciergeWidget from './ConciergeWidget.astro';
@@ -41,18 +45,14 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <meta name="twitter:image" content={ogImage} />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+  <!-- 2026-10-11（Astra #6）：主題同步腳本放在所有外部樣式表之前，跟 BaseLayout 一致 -->
   <script is:inline src="/assets/theme-init.js"></script>
   <!-- 2026-10-11 Jeffery「重新整理樣式閃一下」：#root 裡的靜態版（給不跑 JavaScript 的抓取工具）會先畫一幀，render() 才換成真畫面。
        有 JavaScript 就先藏靜態版；腳本壞了 2 秒後自己現身（.ff-static 的 CSS）。 -->
   <script is:inline>document.documentElement.classList.add("ff-js");</script>
-  <script is:inline src="/assets/budoux-zh-hant.min.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script is:inline src="/assets/cjk-wrap.js" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -117,7 +117,6 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .zf-card{padding:24px}
     @media(max-width:760px){.zf-card{padding:20px 18px}}
 
-    .placeholder-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:12px;color:var(--text-muted);background:var(--surface-page);border:1px dashed var(--border-strong);border-radius:var(--radius-pill);padding:3px 10px;white-space:nowrap}
 
     /* chips */
     .chip{all:unset;cursor:pointer;white-space:nowrap;font-family:var(--font-serif);font-size:16px;font-weight:500;letter-spacing:.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:11px 20px;transition:all var(--dur-fast) var(--ease-soft)}
@@ -595,8 +594,6 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .hg-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px 0 6px}
     .hg-chips .chip{font-size:16px;padding:11px 18px}
     /* ── 活動頁「家裡的符」落地（home 模式）── */
-    .hg-top{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:680px;margin:0 auto;padding:14px 20px 0}
-    .hg-logo img{height:34px;width:auto;display:block}
     .hg-cols{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:26px}
     .hg-card h3{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);margin:0 0 8px}
     .hg-card p{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.85;color:var(--ink-700);margin:0}
@@ -612,9 +609,6 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
 
     .hg-foot{margin-top:56px;padding-top:22px;border-top:1px solid var(--border-soft);text-align:center}
     .hg-foot p{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.8;color:var(--text-secondary);margin:0 0 12px}
-    .hg-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;font-family:var(--font-sans);font-size:13px}
-    .hg-links a{color:var(--ink-700);text-decoration:none;border-bottom:1px solid var(--border-strong);padding-bottom:2px}
-    .hg-legal{font-size:12px!important;color:var(--text-muted)!important;margin-top:16px!important}
     .ff-inp{width:100%;box-sizing:border-box;padding:12px 16px;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);outline:none;transition:border-color .15s,box-shadow .15s}
     .ff-inp:focus{border-color:var(--rose-300);box-shadow:0 0 0 4px var(--focus-ring,var(--accent-quiet))}
     .ff-inp.bad{border-color:var(--critical)}
@@ -1127,7 +1121,7 @@ function viewLanding(){
     '<section class="lc'+(STATE.data.home?' ready':'')+'" id="hgCast">'+
       '<div class="lc-grid"><div class="lc-qs">'+
         lpHero("找風問幸福 · 風水","家，怎麼越住越悶？","這個家，適合現在的你嗎？按住水鏡三秒，起一卦。")+
-        '<section class="lc-sec">'+lcStep(1,"lcN1","你家現在是哪種狀況？","",!!STATE.data.home)+
+        '<section class="lc-sec lc-sec0">'+lcStep(1,"lcN1","你家現在是哪種狀況？","",!!STATE.data.home)+
           '<div class="lc-opts lc-opts2" role="group" id="hgChips">'+HOME_SITU.map(function(x){return lcOpt(STATE.data.home===x.k,"hgPick('"+x.k+"',this)",x.l,"")}).join("")+'</div></section>'+
       '</div>'+
       '<div class="lc-side">'+lpMirror()+
@@ -1169,7 +1163,7 @@ function viewLoveLanding(){
     '<section class="lc'+(lvReady()?' ready':'')+'" id="hgCast">'+
       '<div class="lc-grid"><div class="lc-qs">'+
         lpHero("找風問幸福 · 愛情","你們，到底算什麼？","有對象，想看清關係；沒對象，想知道桃花在哪。")+
-        '<section class="lc-sec">'+lcStep(1,"lcN1","心裡，有個在意的人嗎？","",!!STATE.data.loveWho)+
+        '<section class="lc-sec lc-sec0">'+lcStep(1,"lcN1","心裡，有個在意的人嗎？","",!!STATE.data.loveWho)+
           '<div class="lc-opts" role="group" id="lvWho">'+LOVE_WHO.map(function(x){return lcOpt(STATE.data.loveWho===x.k,"lvPickWho('"+x.k+"',this)",x.l,x.d)}).join("")+'</div></section>'+
         '<section class="lc-sec" id="lvAngleWrap"'+(STATE.data.loveWho?'':' style="display:none"')+'>'+lcStep(2,"lcN2","哪件事，你最想問？","",!!STATE.data.loveAngle)+
           '<div class="lc-opts lc-opts2" role="group" id="lvAngle">'+lvAngleChips()+'</div></section>'+

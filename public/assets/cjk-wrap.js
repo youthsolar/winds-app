@@ -304,7 +304,8 @@
 
   function boot() {
     injectCss();
-    if (getParser()) { start(); return; }
+    /* 2026-10-11（Astra #3）：瀏覽器原本換行模式用不到 BudouX，直接開始；各頁也不再載 budoux-zh-hant.min.js（要把 NATIVE 改回 false 時記得加回 head） */
+    if (NATIVE || getParser()) { start(); return; }
     if (window.customElements && customElements.whenDefined) customElements.whenDefined('budoux-zh-hant').then(start);
     setTimeout(function () { if (!started) start(); }, 1500);
   }

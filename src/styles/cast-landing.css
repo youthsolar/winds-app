@@ -74,6 +74,8 @@
 .lc-mirror .ff-mirrorwrap{margin-top:0}
 .lc-mirror .ff-clock{min-height:18px;font-size:12px;letter-spacing:.08em}
 @keyframes lcIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* 2026-10-11（Astra #1）：落地頁第一組題目一打開就在，不淡入（重新整理看起來像晚一拍）；之後展開的題組照舊淡入 */
+.lc-sec0{animation:none}
 @media (prefers-reduced-motion:reduce){.lc-sec{animation:none}}
 @media (max-width:899px){
   .lc{width:auto;margin-left:0;padding:40px 2px}

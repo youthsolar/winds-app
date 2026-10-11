@@ -7,6 +7,10 @@
  * 身份：有 winds_google_token 就帶 google_sub + X-Google-Id-Token（後端驗章預填）；
  *       沒有則訪客模式（機器人會問聯絡資料），一樣能完成預約。
  */
+import '../styles/phosphor-regular.css';
+import '../styles/phosphor-thin.css';
+import '../styles/phosphor-fill.css';
+import '../styles/phosphor-bold.css';   /* nav-auth.js 登入後的帳號下拉箭頭用 ph-bold（Astra 10/11：原本 unpkg 時就缺） */
 import '../styles/global.css';
 import SiteNav from '../components/SiteNav.astro';
 ---
@@ -16,7 +20,6 @@ import SiteNav from '../components/SiteNav.astro';
 <head>
   <meta charset="UTF-8" />
   <script is:inline src="/assets/theme-init.js"></script>
-  <script is:inline src="/assets/budoux-zh-hant.min.js" defer></script>
   <script is:inline src="/assets/cjk-wrap.js" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>預約老師 · 找風問幸福</title>
@@ -26,10 +29,7 @@ import SiteNav from '../components/SiteNav.astro';
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
-  <script>var _e=new URLSearchParams(location.search).get('embed');if(_e){var _d=document.documentElement;_d.classList.add('embed');if(_e==='page')_d.classList.add('embed-page');}</script>
+  <script is:inline>var _e=new URLSearchParams(location.search).get('embed');if(_e){var _d=document.documentElement;_d.classList.add('embed');if(_e==='page')_d.classList.add('embed-page');}</script>
   <style is:inline>
     /* embed 兩模式皆藏網站 nav+sp-intro；embed=page（手機全螢幕）改顯示風小編 header（取代 sp-intro，與原生 ConciergeWidget .wc-head 逐值對齊）。inline 確保隨 HTML 出貨、不被外部 CSS 快取卡住 */
     html.embed .zf-nav,html.embed .sp-intro{display:none}

@@ -6,6 +6,8 @@
  * 資料＝worker /share-profile?uid=（公開命理：星座/生肖/星宿/本命塔羅；農曆等 PII 已由 C6 排除）。
  * OG＝靜態通用預覽（per-user 動態 OG 走 worker，未來增強）。
  */
+import '../styles/phosphor-regular.css';
+import '../styles/phosphor-thin.css';
 import '../styles/global.css';
 ---
 
@@ -22,14 +24,11 @@ import '../styles/global.css';
   <meta property="og:type" content="website" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <script is:inline src="/assets/theme-init.js"></script>
-  <script is:inline src="/assets/budoux-zh-hant.min.js" defer></script>
   <script is:inline src="/assets/cjk-wrap.js" defer></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
 
   <style is:global>
     body{margin:0;background:var(--surface-page)}
