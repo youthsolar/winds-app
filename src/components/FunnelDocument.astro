@@ -16,8 +16,9 @@ import '../styles/phosphor-fill.css';
 import '../styles/global.css';
 import '../styles/cast-landing.css';   /* 水鏡＋起卦區塊，與首頁共用 */
 import ConciergeWidget from './ConciergeWidget.astro';
-interface Props { mode?: 'divination' | 'home' | 'love'; title: string; description: string; canonical: string; ogImage?: string; noindex?: boolean; }
-const { mode = 'divination', title, description, canonical, ogImage = 'https://winds.tw/og-default.jpg', noindex = true } = Astro.props;
+/* tarot：2026-10-12 /love-tarot、/home-tarot 試做（水鏡換成五行通靈塔羅抽牌）；不帶就跟原本一模一樣。塔羅的流程全在 public/assets/tarot/tarot-funnel.js */
+interface Props { mode?: 'divination' | 'home' | 'love'; title: string; description: string; canonical: string; ogImage?: string; noindex?: boolean; tarot?: boolean; }
+const { mode = 'divination', title, description, canonical, ogImage = 'https://winds.tw/og-default.jpg', noindex = true, tarot = false } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -53,6 +54,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  {tarot && <link rel="stylesheet" href="/assets/tarot/tarot.css?v=1" />}
   <script is:inline src="/assets/cjk-wrap.js" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -740,11 +742,11 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .get b .tname{display:inline;font:inherit;color:inherit;margin:0;letter-spacing:inherit} /* .get span 是說明行樣式，名稱不吃它 */
 </style>
 </head>
-<body data-mode={mode}>
-<div id="root"><div class="ff-static">{mode === 'home' && (
+<body data-mode={mode} data-tarot={tarot ? '1' : undefined}>
+<div id="root"><div class="ff-static">{mode === 'home' && !tarot && (
   <!-- 落地文案的靜態版：見 HomeGuaStatic.astro（與 /home-gua/text/ 共用） -->
   <HomeGuaStatic />
-)}{mode === 'love' && (
+)}{mode === 'love' && !tarot && (
   <!-- 落地文案的靜態版：見 LoveGuaStatic.astro（文字＝2026-09-26 文案規格 V1，與 viewLoveLanding() 同一份） -->
   <LoveGuaStatic />
 )}{mode === 'divination' && (
@@ -2617,8 +2619,11 @@ window.go=go;window.back=back;window.exitFlow=exitFlow;window.openOA=openOA;wind
 window.submitFree=submitFree;window.ffSet=ffSet;window.ffNext=ffNext;window.ffPrev=ffPrev;window.ffNextState=ffNextState;window.ffEditRet=ffEditRet;window.shareCard=shareCard;window.createOrder=createOrder;window.shareResult=shareResult;window.loadFullContent=loadFullContent;window.genSpirit=genSpirit;
 window.STATE=STATE;
 
-boot();
+/* 塔羅試做頁（data-tarot）不跑 boot：不打後端（回訪預填、量測事件、Google 登入），改由 tarot-funnel.js 自己開機 */
+if(document.body.getAttribute("data-tarot")!=="1")boot();
 </script>
+{tarot && <script is:inline src="/assets/tarot/engine.js?v=1"></script>}
+{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=1"></script>}
 <!-- 帶 utm 進站記點（2026-09-06 補）：占卜頁沒用 BaseLayout，之前從活動頁／社群帶 utm 進來的人 D1 一列都沒有，
      漏斗第四站是瞎的。與 BaseLayout 那段逐字相同：sendBeacon → api.winds.tw/hit → D1 link_hits。 -->
 <script is:inline>

@@ -212,6 +212,8 @@ export default defineConfig({
         '/lp/',
         // 訂單狀態頁（2026-09-28）：個人訂單查詢，noindex
         '/shop/order/',
+        // 2026-10-12 塔羅試做落地頁（noindex）
+        '/love-tarot/', '/home-tarot/',
         // 還沒有核准的卦、此刻掛 noindex 的主題卦頁（見上方 emptyTopicPages）
         ...EMPTY_TOPIC_PAGES,
       ].some((x) => page.includes(x)),
