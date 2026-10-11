@@ -37,7 +37,6 @@ esSource: "/pages/psychic"
 
 - 【通靈水鏡法：查因果】
 - 【準提水鏡法：讀人心】
-- 【阿卡西紀錄：閱命書】
 
 [我要預約](/guide/consultant/)
 
