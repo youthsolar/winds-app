@@ -49,6 +49,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
   <script is:inline src="/assets/theme-init.js"></script>
+  <!-- 2026-10-11 Jeffery「重新整理樣式閃一下」：#root 裡的靜態版（給不跑 JavaScript 的抓取工具）會先畫一幀，render() 才換成真畫面。
+       有 JavaScript 就先藏靜態版；腳本壞了 2 秒後自己現身（.ff-static 的 CSS）。 -->
+  <script is:inline>document.documentElement.classList.add("ff-js");</script>
   <script is:inline src="/assets/budoux-zh-hant.min.js" defer></script>
   <script is:inline src="/assets/cjk-wrap.js" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -736,11 +739,15 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .paywall .veil h3,.paywall .veil p,.paywall .veil .ns-line,.paywall .veil .veil-alt{text-align:left;max-width:none;margin-left:0;margin-right:0}
     .paywall .veil .gets{max-width:none;margin:14px 0 20px}
     .tname{white-space:nowrap}
+    /* 預設可見，只在前 2 秒用 backwards 藏住（Astra 10/11：外部強制停用動畫時不會卡在隱藏） */
+    html.ff-js .ff-static{animation:ffStaticHide 0s 2s backwards}
+    @keyframes ffStaticHide{from,to{visibility:hidden}}
+    @media print{html.ff-js .ff-static{animation:none}}
     .get b .tname{display:inline;font:inherit;color:inherit;margin:0;letter-spacing:inherit} /* .get span 是說明行樣式，名稱不吃它 */
 </style>
 </head>
 <body data-mode={mode}>
-<div id="root">{mode === 'home' && (
+<div id="root"><div class="ff-static">{mode === 'home' && (
   <!-- 落地文案的靜態版：見 HomeGuaStatic.astro（與 /home-gua/text/ 共用） -->
   <HomeGuaStatic />
 )}{mode === 'love' && (
@@ -759,7 +766,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     <section class="hg-cast"><span class="eyebrow"><span class="dot"></span>怎麼走</span><p class="hg-guide">選好方向，挑一個最接近你的問題，手指放上水鏡按著三秒，卦會自己浮上來。</p><p class="hg-situ">卦出來，老師先解這一卦，再依這一卦配上親筆卦符，放在手機桌布七天，助你改善當下的炁場。算半天，你就缺風易揚老師一張符令。</p><p class="hg-situ">起卦要按住水鏡，請用手機或電腦瀏覽器開啟這一頁。</p></section>
     <footer class="hg-foot"><p>想讓老師親自看？可以直接<a href="/booking-chat/">預約老師</a>，或到<a href="/services/">預約項目</a>看看哪一項最接近你現在的狀況。</p></footer>
   </main>
-)}</div>
+)}</div></div>
 <!-- 風小編：只在占卜結果頁現身（render() 切 body class），讓用戶看完解讀即時問預約 -->
 <ConciergeWidget />
 
