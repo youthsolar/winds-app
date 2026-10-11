@@ -45,10 +45,13 @@
 
   /* 牌由後端抽（同一套規則當場算好重點牌與配符，回抽牌簽名，送出時帶回驗證） */
   function fetchDraw() {
-    return fetch(WORKER_API + '/tarot-draw', { method: 'POST' }).then(function (r) { return r.json(); }).then(function (d) {
+    /* 12 秒拿不到就放棄（走洗牌失敗那條：清掉這一局、請他再按一次；Astra front-r1 #3） */
+    var ctl = window.AbortController ? new AbortController() : null, to = ctl ? setTimeout(function () { ctl.abort(); }, 12000) : null;
+    return fetch(WORKER_API + '/tarot-draw', ctl ? { method: 'POST', signal: ctl.signal } : { method: 'POST' }).then(function (r) { return r.json(); }).then(function (d) {
+      if (to) clearTimeout(to);
       if (!d || !d.success || !d.cards || d.cards.length !== 5 || !d.draw_token) throw new Error('draw');
       return d;
-    });
+    }, function (e) { if (to) clearTimeout(to); throw e; });
   }
   function ready() { return HOME ? !!STATE.data.home : lvReady(); }
   /* 這次問的那一句（同 viewResult 的「你問的是」） */
@@ -231,6 +234,8 @@
   }
   /* 結果頁（剛送出、付款回來、重新整理）：用 /liff-status 回的 tarot 區塊把這一局還原，抽牌區照翻完狀態畫 */
   function restoreFromServer(T) {
+    /* 牌名先用後端給的（牌庫 cards-data.json 可能比結果晚到；Astra front-r1 #5） */
+    T.cards.forEach(function (c) { if (!BY_ID[c.id] && c.name) BY_ID[c.id] = { id: c.id, name: c.name }; });
     TS.state = { label: askLabel(), question: '', at: Date.parse(T.cast_at) || Date.now(), draw: T.cards.map(function (c) { return { id: c.id, orientation: c.orientation }; }),
       open: [true, true, true, true, true], st: 'done', dealt: 5, sel: { focus_ids: T.focus_ids || [] }, tal: T.needs_teacher ? null : T.talismans, ok: !T.needs_teacher, srv: T };
   }
@@ -411,7 +416,8 @@
   }
   /* 第一張靈符（後端出圖，同卦符卡 hexCardHero 的放法）＋右邊五張牌與下一個節氣 */
   function fuHero(T, paid) {
-    var s = TS.state, f1 = T.talismans[0], nx = jieqiNext(s.at);
+    /* 下一個節氣：用後端照「現在」算的（兩週後回來看也對；Astra front-r1 #4），沒有才用抽牌那天推 */
+    var s = TS.state, f1 = T.talismans[0], J = (STATE.result || {}).jieqi, nx = J && J.next ? null : jieqiNext(s.at);
     var inner = f1.url ? '<img src="' + esc(f1.url) + '" alt="' + esc(f1.element) + '符" decoding="async" onerror="this.onerror=null;this.style.visibility=\'hidden\'" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">' : '';
     var cap = f1.expired ? '這組牌已過期，重新抽一次牌'
       : paid ? '法效期間 · ' + esc(f1.valid_until_label) + ' 止<br>長按存成手機桌布'
@@ -421,7 +427,8 @@
       '<div class="tal-caption">' + ic('device-mobile') + '<span style="text-align:center">' + cap + '</span></div>' +
       ((f1.url && !f1.expired) ? '<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="' + esc(f1.url) + '" target="_blank" rel="noopener">' + ic('download-simple') + '存這張靈符</a></div>' : '') + '</div>' +
       '<div class="hexcol">' + tsBox('tsRes') +
-      (nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + (tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日）。' + PH_SOLAR.line + '</span></div>' : '') +
+      (J && J.next ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + esc(J.next_date) + '）。' + PH_SOLAR.line + '</span></div>'
+        : nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + (tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日）。' + PH_SOLAR.line + '</span></div>' : '') +
       '</div></div></div>';
   }
   /* 第二張靈符：還沒開＝遮罩卡＋鎖（付款後寫「N 天後自動開」，同網站 daysUntilUnlock）；開了＝後端出圖 */
@@ -429,7 +436,8 @@
     var f2 = T.talismans[1]; if (!f2) return '';
     if (f2.url) return '<div class="tal5-grid"><div class="tal5"><div style="position:relative">' + tframe('<img src="' + esc(f2.url) + '" alt="' + esc(f2.element) + '符" decoding="async" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">', false, EL_GLOW[f2.element]) + '</div>' +
       '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">法效期間 · ' + esc(f2.valid_until_label) + ' 止</div></div></div>';
-    var wait = paid && T.paid_at ? daysUntilUnlock(T.paid_at, 2) : 0;
+    /* 還鎖著就至少寫 1 天（裝置時鐘比較快時不會出現「0 天後」卻打不開；真正開不開由後端決定，Astra front-r1 #6） */
+    var wait = paid && f2.opens_at ? Math.max(1, Math.ceil((Date.parse(f2.opens_at) - Date.now()) / 864e5)) : 0;
     return '<div class="tal5-grid"><div class="tal5" id="tsFu2"><div style="position:relative">' + tframe('', false, EL_GLOW[f2.element]) +
       '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + (paid ? '<span class="fu-wait">' + wait + ' 天後自動開</span>' : '') + '</div></div>' +
       '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? esc(f2.opens_label || '') + ' 自動開' : '付 NT$360 後，第 14 天解開') + '</div></div></div>';
@@ -476,6 +484,10 @@
   var _askAnother = window.askAnother;
   window.askAnother = function () { resetDraw(); _askAnother(); if (LOVE) STATE.text = '我想為現在這段感情抽一組牌，先看看我們目前的狀況。'; };
 
+  /* 剛送出等解讀逾時：這一局已經建好了（有 log_id 與 k）→ 留在同一局給「再讀一次」，不要退回「你的牌」讓他重送（Astra front-r1 #1） */
+  var _pollGiveUp = window.pollGiveUp;
+  window.pollGiveUp = function (msg) { if (STATE.reportLogId && STATE.k) STATE.reportMode = true; _pollGiveUp(msg); };
+
   /* render() 之後掛抽牌區與靈符卡 */
   var _render = window.render;
   window.render = function () { _render(); afterRender(); };
@@ -491,6 +503,8 @@
     var id = rid || pending;
     if (id) {
       STATE.k = kk || recallK(id) || '';
+      /* 網址帶的是一般 k（付款回跳），這台裝置另存了收碼換到的本人 k → 帳號資料被遮時換那把（同網站 boot；Astra front-r1 #2） */
+      if (kk) { var _sk = recallK(id); if (_sk && _sk !== kk) STATE.kAlt = _sk; }
       if (!STATE.k) { try { if (localStorage.getItem('winds_ff_log') === String(id)) STATE.k = localStorage.getItem('winds_ff_k') || ''; } catch (e) {} }
       if (STATE.k) { STATE.reportMode = true; STATE.step = 'interpreting'; render(); pollStatus(id); return; }
     }
