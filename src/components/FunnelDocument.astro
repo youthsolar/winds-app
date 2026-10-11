@@ -56,7 +56,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
   {tarot && <link rel="stylesheet" href="/assets/tarot/tarot.css?v=1" />}
   <script is:inline src="/assets/cjk-wrap.js" defer></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  {!tarot && <script src="https://accounts.google.com/gsi/client" async defer></script>}
 
   <!-- App 內嵌瀏覽器判定：此頁不走 BaseLayout，跟 BaseLayout.astro 那段逐字相同 -->
   <script is:inline>
@@ -68,8 +68,10 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     };
   </script>
   <script src="/assets/nav-auth.js?v=6" defer></script>
-  <script is:inline src="/assets/email-verify.js?v=2" defer></script>
+  {!tarot && <script is:inline src="/assets/email-verify.js?v=2" defer></script>}
 
+  <!-- 2026-10-12 塔羅試做頁（tarot）不載 GA4／Meta Pixel（含 noscript 像素）：試做期間不送量測。⚠️ 正式上線時要恢復（拿掉這層 !tarot 判斷）。 -->
+  {!tarot && (<>
   <!-- 量測層（2026-08-15）：此頁不走 BaseLayout，底座另裝一份（GA4 ＋ Meta Pixel）-->
   <script is:inline>
     /* 2026-10-09（Astra 最終驗收 #2，同 BaseLayout）：網址帶看結果憑證（?log_id=&k=、登入頁 return 裡夾帶的 k）整頁不載 GA／Pixel */
@@ -98,6 +100,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     }
   </script>
   <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1460549484341275&ev=PageView&noscript=1"/></noscript>
+  </>)}
 
   <style is:global>
     #root{min-height:100vh}
@@ -763,8 +766,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     <footer class="hg-foot"><p>想讓老師親自看？可以直接<a href="/booking-chat/">預約老師</a>，或到<a href="/services/">預約項目</a>看看哪一項最接近你現在的狀況。</p></footer>
   </main>
 )}</div></div>
-<!-- 風小編：只在占卜結果頁現身（render() 切 body class），讓用戶看完解讀即時問預約 -->
-<ConciergeWidget />
+<!-- 風小編：只在占卜結果頁現身（render() 切 body class），讓用戶看完解讀即時問預約。塔羅試做頁不掛（它會讀寫 /booking-chat） -->
+{!tarot && <ConciergeWidget />}
 
 <script is:inline>
 /* ===== 後端設定（一律以現行 production 為準，原樣搬自 live index.html）===== */
@@ -2623,7 +2626,8 @@ window.STATE=STATE;
 if(document.body.getAttribute("data-tarot")!=="1")boot();
 </script>
 {tarot && <script is:inline src="/assets/tarot/engine.js?v=1"></script>}
-{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=1"></script>}
+{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=2"></script>}
+{!tarot && (<>
 <!-- 帶 utm 進站記點（2026-09-06 補）：占卜頁沒用 BaseLayout，之前從活動頁／社群帶 utm 進來的人 D1 一列都沒有，
      漏斗第四站是瞎的。與 BaseLayout 那段逐字相同：sendBeacon → api.winds.tw/hit → D1 link_hits。 -->
 <script is:inline>
@@ -2641,5 +2645,7 @@ if(document.body.getAttribute("data-tarot")!=="1")boot();
     } catch (e) {}
   })();
 </script>
+</>)}
+<!-- 塔羅試做頁（tarot）不送 utm 記點到 api.winds.tw/hit；⚠️ 正式上線時要恢復 -->
 </body>
 </html>
