@@ -1,6 +1,7 @@
 /* 五行通靈塔羅試做頁（/love-tarot、/home-tarot，2026-10-12）
  * 掛在 FunnelDocument（mode=love／home ＋ tarot）的主腳本之後：同一個落地頁、同一套問題與「認識你」逐題問，
- * 只把水鏡起卦換成 DS TarotShuffle 抽五張牌，結果頁改成前端自己算（不打後端、不建訂單、不存資料）。
+ * 只把水鏡起卦換成 DS TarotShuffle 抽五張牌。2026-10-12 接後端：牌由 api.winds.tw/tarot-draw 抽（重點牌、配符一起算好、抽牌簽名），
+ * 送出走 /liff-submit（divination_method＝五行塔羅）、結果走 /liff-status 的 tarot 區塊，符卡由後端出圖（/t/w/ 閘道），付款沿用 createOrder。
  * 做法：覆寫主腳本裡的幾個全域函式（viewLanding／viewHex／submitFree／viewResult…），其餘原樣沿用。
  * 抽牌元件＝claude-artifacts/tarot-trial/template.html（DS 第二～四輪）逐段搬；靈符桌布卡＝hex-card.ts cardHtml 逐值。
  * ⚠️ 行內註解一律用 /* *\/，不要在一行中間放 //（10/12 試用頁被吃掉半行兩次）。
@@ -21,36 +22,33 @@
 
   /* ── 靜態表 ──
      節氣交節時刻（UTC 毫秒；台北時間＝+8）：lunar-typescript（同 cloudflare-worker）2026-10-12 產出，2026/09/23 秋分～2031/01/20 大寒（2026-10-12 補到 2030 年底）；超出範圍見 jieqiAt。
-     生肖：農曆正月初一換（同 lunarCalc getYearShengXiao）；星座：國曆分界（同 solar.getXingZuo，白羊寫牡羊）。 */
+     （生肖、星座改由後端照客人生日算，畫在後端出圖的靈符卡上） */
   var TS_JQ = [["秋分",1790121913908],["寒露",1791440957494],["霜降",1792748277351],["立冬",1794045124503],["小雪",1795332201289],["大雪",1796611951899],["冬至",1797886213691],["小寒",1799158197825],["大寒",1800430190111],["立春",1801705578497],["雨水",1802986408770],["驚蟄",1804275572936],["春分",1805574282330],["清明",1806884250678],["穀雨",1808205458455],["立夏",1809537911740],["小滿",1810880294465],["芒種",1812230747924],["夏至",1813587049514],["小暑",1814945823035],["大暑",1816304679335],["立秋",1817659606111],["處暑",1819008858779],["白露",1820348907599],["秋分",1821679302626],["寒露",1822997825698],["霜降",1824305572463],["立冬",1825601914943],["小雪",1826889373731],["大雪",1828168661098],["冬至",1829443330091],["小寒",1830714878704],["大寒",1831987316722],["立春",1833262273216],["雨水",1834543562250],["驚蟄",1835832286966],["春分",1837131429774],["清明",1838440985596],["穀雨",1839762570846],["立夏",1841094731570],["小滿",1842437389090],["芒種",1843787759967],["夏至",1845144119767],["小暑",1846503018045],["大暑",1847861638867],["立秋",1849216870573],["處暑",1850565656144],["白露",1851906129907],["秋分",1853235920378],["寒露",1854554910942],["霜降",1855862003979],["立冬",1857158835800],["小雪",1858445663507],["大雪",1859725480665],["冬至",1860999580551],["小寒",1862271715243],["大寒",1863543653217],["立春",1864819246929],["雨水",1866100075666],["驚蟄",1867389457221],["春分",1868688118766],["清明",1869998303852],["穀雨",1871319342158],["立夏",1872652065859],["小滿",1873994152095],["芒種",1875344998118],["夏至",1876700897258],["小暑",1878060143428],["大暑",1879418525416],["立秋",1880773904476],["處暑",1882122696728],["白露",1883463114336],["秋分",1884793111295],["寒露",1886111887993],["霜降",1887419288053],["立冬",1888715805976],["小雪",1890002963667],["大雪",1891282428328],["冬至",1892556847803],["小寒",1893828634400],["大寒",1895100864074],["立春",1896376107694],["雨水",1897657197256],["驚蟄",1898946198313],["春分",1900245126840],["清明",1901554860530],["穀雨",1902876216333],["立夏",1904208378012],["小滿",1905550866162],["芒種",1906901070041],["夏至",1908257478317],["小暑",1909616129011],["大暑",1910975093358],["立秋",1912330039781],["處暑",1913679384224],["白露",1915019570416],["秋分",1916350014532],["寒露",1917668716703],["霜降",1918976434652],["立冬",1920272924316],["小雪",1921560276046],["大雪",1922839657273],["冬至",1924114177368],["小寒",1925385788735],["大寒",1926658078059]];
-  var TS_SX = [[1930,130,"馬"],[1931,217,"羊"],[1932,206,"猴"],[1933,126,"雞"],[1934,214,"狗"],[1935,204,"豬"],[1936,124,"鼠"],[1937,211,"牛"],[1938,131,"虎"],[1939,219,"兔"],[1940,208,"龍"],[1941,127,"蛇"],[1942,215,"馬"],[1943,205,"羊"],[1944,125,"猴"],[1945,213,"雞"],[1946,202,"狗"],[1947,122,"豬"],[1948,210,"鼠"],[1949,129,"牛"],[1950,217,"虎"],[1951,206,"兔"],[1952,127,"龍"],[1953,214,"蛇"],[1954,203,"馬"],[1955,124,"羊"],[1956,212,"猴"],[1957,131,"雞"],[1958,218,"狗"],[1959,208,"豬"],[1960,128,"鼠"],[1961,215,"牛"],[1962,205,"虎"],[1963,125,"兔"],[1964,213,"龍"],[1965,202,"蛇"],[1966,121,"馬"],[1967,209,"羊"],[1968,130,"猴"],[1969,217,"雞"],[1970,206,"狗"],[1971,127,"豬"],[1972,215,"鼠"],[1973,203,"牛"],[1974,123,"虎"],[1975,211,"兔"],[1976,131,"龍"],[1977,218,"蛇"],[1978,207,"馬"],[1979,128,"羊"],[1980,216,"猴"],[1981,205,"雞"],[1982,125,"狗"],[1983,213,"豬"],[1984,202,"鼠"],[1985,220,"牛"],[1986,209,"虎"],[1987,129,"兔"],[1988,217,"龍"],[1989,206,"蛇"],[1990,127,"馬"],[1991,215,"羊"],[1992,204,"猴"],[1993,123,"雞"],[1994,210,"狗"],[1995,131,"豬"],[1996,219,"鼠"],[1997,207,"牛"],[1998,128,"虎"],[1999,216,"兔"],[2000,205,"龍"],[2001,124,"蛇"],[2002,212,"馬"],[2003,201,"羊"],[2004,122,"猴"],[2005,209,"雞"],[2006,129,"狗"],[2007,218,"豬"],[2008,207,"鼠"],[2009,126,"牛"],[2010,214,"虎"],[2011,203,"兔"],[2012,123,"龍"],[2013,210,"蛇"],[2014,131,"馬"],[2015,219,"羊"],[2016,208,"猴"],[2017,128,"雞"],[2018,216,"狗"],[2019,205,"豬"],[2020,125,"鼠"],[2021,212,"牛"],[2022,201,"虎"],[2023,122,"兔"],[2024,210,"龍"],[2025,129,"蛇"],[2026,217,"馬"],[2027,206,"羊"],[2028,126,"猴"],[2029,213,"雞"],[2030,203,"狗"],[2031,123,"豬"]];
-  var TS_XZ = [[101,"摩羯座"],[120,"水瓶座"],[219,"雙魚座"],[321,"牡羊座"],[420,"金牛座"],[521,"雙子座"],[622,"巨蟹座"],[723,"獅子座"],[823,"處女座"],[923,"天秤座"],[1024,"天蠍座"],[1123,"射手座"],[1222,"摩羯座"]];
   /* 節氣底圖池大小：同 hex-card.ts FRAME_POOL_V5 */
   var FRAME_POOL_V5 = { '立春': { male: 12, female: 12 }, '雨水': { male: 9, female: 11 }, '驚蟄': { male: 10, female: 11 }, '春分': { male: 12, female: 12 }, '清明': { male: 12, female: 12 }, '穀雨': { male: 12, female: 12 }, '立夏': { male: 12, female: 12 }, '小滿': { male: 11, female: 11 }, '芒種': { male: 12, female: 9 }, '夏至': { male: 12, female: 12 }, '小暑': { male: 12, female: 12 }, '大暑': { male: 11, female: 12 }, '立秋': { male: 11, female: 12 }, '處暑': { male: 11, female: 12 }, '白露': { male: 12, female: 11 }, '秋分': { male: 11, female: 12 }, '寒露': { male: 12, female: 12 }, '霜降': { male: 12, female: 12 }, '立冬': { male: 12, female: 12 }, '小雪': { male: 12, female: 12 }, '大雪': { male: 12, female: 12 }, '冬至': { male: 12, female: 12 }, '小寒': { male: 12, female: 12 }, '大寒': { male: 12, female: 12 } };
   var CDN = 'https://cdn.winds.tw/';
   var FU_EL = { '木': 'wood', '火': 'fire', '土': 'earth', '金': 'metal', '水': 'water' };
-  var FU_LINE = { '金': '讓長得太滿的木收一收', '木': '把壓得太實的土鬆開', '水': '讓過旺的火靜下來', '火': '把太硬的金化開', '土': '替漫過頭的水築一道堤' };
-  var FU_DAYS = 7;
 
   /* ── 牌資料 ── */
-  var CARDS = null, BY_ID = Object.create(null), ELEMENTS = Object.create(null);
+  var CARDS = null, BY_ID = Object.create(null);
   var cardsReady = fetch('/assets/tarot/cards-data.json').then(function (r) { return r.json(); }).then(function (list) {
     CARDS = list;
-    list.forEach(function (c) { BY_ID[c.id] = c; ELEMENTS[c.id] = { upright: c.e[0], reversed: c.e[1] }; });
+    list.forEach(function (c) { BY_ID[c.id] = c; });
     if (TS.mount && TS.mount.kind === 'land') renderFoot();
   });
   function nameOf(id) { return BY_ID[id] ? BY_ID[id].name : ''; }
 
-  var TS = { state: null, timers: [], mount: null, who: null, adv: null };
+  var TS = { state: null, timers: [], mount: null, adv: null };
   function later(fn, ms) { TS.timers.push(setTimeout(fn, reduced ? 0 : ms)); }
   function clearTimers() { TS.timers.forEach(clearTimeout); TS.timers = []; if (TS.adv) { clearTimeout(TS.adv); TS.adv = null; } }
-  function resetDraw() { clearTimers(); TS.state = null; TS.who = null; }
+  function resetDraw() { clearTimers(); TS.state = null; }
 
-  function randInt(n) { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
-  function drawFive() {
-    var pool = CARDS.map(function (c) { return c.id; }), out = [];
-    for (var i = 0; i < 5; i++) out.push({ id: pool.splice(randInt(pool.length), 1)[0], orientation: randInt(2) ? 'reversed' : 'upright' });
-    return out;
+  /* 牌由後端抽（同一套規則當場算好重點牌與配符，回抽牌簽名，送出時帶回驗證） */
+  function fetchDraw() {
+    return fetch(WORKER_API + '/tarot-draw', { method: 'POST' }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d || !d.success || !d.cards || d.cards.length !== 5 || !d.draw_token) throw new Error('draw');
+      return d;
+    });
   }
   function ready() { return HOME ? !!STATE.data.home : lvReady(); }
   /* 這次問的那一句（同 viewResult 的「你問的是」） */
@@ -120,7 +118,7 @@
         p.append(backEl(g.w)); stage.append(p);
       }
     }
-    if (s) s.draw.forEach(function (c, i) {
+    if (s && s.draw) s.draw.forEach(function (c, i) {
       var placed = i < dealt, open = s.open[i], key = isFocus(i);
       var slot = document.createElement('div'); slot.className = 'ts-slot';
       var x = placed ? i * (g.w + g.gap) : g.deckX, y = placed ? (key ? -10 : 6) : 6;
@@ -173,14 +171,24 @@
   function startShuffle() {
     if (!CARDS || !ready() || (TS.state && TS.state.st !== 'idle')) return;
     clearTimers();
-    TS.state = { label: askLabel(), question: askText(), at: Date.now(), draw: drawFive(), open: [false, false, false, false, false], st: 'shuffle', dealt: 0 };
-    if (reduced) { TS.state.st = 'flip'; TS.state.dealt = 5; renderStage(); return; }
+    var s = TS.state = { label: askLabel(), question: askText(), at: Date.now(), draw: null, open: [false, false, false, false, false], st: 'shuffle', dealt: 0 };
+    var t0 = Date.now();
+    /* 洗牌動畫照跑，同時跟後端拿牌；牌回來且洗滿 2.1 秒才發牌 */
+    fetchDraw().then(function (d) {
+      if (TS.state !== s) return;
+      s.draw = d.cards; s.srv = d; s.token = d.draw_token; s.at = Date.parse(d.draw_at) || s.at;
+      later(function () { if (TS.state === s) deal(s); }, Math.max(0, 2100 - (Date.now() - t0)));
+    }).catch(function () {
+      if (TS.state !== s) return;
+      resetDraw(); renderStage(); showFfErr('洗牌沒有成功，請再按一次。');
+    });
     renderStage();
-    later(function () {
-      TS.state.st = 'deal'; renderStage();
-      for (var i = 0; i < 5; i++) (function (i) { later(function () { TS.state.dealt = i + 1; moveSlots(); }, 160 + i * 140); })(i);
-      later(function () { TS.state.st = 'flip'; renderStage(); }, 160 + 4 * 140 + 460);
-    }, 2100);
+  }
+  function deal(s) {
+    if (reduced) { s.st = 'flip'; s.dealt = 5; renderStage(); return; }
+    s.st = 'deal'; renderStage();
+    for (var i = 0; i < 5; i++) (function (i) { later(function () { if (TS.state === s) { s.dealt = i + 1; moveSlots(); } }, 160 + i * 140); })(i);
+    later(function () { if (TS.state === s) { s.st = 'flip'; renderStage(); } }, 160 + 4 * 140 + 460);
   }
   /* 發牌時只移動，不整塊重畫（才看得到落位動畫） */
   function moveSlots() {
@@ -215,12 +223,16 @@
   }
   /* 規則：重點牌（取牌規則）→ 五行生剋 → 配符；取不出重點牌或配不出符＝交給老師 */
   function analyze() {
-    var s = TS.state;
-    s.sel = E.pickFocus({ question: s.question, timeframe: PERIOD, deck: 'RWS', cards: s.draw });
-    s.wx = (s.sel.status === 'ok' && s.sel.focus_ids.length) ? E.analyzeWuxing(s.draw, s.sel.focus_ids, ELEMENTS) : null;
-    var t = s.wx ? E.talismansFor(s.wx) : null;
-    s.tal = (t && t.status === 'ok' && t.talismans && t.talismans.length) ? t.talismans : null;
+    /* 重點牌與配符用後端抽牌時算好的（前後端同一份規則，單一真相在後端） */
+    var s = TS.state, d = s.srv || {};
+    s.sel = { focus_ids: d.focus_ids || [] };
+    s.tal = (!d.needs_teacher && d.talismans && d.talismans.length) ? d.talismans : null;
     s.ok = !!s.tal;
+  }
+  /* 結果頁（剛送出、付款回來、重新整理）：用 /liff-status 回的 tarot 區塊把這一局還原，抽牌區照翻完狀態畫 */
+  function restoreFromServer(T) {
+    TS.state = { label: askLabel(), question: '', at: Date.parse(T.cast_at) || Date.now(), draw: T.cards.map(function (c) { return { id: c.id, orientation: c.orientation }; }),
+      open: [true, true, true, true, true], st: 'done', dealt: 5, sel: { focus_ids: T.focus_ids || [] }, tal: T.needs_teacher ? null : T.talismans, ok: !T.needs_teacher, srv: T };
   }
 
   /* ── 掛載：每次 render() 之後把抽牌區畫進對應的容器 ── */
@@ -251,8 +263,6 @@
   }
   /* 下一個節氣：表外一律回 null（結果頁就不顯示「下一個節氣」那句，不猜） */
   function jieqiNext(ms) { if (ms < TS_JQ[0][1]) return null; for (var i = 0; i < TS_JQ.length; i++) if (TS_JQ[i][1] > ms) return TS_JQ[i]; return null; }
-  function shengxiaoOf(y, md) { var row = null, prev = null; TS_SX.forEach(function (r) { if (r[0] === y) row = r; if (r[0] === y - 1) prev = r; }); return row && md >= row[1] ? row[2] : (prev ? prev[2] : ''); }
-  function xingzuoOf(md) { var z = TS_XZ[0][1]; TS_XZ.forEach(function (r) { if (md >= r[0]) z = r[1]; }); return z; }
   function frameUrl(jq, gender, seed) {
     var pool = FRAME_POOL_V5[jq]; if (!pool) return '';
     var list = [];
@@ -260,21 +270,7 @@
     return CDN + 'brand/frames/v5/' + encodeURIComponent(jq) + '/' + list[seed % list.length] + '.jpg';
   }
   function mk(tag, cls, attrs) { var e = document.createElement(tag); if (cls) e.className = cls; for (var k in (attrs || {})) e.setAttribute(k, attrs[k]); return e; }
-  function fuCard(el, line0, frame, who, untilMs) {
-    var c = mk('div', 'fc', { role: 'img', 'aria-label': el + '符桌布卡' });
-    c.append(mk('img', 'frame', { src: frame, alt: '' }), mk('div', 'scrim-top'), mk('div', 'scrim-bot'));
-    var tal = mk('div', 'tal'); tal.append(mk('img', 'img', { src: '/assets/tarot/fu/tal-' + FU_EL[el] + '.jpg', alt: '' }), mk('img', 'logo', { src: CDN + 'brand/logo.png', alt: '' }));
-    var data = mk('div', 'data'), icons = mk('div', 'icons');
-    [who.shengxiao, who.xingzuo].forEach(function (n) { if (n) icons.append(mk('img', '', { src: CDN + 'brand/icons-black/' + encodeURIComponent(n) + '.png', alt: '' })); });
-    var date = mk('div', 'date'); date.textContent = '法效期間  ' + ymd(untilMs, true) + '  止'; data.append(icons, date); tal.append(data); c.append(tal);
-    var top = mk('div', 'top'), tt = mk('div'), name = mk('div', 'name'), line = mk('div', 'line');
-    name.textContent = el + '符';
-    var l1 = mk('div'), l2 = mk('div'); l1.textContent = line0; l2.textContent = FU_LINE[el]; line.append(l1, l2); tt.append(name, line);
-    top.append(tt, mk('img', 'seal-img', { src: CDN + 'brand/seal-feng.png', alt: '風' })); c.append(top);
-    var bot = mk('div', 'bot'), by = mk('div', 'by'), ex = mk('div', 'exp'), tag = mk('div', 'tag');
-    by.textContent = '風易揚老師親繪'; ex.textContent = '改善炁場 · ' + ymd(untilMs) + ' 前有效'; tag.textContent = '找風問幸福 winds.tw';
-    bot.append(by, ex, tag); c.append(bot); return c;
-  }
+  /* 清楚的符卡由後端出圖（/t/w/ 閘道，同卦符卡版型）；清楚符令不再放公開檔。這裡只組「還沒開」那張的遮罩卡 */
   /* 遮罩卡：同 hex-card.ts fuBlurCardHtml——同一張底圖、模糊符令，不放 logo／日期／名稱（鎖頭用網站 .fog，放在框外） */
   function fuBlurCard(el, frame) {
     var c = mk('div', 'fc', { role: 'img', 'aria-label': el + '符（還沒解開）' });
@@ -285,18 +281,14 @@
     Array.prototype.forEach.call(document.querySelectorAll('.tframe>.fc'), function (c) { var w = c.parentNode.clientWidth; if (w) c.style.transform = 'scale(' + (w / 1080) + ')'; });
   }
   function fuParts() {
-    var s = TS.state, who = TS.who || {};
-    var jq = jieqiAt(s.at), seed = hashStr(s.draw.map(function (c) { return c.id; }).join('|')), until = s.at + FU_DAYS * 864e5;
-    return s.tal.map(function (t, i) {
-      var w = (s.wx.cards.filter(function (c) { return c.id === t.card; })[0]) || {};
-      return { el: t.element, frame: frameUrl(jq, who.gender, seed + i), line0: '平衡' + (w.orientation === 'reversed' ? '逆位' : '正位') + nameOf(t.card) + '的' + t.target, until: until };
-    });
+    var s = TS.state;
+    var jq = jieqiAt(s.at), seed = hashStr(s.draw.map(function (c) { return c.id; }).join('|'));
+    return (s.tal || []).map(function (t, i) { return { el: t.element, frame: frameUrl(jq, null, seed + i), t: t }; });
   }
   function mountFu() {
     var s = TS.state; if (!s || !s.tal) return;
-    var parts = fuParts(), who = TS.who || {};
-    var a = document.querySelector('#tsFu1 .tframe'); if (a) a.append(fuCard(parts[0].el, parts[0].line0, parts[0].frame, who, parts[0].until));
-    var b = document.querySelector('#tsFu2 .tframe'); if (b && parts[1]) b.append(fuBlurCard(parts[1].el, parts[1].frame));
+    var parts = fuParts();
+    var b = document.querySelector('#tsFu2 .tframe'); if (b && parts[1] && !parts[1].t.url) b.append(fuBlurCard(parts[1].el, parts[1].frame));
     fitFu();
   }
 
@@ -372,21 +364,29 @@
   /* 逐題問照舊，只改第一題開場那句的「卦」 */
   var _viewAsk = window.viewAsk;
   window.viewAsk = function () { return _viewAsk().replace('這一卦我知道了。接下來看你的命盤，就可以給你更正確的命卦靈符。', '這組牌我知道了。接下來看你的命盤，就可以給你更正確的靈符。'); };
-  /* 試做頁不打信箱檢查（MillionVerifier 會計費） */
-  window.checkEmailLive = function () {};
-  /* 送出：不送後端，只在這個分頁的記憶體裡用（生肖、星座、性別給靈符卡用） */
+  /* 送出：沿用網站的 submitFree（信箱驗證碼、手機必填、改生日確認、錯誤處理全部照舊），只把「卦」換成這一局的抽牌簽名 */
+  var _submitFree = window.submitFree;
   window.submitFree = function () {
-    var d = STATE.data;
-    if (!TS.state || !TS.state.ok) { go('landing'); return; }
-    if (!d.month || !d.day || !d.gender || !phoneE164(d.phone) || !validGmail(d.email)) { showFfErr('老師還有幾題沒問完。'); go('ask'); return; }
-    var md = d.month * 100 + d.day;
-    TS.who = { gender: d.gender === '男' ? 'male' : 'female', shengxiao: shengxiaoOf(d.year, md), xingzuo: xingzuoOf(md) };
-    go('result');
+    var s = TS.state;
+    if (!s || !s.ok || !s.token) { go('landing'); return; }
+    STATE.cast = { code: 'tarot', castAt: new Date(s.at).toISOString() };   /* 只是讓網站那支的「先起卦」檢查放行；真正送出的是 tarot_draw */
+    window.ffPayloadHook = function (p) { p.divination_method = '五行塔羅'; p.tarot_draw = s.token; delete p.cast_code; delete p.cast_at; };
+    _submitFree();
   };
+  /* 抽太久（簽名過期）後端回 recast，網站那支會去「起卦」那一步 → 塔羅頁改回落地頁重新洗牌 */
+  window.viewCast = function () { resetDraw(); setTimeout(function () { go('landing'); }, 0); return ''; };
+  /* 等解讀那一頁的第一句（原「老師正在看你的卦」） */
+  if (window.READING_LINES) READING_LINES[0] = '老師正在看你的牌……';
+  /* 送給老師的問題字串：好愛原本是「起一卦」 */
+  if (LOVE) STATE.text = '我想為現在這段感情抽一組牌，先看看我們目前的狀況。';
 
-  /* ── 覆寫：結果頁（結構同 viewResult；解讀還沒接、付款不開） ── */
-  function tarotPaywall() {
-    var s = TS.state, two = s.tal.length > 1, first;
+  /* 結果資料：多帶後端回的 tarot 區塊，並把這一局還原到抽牌區 */
+  var _buildResult = window.buildResult;
+  window.buildResult = function (d) { var R = _buildResult(d); R.tarotSrv = d.tarot || null; if (d.tarot) restoreFromServer(d.tarot); return R; };
+
+  /* ── 覆寫：結果頁（結構同 viewResult／viewReportPaid；卦符卡換成後端出圖的靈符卡） ── */
+  function tarotPaywall(T) {
+    var two = T.talismans.length > 1, first, f1 = T.talismans[0];
     if (LOVE && lvSingle()) { first = { where: '桃花時機', heart: '對象特質', stuck: '感情卡點', next: '相遇線索' }[STATE.data.loveAngle]; first = [(first || '桃花') + '的完整牌陣解讀', '從這組牌看提醒，供你參考。']; }
     else if (LOVE) first = ['這段關係的完整牌陣解讀', '關係現況、卡點與接下來的提醒'];
     else first = ['這次居家問題的完整解讀', '住得卡、剛入住、想備符或挑房的疑問'];
@@ -403,56 +403,98 @@
       '<p>' + lead + '</p>' +
       '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>' +
       items.map(function (x) { return '<div class="get">' + ic('check', 'bold') + '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div></div>'; }).join('') + '</div>' +
-      '<button class="zf-btn primary lg" disabled aria-disabled="true">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>' +
-      '<p class="veil-alt">塔羅版的付款還沒開放。</p>' +
-      '<p class="veil-alt">想直接找老師談這件事？<a href="/booking">預約老師</a></p></div></div>';
+      (f1.expired
+        ? '<button class="zf-btn primary lg" onclick="askAnother()">' + ic('arrow-counter-clockwise') + '這組牌已過期，重新抽一次牌</button><p class="veil-alt">靈符七天內有效，過了老師要依新的牌重新配符。</p>'
+        : '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>' +
+          '<p class="veil-alt">這張靈符 ' + esc(f1.valid_until_label) + ' 前有效，過了要重新抽牌。</p>') +
+      '<p class="veil-alt">想直接找老師談這件事？<a href="' + BOOK_URL + '">預約老師</a></p></div></div>';
+  }
+  /* 第一張靈符（後端出圖，同卦符卡 hexCardHero 的放法）＋右邊五張牌與下一個節氣 */
+  function fuHero(T, paid) {
+    var s = TS.state, f1 = T.talismans[0], nx = jieqiNext(s.at);
+    var inner = f1.url ? '<img src="' + esc(f1.url) + '" alt="' + esc(f1.element) + '符" decoding="async" onerror="this.onerror=null;this.style.visibility=\'hidden\'" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">' : '';
+    var cap = f1.expired ? '這組牌已過期，重新抽一次牌'
+      : paid ? '法效期間 · ' + esc(f1.valid_until_label) + ' 止<br>長按存成手機桌布'
+      : '<span style="white-space:nowrap">讓這張靈符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">' + esc(f1.valid_until_label) + ' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>';
+    return '<div class="zf-card sunken tal-hero-card"><div class="tal-hero">' +
+      '<div class="tal-wrap" id="tsFu1"><div style="position:relative">' + tframe(inner, true) + '</div>' +
+      '<div class="tal-caption">' + ic('device-mobile') + '<span style="text-align:center">' + cap + '</span></div>' +
+      ((f1.url && !f1.expired) ? '<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="' + esc(f1.url) + '" target="_blank" rel="noopener">' + ic('download-simple') + '存這張靈符</a></div>' : '') + '</div>' +
+      '<div class="hexcol">' + tsBox('tsRes') +
+      (nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + (tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日）。' + PH_SOLAR.line + '</span></div>' : '') +
+      '</div></div></div>';
+  }
+  /* 第二張靈符：還沒開＝遮罩卡＋鎖（付款後寫「N 天後自動開」，同網站 daysUntilUnlock）；開了＝後端出圖 */
+  function fuSecond(T, paid) {
+    var f2 = T.talismans[1]; if (!f2) return '';
+    if (f2.url) return '<div class="tal5-grid"><div class="tal5"><div style="position:relative">' + tframe('<img src="' + esc(f2.url) + '" alt="' + esc(f2.element) + '符" decoding="async" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">', false, EL_GLOW[f2.element]) + '</div>' +
+      '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">法效期間 · ' + esc(f2.valid_until_label) + ' 止</div></div></div>';
+    var wait = paid && T.paid_at ? daysUntilUnlock(T.paid_at, 2) : 0;
+    return '<div class="tal5-grid"><div class="tal5" id="tsFu2"><div style="position:relative">' + tframe('', false, EL_GLOW[f2.element]) +
+      '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + (paid ? '<span class="fu-wait">' + wait + ' 天後自動開</span>' : '') + '</div></div>' +
+      '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? esc(f2.opens_label || '') + ' 自動開' : '付 NT$360 後，第 14 天解開') + '</div></div></div>';
+  }
+  function resEnd() {
+    return '<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">' +
+      '<a class="zf-btn primary md" href="' + BOOK_URL + '">' + ic('calendar-heart', 'thin') + '預約老師</a>' +
+      '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">換一件事重新問</button></div>';
   }
   window.viewResult = function () {
-    var s = TS.state;
-    if (!s || !s.ok || !TS.who) { setTimeout(function () { go('landing'); }, 0); return ''; }
-    var q = askLabel(), part = fuParts()[0], nx = jieqiNext(s.at);
-    var h = '<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">' +
+    var R = STATE.result || {}, T = R.tarotSrv, s = TS.state;
+    if (!T || !s || !T.talismans || !T.talismans.length) { setTimeout(function () { go('landing'); }, 0); return ''; }
+    var paid = STATE.paid || R.purchased, q = askLabel(), h;
+    if (paid) {
+      /* 付費後：同 viewReportPaid（靈符卡在最上面，完整解讀用網站同一張付費卡） */
+      h = '<div class="summary"><span class="eyebrow"><span class="dot"></span>已拿到靈符解方</span><h1 class="q">你的完整命理報告</h1>' +
+        '<p class="sum-ask" style="margin:24px 0 10px">你問的是「' + esc(q) + '」</p>' +
+        '<div style="margin-top:22px">' + fuHero(T, true) + '</div></div>';
+      h += block('完整解讀', '', paywall(true));
+      h += block('你的命理檔案', '', profileCard(true));
+      if (!(R.profile && R.profile.trim())) h += block('你的分靈體', '', spiritCard(true));
+      if (T.talismans[1]) h += block('第二張靈符', '付款後第 14 天自動開，開了一樣存成手機桌布。', fuSecond(T, true), true);
+      h += resEnd();
+      return '<main class="shell" style="max-width:820px">' + h + '</main>';
+    }
+    h = '<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">' +
       (LOVE ? (lvSingle() ? '這組牌，看見的是你現在的桃花狀態' : '這組牌，看見的是你們現在的關係') : '這組牌，看見的是你家現在的狀態') + '</h1>';
     if (HOME) h += '<p class="lede" style="margin:10px 0 4px">家不是單純的「住得好」或「住不好」。<br>有時候是格局與方位，悄悄影響每天的心情。<br>有時候是剛搬進去，人和房子還在磨合。<br>還在挑房子的話，也先看看你和它合不合。<br>先看看，你的家現在正在什麼位置。</p>';
     if (LOVE) h += (lvSingle()
       ? '<p class="lede" style="margin:10px 0 4px">桃花不是單純的「有人追」或「沒人追」。<br>有時候機會已經出現，只是你沒有注意。<br>有時候身邊明明有人，卻始終遇不到真正適合自己的關係。<br>也有些時候，是上一段感情留下的東西，還沒有真正離開。<br>先看看，你現在的感情正在什麼位置。</p>'
       : '<p class="lede" style="margin:10px 0 4px">有些人明明彼此在意，卻一直停在原地。<br>有些人越靠越近，其中一個卻突然退開。<br>也有些感情真正卡住的，從來不是「愛不愛」，而是兩個人已經站在不同的位置。<br>先別急著問結果。<br>先看看，你們現在怎麼了。</p>');
     h += '<p class="sum-ask" style="margin:24px 0 10px">你問的是「' + esc(q) + '」</p>';
-    /* 卦符卡的位置：左＝第一張靈符（清楚、七天），右＝五張牌（DS 翻完狀態）＋下一個節氣 */
-    h += '<div style="margin-top:22px"><div class="zf-card sunken tal-hero-card"><div class="tal-hero">' +
-      '<div class="tal-wrap" id="tsFu1"><div style="position:relative">' + tframe('', true) + '</div>' +
-      '<div class="tal-caption">' + ic('device-mobile') + '<span style="text-align:center"><span style="white-space:nowrap">讓這張靈符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">' + ymd(part.until) + ' 前有效</span></span></div></div>' +
-      '<div class="hexcol">' + tsBox('tsRes') +
-      (nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + (tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日）。' + PH_SOLAR.line + '</span></div>' : '') +
-      '</div></div></div></div>';
-    h += '<div class="sum-body">這組牌的解讀即將開放。</div>';
+    h += '<div style="margin-top:22px">' + fuHero(T, false) + '</div>';
+    if (R.summary) h += '<div class="sum-body">' + md(R.summary) + '</div>';
     h += '</div>';
     h += '<div class="banner"><div class="bimg" style="background-image:url(/assets/flow-banner-top.jpg),linear-gradient(135deg,var(--rose-100),var(--clay-200))"></div><div class="cap"><span>慢慢看，不用急。</span></div></div>';
-    var locked = '';
-    if (s.tal[1]) {
-      var el2 = s.tal[1].element;
-      locked = '<div class="tal5-grid"><div class="tal5" id="tsFu2"><div style="position:relative">' + tframe('', false, EL_GLOW[el2]) +
-        '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span></div></div>' +
-        '<div class="nm">' + el2 + '符</div><div class="ln">付 NT$360 後，第 14 天解開</div></div></div>';
-    }
     h += block('完整解讀與你的靈符', (LOVE ? (lvSingle() ? '看懂你現在的桃花，也看看現在還能為自己做些什麼。' : '看懂這段感情，也看看現在還能為自己做些什麼。') : '看了這組牌的簡答，也看看接下來能為自己做些什麼。'),
-      locked + '<div style="margin-top:' + (locked ? 20 : 0) + 'px">' + tarotPaywall() + '</div>', true);
+      fuSecond(T, false) + '<div style="margin-top:' + (T.talismans[1] ? 20 : 0) + 'px">' + tarotPaywall(T) + '</div>', true);
     h += blogSection();
     h += socialCta();
-    h += '<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">' +
-      '<a class="zf-btn primary md" href="' + BOOK_URL + '">' + ic('calendar-heart', 'thin') + '預約老師</a>' +
-      '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">換一件事重新問</button></div>';
+    h += resEnd();
     return '<main class="shell" style="max-width:820px">' + h + '</main>';
   };
   var _askAnother = window.askAnother;
-  window.askAnother = function () { resetDraw(); _askAnother(); };
+  window.askAnother = function () { resetDraw(); _askAnother(); if (LOVE) STATE.text = '我想為現在這段感情抽一組牌，先看看我們目前的狀況。'; };
 
   /* render() 之後掛抽牌區與靈符卡 */
   var _render = window.render;
   window.render = function () { _render(); afterRender(); };
   var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(function () { if (TS.mount && !(TS.state && (TS.state.st === 'shuffle' || TS.state.st === 'deal'))) renderStage(); fitFu(); }, 150); });
 
-  /* 開機：試做頁不讀網址的 log_id、不預填、不登入，直接從落地頁開始 */
-  render();
+  /* 開機（同網站 boot 的報告分支）：付款回跳、重新整理帶 ?log_id=&k= 或「開了付款頁」留下的那一局 → 讀結果；其餘從落地頁開始。
+     回訪預填（提醒信 ?ret=）這版先不接 */
+  (function tarotBoot() {
+    var p = new URLSearchParams(location.search), rid = p.get('log_id') || '';
+    var kk = p.get('k') || (location.hash.match(/[#&]k=([a-f0-9]{24})/) || [])[1] || '', pending = '', pendingPath = '';
+    try { pending = sessionStorage.getItem('winds_pending_log_id') || ''; pendingPath = sessionStorage.getItem('winds_pending_path') || ''; sessionStorage.removeItem('winds_pending_log_id'); sessionStorage.removeItem('winds_pending_path'); } catch (e) {}
+    if (pending && pendingPath && pendingPath !== location.pathname) pending = '';
+    var id = rid || pending;
+    if (id) {
+      STATE.k = kk || recallK(id) || '';
+      if (!STATE.k) { try { if (localStorage.getItem('winds_ff_log') === String(id)) STATE.k = localStorage.getItem('winds_ff_k') || ''; } catch (e) {} }
+      if (STATE.k) { STATE.reportMode = true; STATE.step = 'interpreting'; render(); pollStatus(id); return; }
+    }
+    render();
+  })();
   cardsReady.catch(function () { showFfErr('牌載入失敗，請重新整理。'); });
 })();

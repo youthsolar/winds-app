@@ -68,7 +68,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     };
   </script>
   <script src="/assets/nav-auth.js?v=6" defer></script>
-  {!tarot && <script is:inline src="/assets/email-verify.js?v=2" defer></script>}
+  <script is:inline src="/assets/email-verify.js?v=2" defer></script>
 
   <!-- 2026-10-12 塔羅試做頁（tarot）不載 GA4／Meta Pixel（含 noscript 像素）：試做期間不送量測。⚠️ 正式上線時要恢復（拿掉這層 !tarot 判斷）。 -->
   {!tarot && (<>
@@ -2211,6 +2211,7 @@ function submitFree(){
   var evTok=STATE.evSubmitTok||(window.ZFEmailVerify?ZFEmailVerify.token(payload.email):"");STATE.evSubmitTok="";if(evTok)payload.ev_token=evTok;   /* 剛在視窗驗好的優先（瀏覽器存不進去也不會再問一次） */
   STATE.submitting=true;STATE.logId="";STATE.k="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;
   go("interpreting");
+  if(window.ffPayloadHook)window.ffPayloadHook(payload);   /* 2026-10-12 塔羅頁（tarot-funnel.js）把「卦」換成抽牌簽名；其他頁沒有這個掛勾 */
   fetch(API.submit,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
    .then(function(resp){
      if(!resp.ok){return resp.json().catch(function(){return{};}).then(function(d){
@@ -2626,7 +2627,7 @@ window.STATE=STATE;
 if(document.body.getAttribute("data-tarot")!=="1")boot();
 </script>
 {tarot && <script is:inline src="/assets/tarot/engine.js?v=1"></script>}
-{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=2"></script>}
+{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=3"></script>}
 {!tarot && (<>
 <!-- 帶 utm 進站記點（2026-09-06 補）：占卜頁沒用 BaseLayout，之前從活動頁／社群帶 utm 進來的人 D1 一列都沒有，
      漏斗第四站是瞎的。與 BaseLayout 那段逐字相同：sendBeacon → api.winds.tw/hit → D1 link_hits。 -->
