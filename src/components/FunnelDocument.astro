@@ -1099,7 +1099,7 @@ function ffMirror(mode,o){
      起卦／轉輪鏡兩種可操作的鏡子補 tabindex，轉輪鏡補 aria-valuenow／min／max（上下限同 setY）。鍵盤事件在 ffCastWire／ffDialWire。 */
   var kb=mode==="cast"||mode==="dial";
   return '<div class="ff-mirrorwrap">'+
-    '<div class="ff-mirror'+(mode==="dial"?' dial':mode==="cast"?' cast':'')+'" id="ffMirror" style="width:'+size+'px;height:'+size+'px" role="'+(mode==="dial"?'slider':'button')+'"'+(kb?' tabindex="0"':'')+(mode==="dial"?' aria-valuenow="'+o.year+'" aria-valuemin="1940" aria-valuemax="'+new Date().getFullYear()+'"':'')+' aria-label="'+(mode==="dial"?'轉輪鏡選年份':esc(o.hint||'按住水面'))+'">'+
+    '<div class="ff-mirror'+(mode==="dial"?' dial':mode==="cast"?' cast':'')+'" id="ffMirror" style="width:'+size+'px;height:'+size+'px" role="'+(mode==="dial"?'slider':'button')+'"'+(kb?' tabindex="0"':'')+(mode==="dial"?' aria-valuenow="'+o.year+'" aria-valuemin="1940" aria-valuemax="'+new Date().getFullYear()+'"':'')+' aria-label="'+(mode==="dial"?'轉輪鏡選年份':esc(o.hint||'按住鏡面'))+'">'+
     ffStars(inner)+'<span class="ff-sheen"></span><div class="ff-rips" id="ffRips"></div>'+body+'</div>'+
     (mode!=="dial"?'<div class="ff-hexname'+((o.rising||0)>=6&&o.name?' on':'')+'" id="ffHexName">'+esc(o.name||'')+'</div>':'')+
     '</div>';
