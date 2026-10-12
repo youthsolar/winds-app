@@ -1571,7 +1571,7 @@ function profileCard(paid){
   if(R.lunar){var lp=R.lunar.split(/\s+/);tiles.push(ftile2('農曆','<span style="display:block">'+esc(lp[0]||'')+'</span>'+(lp.slice(1).join(' ')?'<span style="display:block">'+esc(lp.slice(1).join(' '))+'</span>':'')));}
   if(R.star)tiles.push(ftile2('星座',esc(R.star),starSub(R.star)));
   if(R.zodiac)tiles.push(ftile2('生肖',esc(R.zodiac),ZODIAC_BRANCH[R.zodiac]||''));
-  if(R.mansion)tiles.push(ftile2('星宿（28宿）',esc(R.mansion),xiuGroup(R.mansion)));
+  if(R.mansion)tiles.push(ftile2('星宿',esc(R.mansion),xiuGroup(R.mansion)));
   if(tiles.length)h+='<div class="pf-grid4">'+tiles.join("")+'</div>';
   var tiles3=[];
   if(R.deityBirth)tiles3.push(ftile2('本命星君',esc(R.deityBirth)));
@@ -1596,7 +1596,7 @@ function profileCard(paid){
          '<div class="mmt-name">'+esc(t.name)+'</div><div class="mmt-rule"></div>'+(t.line?'<div class="mmt-line">'+esc(t.line)+'</div>':'')+'</div>'}).join("")+'</div></div>';
   var radar=radarSVG(IS_MOBILE()?168:188),season=seasonSVG(paid),lower='';
   if(radar){var mx=(R.wuxing||[]).slice().sort(function(a,b){return b.v-a.v});var topEl=mx[0]?mx[0].k:'',lowEl=mx.length?mx[mx.length-1].k:'';
-    lower+='<div class="mini-panel" style="align-items:center"><div style="align-self:flex-start;font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px">五行分布</div>'+radar+(topEl?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);text-align:center;margin-top:4px">'+topEl+'氣最旺、'+lowEl+'氣最弱</div>':'')+'</div>';}
+    lower+='<div class="mini-panel" style="align-items:center"><div style="align-self:flex-start;font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px">五行分布</div>'+radar+(topEl?'<div style="font-family:var(--font-serif);font-weight:300;font-size:13.5px;color:var(--text-secondary);text-align:center;margin-top:4px">'+topEl+'炁最旺、'+lowEl+'炁最弱</div>':'')+'</div>';}
   if(season){var fl=R.fortuneLine||[];var ax=fl.length>=3?[fl[0],fl[Math.floor((fl.length-1)/2)],fl[fl.length-1]].map(function(p){return esc(p.name)}):null;
     lower+='<div class="mini-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted)">節氣運勢 · 未來六節氣</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 後段付費</span>')+'</div>'+season+(ax?'<div style="display:flex;justify-content:space-between;font-family:var(--font-sans);font-size:11px;color:var(--text-muted);margin-top:6px"><span>'+ax[0]+'</span><span>'+ax[1]+'</span><span>'+ax[2]+'</span></div>':'')+'</div>';}
   if(lower)h+='<div class="profile-lower" style="margin-top:14px">'+lower+'</div>';
