@@ -81,7 +81,7 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   const $ = (id: string) => document.getElementById(id) as HTMLElement;
   const authGate = $('auth-gate'), loading = $('loading-section'), section = $('tb-section'), errorSection = $('error-section');
   const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
-  // 「已完成」不在下拉選單：要按「確認完成、已收尾款」才算（跟錢有關，2026-10-12 進階法事資格）
+  // 「已完成」不在下拉選單：要按「尾款已收」才算（跟錢有關，2026-10-12 進階法事資格）
   const STATUSES = ['聯繫中', '聯繫確認', '行程有衝突', '沒來'];
   const WK = ['日', '一', '二', '三', '四', '五', '六'];
 
@@ -163,11 +163,11 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
             <span>${esc(b.service_name || '')}${!provider ? `｜${esc(b.provider_name || '')}` : ''}${b.location_name ? `｜${esc(b.location_name)}` : ''}</span>
             ${b.note ? `<em>${esc(b.note)}</em>` : ''}
             ${canceled ? '<span class="zf-tag neutral outline">已取消</span>' : ''}
-            ${!canceled && done ? `<span class="zf-tag sage outline">已完成・尾款已收${b.completed_by === 'legacy-sb-paid' ? '（舊系統）' : ''}</span>` : ''}
+            ${!canceled && done ? `<span class="zf-tag sage outline">尾款已收${b.completed_by === 'legacy-sb-paid' ? '（舊系統）' : ''}</span>` : ''}
           </div>
           <div class="tb-act">${canceled ? '' : done ? `
-            <button class="zf-btn ghost sm" data-act="uncomplete" data-id="${b.id}">取消完成</button>` : `
-            ${started ? `<button class="zf-btn primary sm" data-act="complete" data-id="${b.id}">確認完成、已收尾款</button>` : ''}
+            <button class="zf-btn ghost sm" data-act="uncomplete" data-id="${b.id}">取消尾款已收</button>` : `
+            ${started ? `<button class="zf-btn primary sm" data-act="complete" data-id="${b.id}">尾款已收</button>` : ''}
             <span class="zf-select-wrap tb-status-wrap"><select class="zf-select tb-status" data-act="status" data-id="${b.id}">${STATUSES.map((s) => `<option${s === st ? ' selected' : ''}>${s}</option>`).join('')}</select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></span>
             <button class="zf-btn secondary sm" data-act="resched" data-id="${b.id}" data-start="${esc(b.start_datetime)}">改期</button>
             <button class="zf-btn ghost sm" data-act="cancel" data-id="${b.id}">取消</button>`}
@@ -185,7 +185,7 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
     try {
       if (a === 'status') await api(`/teacher/bookings/${id}`, { method: 'PATCH', body: JSON.stringify({ teacher_status: (el as HTMLSelectElement).value }) });
       if (a === 'complete') { if (!confirm('確認這位客人已經做完、尾款也收到了？\n確認後，客人之後預約法事、法術的資格才會算進去。')) return; await api(`/teacher/bookings/${id}/complete`, { method: 'POST', body: '{}' }); }
-      if (a === 'uncomplete') { if (!confirm('取消「已完成」？客人的法事、法術預約資格會跟著拿掉。')) return; await api(`/teacher/bookings/${id}/complete`, { method: 'POST', body: JSON.stringify({ undo: true }) }); }
+      if (a === 'uncomplete') { if (!confirm('取消「尾款已收」？客人的法事、法術預約資格會跟著拿掉。')) return; await api(`/teacher/bookings/${id}/complete`, { method: 'POST', body: JSON.stringify({ undo: true }) }); }
       if (a === 'cancel') { if (!confirm('確定取消這筆預約？客人那邊要另外通知。')) return; await api(`/teacher/bookings/${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'canceled' }) }); }
       if (a === 'resched') {
         const cur = String(el.dataset.start || '').slice(0, 16).replace(' ', 'T');
