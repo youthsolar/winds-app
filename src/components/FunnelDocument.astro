@@ -1046,8 +1046,8 @@ function viewTopic(){
         '<span style="display:flex;flex-direction:column;gap:5px"><span class="dir-title">'+esc(t.title)+'</span><span class="dir-sub">'+esc(t.sub)+'</span></span></button>';
     }).join("")+'</div>';
   } else if(!sub){
-    h+='<div class="fade"><p class="section-q">關於「'+esc(dir.title)+'」，比較接近哪一種？</p><div style="display:flex;flex-wrap:wrap;gap:10px">'+
-      dir.subs.map(function(s){return '<button class="chip" onclick="pickSub(\''+s.key+'\')">'+esc(s.name)+'</button>'}).join("")+'</div></div>';
+    h+='<div class="fade"><p class="section-q">關於「'+esc(dir.title)+'」，比較接近哪一種？</p><div class="q-list">'+
+      dir.subs.map(function(s){return '<button class="q-item" onclick="pickSub(\''+s.key+'\')"><span><span style="display:block;font-weight:500">'+esc(s.name)+'</span><span style="display:block;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);margin-top:3px">'+esc(s.desc||'')+'</span></span></button>'}).join("")+'</div></div>';
   } else {
     h+='<div class="fade"><p class="section-q c">哪個狀況最接近你現在想問的問題？</p><div class="q-list">'+
       sub.qs.map(function(q){var on=STATE.q===q.q;
