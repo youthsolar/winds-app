@@ -1051,7 +1051,7 @@ function viewTopic(){
   } else {
     h+='<div class="fade"><p class="section-q c">哪個狀況最接近你現在想問的問題？</p><div class="q-list">'+
       sub.qs.map(function(q){var on=STATE.q===q.q;
-        return '<button class="q-item'+(on?' on':'')+'" style="align-items:flex-start" onclick="pickQ(this,\''+esc(q.q).replace(/'/g,"\\'")+'\')"><span class="q-radio" style="margin-top:3px"></span><span><span style="display:block">'+esc(q.q)+'</span><span class="q-desc">'+esc(q.desc||'')+'</span></span></button>';
+        return '<button class="q-item'+(on?' on':'')+'" style="align-items:flex-start" onclick="pickQ(this,\''+esc(q.q).replace(/'/g,"\\'")+'\')"><span class="q-radio" style="margin-top:3px">'+(on?ic("check","bold"):"")+'</span><span><span style="display:block">'+esc(q.q)+'</span><span class="q-desc">'+esc(q.desc||'')+'</span></span></button>';
       }).join("")+'</div>';
     if(STATE.q){
       h+='<div class="fade"><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">'+
