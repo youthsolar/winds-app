@@ -402,7 +402,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .tal5 .ln{font-family:var(--font-serif);font-weight:300;font-size:12px;line-height:1.55;color:var(--text-secondary);text-align:center;margin-top:2px}
 
     /* 浮動付款 CTA：捲過第一屏浮出、付費牆可見即退場；樣式鏡射風小編 .wc-fab（同 padding/陰影/字級/圖示） */
-    .fab-cta{position:fixed;left:50%;bottom:22px;z-index:80;transform:translateX(-50%) translateY(8px);opacity:0;pointer-events:none;gap:8px;padding:13px 18px;border:none;font-size:15px;letter-spacing:normal;box-shadow:var(--shadow-lg);transition:opacity .25s var(--ease-soft),transform .25s var(--ease-soft)}
+    .fab-cta{position:fixed;left:50%;bottom:22px;z-index:80;transform:translateX(-50%) translateY(8px);opacity:0;pointer-events:none;gap:8px;padding:13px 18px;border:none;font-size:15px;letter-spacing:inherit;box-shadow:var(--shadow-lg);transition:opacity .25s var(--ease-soft),transform .25s var(--ease-soft)}
     .fab-cta i{font-size:22px;line-height:1}
     .fab-cta.show{opacity:1;transform:translateX(-50%);pointer-events:auto}
     .fab-cta:hover{transform:translateX(-50%) translateY(-1px)}
