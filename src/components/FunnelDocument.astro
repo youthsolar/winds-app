@@ -1662,11 +1662,11 @@ function nameCard(paid){
 /* ===== 分靈體側寫（逐值對齊 DS SpiritCard；body 用 real profile、名/特質示意待 Zoho）===== */
 function genSpirit(){
   var R=STATE.result||{};var m=(R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/);
-  if(!m){alert("找不到你的付款憑證，請重新整理頁面再試。");return;}
+  if(!m){alert("找不到你的付款紀錄，重新整理頁面再試一次。");return;}
   var tok=m[1];STATE.spiritGenerating=true;RENDER_KEEP={anchor:"spiritAnchor"};render();
   fetch(WORKER_API+"/spirit-profile-generate",{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),body:JSON.stringify({delivery_token:tok})})
    .then(function(r){return r.json()}).then(function(d){if(d.success===false){STATE.spiritGenerating=false;RENDER_KEEP={anchor:"spiritAnchor"};render();alert(d.error||d.message||"目前無法生成");return;}pollSpirit(tok,0);})
-   .catch(function(){STATE.spiritGenerating=false;RENDER_KEEP={anchor:"spiritAnchor"};render();alert("網路錯誤，請稍後再試");});
+   .catch(function(){STATE.spiritGenerating=false;RENDER_KEEP={anchor:"spiritAnchor"};render();alert("網路錯誤，請稍後再試。");});
 }
 function pollSpirit(tok,n){
   if(n>=30){STATE.spiritGenerating=false;STATE.spiritPolling=false;if(STATE.result)STATE.result.profileGenerating=false;RENDER_KEEP={y:window.scrollY};render();return;}   /* 等太久：收掉「還在整理」，讓生成按鈕重新出現可以再按 */
@@ -2170,7 +2170,7 @@ function submitFree(){
   if(!STATE.text){showFfErr("請先回到上一步，選一句想問的話。");go("topic");return;}
   var d=STATE.data,payload;
   if(STATE.ret&&STATE.retInfo){
-    if(HOME&&!d.home){showFfErr("先說一聲這張符要守哪裡。");go("hex");return;}
+    if(HOME&&!d.home){showFfErr("先說一聲這張符要守護哪裡？");go("hex");return;}
     if(LOVE&&!lvReady()){showFfErr("先回到上一步，把兩個選項選完。");go("landing");return;}
     var r=STATE.retInfo;
     /* 2026-10-09 起卦補問手機（必填）：回訪的人沒留過手機，只補問手機這一題（STATE.retPhone），其餘照上次原樣送。
@@ -2181,7 +2181,7 @@ function submitFree(){
     if(needPhone)payload.phone=phoneE164(d.phone);
     STATE.userName={surname:r.last_name||"",given:r.first_name||""};
   }else{
-    if(HOME&&!d.home){showFfErr("先說一聲這張符要守哪裡。");go("hex");return;}
+    if(HOME&&!d.home){showFfErr("先說一聲這張符要守護哪裡？");go("hex");return;}
     if(LOVE&&!lvReady()){showFfErr("先回到上一步，把兩個選項選完。");go("landing");return;}
     if(!d.month||!d.day||!d.gender||!phoneE164(d.phone)||!validGmail(d.email)){showFfErr("老師還有幾題沒問完。");go("ask");return;}
     payload={date_of_birth:d.year+"-"+pad2(d.month)+"-"+pad2(d.day)+" "+SHI[d.shi][2],last_name:String(d.surname||"").trim(),first_name:String(d.given||"").trim(),gender:d.gender,phone:phoneE164(d.phone),email:d.email};
@@ -2224,7 +2224,7 @@ function submitFree(){
        if(d.error==="phone_invalid"){STATE.submitting=false;if(STATE.ret)STATE.retPhone=true;STATE.ask=ASK.indexOf("phone");go("ask");setTimeout(function(){showFfErr(d.message||"手機號碼格式不對，再看一下。");},60);return null;}
        if(d.error==="email_duplicate"){STATE.submitting=false;var _dupRet=STATE.ret;STATE.retPhone=false;if(!_dupRet)STATE.ask=ASK.length-1;go(_dupRet?"ret":"ask");setTimeout(function(){showFfErr(d.message||"這個信箱已被其他帳號使用。");},60);return null;}   /* 2026-10-09（Astra）：回訪的人（含補手機）信箱重複時留在回訪那一行按「改」；原本 ret=false 會掉進沒帶資料的逐題問答 */
        if(d.error==="spirit_reset_confirm"){STATE.submitting=false;if(confirm(d.message||"改了生日或時辰，你的分靈體會重新與你連結，名字和個性都會跟著變。確定要改嗎？")){STATE.spiritResetOk=true;submitFree();}else{go(STATE.ret?"ret":"ask");}return null;}
-       throw new Error(d.message||d.error||("HTTP "+resp.status));
+       var er=new Error(d.message||d.error||("HTTP "+resp.status));er.srv=!!(d.message||d.error);throw er;
      });}
      return resp.json();
    })
@@ -2241,7 +2241,7 @@ function submitFree(){
      if(data.pending){if(data.warm_urls&&data.warm_urls.length){warmCards(data.warm_urls.slice());}pollStatus(data.log_id||"",true);return;}
      finishResult(data);
    })
-   .catch(function(e){STATE.submitting=false;STATE.evAsked=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr("送出失敗："+e.message);},60);});
+   .catch(function(e){STATE.submitting=false;STATE.evAsked=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr((e&&e.srv)?e.message:"送出的時候斷線了，再試一次；一直不行的話，來 LINE 跟我們說一聲。");},60);});
 }
 
 /* 預抓要一張接一張（同時抓＝多開無頭瀏覽器互搶，反而更慢還會 404）：卦符卡先，再第 1 張模糊卡（後端會五張一起出），其餘直接命中 */
@@ -2425,7 +2425,7 @@ function createOrder(){
        var w=window.open(d.pay_url,"_blank");if(!w){/* 從付款頁按上一頁回來（BFCache 會保留「處理中、按鈕鎖住」的狀態）→ 解鎖；預約識別碼還在，再按一次會拿回同一張單（Astra 最終驗收 #6） */window.addEventListener("pageshow",function(e){if(e.persisted&&btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}},{once:true});location.href=d.pay_url;return;}
        if(btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}
      }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert(d.message||d.error||"建立訂單失敗，請再試一次。");}   /* 2026-10-01（廣告前全站掃描）：後端 errorResponse 回的是 error 欄位（例如「登入身分與請求不符，請重新登入」），原本只讀 message，只看得到通用訊息 */
-   }).catch(function(e){STATE.ordering=false;STATE.orderEvAsked=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert("付款錯誤："+e.message);});
+   }).catch(function(e){STATE.ordering=false;STATE.orderEvAsked=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert("付款這邊卡住了，再試一次；一直不行的話，直接來 LINE 找老師。");});
 }
 
 /* ===== 分享（Web Share API / 剪貼簿）===== */
