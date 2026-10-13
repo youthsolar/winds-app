@@ -1,0 +1,64 @@
+/* 五行通靈塔羅抽牌（/love-tarot、/home-tarot 試做，2026-10-12）
+   .ts-*＝DS TarotShuffle 第二～四輪定稿值（逐值搬自 claude-artifacts/tarot-trial/template.html；--r-md→--radius-md 同 14px）。
+   .fc＝靈符桌布卡，逐值同 ai-divination/cloudflare-worker/src/hex-card.ts cardHtml（1080×1920，縮放顯示）。
+   顏色一律用 global.css token，亮暗主題自動跟著換；不自訂新樣式。 */
+.ts{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+.ts-sum{width:var(--tsw);margin-bottom:16px;display:flex;align-items:baseline;gap:8px;font-family:var(--font-serif);font-size:14.5px;line-height:1.6;color:var(--text-secondary);overflow-wrap:anywhere}
+.ts-sum .ts-q{flex:1;min-width:0}
+.ts-sum .ts-p{flex:none;font-family:var(--font-sans);font-size:12px;color:var(--text-muted);white-space:nowrap}
+.ts-stage{position:relative;width:var(--tsw);transition:height 420ms var(--ease-soft)}
+.ts-pile,.ts-slot{position:absolute;left:0;top:0}
+.ts-slot{transition:transform 460ms var(--ease-soft),opacity 300ms var(--ease-soft)}
+.ts-card{display:block;border:0;padding:0;background:none;perspective:800px;cursor:pointer;transition:box-shadow 420ms var(--ease-soft)}
+.ts-card:disabled{cursor:default}
+.ts-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 600ms var(--ease-soft)}
+.ts-card.open .ts-inner{transform:rotateY(180deg)}
+.ts-side{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:opacity 0s linear 300ms}
+.ts-side.face{transform:rotateY(180deg);opacity:0}
+.ts-card.open .ts-side.face{opacity:1}.ts-card.open .ts-side.back{opacity:0}
+.ts .face-img{width:100%;height:100%;overflow:hidden;background:var(--surface-card);border:1px solid var(--border-soft);box-shadow:var(--shadow-sm)}
+.ts .face-img img{width:100%;height:100%;object-fit:cover;display:block}
+.ts .face-img.rev img{transform:rotate(180deg)}
+.ts-labels{margin-top:8px;display:flex;flex-direction:column;align-items:center;gap:2px;transition:margin 420ms var(--ease-soft)}
+.ts-labels .pos{font-size:11px;color:var(--text-muted);letter-spacing:.04em;white-space:nowrap}
+.ts-labels .nm{font-family:var(--font-serif);color:var(--text-primary);white-space:nowrap}
+.ts-labels .rv{font-size:10px;color:var(--accent-press);white-space:nowrap}
+.ts-labels .key{margin-top:2px;font-size:10px;color:var(--text-on-accent);background:var(--accent);border-radius:999px;padding:1px 7px;white-space:nowrap}
+.ts-foot{min-height:44px;display:flex;align-items:center;justify-content:center}
+.ts-foot .st{font-size:13px;color:var(--text-muted);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.ts-link{background:none;border:0;padding:0 0 2px;color:var(--accent-press);font-family:var(--font-sans);font-size:13.5px;border-bottom:1px solid var(--rose-200);cursor:pointer}
+.ts-teacher{width:var(--tsw);box-sizing:border-box;padding:16px 18px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-md);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.ts-teacher .t1{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--text-primary)}
+.ts-teacher .t2{font-family:var(--font-serif);font-weight:300;font-size:14px;line-height:1.75;color:var(--text-secondary)}
+.ts-teacher a{text-decoration:none}
+.tback{position:relative;overflow:hidden;box-shadow:var(--shadow-sm)}
+.tback .b1,.tback .b2{position:absolute;border-style:solid}
+.tback .dm{position:absolute;width:6px;height:6px;transform:rotate(45deg);opacity:.85}
+.tback svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.tback .gl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:999px;border:1px solid;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-weight:500;line-height:1}
+@keyframes tsRiffleL{0%,100%{transform:translate(var(--x0),0)}45%{transform:translate(calc(var(--x0) - var(--rf)),4px) rotate(-4deg)}}
+@keyframes tsRiffleR{0%,100%{transform:translate(var(--x0),0)}45%{transform:translate(calc(var(--x0) + var(--rf)),4px) rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){.ts-slot,.ts-inner,.ts-side,.ts-card,.ts-labels,.ts-stage{transition:none!important}.ts-pile{animation-name:none!important}}
+/* 落地頁：抽牌區放在原本水鏡的位置（.lc-mirror 的淡化／選完才亮照舊） */
+.lc-mirror .ts{margin:4px 0 0}
+
+/* 靈符桌布卡（hex-card.ts cardHtml 逐值；外框沿用網站 .tframe，跟卦符卡同一個框） */
+.tframe>.fc{z-index:2}
+.fc{position:absolute;top:0;left:0;width:1080px;height:1920px;transform-origin:0 0;overflow:hidden;background:#223A4C;font-family:var(--font-serif);color:#F6EFE6}
+.fc .frame{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.fc .tal{position:absolute;left:50%;top:50%;width:604px;height:1075px;transform:translate(-50%,-50%);border-radius:40px;overflow:hidden;box-shadow:0 24px 60px rgba(46,40,35,.34),0 2px 8px rgba(46,40,35,.18)}
+.fc .tal>img.img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.fc .logo{position:absolute;top:9px;left:50%;transform:translateX(-50%);height:69px;width:auto;display:block}
+.fc .data{position:absolute;left:0;right:0;bottom:12px;display:flex;flex-direction:column;align-items:center;gap:4px;color:#000}
+.fc .icons{display:flex;gap:14px}.fc .icons img{width:58px;height:58px;display:block}
+.fc .date{font-family:var(--font-sans);font-size:16px;line-height:1.25;letter-spacing:.02em;white-space:nowrap}
+.fc .scrim-top{position:absolute;left:0;right:0;top:0;height:26%;background:linear-gradient(rgba(46,40,35,.42),transparent)}
+.fc .scrim-bot{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(transparent,rgba(46,40,35,.42))}
+.fc .top{position:absolute;left:84px;right:84px;top:84px;display:flex;align-items:flex-start;justify-content:space-between;text-shadow:0 2px 12px rgba(46,40,35,.30)}
+.fc .name{font-size:66px;font-weight:600;letter-spacing:.1em;line-height:1.2}
+.fc .line{font-size:34px;font-weight:300;opacity:.92;margin-top:16px;letter-spacing:.02em;line-height:1.5;max-width:760px}
+.fc .seal-img{flex:none;width:172px;height:172px;margin:-14px -10px 0 0;display:block;transform:rotate(-6deg);filter:drop-shadow(0 3px 10px rgba(46,40,35,.35))}
+.fc .bot{position:absolute;left:84px;right:84px;bottom:76px;display:flex;flex-direction:column;gap:14px;text-shadow:0 2px 12px rgba(46,40,35,.30)}
+.fc .by{font-size:44px;letter-spacing:.08em}
+.fc .exp{font-family:var(--font-sans);font-size:36px;letter-spacing:.04em;opacity:.92;line-height:1.5}
+.fc .tag{font-family:var(--font-sans);font-size:30px;letter-spacing:.06em;opacity:.75}

@@ -16,8 +16,9 @@ import '../styles/phosphor-fill.css';
 import '../styles/global.css';
 import '../styles/cast-landing.css';   /* 水鏡＋起卦區塊，與首頁共用 */
 import ConciergeWidget from './ConciergeWidget.astro';
-interface Props { mode?: 'divination' | 'home' | 'love'; title: string; description: string; canonical: string; ogImage?: string; noindex?: boolean; }
-const { mode = 'divination', title, description, canonical, ogImage = 'https://winds.tw/og-default.jpg', noindex = true } = Astro.props;
+/* tarot：2026-10-12 /love-tarot、/home-tarot 試做（水鏡換成五行通靈塔羅抽牌）；不帶就跟原本一模一樣。塔羅的流程全在 public/assets/tarot/tarot-funnel.js */
+interface Props { mode?: 'divination' | 'home' | 'love'; title: string; description: string; canonical: string; ogImage?: string; noindex?: boolean; tarot?: boolean; }
+const { mode = 'divination', title, description, canonical, ogImage = 'https://winds.tw/og-default.jpg', noindex = true, tarot = false } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -53,8 +54,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  {tarot && <link rel="stylesheet" href="/assets/tarot/tarot.css?v=2" />}
   <script is:inline src="/assets/cjk-wrap.js" defer></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  {!tarot && <script src="https://accounts.google.com/gsi/client" async defer></script>}
 
   <!-- App 內嵌瀏覽器判定：此頁不走 BaseLayout，跟 BaseLayout.astro 那段逐字相同 -->
   <script is:inline>
@@ -68,6 +70,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <script src="/assets/nav-auth.js?v=6" defer></script>
   <script is:inline src="/assets/email-verify.js?v=2" defer></script>
 
+  <!-- 2026-10-13 塔羅頁恢復 GA4／Meta Pixel（10/12 試做期間關掉過） -->
   <!-- 量測層（2026-08-15）：此頁不走 BaseLayout，底座另裝一份（GA4 ＋ Meta Pixel）-->
   <script is:inline>
     /* 2026-10-09（Astra 最終驗收 #2，同 BaseLayout）：網址帶看結果憑證（?log_id=&k=、登入頁 return 裡夾帶的 k）整頁不載 GA／Pixel */
@@ -740,11 +743,11 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .get b .tname{display:inline;font:inherit;color:inherit;margin:0;letter-spacing:inherit} /* .get span 是說明行樣式，名稱不吃它 */
 </style>
 </head>
-<body data-mode={mode}>
-<div id="root"><div class="ff-static">{mode === 'home' && (
+<body data-mode={mode} data-tarot={tarot ? '1' : undefined}>
+<div id="root"><div class="ff-static">{mode === 'home' && !tarot && (
   <!-- 落地文案的靜態版：見 HomeGuaStatic.astro（與 /home-gua/text/ 共用） -->
   <HomeGuaStatic />
-)}{mode === 'love' && (
+)}{mode === 'love' && !tarot && (
   <!-- 落地文案的靜態版：見 LoveGuaStatic.astro（文字＝2026-09-26 文案規格 V1，與 viewLoveLanding() 同一份） -->
   <LoveGuaStatic />
 )}{mode === 'divination' && (
@@ -761,7 +764,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     <footer class="hg-foot"><p>想讓老師親自看？可以直接<a href="/booking-chat/">預約老師</a>，或到<a href="/services/">預約項目</a>看看哪一項最接近你現在的狀況。</p></footer>
   </main>
 )}</div></div>
-<!-- 風小編：只在占卜結果頁現身（render() 切 body class），讓用戶看完解讀即時問預約 -->
+<!-- 風小編：只在占卜結果頁現身（render() 切 body class），讓用戶看完解讀即時問預約。2026-10-13 塔羅頁也掛回 -->
 <ConciergeWidget />
 
 <script is:inline>
@@ -2207,6 +2210,7 @@ function submitFree(){
   var evTok=STATE.evSubmitTok||(window.ZFEmailVerify?ZFEmailVerify.token(payload.email):"");STATE.evSubmitTok="";if(evTok)payload.ev_token=evTok;   /* 剛在視窗驗好的優先（瀏覽器存不進去也不會再問一次） */
   STATE.submitting=true;STATE.logId="";STATE.k="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;
   go("interpreting");
+  if(window.ffPayloadHook)window.ffPayloadHook(payload);   /* 2026-10-12 塔羅頁（tarot-funnel.js）把「卦」換成抽牌簽名；其他頁沒有這個掛勾 */
   fetch(API.submit,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
    .then(function(resp){
      if(!resp.ok){return resp.json().catch(function(){return{};}).then(function(d){
@@ -2618,8 +2622,11 @@ window.go=go;window.back=back;window.exitFlow=exitFlow;window.openOA=openOA;wind
 window.submitFree=submitFree;window.ffSet=ffSet;window.ffNext=ffNext;window.ffPrev=ffPrev;window.ffNextState=ffNextState;window.ffEditRet=ffEditRet;window.shareCard=shareCard;window.createOrder=createOrder;window.shareResult=shareResult;window.loadFullContent=loadFullContent;window.genSpirit=genSpirit;
 window.STATE=STATE;
 
-boot();
+/* 塔羅試做頁（data-tarot）不跑 boot：不打後端（回訪預填、量測事件、Google 登入），改由 tarot-funnel.js 自己開機 */
+if(document.body.getAttribute("data-tarot")!=="1")boot();
 </script>
+{tarot && <script is:inline src="/assets/tarot/engine.js?v=1"></script>}
+{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=4"></script>}
 <!-- 帶 utm 進站記點（2026-09-06 補）：占卜頁沒用 BaseLayout，之前從活動頁／社群帶 utm 進來的人 D1 一列都沒有，
      漏斗第四站是瞎的。與 BaseLayout 那段逐字相同：sendBeacon → api.winds.tw/hit → D1 link_hits。 -->
 <script is:inline>
