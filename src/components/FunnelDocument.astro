@@ -1470,6 +1470,8 @@ function viewReportPaid(R,q){
   if(R.tian)h+=block("你的命卦與運卦","",tianPair(R));
   h+=block("完整解讀","",paywall(true));
   h+=block("你的命理檔案","",profileCard(true));
+  /* 2026-10-14 Jeffery：付費頁也放姓名學（同 LINE；等真分析回來才現身） */
+  h+='<div id="nameSection"'+(R.name?'':' style="display:none"')+'>'+block("姓名學分析","",'<div id="nameMount">'+(R.name?nameCard(STATE.paid||R.purchased):'')+'</div>')+'</div>';
   /* 2026-09-28（Codex 體檢）：付費版原本沒有 spiritCard＝沒有「生成我的分靈體」按鈕，後端付款時也不會自動生成。
      2026-10-14：側寫不再放命理檔案，一律在這一區顯示（頭像＋名字＋和祂聊聊，同 LINE）。 */
   h+=block("你的分靈體","",spiritCard(true));
@@ -1508,7 +1510,7 @@ function viewResult(){
   h+=block("你的命理檔案","",profileCard(paid));
   /* 紫微命盤：ziweiBlock 全是寫死示意（火六局/丑宮…人人相同）——待 /ziwei-chart 真後端才開（佔位資料清理 2026-07-09） */
   /* 姓名學：等真分析回來才現身（PH_NAME 只是示意稿，直接亮會把別人名字掛在用戶頭上） */
-  h+='<div id="nameSection" style="display:none">'+block("姓名學分析","",'<div id="nameMount"></div>')+'</div>';
+  h+='<div id="nameSection"'+(R.name?'':' style="display:none"')+'>'+block("姓名學分析","",'<div id="nameMount">'+(R.name?nameCard(STATE.paid||R.purchased):'')+'</div>')+'</div>';
   h+=block("你的分靈體側寫","",spiritCard(paid));
   h+='<div class="banner tall"><div class="bimg" style="background-image:url(/assets/talk-space-banner.jpg),linear-gradient(135deg,var(--clay-200),var(--rose-100))"></div><div class="cap"><span>要不要改變，你決定。</span></div></div>';
   /* 2026-09-24 收版面（Jeffery 拍板）：免費頁不再顯示五張牌、籤詩與神數，兩者只活在解讀文字裡；付費報告照舊 */
