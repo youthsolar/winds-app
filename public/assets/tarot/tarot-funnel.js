@@ -14,7 +14,7 @@
   var RATIO = 551 / 320;
   var reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   var PERIOD = '未來六個月';   /* 10/11 Jeffery：觀察期限一律六個月，不給選單 */
-  var BOOK_URL = '/booking';   /* 塔羅試做頁不掛風小編（客服），所有「預約老師」都直接連網站預約頁 */
+  var BOOK_URL = '/booking';   /* 「預約老師」連結帶 data-wc-open 開風小編（2026-10-13 掛回）；JS 沒跑起來時退回預約頁 */
   /* DS TarotShuffle SKIN：好愛＝「愛」、家裡的符＝「宅」 */
   var SKIN = HOME
     ? { bg: 'var(--accent-press)', bg2: 'var(--accent)', line: 'var(--text-on-accent)', ink: 'var(--text-on-accent)', glyph: '宅', glow: 'var(--accent)' }
@@ -166,7 +166,7 @@
       if (!s.ok) {
         var d = document.createElement('div'); d.className = 'ts-teacher';
         d.innerHTML = '<span class="t1">這組牌需要老師進一步判讀</span><span class="t2">五張牌的組合比較特別，交給老師當面看，會說得比較完整。</span>' +
-          '<a class="zf-btn primary md" href="' + BOOK_URL + '">預約老師</a>';
+          '<a class="zf-btn primary md" href="' + BOOK_URL + '" data-wc-open>預約老師</a>';
         d.append(restartLink()); f.append(d);
       } else f.append(restartLink());
     }
@@ -305,9 +305,6 @@
     if (lvSingle()) return '<p class="hg-guide">把心思放回自己。</p><p class="hg-guide">下一個是誰，先不要執著。</p><p class="hg-guide">先看看，現在的你準備好迎接一段感情了嗎？</p><p class="hg-guide">然後，按下洗牌。</p>';
     return '<p class="hg-guide">就想著他。</p><p class="hg-guide">想起最近那次對話。</p><p class="hg-guide">先看這組牌：你們現在算什麼？</p><p class="hg-guide">然後，按下洗牌。</p>';
   };
-  /* 導覽列的「預約老師」原本帶 data-wc-open（開風小編）；試做頁沒有風小編，拿掉讓它直接連 /booking */
-  var _siteHeader = window.siteHeader;
-  window.siteHeader = function () { return _siteHeader().replace(/ data-wc-open/g, ''); };
   window.viewLoveLanding = function () {
     return siteHeader() +
       '<main class="shell narrow ff hg lpd">' +
@@ -412,7 +409,7 @@
         ? '<button class="zf-btn primary lg" onclick="askAnother()">' + ic('arrow-counter-clockwise') + '這組牌已過期，重新抽一次牌</button><p class="veil-alt">靈符七天內有效，過了老師要依新的牌重新配符。</p>'
         : '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>' +
           '<p class="veil-alt">這張靈符 ' + esc(f1.valid_until_label) + ' 前有效，過了要重新抽牌。</p>') +
-      '<p class="veil-alt">想直接找老師談這件事？<a href="' + BOOK_URL + '">預約老師</a></p></div></div>';
+      '<p class="veil-alt">想直接找老師談這件事？<a href="' + BOOK_URL + '" data-wc-open>預約老師</a></p></div></div>';
   }
   /* 第一張靈符（後端出圖，同卦符卡 hexCardHero 的放法）＋右邊五張牌與下一個節氣 */
   function fuHero(T, paid) {
@@ -444,7 +441,7 @@
   }
   function resEnd() {
     return '<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">' +
-      '<a class="zf-btn primary md" href="' + BOOK_URL + '">' + ic('calendar-heart', 'thin') + '預約老師</a>' +
+      '<a class="zf-btn primary md" href="' + BOOK_URL + '" data-wc-open>' + ic('calendar-heart', 'thin') + '預約老師</a>' +
       '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">換一件事重新問</button></div>';
   }
   window.viewResult = function () {
@@ -496,6 +493,8 @@
   /* 開機（同網站 boot 的報告分支）：付款回跳、重新整理帶 ?log_id=&k= 或「開了付款頁」留下的那一局 → 讀結果；其餘從落地頁開始。
      回訪預填（提醒信 ?ret=）這版先不接 */
   (function tarotBoot() {
+    /* 量測：ViewContent＝進到塔羅漏斗（2026-10-13 恢復量測；名稱分開，好跟水鏡版 love／home-gua 比） */
+    try { var cn = HOME ? 'home-tarot' : 'love-tarot'; if (window.fbq) fbq('track', 'ViewContent', { content_name: cn }); if (window.gtag) gtag('event', 'view_item', { item_name: cn }); } catch (e) {}
     var p = new URLSearchParams(location.search), rid = p.get('log_id') || '';
     var kk = p.get('k') || (location.hash.match(/[#&]k=([a-f0-9]{24})/) || [])[1] || '', pending = '', pendingPath = '';
     try { pending = sessionStorage.getItem('winds_pending_log_id') || ''; pendingPath = sessionStorage.getItem('winds_pending_path') || ''; sessionStorage.removeItem('winds_pending_log_id'); sessionStorage.removeItem('winds_pending_path'); } catch (e) {}
