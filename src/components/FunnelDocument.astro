@@ -1851,7 +1851,7 @@ function paywall(paid){
         :'<div style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+(STATE.fullError
           ?(STATE.fullNeedLogin
             ?'完整解讀要本人才看得到：請從付款後收到的信裡的連結打開，或<a href="'+loginReturnUrl()+'" style="color:var(--rose-600)">用付款時的 Google 帳號登入</a>。 <button class="zf-btn ghost sm" onclick="STATE.fullPolls=0;loadFullContent(true)">再試一次</button>'
-            :'<button class="zf-btn ghost sm" onclick="STATE.fullPolls=0;loadFullContent(true)">完整解讀載入失敗，點我重試</button>')
+            :'<button class="zf-btn ghost sm" onclick="STATE.fullPolls=0;loadFullContent(true)">載入失敗點我重試</button>')
           :STATE.fullGenerating
           ?ic("circle-notch")+'老師的完整解讀正在為你寫，一會兒就好…（這頁會自己更新）'
           :ic("circle-notch")+'完整解讀載入中…')+'</div>')+
