@@ -949,7 +949,7 @@ var STATE={step:"topic",paid:false,dir:null,sub:null,q:null,text:"",gender:"",se
  cast:null,ask:0,data:{year:1990,month:null,day:null,shi:6,gender:"",surname:"",given:"",phone:"",email:"",home:"",loveWho:"",loveAngle:""},ret:false,retInfo:null,retLog:"",retToken:"",k:"",ref:"",shareUrl:"",
  lineUserId:"",logId:"",talismanName:"量能靈符",
  submitting:false,ordering:false,soulConfirmed:false,reportMode:false,
- prefill:null,cooldown:null,repeatWall:null,result:null,error:""};
+ prefill:null,cooldown:null,result:null,error:""};
 var STEPS=(HOME||LOVE)?[{k:"cast",l:"起卦"},{k:"ask",l:"認識你"},{k:"result",l:"結果"}]:[{k:"topic",l:"選題"},{k:"cast",l:"起卦"},{k:"ask",l:"認識你"},{k:"result",l:"結果"}];
 if(HOME){STATE.step="landing";STATE.dir="home";STATE.q="家裡先留一張符";STATE.text="我想替現在住的地方求一張符，先看看這個家目前的狀況。";}
 /* love 模式：dir 用 love，結果頁的推薦與文章區就會走感情那一組（BLOG_LINKS.love 已存在） */
@@ -1958,45 +1958,16 @@ function socialCta(){
 function viewCooldown(){
   var c=STATE.cooldown||{};var when=c.available_at?fmtWhen(c.available_at):'';
   return '<div class="cool"><div class="glow"></div><div class="zf-card"><span class="moon">'+ic("moon-stars","thin")+'</span>'+
-    '<h1>我知道你很在意這件事。</h1>'+
+    '<h1>這一卦，先停在這裡。</h1>'+
     '<p class="cool-p" style="font-family:var(--font-serif);font-weight:300;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
     (when?'<div class="when">'+ic("clock")+'<span>這一題，<b>'+esc(when)+'</b>可以再問</span></div>':'')+
     (c.last_log_id
       ?'<div class="cool-btns"><button class="zf-btn primary md" id="unlockBtn" onclick="STATE.logId=String(STATE.cooldown.last_log_id);createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button><button class="zf-btn secondary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+
        '<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-secondary);margin-top:14px">不想等的話——解鎖後 7 天陪伴期內，這一題隨時可以再問。</p>'
       :'<div class="cool-btns"><button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button><button class="zf-btn secondary md" onclick="openOA()">到 LINE 看看 '+ic("arrow-right")+'</button></div>')+
-    '<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">同一題先隔一段時間再問，才不會一直被當下的情緒帶著走。</p></div></div>';
+    '</div></div>';
 }
 function fmtWhen(iso){try{var d=new Date(iso);if(isNaN(d.getTime()))return iso;return (d.getMonth()+1)+'/'+d.getDate()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes());}catch(e){return iso;}}
-
-/* ===== Repeat wall（同題重複付費牆 2026-07-21；⚠️ 文案佔位，Jeffery 親寫）===== */
-function viewRepeatWall(){
-  var w=STATE.repeatWall||{};
-  var msg=esc(w.message||'這個方向，你已經拿過完整的答案，也重複問過了。接下來你需要的是更深的解說，不是再一次占卜。');
-  var head='<div class="cool"><div class="glow"></div><div class="zf-card"><span class="moon">'+ic("moon-stars","thin")+'</span>';
-  var body='<p style="font-family:var(--font-serif);font-weight:300;font-size:17.5px;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+msg+'</p>';
-  /* 問題相似度＋上次同類占卜（2026-07-22：讓用戶知道牆是比對哪一筆） */
-  if(w.last_question){
-    var sim=Math.max(0,Math.min(100,Number(w.similarity)||60));
-    var circ=2*Math.PI*30,dash=circ*sim/100;
-    body+='<div style="display:flex;align-items:center;gap:18px;justify-content:flex-start;margin:22px auto 0;max-width:26em;text-align:left;background:var(--surface-sunken,rgba(0,0,0,.03));border:1px solid var(--rose-100);border-radius:14px;padding:14px 16px">'+
-      '<div class="nm-score" style="flex:none"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-100)" stroke-width="5"/><circle cx="36" cy="36" r="30" fill="none" stroke="var(--rose-400)" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+dash.toFixed(1)+' '+circ.toFixed(1)+'" transform="rotate(-90 36 36)"/><text x="36" y="36" text-anchor="middle" dominant-baseline="central" style="font-family:var(--font-sans);font-size:16px;font-weight:600;fill:var(--ink-900)">'+sim+'%</text></svg><span class="nm-score-l">問題相似度</span></div>'+
-      '<div style="min-width:0"><div style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted)">比對的是你上次問的'+(w.last_at?'（'+fmtWhen(w.last_at)+'）':'')+'</div>'+
-      '<p style="font-family:var(--font-serif);font-size:14px;line-height:1.8;color:var(--ink-700);margin:4px 0 0">「'+esc(w.last_question)+'」</p>'+
-      (w.last_delivery_url&&w.last_log_id?'<a href="/divination/?log_id='+encodeURIComponent(w.last_log_id)+'" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-sans);font-size:13px;color:var(--rose-600);text-decoration:underline;margin-top:8px">'+ic("arrow-square-out")+'回顧上次的完整解讀</a>':'')+
-      '</div></div>';
-  }
-  var note='<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin-top:18px">每個方向都有過一次免費的回答，這不是限制，是想陪你把答案看清楚。</p></div></div>';
-  var buyBtn=w.last_log_id?'<button class="zf-btn '+(w.escalate?'secondary':'primary')+' md" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>':'';
-  if(w.escalate){
-    return head+'<h1>這件事，值得跟老師好好談一談。</h1>'+body+
-      '<div class="cool-btns" style="margin-top:24px"><button class="zf-btn primary md" onclick="location.href=\'/booking\'">'+ic("calendar-heart")+'預約老師談一次</button>'+buyBtn+'</div>'+
-      '<p style="margin-top:14px"><a href="/" style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted);text-decoration:underline">回首頁</a></p>'+note;
-  }
-  return head+'<h1>這一題，建議交給深度解讀。</h1>'+body+
-    '<div class="feat" style="margin-top:18px"><span>'+ic("check","bold")+'完整解讀·行動方案與時機</span><span>'+ic("check","bold")+'五張靈符·依次舒緩問題</span><span>'+ic("check","bold")+'分靈體 7 天深度陪伴</span></div>'+
-    '<div class="cool-btns">'+buyBtn+'<button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+note;
-}
 
 /* ===== router ===== */
 /* ===== 完整報告模式：站台 Nav/Footer（DS report-page；只在 log_id 回訪時取代 funnel header）===== */
@@ -2083,8 +2054,8 @@ function render(){
     updateFabCta();
     return;
   }
-  var showHdr=STATE.step!=="landing"&&STATE.step!=="cooldown"&&STATE.step!=="interpreting"&&STATE.step!=="repeatwall";
-  var fn={landing:viewLanding,topic:viewTopic,cast:viewCast,hex:viewHex,ask:viewAsk,ret:viewRet,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown,repeatwall:viewRepeatWall}[STATE.step]||((HOME||LOVE)?viewLanding:viewTopic);
+  var showHdr=STATE.step!=="landing"&&STATE.step!=="cooldown"&&STATE.step!=="interpreting";
+  var fn={landing:viewLanding,topic:viewTopic,cast:viewCast,hex:viewHex,ask:viewAsk,ret:viewRet,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown}[STATE.step]||((HOME||LOVE)?viewLanding:viewTopic);
   root.innerHTML=(showHdr?header():"")+fn();
   cjkWrap(root);
   if((HOME||LOVE)&&STATE.step==="landing")wireSiteChrome();
@@ -2136,7 +2107,7 @@ function askAnother(){STATE.qtype="";
      重新整理（或付款後按「完成後點我載入」）又回到舊報告。這裡歸零回看狀態、只拿掉網址的 log_id／k（utm 等照留），
      並清掉舊那一卦付款留下的 pending，否則還沒送出新卦前重新整理會被舊報告接管。 */
   clearReportUrl();
-  STATE.cast=null;STATE.ask=0;STATE.k="";STATE.shareUrl="";STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;STATE.logId="";STATE.repeatWall=null;if(HOME){STATE.data.home="";STATE.dir="home";STATE.q="家裡先留一張符";STATE.text="我想替現在住的地方求一張符，先看看這個家目前的狀況。";}if(LOVE){STATE.data.loveWho="";STATE.data.loveAngle="";STATE.dir="love";STATE.q="這段感情，現在走到哪裡";STATE.text="我想為現在這段感情起一卦，先看看我們目前的狀況。";}go((HOME||LOVE)?"landing":"topic");}
+  STATE.cast=null;STATE.ask=0;STATE.k="";STATE.shareUrl="";STATE.dir=null;STATE.sub=null;STATE.q=null;STATE.text="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;STATE.logId="";if(HOME){STATE.data.home="";STATE.dir="home";STATE.q="家裡先留一張符";STATE.text="我想替現在住的地方求一張符，先看看這個家目前的狀況。";}if(LOVE){STATE.data.loveWho="";STATE.data.loveAngle="";STATE.dir="love";STATE.q="這段感情，現在走到哪裡";STATE.text="我想為現在這段感情起一卦，先看看我們目前的狀況。";}go((HOME||LOVE)?"landing":"topic");}
 
 /* ===== Google SSO auth ===== */
 var googleIdToken="";
@@ -2215,7 +2186,6 @@ function submitFree(){
    .then(function(resp){
      if(!resp.ok){return resp.json().catch(function(){return{};}).then(function(d){
        if(d.recast){STATE.submitting=false;STATE.cast=null;go("cast");setTimeout(function(){showFfErr(d.message||"回到水鏡重新按一次。");},60);return null;}
-       if(d.repeat_wall){STATE.repeatWall=d;STATE.logId=d.last_log_id||"";STATE.submitting=false;go("repeatwall");return null;}
        if(resp.status===429||d.blocked){STATE.cooldown={message:d.message,available_at:d.available_at,last_log_id:d.last_log_id||null};STATE.submitting=false;go("cooldown");return null;}
        if(d.error==="email_verify_required"){STATE.submitting=false;go(STATE.ret?"ret":"ask");
          if(evTok&&window.ZFEmailVerify)ZFEmailVerify.clear(payload.email);
