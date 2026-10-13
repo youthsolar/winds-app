@@ -1471,8 +1471,8 @@ function viewReportPaid(R,q){
   h+=block("完整解讀","",paywall(true));
   h+=block("你的命理檔案","",profileCard(true));
   /* 2026-09-28（Codex 體檢）：付費版原本沒有 spiritCard＝沒有「生成我的分靈體」按鈕，後端付款時也不會自動生成。
-     已有側寫時 profileCard 會顯示，只在還沒有時補這一塊，避免重複。 */
-  if(!(R.profile&&R.profile.trim()))h+=block("你的分靈體","",spiritCard(true));
+     2026-10-14：側寫不再放命理檔案，一律在這一區顯示（頭像＋名字＋和祂聊聊，同 LINE）。 */
+  h+=block("你的分靈體","",spiritCard(true));
   h+=tarotBlockFull(R);
   h+=qianBlockFull(R);
   if(R.talismanImg||R.hexName||(R.talismanElements&&R.talismanElements.length))h+=block("風易揚老師的靈符解方","老師親手畫、依你這一卦配的靈符；每逢節氣解鎖一張，依序設成手機桌布。",hexTalismans(true),true);
@@ -1603,9 +1603,7 @@ function profileCard(paid){
   if(season){var fl=R.fortuneLine||[];var ax=fl.length>=3?[fl[0],fl[Math.floor((fl.length-1)/2)],fl[fl.length-1]].map(function(p){return esc(p.name)}):null;
     lower+='<div class="mini-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-family:var(--font-sans);font-size:11.5px;letter-spacing:.1em;color:var(--text-muted)">節氣運勢 · 未來六節氣</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 後段付費</span>')+'</div>'+season+(ax?'<div style="display:flex;justify-content:space-between;font-family:var(--font-sans);font-size:11px;color:var(--text-muted);margin-top:6px"><span>'+ax[0]+'</span><span>'+ax[1]+'</span><span>'+ax[2]+'</span></div>':'')+'</div>';}
   if(lower)h+='<div class="profile-lower" style="margin-top:14px">'+lower+'</div>';
-  /* 付費版：分靈體側寫併入命理檔案（FI-SYNC 對齊 delivery secProfile 尾段） */
-  if(paid&&R.profile)h+='<div class="zf-card" style="margin-top:14px"><div class="pf-lbl" style="margin-bottom:10px">分靈體側寫</div>'+
-    '<p class="sp-p">'+md(R.profile)+'</p></div>';
+  /* 2026-10-14 Jeffery 選項卡：付費頁分靈體改成獨立一區（同 LINE，頭像＋名字＋和祂聊聊），命理檔案裡不再放側寫 */
   return h+'</div>';
 }
 /* ===== 紫微命盤摘要（逐值對齊 DS ZiweiSummaryBlock；示意待後端 /ziwei-chart）===== */
