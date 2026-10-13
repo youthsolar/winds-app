@@ -1699,7 +1699,7 @@ function spiritCardInner(paid){
   /* 付款後、還沒有側寫：按鈕生成（2026-09-11） */
   if(!(R.profile&&R.profile.trim())){
     if(R.accountHidden)return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">先確認一下信箱，確認是你本人，就看得到你的分靈體。</p><div style="margin-top:14px"><button class="zf-btn primary sm" onclick="restoreAccount(this)">'+ic("envelope-simple")+'確認信箱</button></div></div>';
-    if(R.profileGenerating||STATE.spiritGenerating)return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">老師還在整理你的分靈體側寫，大約要 2～3 分鐘。好了就會放在這裡。</p></div>';
+    if(R.profileGenerating||STATE.spiritGenerating)return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">還在整理你的分靈體側寫，大約要 3 分鐘。</p></div>';
     return '<div class="zf-card tint"><p style="font-family:var(--font-serif);font-weight:300;font-size:16px;color:var(--text-secondary);margin:0">老師的解方已經在你手上，接下來讓分靈體認識你。</p><div style="margin-top:14px"><button class="zf-btn primary sm" onclick="genSpirit()">'+ic("sparkle")+'生成我的分靈體</button></div></div>';
   }
   var sName=(R.spiritName&&R.spiritName.trim())?R.spiritName.trim():'分靈體';
