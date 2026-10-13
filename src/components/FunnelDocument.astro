@@ -1738,10 +1738,10 @@ function hexCardHero(paid){
     /* 2026-10-06 Jeffery 選項卡：有命卦的紀錄，這張卡是運卦 → 寫明「此刻的運卦」；舊紀錄照舊 */
     '<div class="hexcol"><span class="hex-name">'+((R.tian||R.tianPending)?'此刻的運卦，是「':'這次的卦，是「')+esc(R.hexName||'')+'」</span>'+
     (guaSym?'<p class="hex-read" style="font-size:24px;letter-spacing:6px;color:var(--accent-press);margin:10px 0 0">'+guaSym+'</p>':'')+
-    '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+SOLAR.next+'</b>（'+SOLAR.date+'）。'+SOLAR.line+'</span></div></div>'+
+    '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+SOLAR.next+'</b>（'+SOLAR.date+'）。'+(paid?'會通知你回來拿新的靈符。':SOLAR.line)+'</span></div></div>'+
     '</div></div>';
   /* 病毒環路（9/9 拍板）：把這一卦傳給那個該看到的人——圖（長按存）／連結（零登入收卡頁，縮圖＝同一張卡） */
-  if(HC&&!HC.expired&&STATE.shareUrl)h+='<div class="zf-card ff-share"><span class="eyebrow"><span class="dot"></span>把這一卦分享給那個人</span>'+
+  if(HC&&!HC.expired&&STATE.shareUrl)h+='<div class="zf-card ff-share"><span class="eyebrow"><span class="dot"></span>把這一卦分享出去</span>'+
     '<div class="row"><a class="zf-btn secondary md" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("image","thin")+'存成圖片</a>'+
     '<button class="zf-btn primary md" onclick="shareCard(this)">'+ic("link-simple","thin")+'複製連結</button></div>'+
     '</div>';
