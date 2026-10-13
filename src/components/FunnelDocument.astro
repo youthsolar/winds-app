@@ -1454,7 +1454,7 @@ function tianPair(R){
       '<p style="font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.8;color:var(--text-secondary);margin:0">'+note+'</p></div>';
   }
   return '<div style="display:flex;flex-wrap:wrap;gap:16px">'+
-    one("命卦",T.name,T.upper_gua,T.lower_gua,'依你的生辰'+(T.birth_label?'（'+esc(T.birth_label)+'）':'')+'與起卦那一刻起的卦，看這件事的方向。這次的五張靈符依它而配。')+
+    one("命卦",T.name,T.upper_gua,T.lower_gua,'搭配你的生辰'+(T.birth_label?'（'+esc(T.birth_label)+'）':'')+'與起卦的那一刻，看這件事的方向。這次的五張靈符依它而配。')+
     one("運卦",R.hexName,R.upperGua,R.lowerGua,'你按下水鏡那一刻起的卦，看眼前這段時間的時機。')+
     '</div>'+
     (T.same?'<p style="font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.8;color:var(--text-secondary);margin:14px 0 0"><b style="font-weight:500;color:var(--text-primary)">命與運落在同一卦：</b>這件事的方向很清楚。</p>':'');
