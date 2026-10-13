@@ -1959,7 +1959,7 @@ function viewCooldown(){
   var c=STATE.cooldown||{};var when=c.available_at?fmtWhen(c.available_at):'';
   return '<div class="cool"><div class="glow"></div><div class="zf-card"><span class="moon">'+ic("moon-stars","thin")+'</span>'+
     '<h1>這一卦，先停在這裡。</h1>'+
-    '<p class="cool-p" style="font-family:var(--font-serif);font-weight:300;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
+    '<p class="cool-p" style="font-family:var(--font-serif);font-weight:300;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left;word-break:keep-all;overflow-wrap:anywhere">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
     (when?'<div class="when">'+ic("clock")+'<span>這一題，<b>'+esc(when)+'</b>可以再問</span></div>':'<div style="height:24px"></div>')+
     (c.last_log_id
       ?'<div class="cool-btns"><button class="zf-btn primary md" id="unlockBtn" onclick="STATE.logId=String(STATE.cooldown.last_log_id);createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button><button class="zf-btn secondary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+
