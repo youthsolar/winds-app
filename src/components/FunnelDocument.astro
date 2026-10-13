@@ -1894,7 +1894,7 @@ function recsInner(recs){
     ?'<div class="head"><h2>如果看完這一卦，你還是放不下那個人</h2><p>有些感情，知道方向之後，心裡就會慢慢有答案。</p><p>但有些事情，你真正想知道的是：<br>他為什麼突然變了？<br>我們之間是不是發生了我不知道的事？<br>他心裡現在究竟怎麼看我？<br>為什麼我們總是在靠近之後又分開？<br>這段關係是不是還有更深的原因？</p><p>當你想查的已經不只是這一卦的方向，就可以再往裡面問。</p></div>'
     :'<div class="head"><h2>如果看完這一卦，心裡還放不下</h2><p>有些問題，卦象可以給你方向；如果有些事情，想要更深入了解，可以再找老師談談。</p></div>')+
     '<div class="rec-grid">'+recs.map(function(r){
-      var book=r.source==='simplybook';var price=r.price?('NT$ '+Number(r.price).toLocaleString()+(book?' 起':'')):'';
+      var book=r.source==='simplybook';var price=r.price?('NT$ '+Number(r.price).toLocaleString()):'';
       var url=r.url||r.purchase_url||'';
       /* 2026-09-25 Jeffery 第 12 段：問事項目不寫成商品介紹——固定標題＋項目名＋說明＋「預約○○」；沒定稿的項目維持原樣 */
       /* 2026-09-26：好愛的推薦文案只給「心裡有那個人」用；桃花版沒有對應文案，退回通用那組（與上面標題的處理一致） */
