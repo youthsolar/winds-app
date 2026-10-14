@@ -1,11 +1,117 @@
 ---
-// 老師總覽（EasyStore /pages/masters 搬來）
-import { getEntry } from 'astro:content';
+// 老師介紹（2026-10-15 文案檢驗第 4 頁：整頁重寫，舊版是 EasyStore /pages/masters 搬來的長文）
+// 版型全用 DS 現有元件：PageHeader（zf-page-header）、Card（zf-card）、Avatar ring、Tag、Button；照片即時讀 /sb-providers
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import EsPage from '../../components/EsPage.astro';
+import { ORG_JSONLD } from '../../data/org';
 
-const entry = await getEntry('espages', 'masters');
+export const prerender = false;
+
+const TEACHERS = [
+  { slug: 'fengyiyang', id: '1', name: '風易揚老師', tags: ['感情', '工作', '財運', '想知道原因的事'],
+    body: '風易揚老師是找風問幸福的老師，主要看感情、工作與財運，透過通靈水鏡法查因果，也做元辰宮代觀與修補。他是品牌創辦人，也教其他老師，問事時會看事情的原因與現況，再談接下來怎麼處理。命書籤詩問事僅由他承接，限遠端。' },
+  { slug: 'xuanqi', id: '45', name: '玄奇老師', tags: ['感情反覆', '人際困擾', '最近不順', '想查原因'],
+    body: '玄奇老師主要看感情反覆與人際困擾，使用通靈水鏡法，也做陰陽調和。如果最近不太順，或有件事一直卡著、想知道原因，可以找老師看事情的前因後果，陪你釐清卡住的地方。' },
+  { slug: 'qianlan', id: '30', name: '芊蘭老師', tags: ['財運不順', '家裡不平靜', '看看元辰宮', '想查原因'],
+    body: '芊蘭老師主要看財運與家中狀況，使用元辰宮代觀、通靈水鏡法。如果你覺得財運不順，或家裡不太平靜，想進一步了解原因，可以找老師聊聊。想看看自己的元辰宮，也可以請老師代為觀看。' },
+  { slug: 'fengciling', id: '2', name: '風賜靈老師', tags: ['家裡不平靜', '祖先的事', '財庫', '因果'],
+    body: '風賜靈老師主要看家中與祖靈相關困擾，以及財庫、因果，使用元辰宮代觀、通靈水鏡法。若家裡不平靜，想問祖先的事，可以找老師談談；想了解財庫或查看元辰宮，也能依你在意的問題來問。' },
+  { slug: 'yiziliang', id: '35', name: '伊紫蓮老師', tags: ['感情放不下', '事情一直重演', '想查原因', '人生卡住'],
+    body: '伊紫蓮老師主要看放不下的感情與反覆發生的事情，使用通靈水鏡法查看因果。有些事一再重演，讓你覺得人生卡住，卻又說不清原因，可以從那件最在意的事談起，和老師一起釐清背後的脈絡。' },
+  { slug: 'zhuyun', id: '34', name: '竹韻老師', tags: ['感情不安', '對方的想法', '害怕被放棄', '關係怎麼走'],
+    body: '竹韻老師主要看親密關係裡的不安與互動，使用準提水鏡法。如果你在感情裡害怕被放棄，或掛心對方怎麼想，可以帶著目前的相處情況來問，和老師一起釐清對方的想法，談談這段關係接下來怎麼走。' },
+];
+
+// 照片：讀不到就退回頭像字，頁面照常顯示（這頁只是介紹，不擋人）
+let photos: Record<string, string> = {};
+try {
+  const r = await fetch('https://api.winds.tw/sb-providers');
+  if (r.ok) for (const p of ((await r.json()).providers || [])) if (p.photo) photos[String(p.id)] = p.photo;
+} catch {}
+Astro.response.headers.set('Cache-Control', 'public, max-age=300');
+
+const pageTitle = '老師介紹｜感情問事、元辰宮代觀｜找風問幸福';
+const pageDesc = '找風問幸福有哪些老師？認識風易揚、玄奇、芊蘭、風賜靈、伊紫蓮與竹韻，了解感情問事、元辰宮代觀與因果查看可找哪位老師。可預約台北市大安區一對一問事，也可選擇遠端視訊。';
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    ORG_JSONLD,
+    {
+      '@type': 'CollectionPage', '@id': 'https://winds.tw/teachers/#page', url: 'https://winds.tw/teachers/', name: pageTitle,
+      about: { '@id': 'https://winds.tw/#org' }, inLanguage: 'zh-Hant',
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: TEACHERS.map((t, i) => ({
+          '@type': 'ListItem', position: i + 1,
+          item: { '@type': 'Person', name: t.name, url: `https://winds.tw/lp/${t.slug}`, description: t.body, knowsAbout: t.tags,
+                  ...(photos[t.id] ? { image: photos[t.id] } : {}), worksFor: { '@id': 'https://winds.tw/#org' } },
+        })),
+      },
+    },
+  ],
+};
 ---
-<BaseLayout title={entry.data.seoTitle || `${entry.data.title}｜找風問幸福`} description={entry.data.description} ogType="website">
-  <EsPage entry={entry} crumb={{ href: '/teachers/', label: '老師介紹' }} />
+<BaseLayout title={pageTitle} description={pageDesc} ogType="website" jsonLd={jsonLd}>
+  <main class="tpage">
+    <div class="wrap">
+      <header class="zf-page-header md">
+        <span class="zf-ph-eyebrow">老師介紹</span>
+        <h1 class="zf-ph-title cjk">想問的事，可以找哪位老師？</h1>
+        <p class="zf-ph-lede">找風問幸福的老師有風易揚、玄奇、芊蘭、風賜靈、伊紫蓮與竹韻，依各自專長看感情、財運等問題。你可以先從想問的事情認識老師，再預約台北市大安區的一對一問事，或選擇遠端視訊。</p>
+      </header>
+
+      <div class="tgrid">
+        {TEACHERS.map((t) => (
+          <article class="zf-card tcard">
+            <div class="ttop">
+              <span class="zf-avatar ring tav">
+                {photos[t.id] ? <img src={photos[t.id]} alt={t.name} width="60" height="60" loading="lazy" /> : t.name.slice(0, 1)}
+              </span>
+              <div class="tid">
+                <h2 class="tname">{t.name}</h2>
+                <div class="ttags">{t.tags.map((g) => <span class="zf-tag rose">{g}</span>)}</div>
+              </div>
+            </div>
+            <p class="tbody">{t.body}</p>
+            <div class="tfoot"><a class="zf-btn md secondary" href={`/lp/${t.slug}`}>看老師的預約頁</a></div>
+          </article>
+        ))}
+      </div>
+
+      <div class="zf-card tint tend">
+        <p class="tend-text">還不知道選哪位老師，可以先從最想問的一件事開始。到網站按住水鏡三秒，就能免費起卦，再回來對照老師的專長。</p>
+        <a class="zf-btn lg primary" href="/">先免費起卦</a>
+      </div>
+    </div>
+  </main>
 </BaseLayout>
+
+<style>
+  .tpage { background: var(--surface-page); }
+  .wrap { max-width: var(--container); margin: 0 auto; padding: 72px 32px 96px; }
+  @media (max-width: 820px) { .wrap { padding: 44px 20px 64px; } }
+  .cjk { word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
+
+  /* 老師卡：數值照預約頁 TeacherCard（頭像 60／名字 21／說明 15.5），手機同預約頁 */
+  .tgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; margin-top: 40px; }
+  @media (max-width: 760px) { .tgrid { grid-template-columns: 1fr; gap: 16px; margin-top: 28px; } }
+  .tcard { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
+  .ttop { display: flex; gap: 14px; align-items: flex-start; }
+  .tav { width: 60px; height: 60px; font-size: 25px; }
+  .tav img { width: 100%; height: 100%; object-fit: cover; }
+  .tid { flex: 1; min-width: 0; }
+  .tname { margin: 0; font-family: var(--font-serif); font-size: 21px; font-weight: var(--w-medium); color: var(--ink-900); }
+  .ttags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .ttags .zf-tag { font-size: 12px; }
+  .tbody { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 15.5px; line-height: 1.8; color: var(--text-secondary); margin: 16px 0 0; }
+  .tfoot { margin-top: auto; padding-top: 18px; }
+  @media (max-width: 760px) {
+    .tav { width: 54px; height: 54px; font-size: 23px; }
+    .tname { font-size: 19px; }
+    .tbody { font-size: 14.5px; }
+  }
+
+  /* 收尾：Card tint 置中 */
+  .tend { margin-top: 48px; text-align: center; padding: 40px 32px; }
+  @media (max-width: 760px) { .tend { margin-top: 32px; padding: 28px 20px; } }
+  .tend-text { font-family: var(--font-serif); font-weight: var(--w-light); font-size: 17px; line-height: 1.92; color: var(--text-secondary); margin: 0 auto 22px; max-width: 30em; text-wrap: pretty; }
+</style>
