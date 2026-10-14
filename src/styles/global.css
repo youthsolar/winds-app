@@ -58,6 +58,8 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
     /* 補齊 DS colors.css 回灌層（tints / clay / sage / scrim / frost / 五行；mockup 元件會用，缺了 gradient 會破）*/
     --clay-100:#F4E7D8; --clay-200:#EAD3BC; --sage-200:#D3D8C5; --ink-300:#B8AEA2; --ink-800:#3A322B;
     --text-primary:var(--ink-900); --surface-inverse:var(--ink-900); --text-on-inverse:#F6EFE6;
+    /* 金句卡 QuoteCard（DS 2026-10-15：暗版仍是深色卡，不跟 inverse 翻亮） */
+    --surface-quote:var(--ink-900); --border-quote:transparent; --quote-glow:rgba(193,140,132,.38); --text-on-quote:var(--rice-50); --text-quote-sign:color-mix(in srgb, var(--rice-50) 62%, transparent); --quote-mark:var(--rose-300);
     --tint-clay-hi:#F4E7D8; --tint-clay-disc:#F7EDE0; --tint-sage-hi:#EAEEE1; --tint-sage-disc:#EEF1E7; --tint-rose-soft:#EBCFC9; --tint-glow:#EDE5D4;
     --photo-1:#EAD9CF; --photo-2:#D9BBA6; --photo-3:#EDE0CC; --photo-4:#F3E4D6;
     --scrim:rgba(46,40,35,0.34); --bar-translucent:rgba(251,248,243,0.82); --bar-translucent-2:rgba(251,248,243,0.90);
@@ -75,7 +77,7 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
     --font-serif: "Noto Serif TC", "Songti TC", serif;
     /* typography scale（DS tokens/typography.css）*/
     --w-light:300; --w-regular:400; --w-medium:500; --w-semibold:600; --w-bold:700; --w-black:900;
-    --t-display:56px; --t-h1:40px; --t-h2:30px; --t-h3:24px; --t-h4:20px;
+    --t-display:56px; --t-h1:40px; --t-h2:30px; --t-h3:24px; --t-h4:20px; --t-card-title:18.5px;
     --t-body-lg:18px; --t-body:16px; --t-body-sm:14px; --t-caption:13px; --t-micro:12px;
     --lh-tight:1.18; --lh-snug:1.35; --lh-body:1.85; --lh-ui:1.5;
     --ls-display:0.01em; --ls-heading:0.02em; --ls-body:0.015em; --ls-label:0.14em;
@@ -210,6 +212,7 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
   --text-muted:     var(--ink-400);
   --text-on-accent: #2A201C;
   --text-on-inverse:#2E2823;
+  --surface-quote: var(--surface-card); --border-quote: var(--border-soft); --quote-glow: rgba(193,140,132,.22); --text-on-quote: var(--text-primary); --text-quote-sign: var(--text-muted);
   --accent:        var(--rose-400);
   --accent-hover:  var(--rose-500);
   --accent-press:  var(--rose-600);
