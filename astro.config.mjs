@@ -25,7 +25,7 @@ const SERVICE_PAGES = await servicePages();
 // build 時問一次各主題有沒有卦：確定回「沒有」（ok:true、item:null）才排除；問不到就照收，免得 worker 暫時故障把正常頁踢出 sitemap。
 // 主題清單對 src/data/topics.ts 的 TOPICS；有卦之後要等下一次 build 才會重新收錄。
 async function emptyTopicPages() {
-  const topics = { love: '/love-gua/', wealth: '/wealth-gua/', fortune: '/fortune-gua/' };
+  const topics = { love: '/love/', wealth: '/wealth-gua/', fortune: '/fortune-gua/' };
   const out = [];
   await Promise.all(Object.entries(topics).map(async ([key, path]) => {
     try {
@@ -214,6 +214,8 @@ export default defineConfig({
         '/shop/order/',
         // 2026-10-12 塔羅試做落地頁（noindex）
         '/love-tarot/', '/home-tarot/',
+        // 2026-10-14 好愛起卦頁搬到 /love-gua（noindex），不進 sitemap
+        '/love-gua/',
         // 還沒有核准的卦、此刻掛 noindex 的主題卦頁（見上方 emptyTopicPages）
         ...EMPTY_TOPIC_PAGES,
       ].some((x) => page.includes(x)),

@@ -1,7 +1,20 @@
 ---
-/* /love — 活動頁「找風問好愛」（2026-09-26 文案規格 V1 Jeffery 定稿；選項卡四題拍板）。
-   一頁式廣告落地頁：上半感情文案、下半水鏡起卦，流程與後端跟 /divination、/home-gua 同一份（FunnelDocument love 模式）。
-   網址用 /love 不用 /love-gua——後者已經是社群那條「老師最新一卦」，底下還有被搜尋收錄的存檔頁。 */
-import FunnelDocument from '../../components/FunnelDocument.astro';
+// 活動頁主題卦（love）：固定網址永遠顯示老師最新的一卦，即時讀 worker（核准那一刻就換，不用重 build）。
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TopicGua from '../../components/TopicGua.astro';
+import { TOPICS, fetchTopicGua } from '../../data/topics';
+// 2026-10-14：好愛起卦頁搬到 /love-gua；舊的好愛結果連結（/love/?log_id=…，含付款前記下的回跳頁）照原參數轉過去
+if (Astro.url.searchParams.has('log_id')) return Astro.redirect('/love-gua/' + Astro.url.search, 302);
+const topic = TOPICS['love'];
+const { data, failed } = await fetchTopicGua('love');
+Astro.response.headers.set('Cache-Control', failed ? 'no-store' : 'public, max-age=60');   // 故障時的空狀態不能被快取
 ---
-<FunnelDocument mode="love" title="找風問好愛 · 找風問幸福" description="你們，到底算什麼？有對象看關係，沒對象看桃花。按住水鏡起一卦，風易揚老師照卦給一張卦符，先陪你七天。" canonical="https://winds.tw/love/" noindex={true} />
+<BaseLayout
+  title={data ? `${topic.label}卦・${data.hex.name} · 找風問幸福` : `${topic.label}卦 · 找風問幸福`}
+  description={data ? `${data.posted_long}起的${topic.label}卦，走「${data.hex.char}」。${data.line} ${topic.descTail}` : `${topic.shareTitle}，${topic.descTail}`}
+  ogImage={data?.og_url || undefined}
+  noindex={!data}
+>
+  <TopicGua data={data} topic={topic} isCurrent={true} />
+</BaseLayout>

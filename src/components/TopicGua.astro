@@ -2,7 +2,7 @@
 // 活動頁主題卦的共用版型（2026-09-05 愛情卦第一版 → 09-06 抽成共用；每一則貼文一卦，不是每週一卦）
 // 輕量化規格：不登入、不填生日、一眼看完。上半段人人一樣的「老師這一卦」，下半段一顆鈕走 /gua 零登入起卦。
 // 版型逐值抄 DS：PageHeader／Card／GlyphDisc／Chip／Button，列表行抄活動頁 gift-event-page.jsx entries。
-// 料＝worker D1（api.winds.tw/topic-gua），他一發就換；舊篇留在 /<主題>-gua/<id>/。
+// 料＝worker D1（api.winds.tw/topic-gua），他一發就換；舊篇留在 /<主題路徑>/<id>/（愛情＝/love/，其餘 /<主題>-gua/；見 topics.ts path）。
 import type { GuaData, GuaTopic } from '../data/topics';
 interface Props { data: GuaData | null; topic: GuaTopic; isCurrent: boolean }
 const { data, topic, isCurrent } = Astro.props;

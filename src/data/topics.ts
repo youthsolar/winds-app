@@ -18,8 +18,8 @@ export interface GuaTopic {
 const EMPTY_LEDE = '老師這一卦還沒出。想現在就知道自己的，往下點一下，起卦以你點下去的那一刻為準。';
 
 export const TOPICS: Record<string, GuaTopic> = {
-  love: {
-    key: 'love', path: 'love-gua', label: '愛情', eyebrow: '這一卦', kicker: '你現在的狀況',
+  love: {   // 2026-10-14 跟好愛交換網址（原 /love-gua）
+    key: 'love', path: 'love', label: '愛情', eyebrow: '這一卦', kicker: '你現在的狀況',
     ctaTitle: '抽屬於你的一卦',
     ctaLead: '同一件事，每個人的卦不一樣。點一下就起卦，不用登入、不用填生日。',
     shareTitle: '愛情卦',
