@@ -433,8 +433,8 @@
     var f2 = T.talismans[1]; if (!f2) return '';
     if (f2.url) return '<div class="tal5-grid"><div class="tal5"><div style="position:relative">' + tframe('<img src="' + esc(f2.url) + '" alt="' + esc(f2.element) + '符" decoding="async" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">', false, EL_GLOW[f2.element]) + '</div>' +
       '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">法效期間 · ' + esc(f2.valid_until_label) + ' 止</div></div></div>';
-    /* 還鎖著就至少寫 1 天（裝置時鐘比較快時不會出現「0 天後」卻打不開；真正開不開由後端決定，Astra front-r1 #6） */
-    var wait = paid && f2.opens_at ? Math.max(1, Math.ceil((Date.parse(f2.opens_at) - Date.now()) / 864e5)) : 0;
+    /* 還鎖著就至少寫 1 天；真正開不開由後端決定（Astra front-r1 #6）。2026-10-14：用後端回的伺服器時間算，不靠客人手機時鐘（舊後端沒回就退回手機時間） */
+    var wait = paid && f2.opens_at ? Math.max(1, Math.ceil((Date.parse(f2.opens_at) - (Date.parse(T.server_now) || Date.now())) / 864e5)) : 0;
     return '<div class="tal5-grid"><div class="tal5" id="tsFu2"><div style="position:relative">' + tframe('', false, EL_GLOW[f2.element]) +
       '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + (paid ? '<span class="fu-wait">' + wait + ' 天後自動開</span>' : '') + '</div></div>' +
       '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? esc(f2.opens_label || '') + ' 自動開' : '付 NT$360 後，第 14 天解開') + '</div></div></div>';
