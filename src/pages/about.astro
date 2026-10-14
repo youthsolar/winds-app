@@ -3,9 +3,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { ORG_JSONLD } from '../data/org';
 // 品牌故事頁 — 值對齊 handoff brand-story-page.jsx + DS SectionHeading/IconDisc/GlyphDisc/Card
 const BELIEFS = [
-  { icon: 'feather', title: '先看清楚，再決定', body: '我們不替你做決定。把現在發生的事攤開來看，你心裡本來就有的那個答案，會自己浮出來。' },
-  { icon: 'ear', title: '先聽你說', body: '很多時候你要的不是答案，是有人願意把你的事聽完。對談從你開口開始，不是從牌開始。' },
-  { icon: 'sun-horizon', title: '選擇比努力更重要', body: '走得累，常常不是不夠努力，是方向走偏了。方向看清楚了，再決定怎麼走。' },
+  { icon: 'feather', title: '決定留給自己', body: '找風問幸福尊重每個人做決定的權利。命理提供思考的角度，你可以依照自己的處境，選擇接下來怎麼做。' },
+  { icon: 'ear', title: '心事值得細聽', body: '問事時，重視完整的傾聽。難開口的心事可以慢慢說，還沒整理好的感受，也值得留下時間談談。' },
+  { icon: 'sun-horizon', title: '方向可以重想', body: '選擇可以隨處境重新思考。走得累的時候，可以先看看眼前的方向，是否仍適合現在的你。' },
 ];
 const MARKS = [
   { g: '易', name: '易經', note: '問一件具體的事' },
@@ -55,7 +55,7 @@ const pageDesc = '找風問幸福是風易揚老師創立的命理與心靈品�
 
     <!-- Beliefs -->
     <section class="wrap block">
-      <div class="zf-section-heading"><span class="zf-sh-eyebrow">我們相信</span><h2 class="zf-sh-title cjk">我們看事情的方式。</h2></div>
+      <div class="zf-section-heading"><span class="zf-sh-eyebrow">我們相信</span><h2 class="zf-sh-title cjk">每個決定，都值得先好好理解自己。</h2></div>
       <div class="beliefs">
         {BELIEFS.map(b => (
           <article class="zf-card belief-card">
@@ -118,6 +118,9 @@ const pageDesc = '找風問幸福是風易揚老師創立的命理與心靈品�
   .hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(720px 460px at 78% -8%, var(--rose-100), transparent 62%), radial-gradient(560px 420px at 6% 12%, var(--clay-100), transparent 60%); }
   .hero .wrap { position: relative; padding-top: 92px; padding-bottom: 8px; }
   @media (max-width: 820px) { .hero .wrap { padding-top: 56px; } }
+  /* 開頭說明字級跟起念內文一樣（Jeffery 10/15）*/
+  .hero .zf-sh-lede { font-size: 17px; line-height: 1.92; }
+  @media (max-width: 820px) { .hero .zf-sh-lede { font-size: 16px; } }
 
   /* Origin */
   .origin { padding-top: 72px; }
