@@ -1674,7 +1674,7 @@ function genSpirit(){
 function pollSpirit(tok,n){
   if(n>=30){STATE.spiritGenerating=false;STATE.spiritPolling=false;if(STATE.result)STATE.result.profileGenerating=false;RENDER_KEEP={y:window.scrollY};render();return;}   /* 等太久：收掉「還在整理」，讓生成按鈕重新出現可以再按 */
   setTimeout(function(){
-    fetch(WORKER_API+"/delivery-content?token="+tok+kParam(),{headers:authHeaders()}).then(function(r){return r.json()}).then(function(d){
+    fetch(WORKER_API+"/delivery-content?token="+tok+kParam(),{headers:authHeaders()}).then(function(r){return r.json()}).then(function(d){srvSkew(d);
       if(d&&d.personality_profile){if(STATE.result){STATE.result.profile=d.personality_profile;STATE.result.profileGenerating=false;}STATE.spiritGenerating=false;STATE.spiritPolling=false;RENDER_KEEP={y:window.scrollY};render();}   /* 生成好了：使用者可能正在看別段，原地換內容不跳 */
       else pollSpirit(tok,n+1);
     }).catch(function(){pollSpirit(tok,n+1)});
@@ -1813,7 +1813,7 @@ function loadFullContent(retry){
   var m=(R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/);
   if(!m)return;
   STATE.fullLoading=true;STATE.fullError=false;STATE.fullNeedLogin=false;STATE.fullGenerating=false;STATE.fullToken=m[1];
-  fetch(WORKER_API+"/delivery-content?token="+m[1]+kParam(),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
+  fetch(WORKER_API+"/delivery-content?token="+m[1]+kParam(),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){srvSkew(d);
     STATE.fullLoading=false;
     /* 2026-09-28（Codex 複核）：分靈體側寫生成途中重新整理，只會顯示「還在整理」卻不再輪詢、好了也不會出現。
        跟全文寫好沒寫好無關：有側寫就直接用，還在生成就接回輪詢。 */
@@ -1834,10 +1834,13 @@ function loadFullContent(retry){
   }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}});
 }
 /* 量能靈符逐節氣自動開（FI-SYNC：機制與 liff/delivery.html 一致——每 14 天（節氣）一張、到期自動開＋通知；9/11 起不收 NT$100，與後端 talisman-gate.ts 對齊） */
+/* 2026-10-14：用伺服器時間算（SRV_SKEW＝伺服器比手機快多少，每次拿到交付資料就更新；沒拿到就是 0＝手機時間）。真正開不開仍由後端決定 */
+var SRV_SKEW=0;
+function srvSkew(d){var t=d&&Date.parse(d.server_now);if(t)SRV_SKEW=t-Date.now();}
 function daysUntilUnlock(paidAt,step){
   var base=new Date(paidAt);
   var unlockDate=new Date(base.getTime()+(step-1)*14*24*60*60*1000);
-  var diff=Math.ceil((unlockDate-new Date())/(1000*60*60*24));
+  var diff=Math.ceil((unlockDate-(Date.now()+SRV_SKEW))/(1000*60*60*24));
   return diff>0?diff:0;
 }
 function paywall(paid){
