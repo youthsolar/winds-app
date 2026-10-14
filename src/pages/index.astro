@@ -1,4 +1,5 @@
 ---
+import { ORG_JSONLD } from '../data/org';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import servicesData from '../data/services.json';
 import '../styles/cast-landing.css';   // 水鏡＋起卦區塊（與 /home-gua、/love 共用）
@@ -59,21 +60,7 @@ const pageDesc = '按住水鏡起一卦，老師依你的卦給一張親手畫�
 const homeJsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    {
-      '@type': 'Organization',
-      '@id': 'https://winds.tw/#org',
-      name: '找風問幸福',
-      alternateName: 'Uneedwind',
-      url: 'https://winds.tw',
-      logo: 'https://winds.tw/assets/logo.png',
-      description: '找風問幸福提供老師的解卦、通靈問事、元辰宮與風水，也有風易揚老師親手畫的符令。',
-      areaServed: 'TW',
-      sameAs: [
-        'https://www.facebook.com/1056598467870017',
-        'https://www.instagram.com/uneedwind',
-        'https://www.threads.net/@uneedwind',
-      ],
-    },
+    ORG_JSONLD,
     {
       '@type': 'WebSite',
       '@id': 'https://winds.tw/#website',

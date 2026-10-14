@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { ORG_JSONLD } from '../data/org';
 // 品牌故事頁 — 值對齊 handoff brand-story-page.jsx + DS SectionHeading/IconDisc/GlyphDisc/Card
 const BELIEFS = [
   { icon: 'feather', title: '先看清楚，再決定', body: '我們不替你做決定。把現在發生的事攤開來看，你心裡本來就有的那個答案，會自己浮出來。' },
@@ -18,9 +19,16 @@ const ORIGIN = [
   '先從你的話裡慢慢了解，再透過易經、塔羅、紫微、姓名學，一起看清楚卡住的地方。希望每一次對談，都能讓心裡的疑問更清楚一些。',
   '不需要事先想好怎麼說。哪怕只是「最近心裡怪怪的」，我們也願意從這一句開始聽。',
 ];
+const aboutJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    ORG_JSONLD,
+    { '@type': 'AboutPage', '@id': 'https://winds.tw/about/#page', url: 'https://winds.tw/about/', name: '品牌故事｜找風問幸福', about: { '@id': 'https://winds.tw/#org' }, inLanguage: 'zh-Hant' },
+  ],
+};
 const pageDesc = '找風問幸福是風易揚老師創立的命理與心靈品牌，位於台北市大安區，可預約一對一問事或選擇遠端視訊，幫你在做決定前把事情看清楚。網站也可免費起卦看卦象。';
 ---
-<BaseLayout title="品牌故事｜找風問幸福" description={pageDesc} ogType="website">
+<BaseLayout title="品牌故事｜找風問幸福" description={pageDesc} ogType="website" jsonLd={aboutJsonLd}>
   <main class="story">
     <!-- Hero -->
     <section class="hero">
