@@ -9,9 +9,9 @@ const BELIEFS = [
 ];
 const MARKS = [
   { g: '易', name: '易經', note: '問一件具體的事', href: '/' },
-  { g: '塔', name: '塔羅', note: '看現在的心境' },
+  { g: '塔', name: '塔羅', note: '看現在的心境', href: '/' },
   { g: '紫', name: '紫微', note: '讀一生的命盤', href: '/ziwei' },
-  { g: '名', name: '姓名學', note: '名字裡的能量' },
+  { g: '名', name: '姓名學', note: '名字裡的能量', href: '/' },
   { g: '靈', name: '分靈體', note: '和自己對話', href: '/spirit' },
   { g: '通', name: '通靈', note: '與無形溝通', href: '/booking' },
 ];
@@ -70,7 +70,7 @@ const pageDesc = '找風問幸福是風易揚老師創立的命理與心靈品�
 
     <!-- Practices -->
     <section class="wrap block">
-      <div class="zf-section-heading"><span class="zf-sh-eyebrow">我們的命理</span><h2 class="zf-sh-title cjk">工具不同，都是要看清楚你現在怎麼了。</h2></div>
+      <div class="zf-section-heading"><span class="zf-sh-eyebrow">我們的命理</span><h2 class="zf-sh-title cjk">從你想問的事，找到適合的探索方式。</h2></div>
       <div class="marks">
         {MARKS.map(m => {
           const Tag = m.href ? 'a' : 'div';
