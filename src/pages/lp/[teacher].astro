@@ -443,6 +443,8 @@ const jsonLd = prov ? [
     .lp-book .bw-ic { flex: none; width: 40px; height: 40px; border-radius: 999px; background: var(--rose-50); color: var(--rose-500); display: flex; align-items: center; justify-content: center; font-size: 20px; }
     .lp-book .bw-opt-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
     .lp-book .bw-opt-nm { font-family: var(--font-serif); font-size: 16.5px; font-weight: 500; color: var(--text-primary); }
+    /* 項目介紹：數值同 LINE 預約 .svc .ds（網站＝LINE） */
+    .lp-book .bw-opt-ds { font-family: var(--font-serif); font-weight: 300; font-size: 13.5px; line-height: 1.7; color: var(--text-secondary); }
     .lp-book .bw-opt-meta { font-family: var(--font-sans); font-size: 13px; line-height: 1.6; color: var(--text-muted); }
     .lp-book .bw-opt-price { flex: none; display: flex; flex-direction: column; gap: 2px; text-align: right; font-family: var(--font-serif); font-size: 16.5px; color: var(--text-primary); white-space: nowrap; font-variant-numeric: tabular-nums; }
     .lp-book .bw-opt-dep { font-family: var(--font-sans); font-size: 12px; color: var(--accent-press); }
@@ -558,7 +560,7 @@ const jsonLd = prov ? [
         var inner = '<div class="bw-list">' + opts.map(function (l, i) {
           var ic = l.type === 'online' ? 'video-camera' : 'map-pin';
           var sel = W.loc && W.loc.id === l.id;
-          return '<button class="bw-opt' + (sel ? ' on' : '') + '" data-loc="' + i + '" type="button"><span class="bw-ic"><i class="ph-thin ph-' + ic + '"></i></span><span class="bw-opt-tx"><span class="bw-opt-nm">' + esc(l.name) + '</span>' + (l.note ? '<span class="bw-opt-meta">' + esc(l.note) + '</span>' : '') + '</span><i class="bw-chk ' + (sel ? 'ph-fill ph-check-circle' : 'ph ph-caret-right') + '"></i></button>';
+          return '<button class="bw-opt' + (sel ? ' on' : '') + '" data-loc="' + i + '" type="button"><span class="bw-ic"><i class="ph-thin ph-' + ic + '"></i></span><span class="bw-opt-tx"><span class="bw-opt-nm">' + locLabel(l) + '</span>' + (l.note ? '<span class="bw-opt-meta">' + esc(l.note) + '</span>' : '') + '</span><i class="bw-chk ' + (sel ? 'ph-fill ph-check-circle' : 'ph ph-caret-right') + '"></i></button>';
         }).join('') + '</div>';
         shell(1, '想怎麼見面？', inner);
         on('[data-loc]', function (b) { W.loc = opts[+b.dataset.loc]; W.svc ? stepTime() : stepService(); });
@@ -572,7 +574,7 @@ const jsonLd = prov ? [
           items.forEach(function (s) {
             used[s.id] = 1;
             var sel = W.svc && W.svc.id === s.id;
-            inner += '<button class="bw-opt' + (sel ? ' on' : '') + '" data-svc="' + s.id + '" type="button"><span class="bw-opt-tx"><span class="bw-opt-nm">' + esc(clean(s.name)) + '</span><span class="bw-opt-meta">' + s.duration + ' 分鐘</span></span><span class="bw-opt-price" data-nocjk>' + ntd(s.price) + '<span class="bw-opt-dep">訂金 ' + ntd(s.deposit) + '</span></span><i class="bw-chk ' + (sel ? 'ph-fill ph-check-circle' : 'ph ph-caret-right') + '"></i></button>';
+            inner += '<button class="bw-opt' + (sel ? ' on' : '') + '" data-svc="' + s.id + '" type="button"><span class="bw-opt-tx"><span class="bw-opt-nm">' + esc(clean(s.name)) + '</span>' + (s.desc ? '<span class="bw-opt-ds">' + esc(s.desc) + '</span>' : '') + '<span class="bw-opt-meta">' + s.duration + ' 分鐘</span></span><span class="bw-opt-price" data-nocjk>' + ntd(s.price) + '<span class="bw-opt-dep">訂金 ' + ntd(s.deposit) + '</span></span><i class="bw-chk ' + (sel ? 'ph-fill ph-check-circle' : 'ph ph-caret-right') + '"></i></button>';
           });
         });
         inner += '</div>';
@@ -582,7 +584,7 @@ const jsonLd = prov ? [
         on('[data-back]', function () { W.svc = null; stepLocation(); });   // 回去換地點：先放掉項目，否則只限一個地點的項目會直接把人帶回選時間
       }
       function stepTime() {
-        shell(3, '選時間', '<div class="bw-loading"><span class="zf-spinner" style="width:18px;height:18px;vertical-align:middle;margin-right:8px"></span>載入老師未來四週的空檔…</div>');
+        shell(3, '選時間', '<div class="bw-loading"><span class="zf-spinner" style="width:18px;height:18px;vertical-align:middle;margin-right:8px"></span>正在查詢可預約時段…</div>');
         /* 2026-09-28（gpt-6-astra 體檢）：連點兩個項目時舊回應會蓋掉新項目的時段 → 記下這次是哪個項目，對不上就丟；
            502 不能當成「沒有空檔」；日期用台北時間 */
         var reqSvc = W.svc, seq = W.slotSeq = (W.slotSeq || 0) + 1;   // 同一項目重選（A→B→A）也要分得出是哪一次
@@ -591,22 +593,22 @@ const jsonLd = prov ? [
           .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); }).then(function (d) {
             if (W.svc !== reqSvc || seq !== W.slotSeq || W.step !== 3) return;
             var slots = (d && d.slots) || {}; var dates = Object.keys(slots).sort();
-            if (!dates.length) { shell(3, '選時間', '<p class="bw-none">老師近四週暫無可預約時段，請稍後再試。</p>', BACK); on('[data-back]', stepService); return; }
+            if (!dates.length) { shell(3, '選時間', '<p class="bw-none">這位老師未來四週暫無可預約時段，請換位老師或稍後再試。</p>', BACK); on('[data-back]', stepService); return; }
             W.date = W.date && slots[W.date] ? W.date : dates[0]; W.time = null;
             renderTime(slots, dates);
-          }).catch(function () { if (W.svc !== reqSvc || seq !== W.slotSeq || W.step !== 3) return; shell(3, '選時間', '<p class="bw-none">時段載入失敗，請稍後再試。</p>', BACK); on('[data-back]', stepService); });
+          }).catch(function () { if (W.svc !== reqSvc || seq !== W.slotSeq || W.step !== 3) return; shell(3, '選時間', '<p class="bw-none">無法查詢可預約時段，請稍後再試。</p>', BACK); on('[data-back]', stepService); });
       }
       function renderTime(slots, dates) {
         /* 2026-10-06 DS：日期橫軸（週X／日／N 個）＋時段依上午／下午／晚上分組，每組先露一排、其餘收在「看全部 N 個時段」，選中的組自動展開 */
         var WKD = '日一二三四五六';
         var dchips = '<div class="bw-dates">' + dates.map(function (dt) {
           var d = new Date(dt + 'T00:00:00'), n = (slots[dt] || []).length;
-          return '<button class="bw-date' + (dt === W.date ? ' on' : '') + '" data-d="' + dt + '" type="button"><span class="bw-dw">週' + WKD.charAt(d.getDay()) + '</span><span class="bw-dd">' + d.getDate() + '</span><span class="bw-dn">' + n + ' 個</span></button>';
+          return '<button class="bw-date' + (dt === W.date ? ' on' : '') + '" data-d="' + dt + '" type="button"><span class="bw-dw">週' + WKD.charAt(d.getDay()) + '</span><span class="bw-dd">' + d.getDate() + '</span><span class="bw-dn">' + n + ' 個時段</span></button>';
         }).join('') + '</div>';
         /* 2026-10-08 Jeffery：選時間照 LINE 預約（liff/booking.html）——「選日期」「M/D（週X）可預約」小標＋時段平鋪（不分上午／下午／晚上、不收合） */
         var sd = new Date(W.date + 'T00:00:00');
         dchips = '<div class="bw-tl"><i class="ph ph-calendar-dots"></i><span class="t">選日期</span></div>' + dchips +
-          '<div class="bw-tl second"><i class="ph ph-clock"></i><span class="t">' + (sd.getMonth() + 1) + '/' + sd.getDate() + '（週' + WKD.charAt(sd.getDay()) + '）可預約</span></div>';
+          '<div class="bw-tl second"><i class="ph ph-clock"></i><span class="t">' + (sd.getMonth() + 1) + '/' + sd.getDate() + '（週' + WKD.charAt(sd.getDay()) + '）可預約時段</span></div>';
         var times = '<div class="bw-times">' + (slots[W.date] || []).map(function (t) { return '<button class="bw-time' + (t === W.time ? ' on' : '') + '" data-t="' + t + '" type="button">' + t + '</button>'; }).join('') + '</div>';
         var keepX = (card.querySelector('.bw-dates') || {}).scrollLeft || 0;
         shell(3, '選時間', dchips + times, BACK + nextBtn('data-next', '下一步', !W.time));
@@ -624,11 +626,12 @@ const jsonLd = prov ? [
         var HEARD = [['youtube', 'YouTube'], ['threads', 'Threads'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['google', 'Google 搜尋'], ['friend', '朋友介紹'], ['line', 'LINE'], ['edm', '電子報'], ['returning', '之前就約過'], ['other', '其他'], ['forgot', '忘了']];
         /* 2026-10-06 DS：（姓名改分兩格：姓｜名 一列、手機｜Email 一列；手機版姓名仍並排、手機與 Email 各一列） → 「從哪裡知道」（必選）獨立一塊 → 想聊的主題（選填，安靜外框標籤）→ 想先讓老師知道的事；錯誤提示在各格底下 */
         var inner = '<div class="bw-form">' + fld('姓', 'wzLast', f.last || '') + fld('名', 'wzFirst', f.first || '') + fld('手機', 'wzPhone', f.phone || '', 'tel', 'mwide') + fld('Email（限 Gmail）', 'wzEmail', f.email || '', 'email', 'mwide') + '</div>' +
+          '<p class="bw-note">預約確認信與前一天提醒，都會寄到這個 Gmail 信箱。</p>' +
           '<div class="bw-src" id="wzSrc"><div class="bw-lbl">你是從哪裡知道' + esc(prov.name) + '的？<span class="bw-req">必選</span></div><div class="bw-topics">' + HEARD.map(function (h) { return '<button class="zf-chip sm' + (f.heard === h[0] ? ' selected' : '') + '" data-heard="' + h[0] + '" type="button">' + h[1] + '</button>'; }).join('') + '</div>' +
           '<label class="bw-fld" id="wzHeardNoteWrap"' + (f.heard === 'friend' || f.heard === 'other' ? '' : ' hidden') + '><span class="bw-lbl" id="wzHeardNoteLabel">' + (f.heard === 'other' ? '是哪裡呢？（選填）' : '介紹人（選填）') + '</span><input class="bw-in" id="wzHeardNote" type="text" maxlength="60" value="' + esc(f.heardNote || '') + '"></label>' +
           '<span class="bw-ferr" data-err="heard" hidden></span></div>' +
           '<div class="bw-fld"><span class="bw-lbl">想聊的主題（選填）</span><div class="bw-tags">' + TOPICS.map(function (tp) { return '<button class="bw-tag' + (f.topic === tp ? ' on' : '') + '" data-topic="' + tp + '" type="button">' + tp + '</button>'; }).join('') + '</div></div>' +
-          '<label class="bw-fld"><span class="bw-lbl">想先讓老師知道的事（選填）</span><textarea class="bw-in" id="wzNote" rows="3" maxlength="300" placeholder="也可以什麼都不寫，當面聊就好。">' + esc(f.note || '') + '</textarea></label>';
+          '<label class="bw-fld"><span class="bw-lbl">想先讓老師知道的事（選填）</span><textarea class="bw-in" id="wzNote" rows="3" maxlength="300" placeholder="可以簡單寫下想聊的事，也可以留白，預約當天再聊。">' + esc(f.note || '') + '</textarea></label>';
         shell(4, '留下聯絡方式', inner, BACK + nextBtn('data-next', '下一步'));
         W.topicPick = f.topic || '';
         on('[data-topic]', function (b) { W.topicPick = W.topicPick === b.dataset.topic ? '' : b.dataset.topic; q('[data-topic]').forEach(function (c) { c.classList.toggle('on', c.dataset.topic === W.topicPick); }); });
@@ -642,7 +645,7 @@ const jsonLd = prov ? [
         on('[data-next]', function () {
           var last = val('wzLast'), first = val('wzFirst'), name = last + first, phone = val('wzPhone').replace(/[\s-]/g, ''), email = val('wzEmail');   // 姓名分開（10/06，跟全站統一）
           // 錯誤一次全標在各格底下（10/06 拍板用 DS 的字）
-          var errs = { wzLast: last ? '' : '請填姓', wzFirst: first ? '' : '請填名', wzPhone: /^09\d{8}$/.test(phone) ? '' : '手機請填 09 開頭的 10 碼', wzEmail: GMAIL.test(email) ? '' : '只收 Gmail，請填 @gmail.com 結尾的信箱', heard: W.heardPick ? '' : '請選一個' };
+          var errs = { wzLast: last ? '' : '請輸入姓。', wzFirst: first ? '' : '請輸入名。', wzPhone: !phone ? '請輸入手機號碼。' : /^09\d{8}$/.test(phone) ? '' : '請輸入 09 開頭的 10 碼手機號碼。', wzEmail: !email ? '請輸入 Gmail 信箱。' : GMAIL.test(email) ? '' : '請輸入完整的 Gmail 信箱，結尾須為 @gmail.com。', heard: W.heardPick ? '' : '請選一個' };
           var bad = false;
           Object.keys(errs).forEach(function (k) {
             var e = card.querySelector('[data-err="' + k + '"]'); if (!e) return;
@@ -655,6 +658,8 @@ const jsonLd = prov ? [
           stepConfirm();
         });
       }
+      function mdw(s) { var d = new Date(s + 'T00:00:00'); return (d.getMonth() + 1) + '/' + d.getDate() + '（週' + '日一二三四五六'.charAt(d.getDay()) + '）'; }
+      function locLabel(l) { return l && l.type === 'online' ? '遠端通話' : '現場面談'; }
       function row(k, v) { return '<dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd>'; }
       var HEARD_LABEL = { youtube: 'YouTube', threads: 'Threads', instagram: 'Instagram', facebook: 'Facebook', google: 'Google 搜尋', friend: '朋友介紹', line: 'LINE', edm: '電子報', returning: '之前就約過', other: '其他', forgot: '忘了' };
       function stepConfirm() {
@@ -662,17 +667,17 @@ const jsonLd = prov ? [
         /* 2026-10-01（廣告前全站掃描）：訂金 0 或訂金＝全額的項目收的是全額，原本照樣寫「線上付訂金…餘額結清」（同 booking.astro 的改法） */
         var isDep = Number(W.svc.deposit) > 0 && Number(W.svc.deposit) < (Number(W.svc.price) || 0), goLabel = isDep ? '確認並付訂金' : '確認並付款';
         var pmsg = W.priceMsg; W.priceMsg = null;   // 價格剛更新：DS 的金色提示框（字沿用現行）
-        var inner = '<div class="bw-confirm">' + (pmsg ? '<div class="bw-price"><i class="ph ph-info"></i><span>' + esc(pmsg) + '</span></div>' : '') + '<dl class="bw-dl">' + row('老師', prov.name) + row('項目', clean(W.svc.name)) + row('方式', W.loc.name) + row('時間', W.date + ' ' + W.time) + row('聯絡', W.fields.name + ' · ' + W.fields.phone) +
-          (W.fields.topic ? row('主題', W.fields.topic) : '') + (W.fields.note ? row('備註', W.fields.note) : '') +
+        var inner = '<div class="bw-confirm">' + (pmsg ? '<div class="bw-price"><i class="ph ph-info"></i><span>' + esc(pmsg) + '</span></div>' : '') + '<dl class="bw-dl">' + row('老師', prov.name) + row('項目', clean(W.svc.name)) + row('見面方式', locLabel(W.loc) + '：' + (online ? '透過官方 LINE 通話。' : (W.loc.note || W.loc.name))) + row('預約時間', mdw(W.date) + W.time) + (W.svc.duration ? row('預約長度', W.svc.duration + ' 分鐘') : '') + row('聯絡資料', W.fields.name + ' · ' + W.fields.phone + ' · ' + W.fields.email) +
+          (W.fields.topic ? row('想聊的主題', W.fields.topic) : '') + (W.fields.note ? row('想先讓老師知道的事', W.fields.note) : '') +
           (W.fields.heard ? row('從哪裡知道', HEARD_LABEL[W.fields.heard] + (W.fields.heardNote ? '（' + W.fields.heardNote + '）' : '')) : '') + '</dl>' +
-          '<div class="bw-dep"><span>' + (isDep ? '線上付訂金' : '線上付清') + '</span><b>' + ntd(dep) + '</b></div>' +
-          '<p class="bw-note">' + (online ? '遠端視訊，透過官方 LINE 通話。' : '實體面談：' + esc(W.loc.note || W.loc.name) + '。') + (isDep ? ' 付訂金後即為你保留時段，餘額' + (online ? '依老師指示' : '現場') + '結清。' : ' 付款後即為你保留時段。') + '</p>' +
+          '<div class="bw-dep"><span>' + (isDep ? '本次訂金' : '本次付款金額') + '</span><b>' + ntd(dep) + '</b></div>' +
+          '<p class="bw-note">' + (isDep ? '項目總額 ' + ntd(W.svc.price) + '。線上先付訂金保留時段，餘額' + (online ? '依老師指示' : '現場') + '結清。' : '線上付清後，即為你保留時段。') + '開始前 24 小時以前可以線上改期，可從網站右下角「風小編」聊天入口提出，或來 LINE 說。距離開始時間不到 24 小時，或想取消預約，請聯絡我們。</p>' +
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
-        shell(5, '確認預約', inner, BACK + nextBtn('data-go', goLabel));
+        shell(5, '確認預約資料', inner, BACK + nextBtn('data-go', goLabel));
         on('[data-back]', function () { if (W.creating) return; stepInfo(); });   // 建單中不准回上一步
         on('[data-go]', function goBook(btn, evRetried, evGiven) {
           if (btn.disabled) return;
-          btn.disabled = true; btn.textContent = '建立訂單中…'; W.creating = true;
+          btn.disabled = true; btn.textContent = '正在建立預約…'; W.creating = true;
           function unlockGo() { W.creating = false; btn.disabled = false; btn.textContent = goLabel; }
           function showE(m) { var e = document.getElementById('wzErr2'); if (e) { e.textContent = m; e.hidden = false; } }
           /* 2026-10-09 信箱驗證碼（Jeffery 拍板）：付訂金前先確認信箱收得到（確認信、前一天提醒都寄這裡）。
@@ -716,18 +721,18 @@ const jsonLd = prov ? [
                 if (!evRetried && window.ZFEmailVerify) { goBook(btn, true, ''); return; }
                 showE(d.message || '付款前先確認一下信箱。'); return;
               }
-              if (d && d.error === 'already_paid') { W.memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} showE(d.message || '這筆預約已經付款完成，我們會為你安排。'); return; }
-              if (d && d.error === 'req_conflict') { W.memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} showE(d.message || '資料跟上一次不一樣，請再按一次。'); return; }
+              if (d && d.error === 'already_paid') { W.memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} showE(d.message || '這筆預約已完成付款，請勿重複付款。'); return; }
+              if (d && d.error === 'req_conflict') { W.memReq = null; try { sessionStorage.removeItem(REQ_KEY); } catch (e) {} showE(d.message || '預約資料已更新，請確認內容後，再按一次「' + goLabel + '」。'); return; }
               if (d && d.error === 'price_changed' && d.amount) {
                 // 後端另回訂金與總價就分欄更新（2026-09-28 gpt-6-astra 複核：原本不收訂金的項目改收訂金，會把訂金誤寫成總價）
                 if (d.deposit != null || d.total != null) { if (d.deposit != null) W.svc.deposit = Number(d.deposit) || 0; if (d.total != null) W.svc.price = Number(d.total) || W.svc.price; }
                 else if (Number(W.svc.deposit) > 0) W.svc.deposit = Number(d.amount); else W.svc.price = Number(d.amount);
-                W.priceMsg = '金額剛更新為 ' + ntd(d.amount) + '（原本顯示 ' + ntd(dep) + '），確認沒問題再按一次。';
+                W.priceMsg = '本次付款金額已更新為 ' + ntd(d.amount) + '，請確認後，再按一次「' + goLabel + '」。';
                 stepConfirm();
                 return;
               }
-              showE((d && (d.message || d.error)) || '建立預約失敗，請稍後再試。');
-            }).catch(function () { clearTimeout(to); unlockGo(); showE('網路太久沒回應。資料沒改的話直接再按一次，不會重複開單。'); });
+              showE((d && (d.message || d.error)) || '無法建立預約，請稍後再試；如果仍無法完成，請來 LINE 聯絡我們。');
+            }).catch(function () { clearTimeout(to); unlockGo(); showE('網路回應時間較長。若資料沒有變動，請再按一次「' + goLabel + '」，不會重複建立訂單。'); });
         });
       }
 
@@ -765,7 +770,7 @@ const jsonLd = prov ? [
         var again = '<a class="zf-btn primary md" href="' + location.pathname + '#book">重新預約</a>';
         var retry = '<button class="zf-btn ghost md" type="button" data-recheck>重新查詢</button>';
         function view(icon, title, msg, extra) { paidView(icon, title, msg, extra); on('[data-recheck]', function () { checkPaid(tradeNo, 0); }); }
-        if (!/^BK[A-Za-z0-9]+$/.test(tradeNo)) { view('question', '找不到這筆預約', '連結可能不完整。如果你已經付款，請直接來 LINE 找我們，我們幫你查。'); return; }
+        if (!/^BK[A-Za-z0-9]+$/.test(tradeNo)) { view('question', '找不到這筆預約', '連結可能不完整。如果已付款，請先不要重複付款，來 LINE 聯絡我們查詢。'); return; }
         var my = ++PAID_SEQ;
         var ac = window.AbortController ? new AbortController() : null, to = setTimeout(function () { if (ac) ac.abort(); }, 10000);
         fetch(API + '/booking-order/' + encodeURIComponent(tradeNo), ac ? { signal: ac.signal } : undefined)
@@ -773,18 +778,18 @@ const jsonLd = prov ? [
           .then(function (d) {
             clearTimeout(to);
             if (my !== PAID_SEQ) return;
-            if (d && d.notFound) { view('question', '找不到這筆預約', '連結可能不完整。如果你已經付款，請直接來 LINE 找我們，我們幫你查。'); return; }
+            if (d && d.notFound) { view('question', '找不到這筆預約', '連結可能不完整。如果已付款，請先不要重複付款，來 LINE 聯絡我們查詢。'); return; }
             if (!d || !d.ok) throw new Error('bad');
             var what = [d.provider ? d.provider + ' 老師' : '', d.service || '', fmtStart(d.start)].filter(Boolean).join(' · ');
-            if (d.status === 'Paid') { view('check-circle', '預約完成 🙏', '我們已收到你的訂金' + (what ? '：' + what : '') + '。預約確認信會寄到你的 email，到時候見。'); return; }
-            if (d.status === 'PaidSbFailed') { view('check-circle', '已收到你的訂金 🙏', '我們正在為你安排時段' + (what ? '（' + what + '）' : '') + '，確認後會通知你。'); return; }
-            if (d.status === 'Failed') { view('x-circle', '這次付款沒有完成', '沒有扣款成功。可以回預約頁重新選一次時段。', again); return; }
+            if (d.status === 'Paid') { view('check-circle', '預約完成', '已收到你的付款' + (what ? '：' + what : '') + '。預約確認信與前一天提醒，都會寄到你填寫的 Gmail 信箱。'); return; }
+            if (d.status === 'PaidSbFailed') { view('check-circle', '正在確認預約', '已收到你的付款' + (what ? '（' + what + '）' : '') + '，預約仍在確認中，確認後會通知你。請勿重複付款。'); return; }
+            if (d.status === 'Failed') { view('x-circle', '這次付款沒有完成', '如果尚未付款，可以重新預約；如果已付款，請先來 LINE 聯絡我們，查明付款狀態後再操作。', again); return; }
             // 保留失效不代表付款一定失效：付款結果可能晚到（同 LIFF 第二輪複核）
-            if (d.status === 'Expired') { view('clock', '這筆預約的保留時間已過', '如果你剛才已經付過款，請先不要重新預約，稍等幾分鐘再查一次，或直接來 LINE 找我們；還沒付款的話，回預約頁重新挑一個時間就好。', retry + again); return; }
-            if (n < 6) { view('clock', '正在確認付款結果…', '付款結果有時會晚一點送到，我們再確認一次。'); setTimeout(function () { if (my === PAID_SEQ) checkPaid(tradeNo, n + 1); }, 5000); return; }
-            view('clock', '還沒收到付款結果', '如果你已經付款，稍等幾分鐘再重新查詢；請先不要重複付款。', retry);
+            if (d.status === 'Expired') { view('clock', '這筆預約的保留時間已過', '如果尚未付款，請重新選擇時段。如果已付款，請先不要重新預約，稍等幾分鐘再查詢，或來 LINE 聯絡我們。', retry + again); return; }
+            if (n < 6) { view('clock', '正在確認付款結果…', '付款結果可能需要一點時間更新，請稍候。'); setTimeout(function () { if (my === PAID_SEQ) checkPaid(tradeNo, n + 1); }, 5000); return; }
+            view('clock', '還沒收到付款結果', '如果已付款，請稍等幾分鐘再重新查詢，先不要重複付款。', retry);
           })
-          .catch(function () { clearTimeout(to); if (my !== PAID_SEQ) return; view('warning', '暫時查不到付款結果', '這不代表付款沒成功，請先不要重複付款。稍等一下再查一次。', retry); });
+          .catch(function () { clearTimeout(to); if (my !== PAID_SEQ) return; view('warning', '暫時查不到付款結果', '目前還無法確認付款是否完成，請先不要重複付款，稍後再重新查詢。', retry); });
       }
 
       // DS：預約區進入畫面時收起手機底部列與風小編浮動鈕，不蓋表單
@@ -796,7 +801,7 @@ const jsonLd = prov ? [
 
       var paidNo = new URLSearchParams(location.search).get('paid');
       if (paidNo) {
-        paidView('clock', '正在確認付款結果…', '稍等一下，我們正在確認這筆預約。');
+        paidView('clock', '正在查詢這筆預約…', '');
         checkPaid(paidNo, 0);
         setTimeout(function () { var bk = document.getElementById('book'); if (bk) bk.scrollIntoView({ block: 'start' }); }, 0);   // 結果在頁尾預約區，回來時直接捲過去
       } else {

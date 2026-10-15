@@ -357,7 +357,7 @@ import { PERSONAS } from '../data/booking-teachers';
           '<div class="bw-fld"><span>想聊的主題（選填）</span><div class="bw-topics">'+TOPICS.map(function(tp){
             return '<button class="bk-chip'+(f.topic===tp?' on':'')+'" data-topic="'+tp+'" type="button">'+tp+'</button>';
           }).join('')+'</div></div>'+
-          '<div class="bw-fld"><span>你是從哪裡知道風易揚老師的？</span><div class="bw-topics">'+HEARD.map(function(h){
+          '<div class="bw-fld"><span>你是從哪裡知道'+esc(W.prov.name)+'的？</span><div class="bw-topics">'+HEARD.map(function(h){
             return '<button class="bk-chip'+(f.heard===h[0]?' on':'')+'" data-heard="'+h[0]+'" type="button">'+h[1]+'</button>';
           }).join('')+'</div></div>'+
           '<label class="bw-fld" id="wzHeardNoteWrap"'+(f.heard==='friend'||f.heard==='other'?'':' hidden')+'><span id="wzHeardNoteLabel">'+(f.heard==='other'?'是哪裡呢？（選填）':'介紹人（選填）')+'</span><input id="wzHeardNote" type="text" maxlength="60" value="'+esc(f.heardNote||'')+'"></label>'+
@@ -388,7 +388,7 @@ import { PERSONAS } from '../data/booking-teachers';
           if(!/^09\d{8}$/.test(phone.replace(/[\s-]/g,''))){return showErr(err,'請輸入 09 開頭的 10 碼手機號碼。');}
           if(!email){return showErr(err,'請輸入 Gmail 信箱。');}
           if(!GMAIL.test(email)){return showErr(err,'請輸入完整的 Gmail 信箱，結尾須為 @gmail.com。');}
-          if(!W.heardPick){return showErr(err,'請選一下你是從哪裡知道風易揚老師的（記不得就選「忘了」）。');}
+          if(!W.heardPick){return showErr(err,'請選一下你是從哪裡知道'+W.prov.name+'的（記不得就選「忘了」）。');}
           var hn=(W.heardPick==='friend'||W.heardPick==='other')?val('wzHeardNote'):'';
           W.fields={name:name,last:last,first:first,phone:phone.replace(/[\s-]/g,''),email:email,topic:W.topicPick,note:note,heard:W.heardPick,heardNote:hn};
           stepConfirm();
@@ -408,7 +408,7 @@ import { PERSONAS } from '../data/booking-teachers';
         var locNote=W.loc?(online?'透過官方 LINE 通話。'   /* 2026-10-01（廣告前全站掃描）：原本承諾「自動開啟會議室連結」，實際沒有程式會產生；照確認信（sb.ts）的說法 */:(W.loc.note||W.loc.name)):'';
         var inner='<div class="bw-confirm">'+
           row('老師',W.prov.name)+row('項目',W.svc.name)+
-          (W.loc?row('見面方式',locLabel(W.loc)+'：'+locNote):'')+row('預約時間',W.date+' '+W.time)+
+          (W.loc?row('見面方式',locLabel(W.loc)+'：'+locNote):'')+row('預約時間',mdw(W.date)+W.time)+
           (W.svc.duration?row('預約長度',W.svc.duration+' 分鐘'):'')+
           row('聯絡資料',W.fields.name+' · '+W.fields.phone+' · '+W.fields.email)+
           (W.fields.topic?row('想聊的主題',W.fields.topic):'')+
@@ -486,6 +486,7 @@ import { PERSONAS } from '../data/booking-teachers';
            }).catch(function(){clearTimeout(to);unlockGo();showErr(document.getElementById('wzErr2'),'網路回應時間較長。若資料沒有變動，請再按一次「'+goLabel+'」，不會重複建立訂單。');});
         }
       }
+      function mdw(s){var p=s.split('-'),d=new Date(+p[0],+p[1]-1,+p[2]);return (d.getMonth()+1)+'/'+d.getDate()+'（週'+'日一二三四五六'.charAt(d.getDay())+'）';}
       function locLabel(l){return l&&l.type==='online'?'遠端通話':'現場面談';}
       function row(k,v){return '<div class="bw-row"><span class="bw-k">'+esc(k)+'</span><span class="bw-v">'+esc(v)+'</span></div>';}
 
