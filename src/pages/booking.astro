@@ -8,8 +8,8 @@ import { PERSONAS } from '../data/booking-teachers';
 // 地點＝SB 兩地（台北實體 12 / 遠端Zoom 15），決定老師可選範圍+SB 落單地點+客戶指示。
 ---
 <BaseLayout
-  title="預約老師 · 找風問幸福｜塔羅・紫微・八字・通靈一對一對談"
-  description="找一位老師，好好說說話。風易揚老師與同門老師，各有自己的專長和說話方式。可以線上談，也可以約現場。"
+  title="預約老師｜通靈水鏡法、元辰宮代觀｜找風問幸福"
+  description="在找風問幸福，點選老師卡片後選項目與時間，線上付訂金就能保留時段。現場在台北市大安區、忠孝復興站附近；僅風易揚老師另開放遠端視訊。"
   ogType="website"
 >
   <div class="booking-root">
@@ -17,6 +17,7 @@ import { PERSONAS } from '../data/booking-teachers';
       <div class="bk-intro">
         <span class="bk-eyebrow"><span class="bk-eyebrow-dot"></span>預約老師</span>
         <h1 class="bk-title">找一位，好好說說話。</h1>
+        <p class="bk-lede">還不確定想找哪位老師，可以先看看各位老師的專長與對談風格，從你最在意的事開始選。</p>
       </div>
 
       <!-- 風格篩選 -->
@@ -51,6 +52,8 @@ import { PERSONAS } from '../data/booking-teachers';
     .bk-main{max-width:var(--container);margin:0 auto;width:100%;box-sizing:border-box;padding:44px 28px 64px;}
     /* StepIntro */
     .bk-intro{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:34px;}
+    /* 說明句：數值同 LINE 預約頁 .intro .lede（網站＝LINE） */
+    .bk-lede{margin:0;font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.8;color:var(--text-secondary);max-width:32em;word-break:normal;overflow-wrap:anywhere;}
     .bk-eyebrow{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:0.02em;color:var(--accent-press);}
     .bk-eyebrow-dot{width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none;}
     .bk-title{font-family:var(--font-serif);font-size:38px;font-weight:500;line-height:1.3;letter-spacing:0.01em;margin:0;color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
@@ -177,6 +180,7 @@ import { PERSONAS } from '../data/booking-teachers';
       .bk-main{padding:28px 18px 40px;}
       .bk-intro{margin-bottom:24px;}
       .bk-title{font-size:26px;}
+      .bk-lede{font-size:15px;}
       .bk-filter{margin-bottom:22px;}
       .bk-chips{gap:8px;}
       .bk-persona-desc{font-size:14px;}
