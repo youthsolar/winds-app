@@ -104,6 +104,8 @@ import { PERSONAS } from '../data/booking-teachers';
     .booking-root .bw-opt{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface-card);transition:all var(--dur-fast);}
     .booking-root .bw-opt:hover{border-color:var(--rose-300);background:var(--rose-50);}
     .booking-root .bw-opt-nm{font-family:var(--font-serif);font-size:16px;color:var(--ink-900);display:block;}
+    /* 項目介紹：數值同 LINE 預約 .svc .ds（網站＝LINE） */
+    .booking-root .bw-opt-ds{display:block;font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.7;color:var(--text-secondary);margin:4px 0 6px;}
     .booking-root .bw-opt-meta{font-family:var(--font-sans);font-size:12px;color:var(--text-muted);}
     .booking-root .bw-opt-price{font-family:var(--font-serif);font-size:15px;color:var(--ink-900);text-align:right;white-space:nowrap;}
     .booking-root .bw-opt-dep{display:block;font-family:var(--font-sans);font-size:11px;color:var(--rose-600);}
@@ -301,7 +303,7 @@ import { PERSONAS } from '../data/booking-teachers';
         if(W.fixSvc&&svcs.indexOf(W.fixSvc)>=0){W.svc=W.fixSvc;stepTime();return;}
         var inner = !svcs.length ? '<p class="bw-note">這個見面方式目前沒有可預約的項目，請回上一步換一個。</p>' : '<div class="bw-list">'+svcs.map(function(s,i){
           return '<button class="bw-opt" data-svc="'+i+'" type="button"><span class="bw-opt-main"><span class="bw-opt-nm">'+esc(s.name)+'</span>'+
-            (s.desc?'<span class="bw-opt-meta">'+esc(s.desc)+'</span>':'')+
+            (s.desc?'<span class="bw-opt-ds">'+esc(s.desc)+'</span>':'')+
             (s.duration?'<span class="bw-opt-meta">'+s.duration+' 分鐘</span>':'')+'</span>'+
             '<span class="bw-opt-price">NT$ '+(Number(s.price)||0).toLocaleString('en-US')+(s.deposit?'<span class="bw-opt-dep">訂金 NT$ '+Number(s.deposit).toLocaleString('en-US')+'</span>':'')+'</span></button>';
         }).join('')+'</div>';
