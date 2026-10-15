@@ -11,7 +11,7 @@ async function servicePages() {
   const get = async (p) => { const r = await fetch('https://api.winds.tw' + p); if (!r.ok) throw new Error(`sitemap：${p} 回 ${r.status}`); return r.json(); };
   const [sb, es] = await Promise.all([get('/sb-services'), get('/shop-products')]);
   return [
-    ...(sb.services || []).filter((x) => x && x.name).map((x) => `https://winds.tw/services/sb-${x.id}/`),
+    ...(sb.services || []).filter((x) => x && x.name && !['51', '53', '54'].includes(String(x.id))).map((x) => `https://winds.tw/services/sb-${x.id}/`),
     ...(es.products || []).filter((x) => x && x.name).map((x) => `https://winds.tw/services/es-${x.id}/`),
     // /shop/ 與 /shop/<id>/ 同日也改成即時讀，一起補
     'https://winds.tw/shop/',

@@ -297,8 +297,8 @@ const pageDesc =
       };
       Promise.all([getJson('/sb-services'), getJson('/shop-products')]).then(function (res) {
         var sb = ((res[0] && res[0].services) || []).map(function (s) {
-          return { source: 'sb', id: s.id, name: s.name, price: Number(s.price) || 0, duration: s.duration || null, image: s.image || '', desc: s.desc || '', llm: (s.llm || '').trim(), category: s.category || '', seo_title: s.seo_title || '' };
-        });
+          return { source: 'sb', id: s.id, name: s.name, price: Number(s.price) || 0, duration: s.duration || null, image: s.image || '', desc: s.desc || '', llm: (s.llm || '').trim(), category: s.category || '', seo_title: s.seo_title || '', bookable: s.bookable !== false };
+        }).filter(function (x) { return x.bookable; });   // 2026-10-16 文案檢驗第 7 頁（Jeffery 選項卡）：列表只放能線上預約的項目；暫停的介紹頁照留
         var es = ((res[1] && res[1].products) || []).map(function (p) {
           return { source: 'es', id: p.id, name: p.name, price: Number(p.price) || 0, duration: null, image: p.image || '', desc: p.desc || '', llm: (p.llm || '').trim(), url: p.url || '', variants: p.variants || null };
         });
