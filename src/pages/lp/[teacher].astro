@@ -536,7 +536,7 @@ const jsonLd = prov ? [
         W.step = step;   // 記住目前在第幾步：時段請求回來時不在「選時間」就丟掉（gpt-6-astra 複核）
         // 2026-10-06 照 DS lp-wizard.jsx：5 段進度＋右側「N / 5」；底部列上一步＝安靜文字鈕、下一步＝主鈕
         var dots = ''; for (var i = 1; i <= 5; i++) dots += '<i class="bw-dot' + (i <= step ? ' on' : '') + '"></i>';
-        var sub = [W.loc && W.loc.name, W.svc && clean(W.svc.name), W.date && W.time && (W.date + ' ' + W.time)].filter(Boolean).join(' · ');
+        var sub = [W.loc && locLabel(W.loc), W.svc && clean(W.svc.name), W.date && W.time && (mdw(W.date) + W.time)].filter(Boolean).join(' · ');
         card.innerHTML = '<div class="bw-prog-wrap"><div class="bw-prog">' + dots + '</div><span class="bw-prog-n">' + step + ' / 5</span></div>' +
           '<div class="bw-body"><div class="bw-head"><div class="bw-title">' + esc(title) + '</div><div class="bw-sub">' + esc(sub || prov.name) + '</div></div>' + inner + '</div>' +
           (footer ? '<div class="bw-foot' + (footer.indexOf('bw-next') < 0 ? ' only-back' : '') + '">' + footer + '</div>' : '');
