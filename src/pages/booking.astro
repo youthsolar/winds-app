@@ -288,7 +288,7 @@ import { PERSONAS } from '../data/booking-teachers';
         var inner = '<div class="bw-list">'+W.locOpts.map(function(l,i){
           var ic = l.type==='online' ? 'video-camera' : 'map-pin';
           return '<button class="bw-opt" data-loc="'+i+'" type="button"><span class="bw-opt-main">'+
-            '<span class="bw-opt-nm"><i class="ph ph-'+ic+'" style="margin-right:7px;color:var(--rose-400)"></i>'+esc(l.name)+'</span>'+
+            '<span class="bw-opt-nm"><i class="ph ph-'+ic+'" style="margin-right:7px;color:var(--rose-400)"></i>'+locLabel(l)+'</span>'+
             (l.note?'<span class="bw-opt-meta">'+esc(l.note)+'</span>':'')+'</span></button>';
         }).join('')+'</div>';
         shell(1,'想怎麼見面？',inner);
@@ -301,6 +301,7 @@ import { PERSONAS } from '../data/booking-teachers';
         if(W.fixSvc&&svcs.indexOf(W.fixSvc)>=0){W.svc=W.fixSvc;stepTime();return;}
         var inner = !svcs.length ? '<p class="bw-note">這個見面方式目前沒有可預約的項目，請回上一步換一個。</p>' : '<div class="bw-list">'+svcs.map(function(s,i){
           return '<button class="bw-opt" data-svc="'+i+'" type="button"><span class="bw-opt-main"><span class="bw-opt-nm">'+esc(s.name)+'</span>'+
+            (s.desc?'<span class="bw-opt-meta">'+esc(s.desc)+'</span>':'')+
             (s.duration?'<span class="bw-opt-meta">'+s.duration+' 分鐘</span>':'')+'</span>'+
             '<span class="bw-opt-price">NT$ '+(Number(s.price)||0).toLocaleString('en-US')+(s.deposit?'<span class="bw-opt-dep">訂金 NT$ '+Number(s.deposit).toLocaleString('en-US')+'</span>':'')+'</span></button>';
         }).join('')+'</div>';
@@ -310,7 +311,7 @@ import { PERSONAS } from '../data/booking-teachers';
         if(W.multiLoc){var bk=mount.querySelector('[data-back]');if(bk)bk.addEventListener('click',stepLocation);}
       }
       function stepTime(){
-        shell(sn(2),'選時間','<div class="bw-loading"><span class="bw-spin"></span>載入可預約時段…</div>');
+        shell(sn(2),'選時間','<div class="bw-loading"><span class="bw-spin"></span>正在查詢可預約時段…</div>');
         /* 2026-09-28（gpt-6-astra 體檢）：日期用台北時間算，不是裝置時區（海外裝置會漏列或多列一天） */
         var tpe=function(n){return new Date(Date.now()+8*3600000+n*86400000).toISOString().slice(0,10);};
         /* 2026-09-27：時段請求沒綁這一次精靈。在載入中途關掉、改開另一位老師的話，舊老師的回應會用
@@ -321,18 +322,18 @@ import { PERSONAS } from '../data/booking-teachers';
           .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();}).then(function(d){   /* 502 不能當成「沒有空檔」 */
             if(req!==W||seq!==W.slotSeq||W.step!==sn(2)) return;
             var slots=(d&&d.slots)||{}; var dates=Object.keys(slots).sort();
-            if(!dates.length){shell(sn(2),'選時間','<p class="bw-none">這位老師近 30 天暫無可預約時段，換個老師或稍後再試。</p>');return;}
+            if(!dates.length){shell(sn(2),'選時間','<p class="bw-none">這位老師未來四週暫無可預約時段，請換位老師或稍後再試。</p>');return;}
             W.date=W.date&&slots[W.date]?W.date:dates[0]; W.time=null;
             renderTime(slots,dates);
-          }).catch(function(){if(req!==W||seq!==W.slotSeq||W.step!==sn(2)) return;shell(sn(2),'選時間','<p class="bw-none">時段載入失敗，請稍後再試。</p>');});
+          }).catch(function(){if(req!==W||seq!==W.slotSeq||W.step!==sn(2)) return;shell(sn(2),'選時間','<p class="bw-none">無法查詢可預約時段，請稍後再試。</p>');});
       }
       function renderTime(slots,dates){
         var WK=['日','一','二','三','四','五','六'];
         function dobj(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
         var dchips='<div class="bw-lbl"><i class="ph ph-calendar-dots"></i><span class="t">選日期</span></div><div class="bw-dates">'+dates.map(function(dt){var d=dobj(dt);
-          return '<button class="bw-date'+(dt===W.date?' on':'')+'" data-d="'+dt+'" type="button"><span class="w">週'+WK[d.getDay()]+'</span><span class="d">'+d.getDate()+'</span><span class="n">'+(slots[dt]||[]).length+' 個</span></button>';}).join('')+'</div>';
+          return '<button class="bw-date'+(dt===W.date?' on':'')+'" data-d="'+dt+'" type="button"><span class="w">週'+WK[d.getDay()]+'</span><span class="d">'+d.getDate()+'</span><span class="n">'+(slots[dt]||[]).length+' 個時段</span></button>';}).join('')+'</div>';
         var sd=dobj(W.date);
-        dchips+='<div class="bw-lbl second"><i class="ph ph-clock"></i><span class="t">'+(sd.getMonth()+1)+'/'+sd.getDate()+'（週'+WK[sd.getDay()]+'）可預約</span></div>';
+        dchips+='<div class="bw-lbl second"><i class="ph ph-clock"></i><span class="t">'+(sd.getMonth()+1)+'/'+sd.getDate()+'（週'+WK[sd.getDay()]+'）可預約時段</span></div>';
         var times='<div class="bw-times">'+(slots[W.date]||[]).map(function(t){return '<button class="bw-time'+(t===W.time?' on':'')+'" data-t="'+t+'" type="button">'+t+'</button>';}).join('')+'</div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary'+(W.time?'':' disabled')+'" data-next type="button">下一步</button>';
         var nt=W.notice?'<p class="bw-err">'+esc(W.notice)+'</p>':''; W.notice=null;
@@ -350,6 +351,7 @@ import { PERSONAS } from '../data/booking-teachers';
         var inner='<div class="bw-form">'+
           '<div class="bw-namerow">'+fld('姓','wzLast',f.last||'')+fld('名','wzFirst',f.first||'')+'</div>'+fld('手機','wzPhone',f.phone||'','tel')+
           fld('Email（限 Gmail）','wzEmail',f.email||'','email')+
+          '<p class="bw-note">預約確認信與前一天提醒，都會寄到這個 Gmail 信箱。</p>'+
           '<div class="bw-fld"><span>想聊的主題（選填）</span><div class="bw-topics">'+TOPICS.map(function(tp){
             return '<button class="bk-chip'+(f.topic===tp?' on':'')+'" data-topic="'+tp+'" type="button">'+tp+'</button>';
           }).join('')+'</div></div>'+
@@ -357,7 +359,7 @@ import { PERSONAS } from '../data/booking-teachers';
             return '<button class="bk-chip'+(f.heard===h[0]?' on':'')+'" data-heard="'+h[0]+'" type="button">'+h[1]+'</button>';
           }).join('')+'</div></div>'+
           '<label class="bw-fld" id="wzHeardNoteWrap"'+(f.heard==='friend'||f.heard==='other'?'':' hidden')+'><span id="wzHeardNoteLabel">'+(f.heard==='other'?'是哪裡呢？（選填）':'介紹人（選填）')+'</span><input id="wzHeardNote" type="text" maxlength="60" value="'+esc(f.heardNote||'')+'"></label>'+
-          '<label class="bw-fld"><span>想先讓老師知道的事（選填）</span><textarea id="wzNote" rows="3" maxlength="300" placeholder="也可以什麼都不寫，當面聊就好。">'+esc(f.note||'')+'</textarea></label>'+
+          '<label class="bw-fld"><span>想先讓老師知道的事（選填）</span><textarea id="wzNote" rows="3" maxlength="300" placeholder="可以簡單寫下想聊的事，也可以留白，預約當天再聊。">'+esc(f.note||'')+'</textarea></label>'+
           '<p class="bw-err" id="wzErr" hidden></p></div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-next type="button">下一步</button>';
         shell(sn(3),'留下聯絡方式',inner,foot);
@@ -380,8 +382,10 @@ import { PERSONAS } from '../data/booking-teachers';
           var err=document.getElementById('wzErr');
           if(!last){return showErr(err,'請輸入姓。');}
           if(!first){return showErr(err,'請輸入名。');}
-          if(!/^09\d{8}$/.test(phone.replace(/[\s-]/g,''))){return showErr(err,'請輸入正確手機（09xxxxxxxx）。');}
-          if(!GMAIL.test(email)){return showErr(err,'Email 目前僅接受 @gmail.com。');}
+          if(!phone){return showErr(err,'請輸入手機號碼。');}
+          if(!/^09\d{8}$/.test(phone.replace(/[\s-]/g,''))){return showErr(err,'請輸入 09 開頭的 10 碼手機號碼。');}
+          if(!email){return showErr(err,'請輸入 Gmail 信箱。');}
+          if(!GMAIL.test(email)){return showErr(err,'請輸入完整的 Gmail 信箱，結尾須為 @gmail.com。');}
           if(!W.heardPick){return showErr(err,'請選一下你是從哪裡知道風易揚老師的（記不得就選「忘了」）。');}
           var hn=(W.heardPick==='friend'||W.heardPick==='other')?val('wzHeardNote'):'';
           W.fields={name:name,last:last,first:first,phone:phone.replace(/[\s-]/g,''),email:email,topic:W.topicPick,note:note,heard:W.heardPick,heardNote:hn};
@@ -399,20 +403,21 @@ import { PERSONAS } from '../data/booking-teachers';
         var isDep=Number(W.svc.deposit)>0&&Number(W.svc.deposit)<(Number(W.svc.price)||0);
         var goLabel=isDep?'確認並付訂金':'確認並付款';
         var online=W.loc&&W.loc.type==='online';
-        var locNote=W.loc?(online?'遠端諮詢，透過官方 LINE 通話。'   /* 2026-10-01（廣告前全站掃描）：原本承諾「自動開啟會議室連結」，實際沒有程式會產生；照確認信（sb.ts）的說法 */:'實體面談：'+(W.loc.note||W.loc.name)+'。'):'';
+        var locNote=W.loc?(online?'透過官方 LINE 通話。'   /* 2026-10-01（廣告前全站掃描）：原本承諾「自動開啟會議室連結」，實際沒有程式會產生；照確認信（sb.ts）的說法 */:(W.loc.note||W.loc.name)):'';
         var inner='<div class="bw-confirm">'+
           row('老師',W.prov.name)+row('項目',W.svc.name)+
-          (W.loc?row('方式',W.loc.name):'')+row('時間',W.date+' '+W.time)+
-          row('聯絡',W.fields.name+' · '+W.fields.phone)+
-          (W.fields.topic?row('主題',W.fields.topic):'')+
-          (W.fields.note?row('備註',W.fields.note):'')+
+          (W.loc?row('見面方式',locLabel(W.loc)+'：'+locNote):'')+row('預約時間',W.date+' '+W.time)+
+          (W.svc.duration?row('預約長度',W.svc.duration+' 分鐘'):'')+
+          row('聯絡資料',W.fields.name+' · '+W.fields.phone+' · '+W.fields.email)+
+          (W.fields.topic?row('想聊的主題',W.fields.topic):'')+
+          (W.fields.note?row('想先讓老師知道的事',W.fields.note):'')+
           (W.fields.heard?row('從哪裡知道',(HEARD_LABEL[W.fields.heard]||'')+(W.fields.heardNote?'（'+W.fields.heardNote+'）':'')):'')+
-          '<div class="bw-dep"><span>'+(isDep?'線上付訂金':'線上付清')+'</span><b>NT$ '+dep.toLocaleString('en-US')+'</b></div>'+
+          '<div class="bw-dep"><span>'+(isDep?'本次訂金':'本次付款金額')+'</span><b>NT$ '+dep.toLocaleString('en-US')+'</b></div>'+
           /* 2026-10-01（廣告前全站掃描）：原本寫可用 CVS 付款，但綠界收銀台已排除 CVS／BARCODE（ecpay.ts IgnorePayment），客人進收銀台找不到；改成只寫線上付款 */
-          '<p class="bw-note">'+(locNote?esc(locNote)+' ':'')+(isDep?'付訂金後即為你保留時段，餘額'+(online?'依老師指示':'現場')+'結清。':'付款後即為你保留時段。')+'僅接受 Gmail，採線上付款。</p>'+
+          '<p class="bw-note">'+(isDep?'項目總額 NT$ '+(Number(W.svc.price)||0).toLocaleString('en-US')+'。線上先付訂金保留時段，餘額'+(online?'依老師指示':'現場')+'結清。':'線上付清後，即為你保留時段。')+'開始前 24 小時以前可以線上改期，可從網站右下角「風小編」聊天入口提出，或來 LINE 說。距離開始時間不到 24 小時，或想取消預約，請聯絡我們。</p>'+
           '<p class="bw-err" id="wzErr2" hidden></p></div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-go type="button">'+goLabel+'</button>';
-        shell(sn(4),'確認預約',inner,foot);
+        shell(sn(4),'確認預約資料',inner,foot);
         mount.querySelector('[data-back]').addEventListener('click',function(){if(W&&W.creating)return;stepInfo();});   /* 建單中不准回上一步（gpt-6-astra 複核） */
         var goBtn=mount.querySelector('[data-go]');
         goBtn.addEventListener('click',function(){goBook(false,'');});
@@ -422,7 +427,7 @@ import { PERSONAS } from '../data/booking-teachers';
              還會再觸發，第一次回應前連按會建出多筆預約與多張付款單，其中幾筆會占住時段變成孤兒單。
              改成真的設 disabled 屬性並在入口擋掉重入；成功會跳轉離開，所以只在失敗時解鎖。 */
           if(btn.disabled)return;
-          btn.disabled=true; btn.classList.add('disabled'); btn.textContent='建立訂單中…'; W.creating=true;
+          btn.disabled=true; btn.classList.add('disabled'); btn.textContent='正在建立預約…'; W.creating=true;
           function unlockGo(){if(W)W.creating=false;btn.disabled=false;btn.classList.remove('disabled');btn.textContent=goLabel;}
           /* 2026-10-09 信箱驗證碼（Jeffery 拍板）：付訂金前先確認信箱收得到（確認信、前一天提醒都寄這裡）。
              這個瀏覽器 30 天內驗過就直接帶憑證；沒有就開驗證碼視窗，驗過再接著送單。視窗開著時 W.creating 維持 true，不准回上一步 */
@@ -463,22 +468,23 @@ import { PERSONAS } from '../data/booking-teachers';
              else if(d&&d.error==='email_verify_required'){unlockGo();if(window.ZFEmailVerify)ZFEmailVerify.clear(W.fields.email);
                if(!evRetried&&window.ZFEmailVerify){goBook(true,'');return;}
                showErr(document.getElementById('wzErr2'),d.message||'付款前先確認一下信箱。');}
-             else if(d&&d.error==='already_paid'){unlockGo();window.__windsReqBooking=null;try{sessionStorage.removeItem('winds-req-booking');}catch(e){}showErr(document.getElementById('wzErr2'),d.message||'這筆預約已經付款完成，我們會為你安排。');}
-             else if(d&&d.error==='req_conflict'){unlockGo();window.__windsReqBooking=null;try{sessionStorage.removeItem('winds-req-booking');}catch(e){}showErr(document.getElementById('wzErr2'),d.message||'資料跟上一次不一樣，請再按一次。');}
+             else if(d&&d.error==='already_paid'){unlockGo();window.__windsReqBooking=null;try{sessionStorage.removeItem('winds-req-booking');}catch(e){}showErr(document.getElementById('wzErr2'),d.message||'這筆預約已完成付款，請勿重複付款。');}
+             else if(d&&d.error==='req_conflict'){unlockGo();window.__windsReqBooking=null;try{sessionStorage.removeItem('winds-req-booking');}catch(e){}showErr(document.getElementById('wzErr2'),d.message||'預約資料已更新，請確認內容後，再按一次「'+goLabel+'」。');}
              else if(d&&d.error==='price_changed'&&d.amount){
                unlockGo();
                // 後端另回訂金與總價就分欄更新（2026-09-28 gpt-6-astra 複核：原本不收訂金的項目改收訂金，會把訂金誤寫成總價）
                if(d.deposit!=null||d.total!=null){if(d.deposit!=null)W.svc.deposit=Number(d.deposit)||0;if(d.total!=null)W.svc.price=Number(d.total)||W.svc.price;}
                else if(Number(W.svc.deposit)>0)W.svc.deposit=Number(d.amount);else W.svc.price=Number(d.amount);
                stepConfirm();
-               showErr(document.getElementById('wzErr2'),'金額剛更新為 NT$ '+Number(d.amount).toLocaleString('en-US')+'（原本顯示 NT$ '+dep.toLocaleString('en-US')+'），確認沒問題再按一次。');
+               showErr(document.getElementById('wzErr2'),'本次付款金額已更新為 NT$ '+Number(d.amount).toLocaleString('en-US')+'，請確認後，再按一次「'+goLabel+'」。');
              }
              /* 時段被別人約走（409）：後端把原因放在 error，原本只讀 message 被吞掉 → 說清楚並帶回去重選 */
-             else if(o.st===409){unlockGo();W.date=null;W.time=null;W.notice=(d&&(d.error||d.message))||'這個時段剛被約走了，請重選一個時間。';stepTime();}
-             else{unlockGo();showErr(document.getElementById('wzErr2'),d&&(d.message||d.error)||'建立預約失敗，請稍後再試。');}
-           }).catch(function(){clearTimeout(to);unlockGo();showErr(document.getElementById('wzErr2'),'網路太久沒回應。資料沒改的話直接再按一次，不會重複開單。');});
+             else if(o.st===409){unlockGo();W.date=null;W.time=null;W.notice=(d&&(d.error||d.message))||'這個時段剛被約走了，請重新選擇時間。';stepTime();}
+             else{unlockGo();showErr(document.getElementById('wzErr2'),d&&(d.message||d.error)||'無法建立預約，請稍後再試；如果仍無法完成，請來 LINE 聯絡我們。');}
+           }).catch(function(){clearTimeout(to);unlockGo();showErr(document.getElementById('wzErr2'),'網路回應時間較長。若資料沒有變動，請再按一次「'+goLabel+'」，不會重複建立訂單。');});
         }
       }
+      function locLabel(l){return l&&l.type==='online'?'遠端通話':'現場面談';}
       function row(k,v){return '<div class="bw-row"><span class="bw-k">'+esc(k)+'</span><span class="bw-v">'+esc(v)+'</span></div>';}
 
       grid.addEventListener('click',function(e){var b=e.target.closest('[data-book]');if(b)openWiz(b.dataset.book,SVC_Q);});
@@ -488,10 +494,10 @@ import { PERSONAS } from '../data/booking-teachers';
         /* 2026-10-01（廣告前全站掃描）：零價項目（價格與訂金都是 0）原本照列「NT$ 0」，填完資料送單才被後端 400 擋下；線上收不了款的項目不列出來 */
         teachers = teachers.filter(function(t){ t.services=(t.services||[]).filter(function(s){return Number(s.price)>0||Number(s.deposit)>0;}); return t.services.length>0; });   // 2026-10-01（廣告前全站掃描・總複驗）：項目全被濾掉的老師不列，免得按「預約」後清單是空的
         LOCATIONS = (d && d.locations) || [];
-        if (!teachers.length){ grid.innerHTML=''; empty.hidden=false; empty.textContent='老師清單載入中或暫無，稍後再試。'; return; }
+        if (!teachers.length){ grid.innerHTML=''; empty.hidden=false; empty.textContent='目前暫無可預約的老師，請稍後再試。'; return; }
         apply();
         var bp = new URLSearchParams(location.search).get('book'); if (bp) openWiz(bp, SVC_Q);
-      }).catch(function(){ grid.innerHTML=''; empty.hidden=false; empty.textContent='老師清單載入失敗，請稍後再試。'; });
+      }).catch(function(){ grid.innerHTML=''; empty.hidden=false; empty.textContent='無法載入老師清單，請稍後再試。'; });
     })();
   </script>
 </BaseLayout>
