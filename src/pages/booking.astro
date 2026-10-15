@@ -34,7 +34,7 @@ import { PERSONAS } from '../data/booking-teachers';
       <div class="bk-grid" id="bkGrid">
         <div class="bk-skel"></div><div class="bk-skel"></div><div class="bk-skel"></div>
       </div>
-      <p class="bk-empty" id="bkEmpty" hidden>這個風格目前還沒有老師，換個風格看看？</p>
+      <p class="bk-empty" id="bkEmpty" hidden>這個分類目前還沒有老師，換個分類看看？</p>
     </main>
     <div class="bk-wiz-mount" id="bkWiz"></div>
   </div>
@@ -173,8 +173,6 @@ import { PERSONAS } from '../data/booking-teachers';
     .booking-root .tc-quote i{font-size:14px;color:var(--rose-300);flex:none;margin-top:3px;}
     .booking-root .tc-quote span{font-family:var(--font-serif);font-size:14.5px;line-height:1.7;color:var(--ink-700);}
     .booking-root .tc-foot{margin-top:auto;padding-top:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-    .booking-root .tc-price-unit{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);}
-    .booking-root .tc-price-val{display:block;font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900);}
 
     @media (max-width:760px){
       .bk-main{padding:28px 18px 40px;}
@@ -202,7 +200,7 @@ import { PERSONAS } from '../data/booking-teachers';
       var WORKER_API = 'https://api.winds.tw';
       var PERSONAS = JSON.parse(document.getElementById('bkPersonas').textContent);
       var descMap = {}; PERSONAS.forEach(function (p) { descMap[p.key] = p.desc; });
-      var TONE = { gentle: 'rose', rational: 'clay', energy: 'sage', direct: 'clay' };
+      var TONE = { love: 'rose', life: 'sage' };
       var active = 'all';
       var teachers = [], LOCATIONS = [];
       var grid = document.getElementById('bkGrid');
@@ -211,14 +209,9 @@ import { PERSONAS } from '../data/booking-teachers';
 
       function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
-      function priceOf(t){
-        var ps = (t.services||[]).map(function(s){return Number(s.price)||0;}).filter(function(n){return n>0;});
-        return ps.length ? Math.min.apply(null, ps) : 0;
-      }
       function card(t){
-        var tone = TONE[t.persona] || 'rose';
+        var tone = TONE[String(t.persona||'').split(',')[0]] || 'rose';
         var skills = (t.skills||[]).slice(0,3);
-        var price = priceOf(t);
         var av = t.photo
           ? '<span class="tc-av tc-av-'+tone+'"><img src="'+esc(t.photo)+'" alt="'+esc(t.name)+'" style="width:100%;height:100%;object-fit:cover"></span>'
           : '<span class="tc-av tc-av-'+tone+'">'+esc((t.name||'').slice(0,1))+'</span>';
@@ -232,15 +225,15 @@ import { PERSONAS } from '../data/booking-teachers';
           (t.blurb?'<p class="tc-blurb">'+esc(t.blurb)+'</p>':'')+
           (t.quote?'<div class="tc-quote"><i class="ph-fill ph-quotes"></i><span>'+esc(t.quote)+'</span></div>':'')+
           '<div class="tc-foot">'+
-            (price?'<div><span class="tc-price-unit">單次對談</span><span class="tc-price-val">NT$ '+price.toLocaleString('en-US')+' 起</span></div>':'<span></span>')+
-            '<button class="zfbtn md secondary" data-book="'+esc(t.id)+'" type="button">預約 <i class="ph-bold ph-arrow-right"></i></button>'+
+            '<span></span>'+
+            '<button class="zfbtn md secondary" data-book="'+esc(t.id)+'" type="button">選這位老師 <i class="ph-bold ph-arrow-right"></i></button>'+
           '</div></article>';
       }
       var SVC_Q = new URLSearchParams(location.search).get('svc') || '';
       function apply(){
         if (active==='all'){descEl.hidden=true;descEl.textContent='';}
         else {descEl.hidden=false;descEl.textContent=descMap[active]||'';}
-        var list = active==='all' ? teachers : teachers.filter(function(t){return t.persona===active;});
+        var list = active==='all' ? teachers : teachers.filter(function(t){return String(t.persona||'').split(',').indexOf(active)>=0;});
         /* 2026-10-08：從項目頁進來（?svc=項目）只列會做這一項的老師 */
         if (SVC_Q) list = list.filter(function(t){return (t.services||[]).some(function(x){return String(x.id)===SVC_Q;});});
         grid.innerHTML = list.map(card).join('');

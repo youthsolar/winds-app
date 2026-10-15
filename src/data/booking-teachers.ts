@@ -1,9 +1,7 @@
-/* 預約老師頁的「你想要什麼樣的人陪你」四種 persona。
+/* 預約老師頁的依想問的事分兩類（2026-10-16 文案檢驗：原四種風格兩類沒有老師）；老師 persona 可寫多類用逗號分開（風易揚＝life,love）。
  * 老師名單／介紹／檔期／價格一律由 SimplyBook 即時帶入（/sb-providers），這裡不放老師資料。 */
 
 export const PERSONAS = [
-  { key: 'gentle', name: '溫柔傾聽', desc: '擅長傾聽、同理，陪你把情緒慢慢說開。' },
-  { key: 'rational', name: '理性決策', desc: '擅長理清脈絡，幫你看清每個選擇的代價。' },
-  { key: 'energy', name: '能量調理', desc: '擅長調整炁場、體質與空間的能量。' },
-  { key: 'direct', name: '直白判斷', desc: '不繞圈、一針見血，直接給你明確方向。' },
+  { key: 'love', name: '感情與關係', desc: '從感情反覆到相處不安，找老師一起釐清。' },
+  { key: 'life', name: '生活與運勢', desc: '想問工作財運或家中狀況，從在意的事談起。' },
 ];
