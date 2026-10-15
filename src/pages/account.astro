@@ -110,12 +110,14 @@ const entries = [
       /* 2026-10-16：LINE 登入（line-login.js）也算登入；LINE 沒有信箱，信箱那行留空 */
       if (!user) {
         var ls = window.WindsLine && WindsLine.session();
-        if (ls) user = { name: ls.p.name || '朋友', email: '', picture: ls.p.picture || '' };
+        if (ls) user = { name: ls.p.name || '朋友', email: '', picture: ls.p.picture || '', viaLine: true };
       }
       if (!user) { location.href = '/login?return=' + encodeURIComponent('/account'); return; }
 
       document.getElementById('acName').textContent = user.name;
       document.getElementById('acEmail').textContent = user.email;
+      /* LINE 登入沒有信箱，那行的 Google 圖示也不對 → 整行收起來（要不要換 LINE 標示已交辦 DS ⑥） */
+      if (user.viaLine) { var em = document.querySelector('.ac-email'); if (em) em.style.display = 'none'; }
       var av = document.getElementById('acAvatar');
       if (user.picture) {
         var img = document.createElement('img');
