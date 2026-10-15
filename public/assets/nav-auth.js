@@ -56,6 +56,8 @@
     var token = '';
     try { token = localStorage.getItem('winds_google_token') || ''; } catch (e) {}
     var p = token ? decode(token) : null;
+    /* 2026-10-16：沒有 Google 登入時看 LINE 登入（line-login.js 存的 id_token，一樣有 name／picture） */
+    if (!p) { try { token = localStorage.getItem('winds_line_token') || ''; } catch (e) {} p = token ? decode(token) : null; }
 
     /* ---- 桌機 #auth-button ---- */
     var d = document.getElementById('auth-button');

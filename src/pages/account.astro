@@ -93,6 +93,7 @@ const entries = [
     }
   </style>
 
+  <script is:inline src="/assets/line-login.js"></script>
   <script is:inline>
     (function () {
       var token = '';
@@ -105,6 +106,11 @@ const entries = [
             user = { name: p.name || p.given_name || '朋友', email: p.email || '', picture: p.picture || '' };
           }
         } catch (e) {}
+      }
+      /* 2026-10-16：LINE 登入（line-login.js）也算登入；LINE 沒有信箱，信箱那行留空 */
+      if (!user) {
+        var ls = window.WindsLine && WindsLine.session();
+        if (ls) user = { name: ls.p.name || '朋友', email: '', picture: ls.p.picture || '' };
       }
       if (!user) { location.href = '/login?return=' + encodeURIComponent('/account'); return; }
 

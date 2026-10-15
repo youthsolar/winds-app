@@ -195,6 +195,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
   </style>
 
+  <script is:inline src="/assets/line-login.js"></script>
   <script is:inline>
     (function () {
       var WORKER_API = 'https://api.winds.tw';
@@ -320,8 +321,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (b) { b.innerHTML = '<i class="ph ph-arrow-clockwise"></i>重新整理'; b.setAttribute('href', location.pathname); }
         show('hrEmpty');
       }
-      function loadReadings(sub, token) {
-        fetch(WORKER_API + '/my-readings?google_sub=' + encodeURIComponent(sub), { headers: { 'X-Google-Id-Token': token || '' } })
+      function loadReadings(sub, token, viaLine) {
+        /* 2026-10-16：LINE 登入（line-login.js）拿到的是 LINE id_token → 走後端既有的 line_user_id＋X-Line-Id-Token 分支 */
+        fetch(WORKER_API + '/my-readings?' + (viaLine ? 'line_user_id=' : 'google_sub=') + encodeURIComponent(sub), { headers: viaLine ? { 'X-Line-Id-Token': token || '' } : { 'X-Google-Id-Token': token || '' } })
           .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
           .then(function (d) {
             if (!d || !d.success) { showLoadError(); return; }
@@ -348,6 +350,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             try { localStorage.removeItem('winds_google_token'); } catch (e2) {}
           } catch (e) { try { localStorage.removeItem('winds_google_token'); } catch (e3) {} }
         }
+        var ls = window.WindsLine && WindsLine.session();
+        if (ls) { picture = ls.p.picture || ''; show('hrLoading'); loadReadings(ls.p.sub, ls.token, true); return; }
         show('hrUnauth');
       })();
     })();
