@@ -42,7 +42,7 @@ const jsonLd = {
         '@type': 'ItemList',
         itemListElement: TEACHERS.map((t, i) => ({
           '@type': 'ListItem', position: i + 1,
-          item: { '@type': 'Person', name: t.name, url: `https://winds.tw/lp/${t.slug}`, description: t.body, knowsAbout: t.tags,
+          item: { '@type': 'Person', name: t.name, url: `https://winds.tw/lp/${t.slug}/`, description: t.body, knowsAbout: t.tags,
                   ...(photos[t.id] ? { image: photos[t.id] } : {}), worksFor: { '@id': 'https://winds.tw/#org' } },
         })),
       },
@@ -72,7 +72,7 @@ const jsonLd = {
               </div>
             </div>
             <p class="tbody">{t.body}</p>
-            <div class="tfoot"><a class="zf-btn md secondary" href={`/lp/${t.slug}`}>看老師的預約頁</a></div>
+            <div class="tfoot"><a class="zf-btn md secondary" href={`/lp/${t.slug}/`}>看老師的預約頁</a></div>
           </article>
         ))}
       </div>

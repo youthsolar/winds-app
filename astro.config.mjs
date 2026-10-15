@@ -16,6 +16,9 @@ async function servicePages() {
     // /shop/ 與 /shop/<id>/ 同日也改成即時讀，一起補
     'https://winds.tw/shop/',
     ...(es.products || []).filter((x) => x && x.name).map((x) => `https://winds.tw/shop/${x.id}/`),
+    // 2026-10-15：老師介紹頁＋六位老師預約頁改成即時讀、開放收錄（文案檢驗第 4 頁），一起補
+    'https://winds.tw/teachers/',
+    ...['fengyiyang', 'xuanqi', 'qianlan', 'fengciling', 'yiziliang', 'zhuyun'].map((t) => `https://winds.tw/lp/${t}/`),
   ];
 }
 const SERVICE_PAGES = await servicePages();
@@ -208,8 +211,8 @@ export default defineConfig({
         '/crm/',
         // 2026-10-01（廣告前全站掃描）：老師預約後台（內部、密碼閘＋noindex）原本漏排，被公開列在 sitemap 上
         '/teacher-booking/',
-        // 一頁式 dev 預覽（2026-09-03），noindex
-        '/lp/',
+        // 元辰宮招財商品落地頁（noindex）；六位老師預約頁 2026-10-15 起開放收錄
+        '/lp/yuanchen-wealth/',
         // 訂單狀態頁（2026-09-28）：個人訂單查詢，noindex
         '/shop/order/',
         // 2026-10-12 塔羅試做落地頁（noindex）

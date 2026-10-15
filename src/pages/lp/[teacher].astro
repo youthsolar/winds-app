@@ -96,7 +96,7 @@ const jsonLd = prov ? [
 ] : undefined;
 ---
 
-<BaseLayout title={title} description={description} ogImage={prov?.photo || '/og-default.jpg'} jsonLd={jsonLd} noindex={true}>
+<BaseLayout title={title} description={description} ogImage={prov?.photo || '/og-default.jpg'} jsonLd={jsonLd}>
   <div class="lp">
     {!prov ? (
       <p class="lp-empty">老師資料載入失敗，請稍後再試。</p>
