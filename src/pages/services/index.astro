@@ -4,9 +4,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 // 預約項目清單／詳情＝即時 worker /sb-services（SB 同步）＋ /shop-products（ES 法器）。
 // 列表為 client 渲染（項目異動免重建）；明細已改成 build 時產生的獨立頁
 // src/pages/services/[slug].astro，本頁只保留列表與舊 ?id= 的轉送。
-const pageTitle = '找風問幸福｜預約項目・通靈問事・元辰宮代觀・開光法器';
+const pageTitle = '預約項目｜通靈水鏡法：查因果｜找風問幸福';
 const pageDesc =
-  '找風問幸福的預約項目包含通靈水鏡法、元辰宮代觀、塔羅占卜等，也有開光法器、風易揚老師親手畫的符令、手環與供奉套組。不確定怎麼選，可以先占卜再決定。';
+  '找風問幸福可預約元辰宮代觀、通靈水鏡法、準提水鏡法與命書籤詩問事。現場地點在台北市大安區，鄰近捷運忠孝復興站。';
 ---
 
 <BaseLayout title={pageTitle} description={pageDesc} ogType="website">
@@ -173,7 +173,7 @@ const pageDesc =
       function stripTags(s) { return String(s == null ? '' : s).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); }
       function nf(n) { return (Number(n) || 0).toLocaleString('en-US'); }
       function priceLabel(it) { return (it.price && it.price > 0) ? 'NT$' + nf(it.price) : ''; }
-      function srcLabel(src) { return src === 'sb' ? '預約諮詢' : '法器'; }
+      function srcLabel(src) { return src === 'sb' ? '預約項目' : '法器選物'; }
       function glyphOf(name) {
         var cleaned = String(name || '').replace(/[【】\[\]（）()]/g, '').trim();
         var m = cleaned.match(/[一-鿿]/);
@@ -192,7 +192,7 @@ const pageDesc =
 
         var chips = [
           { key: 'all', name: '全部' },
-          { key: 'sb', name: '預約諮詢' },
+          { key: 'sb', name: '預約項目' },
           { key: 'es', name: '法器選物' },
         ].map(function (c, i) {
           return '<button class="zf-chip' + (i === 0 ? ' selected' : '') + '" data-filter="' + c.key + '" aria-pressed="' + (i === 0 ? 'true' : 'false') + '">' + esc(c.name) + '</button>';
@@ -231,14 +231,14 @@ const pageDesc =
         shell.innerHTML =
           '<nav class="breadcrumb" aria-label="麵包屑"><a href="/">首頁</a><i class="ph ph-caret-right"></i><span class="current">預約項目</span></nav>' +
           '<header class="zf-page-header"><span class="zf-ph-eyebrow">預約項目</span>' +
-            '<h1 class="zf-ph-title cjk-title">想為哪件事，找個人好好聊？</h1>' +
-            '<p class="zf-ph-lede">不確定怎麼選？先占卜，再決定。</p></header>' +
+            '<h1 class="zf-ph-title cjk-title">想預約問事，或挑一件法器？</h1>' +
+            '<p class="zf-ph-lede">先看看預約項目與法器介紹；還沒決定怎麼選，也可以到首頁免費起卦。</p></header>' +
           '<nav class="chip-row" aria-label="項目分類">' + chips + '</nav>' +
           featuredHtml +
           '<ul class="card-wall">' + cells + '</ul>' +
           '<p class="empty-note" data-empty hidden>這個分類目前沒有項目。</p>' +
-          '<section class="reading-cta"><p class="rc-line cjk-title">不確定適合哪個項目？先占卜看看</p>' +
-            '<a class="zf-btn primary lg rc-btn" href="/divination/">立即占卜</a></section>';
+          '<section class="reading-cta"><p class="rc-line cjk-title">還沒決定想了解哪個項目？可以先到首頁免費起卦。</p>' +
+            '<a class="zf-btn primary lg rc-btn" href="/">到首頁免費起卦</a></section>';
 
         wireFilter();
       }
