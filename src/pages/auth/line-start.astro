@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+/* 前往 LINE 登入（2026-10-16）：/auth/line-start?return=/history → 產生 state／nonce／PKCE 後跳 LINE。
+   之後 DS 設計好的「用 LINE 登入」按鈕只要連到這裡。回去頁只收白名單（line-login.js safeReturn）。
+   版面同 /auth/line-callback 的處理中狀態，正式樣子等 DS 回稿。 */
+---
+<BaseLayout title="LINE 登入 · 找風問幸福" description="用 LINE 登入找風問幸福。" noindex={true}>
+  <div class="lc-wrap">
+    <div class="lc-card">
+      <p class="lc-hint"><span class="lc-spinner"></span>正在前往 LINE…</p>
+    </div>
+  </div>
+  <style>
+    .lc-wrap{min-height:calc(100vh - 76px);display:flex;align-items:center;justify-content:center;padding:64px 32px;background:var(--surface-page);}
+    .lc-card{width:100%;max-width:420px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:40px 40px 34px;text-align:center;}
+    .lc-hint{display:inline-flex;align-items:center;gap:8px;margin:0;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
+    .lc-spinner{display:inline-block;flex:none;width:18px;height:18px;border-radius:999px;border:2px solid var(--rose-200);border-top-color:var(--rose-500);animation:lcSpin 1.1s linear infinite;box-sizing:border-box;}
+    @keyframes lcSpin{to{transform:rotate(360deg);}}
+    @media (max-width:640px){ .lc-wrap{min-height:calc(100vh - 64px);padding:40px 20px;} .lc-card{padding:30px 24px 28px;} }
+  </style>
+  <script is:inline src="/assets/line-login.js"></script>
+  <script is:inline>
+    (function () {
+      var ret = new URLSearchParams(location.search).get('return');
+      if (window.WindsLine) WindsLine.start(ret);
+    })();
+  </script>
+</BaseLayout>
