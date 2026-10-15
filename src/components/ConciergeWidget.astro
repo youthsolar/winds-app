@@ -19,18 +19,18 @@
         <span class="wc-av">風</span>
         <div>
           <div class="wc-title">風小編</div>
-          <div class="wc-sub">邊聊邊幫你約好老師</div>
+          <div class="wc-sub">聊聊你的狀況，一起看看適合的老師</div>
         </div>
       </div>
       <div class="wc-head-r">
-        <button class="wc-voicebtn" id="wcVoiceBtn" aria-label="改用語音通話" title="跟風小編講電話"><i class="ph-fill ph-phone"></i></button>
+        <button class="wc-voicebtn" id="wcVoiceBtn" aria-label="和風小編語音聊天" title="和風小編語音聊天"><i class="ph-fill ph-phone"></i></button>
         <button class="wc-close" id="wcClose" aria-label="關閉"><i class="ph ph-x"></i></button>
       </div>
     </div>
     <!-- 語音通話列：待命時隱藏；連線中/通話中出現在 header 下方（訊息區保留，通話中照樣渲染時段/付款卡） -->
     <div class="wc-voicebar" id="wcVoiceBar" hidden>
       <span class="wc-voice-dot" id="wcVoiceDot"></span>
-      <span class="wc-voice-st" id="wcVoiceSt">連線中…</span>
+      <span class="wc-voice-st" id="wcVoiceSt">正在連接語音…</span>
       <button class="wc-hangup" id="wcHangup">掛斷</button>
     </div>
     <div class="wc-msgs" id="wcMsgs"></div>
@@ -229,8 +229,8 @@
             '<div class="wc-prov-meta">'+esc(meta)+'</div></div></div>'+
             (c.reason?'<p class="wc-prov-reason">'+esc(c.reason)+'</p>':'')+
             (c.desc?'<p class="wc-prov-desc">'+esc(c.desc)+'…</p>':'');
-          var btn=document.createElement('button'); btn.className='wc-prov-btn'; btn.textContent='預約這個 →';
-          btn.addEventListener('click',function(){ wrap.classList.add('disabled'); sendText('我想約 '+(c.provider_name||'')+' 的 '+(c.service_name||'')); });
+          var btn=document.createElement('button'); btn.className='wc-prov-btn'; btn.textContent='預約這一項 →';
+          btn.addEventListener('click',function(){ wrap.classList.add('disabled'); sendText('我想預約'+(c.provider_name||'')+'的'+(c.service_name||'')+'。'); });
           card.appendChild(btn); wrap.appendChild(card);
         });
         msgs.appendChild(wrap); msgs.scrollTop=msgs.scrollHeight;
@@ -264,9 +264,9 @@
         msgs.appendChild(card); msgs.scrollTop=msgs.scrollHeight;
       } else if(ui.kind==='pay' && ui.url){
         var p=document.createElement('div'); p.className='wc-pay';
-        p.innerHTML='<div class="wc-pay-amt">本次付款 NT$ '+(ui.amount||'')+' <small>確認後付款</small></div>'+
+        p.innerHTML='<div class="wc-pay-amt">本次付款 NT$ '+(ui.amount||'')+' <small>請確認預約內容與金額後再付款</small></div>'+
           '<a class="wc-pay-btn" href="'+ui.url+'" target="_blank" rel="noopener">前往付款 →</a>'+
-          '<div class="wc-pay-note">付款完成後預約即正式成立</div>';
+          '<div class="wc-pay-note">'+(ui.pay_mode==='deposit'?(ui.online?'線上付訂金後保留時段，餘額依老師指示結清。':'線上付訂金後保留時段，餘額於現場結清。'):ui.pay_mode==='promo_full'?'已套用優惠碼，本次須線上一次付清折後全額。':'付款完成後預約即正式成立。')+'</div>';
         msgs.appendChild(p); msgs.scrollTop=msgs.scrollHeight;
       } else if(ui.kind==='mybookings' && ui.bookings && ui.bookings.length){
         ui.bookings.forEach(function(bk){
@@ -276,9 +276,9 @@
             '<div class="wc-prov-meta">'+esc(bk.start_datetime||'')+(meta?' · '+esc(meta):'')+'</div>';
           var row=document.createElement('div'); row.className='wc-bk-actions';
           var rb=document.createElement('button'); rb.className='wc-slot'; rb.textContent='改期';
-          rb.addEventListener('click',function(){ sendText('我要改期，單號 '+(bk.trade_no||'')); });
+          rb.addEventListener('click',function(){ sendText('我想改期，預約單號：'+(bk.trade_no||'')+'。'); });
           var cb=document.createElement('button'); cb.className='wc-slot'; cb.textContent='取消';
-          cb.addEventListener('click',function(){ sendText('我要取消，單號 '+(bk.trade_no||'')); });
+          cb.addEventListener('click',function(){ sendText('我想取消預約，預約單號：'+(bk.trade_no||'')+'。'); });
           row.appendChild(rb); row.appendChild(cb); card.appendChild(row);
           msgs.appendChild(card);
         });
@@ -287,13 +287,13 @@
         // 繞圈→占卜出口卡（DS：surface-tint 卡 + DS primary 按鈕）
         var a=document.createElement('div'); a.className='wc-action';
         var btn=document.createElement('a'); btn.className='wc-action-btn'; btn.href=ui.url;
-        btn.textContent=(ui.label||'先起一卦，老師依卦給你一張靈符解方')+' →';
+        btn.textContent=(ui.label||'到首頁免費起卦')+' →';
         a.appendChild(btn); msgs.appendChild(a); msgs.scrollTop=msgs.scrollHeight;
       } else if(ui.kind==='handoff' && ui.url){
         // 真人 handoff（網頁版）：加入官方 LINE @uneedwind 好友 → 老師在 OA 後台接
         var ha=document.createElement('div'); ha.className='wc-action';
         var hbtn=document.createElement('a'); hbtn.className='wc-action-btn'; hbtn.href=ui.url; hbtn.target='_blank'; hbtn.rel='noopener';
-        hbtn.textContent=(ui.label||'加入官方 LINE，真人對談')+' →';
+        hbtn.textContent=(ui.label||'加入官方 LINE，找真人協助')+' →';
         ha.appendChild(hbtn); msgs.appendChild(ha); msgs.scrollTop=msgs.scrollHeight;
       }
     }
@@ -306,8 +306,8 @@
       var h={'Content-Type':'application/json'}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
       fetch(API,{method:'POST',headers:h,body:JSON.stringify(body)})
         .then(function(r){return r.json()})
-        .then(function(d){ typing(false); if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} } bubble('bot',(d&&d.reply)||'抱歉，我這邊出了點狀況，能再說一次嗎？'); if(d&&d.ui) renderUi(d.ui); })
-        .catch(function(){ typing(false); bubble('bot','連線好像不太順，請稍後再試'); })
+        .then(function(d){ typing(false); if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} } bubble('bot',(d&&d.reply)||'抱歉，剛才沒能順利回覆，請再傳一次訊息。'); if(d&&d.ui) renderUi(d.ui); })
+        .catch(function(){ typing(false); bubble('bot','連線暫時不順，請稍後再試。'); })
         .finally(function(){ S.sending=false; sendBtn.disabled=false; ta.focus(); });
     }
     function send(){
@@ -322,9 +322,9 @@
     var V={call:null,loading:false};
     function voiceUi(state){
       // idle / connecting / live / ended
-      if(state==='connecting'){ vBar.hidden=false; vSt.textContent='連線中…'; vBtn.disabled=true; }
-      else if(state==='live'){ vBar.hidden=false; vSt.textContent='通話中，直接開口說話就可以'; vBtn.disabled=true; bubble('bot','我在聽了，直接跟我說說你在意的事吧。'); }
-      else { vBar.hidden=true; vBtn.disabled=false; if(state==='ended'&&V.call){ bubble('bot','通話結束了。想繼續的話，打字或再按一次通話都可以'); } V.call=null; }
+      if(state==='connecting'){ vBar.hidden=false; vSt.textContent='正在連接語音…'; vBtn.disabled=true; }
+      else if(state==='live'){ vBar.hidden=false; vSt.textContent='正在和風小編語音聊天'; vBtn.disabled=true; bubble('bot','我在聽，可以說說你最近在意的事。'); }
+      else { vBar.hidden=true; vBtn.disabled=false; if(state==='ended'&&V.call){ bubble('bot','語音聊天已結束，可以繼續打字，或再次開啟語音聊天。'); } V.call=null; }
     }
     // LINE 內建瀏覽器降級：拿不到麥克風 → 提示 + 一鍵外開（LINE 支援 openExternalBrowser=1）
     function voiceDegrade(kind){
@@ -332,9 +332,9 @@
       var here=location.href.replace(/([?&])openExternalBrowser=1/,'$1').replace(/[?&]$/,'');
       var extUrl=here+(here.indexOf('?')>=0?'&':'?')+'openExternalBrowser=1';
       bubble('bot', kind==='mic'
-        ? '這個環境好像拿不到麥克風（LINE 內建瀏覽器常有這個限制）。用下面的按鈕在外部瀏覽器開啟，就能跟我通話了。'
-        : '語音連線暫時不太順，可以先用打字的，或稍後再試');
-      if(kind==='mic'){ renderUi({kind:'action',url:extUrl,label:'在外部瀏覽器開啟'}); }
+        ? (/Line\//i.test(navigator.userAgent)?'目前在 LINE 裡無法使用麥克風，請點下方按鈕，改用外部瀏覽器開啟後再試，也可以先打字聊天。':'目前無法使用麥克風，請確認瀏覽器已允許麥克風權限，也可以先打字聊天。')
+        : '語音暫時連不上，可以先打字聊天，或稍後再試。');
+      if(kind==='mic'&&/Line\//i.test(navigator.userAgent)){ renderUi({kind:'action',url:extUrl,label:'在外部瀏覽器開啟'}); }
     }
     // 通話中的工具結果 → 複用文字版卡片（時段卡/付款卡），可講可點
     function voiceToolCard(name,result){
