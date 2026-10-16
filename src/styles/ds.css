@@ -155,6 +155,11 @@
 .zf-line-btn.sm .ic{width:44px}
 .zf-line-btn.sm .ic img{width:26px;height:26px}
 .zf-line-btn.sm .tx{padding-right:22px}
+/* md＝40 高：跟 Google 官方登入鈕並排時用（Google 官方鈕固定 40，2026-10-17；DS LineButton size="md"） */
+.zf-line-btn.md{height:40px;font-size:15px}
+.zf-line-btn.md .ic{width:40px}
+.zf-line-btn.md .ic img{width:24px;height:24px}
+.zf-line-btn.md .tx{padding-right:20px}
 .zf-line-btn.inline{display:inline-flex;width:auto}
 .zf-line-btn.inline .tx{padding:0 20px}
 
