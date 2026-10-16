@@ -73,7 +73,7 @@ const canonical = `https://winds.tw/lp/${slug}/`;
 const title = cfg.title;
 // 見面方式依老師實際有的地點講（只有台北實體的老師不提遠端）
 const hasPhysical = locations.some((l: any) => l.type !== 'online'), hasOnline = locations.some((l: any) => l.type === 'online');
-const eyebrowWhere = hasPhysical && hasOnline ? '台北大安 或 遠端視訊' : hasOnline ? '遠端視訊' : '台北大安';
+const eyebrowWhere = hasPhysical && hasOnline ? '台北大安 或 遠端通話' : hasOnline ? '遠端通話' : '台北大安';
 const balanceNote = hasPhysical && hasOnline ? '餘額當天現場結清；遠端依老師指示結清。' : hasOnline ? '餘額依老師指示結清。' : '餘額當天現場結清。';
 const faqBalance = hasPhysical && hasOnline ? '餘額當天現場結清，遠端依老師指示結清。' : balanceNote;   // 風易揚原文 FAQ 用逗號，照舊
 const description = cfg.metaDesc || (LP_LEDE.join('') + eyebrowWhere.replace(/ /g, '') + '一對一，線上付訂金保留時段。').slice(0, 155);
@@ -205,9 +205,9 @@ const jsonLd = prov ? [
           </div>
           <ol class="lp-steps">
             {hasPhysical && hasOnline ? (
-              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>選現場或遠端</b></div><p>台北可以到大安區現場；不方便過來，也可以選遠端視訊。</p></li>
+              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>選現場或遠端</b></div><p>台北可以到大安區現場；不方便過來，也可以透過官方 LINE 遠端通話。</p></li>
             ) : hasOnline ? (
-              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>遠端視訊</b></div><p>用手機或電腦連線，不用出門。</p></li>
+              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>遠端通話</b></div><p>透過官方 LINE 通話，不用出門。</p></li>
             ) : (
               <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>到台北大安區現場</b></div><p>老師在台北大安區見面，捷運忠孝復興站附近。</p></li>
             )}
@@ -215,7 +215,7 @@ const jsonLd = prov ? [
             <li><div class="lp-step-t"><span class="lp-step-n">3</span><b>付訂金</b></div><p>線上付訂金後，時段就會保留下來。{balanceNote}</p></li>
           </ol>
           <div class="lp-locs">
-            {locations.map((l: any) => <span><i class={'ph ph-' + (l.type === 'online' ? 'video-camera' : 'map-pin')}></i>{(l.type === 'online' ? '遠端視訊：' : '台北實體：') + l.note}</span>)}
+            {locations.map((l: any) => <span><i class={'ph ph-' + (l.type === 'online' ? 'phone' : 'map-pin')}></i>{(l.type === 'online' ? '遠端通話：' : '台北實體：') + l.note}</span>)}
           </div>
         </div></section>
 
@@ -236,7 +236,7 @@ const jsonLd = prov ? [
           </div>
           <div class="lp-faq-list">
             <details><summary>訂金是多少？餘額什麼時候付？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>每個項目的訂金金額，寫在上方項目旁邊，線上付款後就會保留時段。{faqBalance}</p></details>
-            {hasOnline && (<details><summary>遠端視訊怎麼進行？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>遠端對談透過官方 LINE 通話。完成預約後，請依預約確認信的說明，先加入官方 LINE。預約時間到了，老師會從 LINE 撥給你。</p></details>)}
+            {hasOnline && (<details><summary>遠端通話怎麼進行？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>遠端對談透過官方 LINE 通話。完成預約後，請依預約確認信的說明，先加入官方 LINE。預約時間到了，老師會從 LINE 撥給你。</p></details>)}
             <!-- 2026-10-01（廣告前全站掃描）：遠端那題原本寫「自動開啟會議室連結」，實際沒有程式會產生；照確認信的說法 -->
             <details><summary>為什麼 Email 只收 Gmail？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>預約確認信會寄到你填寫的信箱。為了讓通知順利送達，目前預約只接受 Gmail，請填寫你平常會查看的帳號。</p></details>
             <details><summary>要準備什麼？<i class="ph ph-plus lp-pl"></i><i class="ph ph-minus lp-mi"></i></summary><p>請準備本人的姓名與西元出生年月日，知道出生時辰的話，也可以一起告訴老師。</p><p>先想好最想問的一兩件事，來了直接說就好。</p></details>
@@ -558,7 +558,7 @@ const jsonLd = prov ? [
           return;
         }
         var inner = '<div class="bw-list">' + opts.map(function (l, i) {
-          var ic = l.type === 'online' ? 'video-camera' : 'map-pin';
+          var ic = l.type === 'online' ? 'phone' : 'map-pin';
           var sel = W.loc && W.loc.id === l.id;
           return '<button class="bw-opt' + (sel ? ' on' : '') + '" data-loc="' + i + '" type="button"><span class="bw-ic"><i class="ph-thin ph-' + ic + '"></i></span><span class="bw-opt-tx"><span class="bw-opt-nm">' + locLabel(l) + '</span>' + (l.note ? '<span class="bw-opt-meta">' + esc(l.note) + '</span>' : '') + '</span><i class="bw-chk ' + (sel ? 'ph-fill ph-check-circle' : 'ph ph-caret-right') + '"></i></button>';
         }).join('') + '</div>';

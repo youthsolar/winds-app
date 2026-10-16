@@ -27,7 +27,7 @@ const aboutJsonLd = {
     { '@type': 'AboutPage', '@id': 'https://winds.tw/about/#page', url: 'https://winds.tw/about/', name: '品牌故事｜找風問幸福', about: { '@id': 'https://winds.tw/#org' }, inLanguage: 'zh-Hant' },
   ],
 };
-const pageDesc = '找風問幸福是風易揚老師創立的命理與心靈品牌，位於台北市大安區，可預約一對一問事或選擇遠端視訊，幫你在做決定前把事情看清楚。網站也可免費起卦看卦象。';
+const pageDesc = '找風問幸福是風易揚老師創立的命理與心靈品牌，位於台北市大安區，可預約一對一問事，或透過官方 LINE 遠端通話，幫你在做決定前把事情看清楚。網站也可免費起卦看卦象。';
 ---
 <BaseLayout title="品牌故事｜找風問幸福" description={pageDesc} ogType="website" jsonLd={aboutJsonLd}>
   <main class="story">
@@ -38,7 +38,7 @@ const pageDesc = '找風問幸福是風易揚老師創立的命理與心靈品�
         <div class="zf-section-heading">
           <span class="zf-sh-eyebrow">品牌故事</span>
           <h1 class="zf-sh-title cjk">找風問幸福，陪你看清楚再決定</h1>
-          <div class="zf-prose"><p>找風問幸福是風易揚老師創立的命理與心靈品牌，在台北市大安區可預約一對一問事，也可選擇遠端視訊，陪你釐清做決定前的疑問。已經有 2,700 多人來這裡問過心裡的事。你的疑問，也值得好好談一談。</p></div>
+          <div class="zf-prose"><p>找風問幸福是風易揚老師創立的命理與心靈品牌，在台北市大安區可預約一對一問事，也可透過官方 LINE 遠端通話，陪你釐清做決定前的疑問。已經有 2,700 多人來這裡問過心裡的事。你的疑問，也值得好好談一談。</p></div>
         </div>
       </div>
     </section>
@@ -143,6 +143,7 @@ const pageDesc = '找風問幸福是風易揚老師創立的命理與心靈品�
   .beliefs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 40px; }
   @media (max-width: 820px) { .beliefs { grid-template-columns: 1fr; gap: 14px; margin-top: 28px; } }
   .belief-card { padding: 28px 26px; }
+  .belief-card p.zf-prose { margin: 0; }
   @media (max-width: 820px) { .belief-card { padding: 22px; } }
   .icon-disc { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 999px; background: var(--rose-100); margin-bottom: 16px; }
   .icon-disc i { font-size: 23px; color: var(--rose-500); line-height: 1; }
@@ -177,7 +178,7 @@ const pageDesc = '找風問幸福是風易揚老師創立的命理與心靈品�
   /* 結尾卡＝DS Card tint 組成（2026-10-15）：radius-xl、無陰影、標題 t-h3、說明 Prose sm 置中 cap 28em */
   .cta-card { border-radius: var(--radius-xl); box-shadow: none; padding: 44px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; }
   .cta-card h2 { margin: 0; font-family: var(--font-serif); font-size: var(--t-h3); font-weight: var(--w-medium); line-height: 1.35; color: var(--ink-900); }
-  .cta-sub { margin-top: 10px; max-width: 28em; }
+  .cta-sub { margin-top: 10px; margin-bottom: 0; max-width: 28em; }
   .cta-btns { margin-top: 22px; display: flex; gap: 12px; justify-content: center; align-items: center; }
   @media (max-width: 760px) {
     .cta-card { padding: 32px 22px; }
