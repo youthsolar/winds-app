@@ -1,0 +1,95 @@
+---
+/* LINE 登入過場卡（DS line-login v1 ③，2026-10-16）：/auth/line-start 與 /auth/line-callback 共用。
+   每個狀態一個 data-st 區塊，頁面腳本呼叫 window.lcShow('狀態') 切換；預設顯示 busy。
+   狀態：busy（轉圈）／cancel／fail／storage（瀏覽器存不了資料）／noscript（頁面程式沒載到）。
+   錯誤圖示圓一律玫瑰色不用紅：這些都不是客人做錯事。 */
+interface Props { busyTitle: string; busyBody: string; }
+const { busyTitle, busyBody } = Astro.props;
+const lineBtn = (label: string) => `<span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">${label}</span>`;
+---
+<main class="lc-wrap">
+  <div class="lc-card">
+    <div data-st="busy">
+      <div class="lc-top"><span class="zf-spinner lc-spin"></span></div>
+      <h1 class="lc-h1">{busyTitle}</h1>
+      <p class="lc-sub">{busyBody}</p>
+    </div>
+    <div data-st="cancel" hidden>
+      <div class="lc-top"><span class="zf-icon-disc lc-disc"><i class="ph-thin ph-hand"></i></span></div>
+      <h1 class="lc-h1">這次沒有登入</h1>
+      <p class="lc-sub">你在 LINE 按了取消。想看紀錄的話，再登入一次就好。</p>
+      <div class="lc-actions">
+        <a class="zf-line-btn lc-retry" href="/auth/line-start" set:html={lineBtn('用 LINE 再登入一次')}></a>
+        <a class="zf-btn secondary lg full lc-back" href="/">回上一頁</a>
+      </div>
+    </div>
+    <div data-st="fail" hidden>
+      <div class="lc-top"><span class="zf-icon-disc lc-disc"><i class="ph-thin ph-warning-circle"></i></span></div>
+      <h1 class="lc-h1">登入沒有完成</h1>
+      <p class="lc-sub">可能是等太久或網路不穩，再試一次就好。</p>
+      <div class="lc-actions">
+        <a class="zf-line-btn lc-retry" href="/auth/line-start" set:html={lineBtn('用 LINE 再登入一次')}></a>
+      </div>
+    </div>
+    <div data-st="storage" hidden>
+      <div class="lc-top"><span class="zf-icon-disc lc-disc"><i class="ph-thin ph-browser"></i></span></div>
+      <h1 class="lc-h1">這個瀏覽器存不了登入資料</h1>
+      <p class="lc-sub">請換一般的瀏覽器（不是無痕視窗）再試一次。</p>
+      <div class="lc-actions">
+        <button type="button" class="zf-btn secondary lg full lc-copy"><i class="ph ph-copy"></i><span>複製這一頁的網址</span></button>
+      </div>
+    </div>
+    <div data-st="noscript" hidden>
+      <div class="lc-top"><span class="zf-icon-disc lc-disc"><i class="ph-thin ph-wifi-slash"></i></span></div>
+      <h1 class="lc-h1">網路不太穩</h1>
+      <p class="lc-sub">重新整理這一頁，再試一次。</p>
+      <div class="lc-actions">
+        <button type="button" class="zf-btn primary lg full lc-reload"><i class="ph ph-arrow-clockwise"></i>重新整理</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+  .lc-wrap{display:flex;justify-content:center;padding:120px 32px 64px;background:var(--surface-page);min-height:calc(100vh - 76px);box-sizing:border-box;}
+  .lc-card{width:100%;max-width:460px;height:max-content;box-sizing:border-box;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:40px;text-align:center;}
+  .lc-card [hidden]{display:none !important;}
+  .lc-top{display:flex;justify-content:center;margin-bottom:18px;}
+  .lc-spin{width:44px;height:44px;border-width:4px;}
+  .lc-top:has(.lc-spin){margin-bottom:20px;}
+  .lc-disc{width:56px;height:56px;}
+  .lc-disc i{font-size:26px;}
+  .lc-h1{margin:0;font-family:var(--font-serif);font-size:26px;font-weight:500;line-height:1.4;color:var(--text-primary);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+  .lc-sub{margin:12px auto 0;max-width:24em;font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.85;color:var(--text-secondary);text-wrap:pretty;}
+  .lc-actions{margin-top:28px;display:flex;flex-direction:column;gap:12px;align-items:stretch;}
+  .lc-actions .zf-btn i{font-size:16px;}
+  @media (max-width:760px){
+    .lc-wrap{padding:28px 16px 40px;min-height:calc(100vh - 64px);}
+    .lc-card{padding:32px 24px;}
+    .lc-h1{font-size:23px;}
+    .lc-sub{font-size:15px;}
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    window.lcShow = function (st, ret) {
+      document.querySelectorAll('.lc-card [data-st]').forEach(function (el) { el.hidden = el.getAttribute('data-st') !== st; });
+      ret = window.WindsLine ? WindsLine.safeReturn(ret) : '/account';
+      document.querySelectorAll('.lc-retry').forEach(function (a) { a.setAttribute('href', '/auth/line-start?return=' + encodeURIComponent(ret)); });
+      document.querySelectorAll('.lc-back').forEach(function (a) { a.setAttribute('href', ret); });
+      var c = document.querySelector('.lc-copy');
+      if (c) c.onclick = function () {
+        var u = location.origin + ret;
+        function done() { c.querySelector('span').textContent = '已複製'; }
+        function legacy() {
+          try { var t = document.createElement('textarea'); t.value = u; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); done(); } catch (e) {}
+        }
+        try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(u).then(done, legacy); return; } } catch (e) {}
+        legacy();
+      };
+      var r = document.querySelector('.lc-reload');
+      if (r) r.onclick = function () { location.reload(); };
+    };
+  })();
+</script>

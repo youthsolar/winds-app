@@ -3,15 +3,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   title="登入 · 找風問幸福"
-  description="用 Google 帳戶登入找風問幸福，回看你的占卜紀錄、預約與紫微命盤。"
+  description="用 LINE 或 Google 帳戶登入找風問幸福，回看你的占卜紀錄、預約與紫微命盤。"
   noindex={true}
 >
   <div class="lg-wrap">
     <div class="lg-inner">
       <div class="lg-card">
         <h1 class="lg-h1">登入</h1>
-        <p class="lg-sub">用 Google 帳戶登入，回看你的占卜紀錄、預約與紫微命盤。</p>
-        <div id="lgGoogle" class="lg-gmount" aria-label="使用 Google 登入"></div>
+        <p class="lg-sub">用 LINE 或 Google 帳戶登入，回看你的占卜紀錄、預約與紫微命盤。</p>
+        <!-- DS line-login v1 ①：LINE 在上、Google 官方鈕在下，同寬、間距 12 -->
+        <div class="lg-btns">
+          <a class="zf-line-btn" id="lgLine" href="/auth/line-start?return=/account"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
+          <div id="lgGoogle" class="lg-gmount" aria-label="使用 Google 登入"></div>
+        </div>
+        <p class="lg-open"><a class="zf-text-link" href="https://liff.line.me/2009168674-G2KqF3Jv"><i class="ph ph-arrow-square-out"></i>已經在用 LINE？到 LINE 裡打開</a></p>
         <p class="lg-hint" id="lgHint" hidden><span class="lg-spinner"></span>正在前往 Google…</p>
       </div>
       <p class="lg-terms">登入即表示你同意我們的<a href="/terms">使用條款</a>與<a href="/privacy">隱私權政策</a>。</p>
@@ -20,12 +25,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <style>
     .lg-wrap{min-height:calc(100vh - 76px);display:flex;align-items:center;justify-content:center;padding:64px 32px;background:var(--surface-page);}
-    .lg-inner{width:100%;max-width:420px;}
+    .lg-inner{width:100%;max-width:460px;}
     /* DS Card：surface-card / border-soft / radius-lg；登入卡用 shadow-md + 置中 */
     .lg-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:40px 40px 34px;text-align:center;}
     .lg-h1{margin:0;font-family:var(--font-serif);font-size:29px;font-weight:500;color:var(--ink-900);letter-spacing:0.02em;}
     .lg-sub{margin:14px auto 0;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.7;color:var(--text-secondary);}
-    .lg-gmount{margin-top:32px;display:flex;justify-content:center;min-height:44px;}
+    .lg-btns{margin-top:28px;display:flex;flex-direction:column;gap:12px;}
+    .lg-gmount{display:flex;justify-content:center;min-height:44px;}
+    .lg-open{margin:20px 0 0;display:flex;justify-content:center;}
+    .lg-open .zf-text-link i{font-size:15px;}
     .lg-hint{display:inline-flex;align-items:center;gap:8px;margin:16px 0 0;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
     .lg-gbtn{width:100%;margin-top:32px;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap;padding:14px 20px;min-height:54px;cursor:pointer;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
     .lg-gbtn:hover{background:var(--rice-100);}
@@ -34,11 +42,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .lg-spinner{display:inline-block;flex:none;width:18px;height:18px;border-radius:999px;border:2px solid var(--rose-200);border-top-color:var(--rose-500);animation:lgSpin 1.1s linear infinite;box-sizing:border-box;}
     @keyframes lgSpin{to{transform:rotate(360deg)}}
     /* GSI 渲染不出來時的外開引導（Threads/IG/FB 內建瀏覽器常見）；innerHTML 注入 → 要 :global */
-    :global(.lg-fb){text-align:center;}
-    :global(.lg-fb-t){font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);}
-    :global(.lg-fb-d){margin:8px auto 14px;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:13.5px;line-height:1.75;color:var(--text-secondary);}
-    /* 按鈕本體走 ds.css zf-btn secondary md，這裡只留左右間距 */
-    :global(.lg-fb-btn){margin:0 4px;}
+    /* DS line-login v1 ①：Google 出不來時，Google 鈕的位置換成凹底說明框（小 G＋一句話＋複製網址／用瀏覽器打開） */
+    :global(.lg-fb){width:100%;box-sizing:border-box;padding:14px 16px;border-radius:var(--radius-md);background:var(--surface-sunken);text-align:left;display:flex;flex-direction:column;gap:10px;}
+    :global(.lg-fb-d){display:flex;gap:8px;margin:0;font-family:var(--font-sans);font-size:13.5px;line-height:1.7;color:var(--ink-700);word-break:normal;overflow-wrap:anywhere;}
+    :global(.lg-fb-d svg){flex:none;margin-top:3px;}
+    :global(.lg-fb-row){display:flex;gap:8px;flex-wrap:wrap;}
+    :global(.lg-fb-row .zf-btn i){font-size:14px;}
     .lg-terms{text-align:center;margin:20px auto 0;font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);}
     .lg-terms a{color:var(--rose-500);text-decoration:none;}
     .lg-terms a:hover{text-decoration:underline;}
@@ -47,10 +56,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .lg-card{padding:30px 24px 28px;}
       .lg-h1{font-size:25px;}
       .lg-gbtn{margin-top:26px;}
-      .lg-gmount{margin-top:26px;}
+      .lg-btns{margin-top:24px;}
     }
   </style>
 
+  <script is:inline src="/assets/line-login.js"></script>
   <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
   <script is:inline>
     (function () {
@@ -73,6 +83,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           if (p.exp && p.exp * 1000 > Date.now()) { location.replace(ret()); return; }
         }
       } catch (e) {}
+      if (window.WindsLine && WindsLine.session()) { location.replace(ret()); return; }
+      /* LINE 登入只准回到白名單頁（/history、/bookings、/account），其他一律回會員中心 */
+      (function () {
+        var a = document.getElementById('lgLine');
+        try { if (a && window.WindsLine) a.setAttribute('href', '/auth/line-start?return=' + encodeURIComponent(WindsLine.safeReturn(new URL(ret()).pathname))); } catch (e) {}
+      })();
       function onCredential(resp) {
         if (!resp || !resp.credential) return;
         try { localStorage.setItem('winds_google_token', resp.credential); } catch (e) {}
@@ -86,6 +102,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
          原本 3.5 秒就停止輪詢、換成「不支援」後永遠不再補按鈕，只能重新整理。改成：
          逾時後放慢成每秒一次、最多等到 60 秒；逾時引導（data-fb="timeout"）在 Google 腳本到了之後換回真按鈕並恢復副標，
          App 內建瀏覽器的引導（data-fb="inapp"）維持 9/27 的做法，不蓋回去（照 gift.astro 的「GSI 晚到換回真按鈕」）。 */
+      /* Google 鈕跟 LINE 鈕同寬（Google 上限 400） */
+      function gw() { var m = document.getElementById('lgGoogle'); return Math.max(200, Math.min(400, (m && m.clientWidth) || 280)); }
       var GSI_DEADLINE = Date.now() + 3500;   // 與下面 setTimeout(fallback, 3500) 同一個時間點
       var GSI_GIVEUP = Date.now() + 60000;
       function init() {
@@ -99,9 +117,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (mount) {
           mount.innerHTML='';
           mount.removeAttribute('data-fb');
-          var sub = document.querySelector('.lg-sub');
-          if (sub) sub.style.display = '';   // 逾時引導藏掉的副標放回來
-          google.accounts.id.renderButton(mount, { theme: (window.ZFTheme&&ZFTheme.isDark())?'filled_black':'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
+          google.accounts.id.renderButton(mount, { theme: (window.ZFTheme&&ZFTheme.isDark())?'filled_black':'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: gw(), locale: 'zh-TW' });
         }
         // One Tap 加碼（被 cooldown 抑制也沒關係）
         try { google.accounts.id.prompt(); } catch (e) {}
@@ -114,18 +130,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (!mount) return;
         if (!force && mount.childNodes.length) return;   // 逾時路徑：只在掛載點還空的時候接手
         mount.setAttribute('data-fb', force ? 'inapp' : 'timeout');   // 分開兩種來源：只有 inapp 不准被 init() 蓋回按鈕
-        // 藏掉副標，否則「用 Google 帳戶登入…」會跟下面的「不支援」自相矛盾
-        var sub = document.querySelector('.lg-sub');
-        if (sub) sub.style.display = 'none';
+        /* 2026-10-16（DS line-login v1）：副標改成「用 LINE 或 Google」，LINE 鈕在這種瀏覽器照樣能用，副標不再藏 */
+        var G = '<svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
         mount.innerHTML =
           '<div class="lg-fb">' +
-            '<p class="lg-fb-t">這個瀏覽器不支援 Google 登入</p>' +
-            '<p class="lg-fb-d">請點右上角「⋯」選「在瀏覽器開啟」，用 Safari 或 Chrome 進來就可以登入了。</p>' +
-            '<button type="button" class="zf-btn secondary md lg-fb-btn" id="lgCopy">複製網址</button>' +
+            '<p class="lg-fb-d">' + G + '<span>' + (force
+              ? '要用 Google 登入，請先用手機的瀏覽器打開這一頁。Instagram、Threads 裡打不開 Google 登入。'
+              : '這個瀏覽器不支援 Google 登入。請點右上角「⋯」選「在瀏覽器開啟」，用 Safari 或 Chrome 進來就可以登入了。') + '</span></p>' +
+            '<div class="lg-fb-row"><button type="button" class="zf-btn secondary sm" id="lgCopy"><i class="ph ph-copy"></i>複製網址</button>' +
             (/Android/i.test(navigator.userAgent)
-              ? '<a class="zf-btn secondary md lg-fb-btn" href="intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end">用 Chrome 開啟</a>'
+              ? '<a class="zf-btn quiet sm" href="intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end"><i class="ph ph-arrow-square-out"></i>用瀏覽器打開</a>'
               : '') +
-          '</div>';
+          '</div></div>';
         var b = document.getElementById('lgCopy');
         if (b) b.addEventListener('click', function () { copyUrl(b); });
       }
@@ -159,7 +175,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         // 已換成外開引導（data-fb）就別重畫：這時 SDK 沒 initialize，畫出來的按鈕按了也沒用，還會把引導蓋掉
         if (mount && !mount.getAttribute('data-fb') && window.google && google.accounts && google.accounts.id) {
           mount.innerHTML = '';
-          google.accounts.id.renderButton(mount, { theme: (window.ZFTheme&&ZFTheme.isDark())?'filled_black':'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: 280, locale: 'zh-TW' });
+          google.accounts.id.renderButton(mount, { theme: (window.ZFTheme&&ZFTheme.isDark())?'filled_black':'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: gw(), locale: 'zh-TW' });
         }
       });
     })();

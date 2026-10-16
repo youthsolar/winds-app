@@ -31,10 +31,14 @@ const entries = [
             </svg>
             <span id="acEmail"></span>
           </div>
+          <div class="ac-via-line" id="acViaLine" hidden><img src="/assets/line-btn-base.png" alt="" width="16" height="16">用 LINE 登入</div>
         </div>
         <button id="acLogout" class="ac-logout" type="button"><i class="ph-thin ph-sign-out"></i>登出</button>
       </div>
     </div>
+
+    <!-- 加入官方 LINE 提示（只給確定不是好友的 LINE 登入者） -->
+    <div class="ac-friend" id="acFriend" hidden></div>
 
     <!-- 我的內容入口 -->
     <div class="ac-entries">
@@ -66,6 +70,11 @@ const entries = [
     .ac-eyebrow{font-family:var(--font-sans);font-size:12px;letter-spacing:0.02em;color:var(--accent-press);margin-bottom:4px;}
     .ac-h1{margin:0;font-family:var(--font-serif);font-size:31px;font-weight:500;color:var(--ink-900);}
     .ac-email{display:flex;align-items:center;gap:7px;margin-top:6px;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted);}
+    /* DS line-login v1 ⑥：LINE 登入時名字下面標「LINE 小方塊＋用 LINE 登入」（圖示＝LINE 官方素材） */
+    .ac-via-line{display:flex;align-items:center;gap:6px;margin-top:6px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
+    .ac-via-line[hidden]{display:none;}
+    .ac-via-line img{flex:none;display:block;width:16px;height:16px;border-radius:4px;}
+    .ac-friend{margin-top:20px;}
     /* DS Btn secondary sm */
     .ac-logout{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:var(--t-body-sm);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;white-space:nowrap;cursor:pointer;background:var(--surface-card);color:var(--ink-900);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
     .ac-logout:hover{background:var(--rice-100);}
@@ -89,6 +98,7 @@ const entries = [
       .ac-avatar{width:60px;height:60px;font-size:25px;}
       .ac-h1{font-size:25px;}
       .ac-entries{grid-template-columns:1fr;gap:14px;margin-top:22px;}
+      .ac-friend{margin-top:16px;}
       .ac-entry{padding:20px 20px;}
     }
   </style>
@@ -116,8 +126,8 @@ const entries = [
 
       document.getElementById('acName').textContent = user.name;
       document.getElementById('acEmail').textContent = user.email;
-      /* LINE 登入沒有信箱，那行的 Google 圖示也不對 → 整行收起來（要不要換 LINE 標示已交辦 DS ⑥） */
-      if (user.viaLine) { var em = document.querySelector('.ac-email'); if (em) em.style.display = 'none'; }
+      /* LINE 登入沒有信箱，那行的 Google 圖示也不對 → 換成「用 LINE 登入」標示（DS line-login v1 ⑥） */
+      if (user.viaLine) { var em = document.querySelector('.ac-email'); if (em) em.style.display = 'none'; document.getElementById('acViaLine').hidden = false; }
       var av = document.getElementById('acAvatar');
       if (user.picture) {
         var img = document.createElement('img');
@@ -126,6 +136,7 @@ const entries = [
         av.textContent = (user.name || '').trim().slice(0, 1);
       }
       document.getElementById('acMain').hidden = false;
+      if (user.viaLine) WindsLine.mountFriend(document.getElementById('acFriend'));
 
       document.getElementById('acLogout').addEventListener('click', function () {
         /* 2026-09-26（Codex 複審抓到，實際比它說的更嚴重）：原本登出只清 winds_google_token，

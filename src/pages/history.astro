@@ -20,6 +20,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <span class="hr-icondisc"><i class="ph-thin ph-cards"></i></span>
           <h1 class="hr-cta-h1">請先登入查看你的占卜紀錄</h1>
           <p class="hr-cta-p">登入後，你問過的每一件事與當時的牌，都會好好留在這裡，隨時可以回來慢慢看。</p>
+          <p class="hr-expired" id="hrExpired" hidden><i class="ph ph-info"></i><span>登入已經過期了，再登入一次就好。</span></p>
+          <div class="hr-auth-btns">
+          <a class="zf-line-btn" href="/auth/line-start?return=/history"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
           <a class="hr-gbtn" href="/login?return=/history">
             <svg class="hr-gg" width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -28,6 +31,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>用 Google 登入
           </a>
+          </div>
         </div>
       </div>
     </main>
@@ -49,6 +53,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <p class="hr-sub" id="hrSub"></p>
         </div>
       </div>
+      <div class="hr-friend" id="hrFriend" hidden></div>
       <div class="hr-cards" id="hrCards"></div>
       <div class="hr-pager" id="hrPager"></div>
     </main>
@@ -91,6 +96,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .hr-icondisc i{font-size:30px;color:var(--rose-500);line-height:1;}
     .hr-gbtn{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap;padding:14px 20px;min-height:54px;cursor:pointer;margin-top:30px;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);text-decoration:none;background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
     .hr-gbtn:hover{background:var(--rice-100);}
+    /* LINE 登入（DS line-login v1 ②）：LINE 在上、Google 在下，同寬 54、間距 12，不分主次 */
+    .hr-auth-btns{margin-top:28px;display:flex;flex-direction:column;gap:12px;}
+    .hr-auth-btns .hr-gbtn{margin-top:0;}
+    .hr-expired{display:flex;gap:8px;align-items:flex-start;text-align:left;margin:18px 0 0;padding:10px 14px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);font-family:var(--font-sans);font-size:13.5px;line-height:1.7;color:var(--ink-700);}
+    .hr-expired[hidden]{display:none;}
+    .hr-expired i{flex:none;margin-top:3px;font-size:16px;color:var(--accent-press);}
+    .hr-friend{margin-top:28px;}
     .hr-gg{flex:none;display:block;}
 
     /* 載入中 */
@@ -176,6 +188,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .hr-center{padding:48px 20px;}
       .hr-unauth-card{padding:34px 24px 30px;}
       .hr-gbtn{margin-top:26px;}
+      .hr-auth-btns{margin-top:24px;}
+      .hr-friend{margin-top:22px;}
       #hrEmptyBtn{margin-top:26px;}
       .hr-cta-h1{font-size:23px;}
       .hr-cta-p{font-size:15.5px;}
@@ -213,6 +227,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       function $(id) { return document.getElementById(id); }
       function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
       function show(id) { ['hrUnauth', 'hrLoading', 'hrList', 'hrEmpty'].forEach(function (k) { var el = $(k); if (el) el.hidden = (k !== id); }); }
+      function showUnauth(expired) { var n = $('hrExpired'); if (n) n.hidden = !expired; show('hrUnauth'); }
 
       function formatDate(s) {
         if (!s) return '';
@@ -332,7 +347,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               try { if (localStorage.getItem(key) === token) localStorage.removeItem(key); } catch (e) {}
               records = []; clientName = '';
               if (window.__refreshNavAuth) window.__refreshNavAuth();
-              show('hrUnauth');
+              showUnauth(true);
               return null;
             }
             if (!r.ok) throw new Error('http ' + r.status);
@@ -345,13 +360,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             records = d.readings || [];
             if (!records.length) { show('hrEmpty'); return; }
             renderHeader(); renderList(); show('hrList');
+            if (viaLine && window.WindsLine) WindsLine.mountFriend($('hrFriend'));
           })
           .catch(function () { showLoadError(); });
       }
 
       (function init() {
-        var token = '';
-        try { token = localStorage.getItem('winds_google_token') || ''; } catch (e) {}
+        var token = '', hadLine = false;
+        try { token = localStorage.getItem('winds_google_token') || ''; hadLine = !!localStorage.getItem('winds_line_token'); } catch (e) {}
         if (token) {
           try {
             var p = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
@@ -366,7 +382,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         }
         var ls = window.WindsLine && WindsLine.session();
         if (ls) { picture = ls.p.picture || ''; show('hrLoading'); loadReadings(ls.p.sub, ls.token, true); return; }
-        show('hrUnauth');
+        /* 本機有登入憑證但已過期（Google 一小時、LINE 約一個月）＝登入過期，卡片多一行提示 */
+        showUnauth(!!token || hadLine);
       })();
     })();
   </script>

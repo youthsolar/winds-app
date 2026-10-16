@@ -138,5 +138,42 @@
       }, function () { throw { kind: 'exchange', ret: ret }; });
   }
 
-  window.WindsLine = { start: start, session: session, friend: friend, recheckFriend: recheckFriend, finish: finish, safeReturn: safeReturn };
+  /* 「加入官方 LINE」提示（DS line-login v1 ④，2026-10-16）。只給「確定不是好友」的 LINE 登入者看。
+     關掉後 30 天不出現；30 天後還不是好友再出現一次；第二次關掉就不再出現（依帳號分開記）。
+     按下去開官方帳號，客人切回這頁時重查一次好友狀態，加了就收起來。 */
+  var OA_URL = 'https://lin.ee/tQHsgWB', DISMISS = 'winds_line_friend_x', DAY = 86400000;
+  function dismissed(sub) {
+    var d = null; try { d = JSON.parse(get(DISMISS) || 'null'); } catch (e) {}
+    if (!d || d.sub !== sub) return false;
+    return d.n >= 2 || (d.n === 1 && Date.now() - d.t < 30 * DAY);
+  }
+  function mountFriend(el) {
+    var s = session();
+    if (!el || !s || friend() !== false || dismissed(s.p.sub)) return;
+    el.innerHTML =
+      '<div class="zf-friend" role="region" aria-label="加入官方 LINE">' +
+        '<button type="button" class="zf-friend-x" aria-label="關閉"><i class="ph ph-x"></i></button>' +
+        '<div class="zf-friend-main"><span class="zf-icon-disc"><i class="ph-thin ph-bell-simple"></i></span>' +
+          '<div><div class="zf-friend-t">在 LINE 收到老師的提醒</div>' +
+          '<div class="zf-friend-d">卦符快到期、節氣換符的時候，風易揚老師會在 LINE 跟你說一聲。</div></div></div>' +
+        '<div class="zf-friend-cta"><a class="zf-line-btn sm inline" href="' + OA_URL + '" target="_blank" rel="noopener">' +
+          '<span class="ic"><img src="/assets/line-btn-base.png" alt="" width="26" height="26"></span><span class="tx">開啟官方 LINE</span></a></div>' +
+      '</div>';
+    el.hidden = false;
+    el.querySelector('.zf-friend-x').addEventListener('click', function () {
+      var d = null; try { d = JSON.parse(get(DISMISS) || 'null'); } catch (e) {}
+      set(DISMISS, JSON.stringify({ sub: s.p.sub, n: (d && d.sub === s.p.sub ? d.n : 0) + 1, t: Date.now() }));
+      el.innerHTML = ''; el.hidden = true;
+    });
+    el.querySelector('.zf-line-btn').addEventListener('click', function () {
+      function back() {
+        if (document.visibilityState !== 'visible') return;
+        document.removeEventListener('visibilitychange', back);
+        recheckFriend(function (v) { if (v !== false) { el.innerHTML = ''; el.hidden = true; } });
+      }
+      document.addEventListener('visibilitychange', back);
+    });
+  }
+
+  window.WindsLine = { start: start, session: session, friend: friend, recheckFriend: recheckFriend, finish: finish, safeReturn: safeReturn, mountFriend: mountFriend };
 })();
