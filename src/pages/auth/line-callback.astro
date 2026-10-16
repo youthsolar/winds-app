@@ -43,15 +43,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var params = new URLSearchParams(location.search);
       /* code 不要留在網址列與瀏覽紀錄裡 */
       try { history.replaceState(null, '', location.pathname); } catch (e) {}
+      var STORAGE_MSG = '這個瀏覽器沒辦法存登入資料，請換一般瀏覽器（不是無痕視窗）再試一次。';
       function fail(kind, ret) {
         document.getElementById('lcBusy').hidden = true;
         document.getElementById('lcFail').hidden = false;
         if (kind === 'cancel') {
           document.getElementById('lcTitle').textContent = '這次沒有登入';
           document.getElementById('lcMsg').textContent = '你在 LINE 按了取消。想看紀錄的話，再登入一次就好。';
+        } else if (kind === 'storage') {
+          document.getElementById('lcMsg').textContent = STORAGE_MSG;
         }
-        document.getElementById('lcBack').setAttribute('href', ret || '/');
-        document.getElementById('lcRetry').addEventListener('click', function () { WindsLine.start(ret); });
+        /* 回去的頁一律再過一次白名單；腳本沒載到時「重新登入」改成重新整理這頁 */
+        ret = window.WindsLine ? WindsLine.safeReturn(ret) : '/';
+        document.getElementById('lcBack').setAttribute('href', ret);
+        document.getElementById('lcRetry').addEventListener('click', function () {
+          if (window.WindsLine) WindsLine.start(ret).catch(function () { document.getElementById('lcMsg').textContent = STORAGE_MSG; }); else location.reload();
+        });
       }
       if (!window.WindsLine) { fail('exchange', '/'); return; }
       WindsLine.finish(params).then(function (ret) { location.replace(ret); },

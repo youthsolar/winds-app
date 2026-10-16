@@ -5,7 +5,10 @@
  *   WindsLine.friend()           → true／false／null（null＝查不到，不能當成「不是好友」）
  *   WindsLine.recheckFriend(cb)  → 客人按完加好友回來重查一次
  * 交易存 localStorage 不存 sessionStorage：LINE 自動登入有時回到新分頁，sessionStorage 會跟著不見。
- * 一次只留一筆交易、10 分鐘過期、用過即刪。
+ * 每筆交易用 state 當鍵分開存（兩個分頁同時登入不會互蓋）、10 分鐘過期、對上了才刪。
+ * 2026-10-16 Astra 審查後改：①原本單一鍵、回來先刪再比對 → 雙分頁兩邊都失敗，別人塞 ?error= 也能清掉交易
+ *   ②存不進去原本照樣跳 LINE／照樣說登入成功 → 改成存不進就停 ③LINE 登入成功時清掉前一位的 Google 登入與本機痕跡，
+ *   不然導覽列與紀錄頁還是前一個人。
  */
 (function () {
   var CHANNEL_ID = '2009168674';
@@ -25,6 +28,25 @@
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   function del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  /* 交易與登入憑證一定要存得進去；存不進就丟錯，讓頁面顯示失敗，不要假裝成功 */
+  function setRequired(k, v) {
+    localStorage.setItem(k, v);
+    if (localStorage.getItem(k) !== v) throw new Error('storage_unavailable');
+  }
+  /* 清掉過期交易，最多留最近 3 筆 */
+  function pruneTxns() {
+    try {
+      var keys = [];
+      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf(TXN + ':') === 0) keys.push(k); }
+      if (localStorage.getItem(TXN) !== null) localStorage.removeItem(TXN);   // 舊版單一鍵
+      var live = [];
+      keys.forEach(function (k) {
+        var t = null; try { t = JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) {}
+        if (!t || !(Date.now() - t.t <= 10 * 60 * 1000)) localStorage.removeItem(k); else live.push({ k: k, t: t.t });
+      });
+      live.sort(function (a, b) { return b.t - a.t; }).slice(2).forEach(function (x) { localStorage.removeItem(x.k); });
+    } catch (e) {}
+  }
 
   function safeReturn(r) {
     var path = String(r || '').split('?')[0].replace(/\/+$/, '');
@@ -42,7 +64,8 @@
   function start(ret) {
     var state = rand(24), nonce = rand(24), verifier = rand(48);
     return crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)).then(function (h) {
-      set(TXN, JSON.stringify({ state: state, nonce: nonce, verifier: verifier, ret: safeReturn(ret), t: Date.now() }));
+      pruneTxns();
+      setRequired(TXN + ':' + state, JSON.stringify({ state: state, nonce: nonce, verifier: verifier, ret: safeReturn(ret), t: Date.now() }));
       var q = new URLSearchParams({
         response_type: 'code', client_id: CHANNEL_ID, redirect_uri: REDIRECT_URI,
         state: state, nonce: nonce, scope: 'openid profile', bot_prompt: 'normal',
@@ -75,22 +98,41 @@
       .catch(function () { saveFriend(null); if (cb) cb(null); });
   }
 
+  /* LINE 登入成功、換到別人時：清掉前一位的 Google 登入與本機痕跡（同登出的清法），再存新的 */
+  function switchIdentity() {
+    try {
+      if (!localStorage.getItem('winds_google_token')) return;
+      var kill = [];
+      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k.indexOf(TXN) !== 0) kill.push(k); }
+      kill.forEach(function (k) { localStorage.removeItem(k); });
+    } catch (e) {}
+  }
+
   /* 給 /auth/line-callback 用：比對 state、換憑證、存起來，回傳要跳去的頁。
-     失敗時 reject 一個字串：'cancel'（客人在 LINE 按取消）／'state'（對不上或過期）／'exchange'（換不到） */
+     失敗時 reject { kind, ret }：kind＝'cancel'（客人在 LINE 按取消）／'state'（對不上或過期）／'exchange'（換不到）／'storage'（存不進去）
+     只有對得上的交易才刪；網址上的 state 對不到任何交易就什麼都不動（別人塞 ?error= 清不掉正在進行的登入） */
   function finish(params) {
-    var raw = get(TXN); del(TXN);
-    var txn = null; try { txn = JSON.parse(raw || 'null'); } catch (e) {}
-    var ret = txn ? txn.ret : '/account';
+    var state = params.get('state') || '';
+    if (!/^[A-Za-z0-9_-]{32}$/.test(state)) return Promise.reject({ kind: 'state', ret: '/account' });
+    var key = TXN + ':' + state;
+    var txn = null; try { txn = JSON.parse(get(key) || 'null'); } catch (e) {}
+    var age = txn ? Date.now() - txn.t : NaN;
+    if (!txn || txn.state !== state || !(age >= 0 && age <= 10 * 60 * 1000)) return Promise.reject({ kind: 'state', ret: '/account' });
+    var ret = safeReturn(txn.ret);
+    del(key);
     if (params.get('error')) return Promise.reject({ kind: params.get('error') === 'access_denied' ? 'cancel' : 'exchange', ret: ret });
-    if (!txn || !params.get('code') || params.get('state') !== txn.state || Date.now() - txn.t > 10 * 60 * 1000) return Promise.reject({ kind: 'state', ret: ret });
+    if (!params.get('code')) return Promise.reject({ kind: 'state', ret: ret });
     return fetch(API + '/auth/line/exchange', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: params.get('code'), code_verifier: txn.verifier, nonce: txn.nonce, redirect_uri: REDIRECT_URI })
     }).then(function (r) { return r.json().catch(function () { return null; }); })
       .then(function (d) {
         if (!d || !d.success || !d.id_token) throw { kind: 'exchange', ret: ret };
-        set(TOKEN, d.id_token);
-        if (d.access_token) set(AT, d.access_token);
+        switchIdentity();
+        try {
+          setRequired(TOKEN, d.id_token);
+          if (d.access_token) setRequired(AT, d.access_token); else del(AT);
+        } catch (e) { del(TOKEN); del(AT); throw { kind: 'storage', ret: ret }; }
         saveFriend(typeof d.friend === 'boolean' ? d.friend : null);
         return ret;
       }, function () { throw { kind: 'exchange', ret: ret }; });

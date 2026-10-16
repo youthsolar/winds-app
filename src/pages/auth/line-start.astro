@@ -22,7 +22,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <script is:inline>
     (function () {
       var ret = new URLSearchParams(location.search).get('return');
-      if (window.WindsLine) WindsLine.start(ret);
+      /* 存不進登入資料（無痕視窗、瀏覽器擋網站存資料）就不跳 LINE——跳了回來也一定失敗 */
+      function stuck(msg) { document.querySelector('.lc-hint').textContent = msg || '這個瀏覽器沒辦法存登入資料，請換一般瀏覽器（不是無痕視窗）再試一次。'; }
+      if (!window.WindsLine) { stuck('網路不穩，重新整理這一頁再試一次。'); return; }
+      Promise.resolve().then(function () { return WindsLine.start(ret); }).catch(function () { stuck(); });
     })();
   </script>
 </BaseLayout>

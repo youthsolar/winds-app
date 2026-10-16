@@ -324,8 +324,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       function loadReadings(sub, token, viaLine) {
         /* 2026-10-16：LINE 登入（line-login.js）拿到的是 LINE id_token → 走後端既有的 line_user_id＋X-Line-Id-Token 分支 */
         fetch(WORKER_API + '/my-readings?' + (viaLine ? 'line_user_id=' : 'google_sub=') + encodeURIComponent(sub), { headers: viaLine ? { 'X-Line-Id-Token': token || '' } : { 'X-Google-Id-Token': token || '' } })
-          .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+          .then(function (r) {
+            /* 2026-10-16（Astra 審 LINE 登入）：登入過期或 LINE／Google 不認這張憑證（401）原本也走「暫時讀不到」，
+               客人重新整理幾次都一樣。改成清掉這張憑證、回到未登入畫面讓他重新登入；403 身分不符與其他錯誤照舊 */
+            if (r.status === 401) {
+              var key = viaLine ? 'winds_line_token' : 'winds_google_token';
+              try { if (localStorage.getItem(key) === token) localStorage.removeItem(key); } catch (e) {}
+              records = []; clientName = '';
+              if (window.__refreshNavAuth) window.__refreshNavAuth();
+              show('hrUnauth');
+              return null;
+            }
+            if (!r.ok) throw new Error('http ' + r.status);
+            return r.json();
+          })
           .then(function (d) {
+            if (d === null) return;
             if (!d || !d.success) { showLoadError(); return; }
             clientName = d.client_name || '';
             records = d.readings || [];
