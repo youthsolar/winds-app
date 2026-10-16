@@ -3,7 +3,9 @@
  *   WindsLine.start('/history')  → 產生 state／nonce／PKCE，存 localStorage，跳 LINE 授權（同意畫面一起問加好友）
  *   WindsLine.session()          → { token, p } 或 null（過期會順手清掉）
  *   WindsLine.friend()           → true／false／null（null＝查不到，不能當成「不是好友」）
- *   WindsLine.recheckFriend(cb)  → 客人按完加好友回來重查一次
+ *   WindsLine.mountFriend(el)    → 不是好友時在 el 放「加入官方 LINE」提示
+ * 2026-10-16（Jeffery 選項卡）：LINE 的 30 天 access token 不存瀏覽器（只拿來重查好友，風險不值得）；
+ *   好友狀態只在登入那一下由後端查好帶回來，客人按了加好友就先把提示收起來、下次登入再查。
  * 交易存 localStorage 不存 sessionStorage：LINE 自動登入有時回到新分頁，sessionStorage 會跟著不見。
  * 每筆交易用 state 當鍵分開存（兩個分頁同時登入不會互蓋）、10 分鐘過期、對上了才刪。
  * 2026-10-16 Astra 審查後改：①原本單一鍵、回來先刪再比對 → 雙分頁兩邊都失敗，別人塞 ?error= 也能清掉交易
@@ -82,21 +84,14 @@
     return { token: t, p: p };
   }
 
+  del(AT);   // 10/16 以前存過的 30 天 access token 一律清掉
+
   function friend() {
     var f = get(FRIEND);
     return f === '1' ? true : f === '0' ? false : null;
   }
 
   function saveFriend(v) { if (v === true) set(FRIEND, '1'); else if (v === false) set(FRIEND, '0'); else del(FRIEND); }
-
-  function recheckFriend(cb) {
-    var at = get(AT);
-    if (!at) { saveFriend(null); if (cb) cb(null); return; }
-    fetch(API + '/auth/line/friendship', { method: 'POST', headers: { Authorization: 'Bearer ' + at } })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { var v = d && typeof d.friend === 'boolean' ? d.friend : null; saveFriend(v); if (cb) cb(v); })
-      .catch(function () { saveFriend(null); if (cb) cb(null); });
-  }
 
   /* LINE 登入成功、換到別人時：清掉前一位的 Google 登入與本機痕跡（同登出的清法），再存新的 */
   function switchIdentity() {
@@ -131,8 +126,7 @@
         switchIdentity();
         try {
           setRequired(TOKEN, d.id_token);
-          if (d.access_token) setRequired(AT, d.access_token); else del(AT);
-        } catch (e) { del(TOKEN); del(AT); throw { kind: 'storage', ret: ret }; }
+        } catch (e) { del(TOKEN); throw { kind: 'storage', ret: ret }; }
         saveFriend(typeof d.friend === 'boolean' ? d.friend : null);
         return ret;
       }, function () { throw { kind: 'exchange', ret: ret }; });
@@ -140,7 +134,7 @@
 
   /* 「加入官方 LINE」提示（DS line-login v1 ④，2026-10-16）。只給「確定不是好友」的 LINE 登入者看。
      關掉後 30 天不出現；30 天後還不是好友再出現一次；第二次關掉就不再出現（依帳號分開記）。
-     按下去開官方帳號，客人切回這頁時重查一次好友狀態，加了就收起來。 */
+     按下去開官方帳號，提示就先收起來（好友狀態改成「查不到」），下次登入再由後端查。 */
   var OA_URL = 'https://lin.ee/tQHsgWB', DISMISS = 'winds_line_friend_x', DAY = 86400000;
   function dismissed(sub) {
     var d = null; try { d = JSON.parse(get(DISMISS) || 'null'); } catch (e) {}
@@ -166,14 +160,10 @@
       el.innerHTML = ''; el.hidden = true;
     });
     el.querySelector('.zf-line-btn').addEventListener('click', function () {
-      function back() {
-        if (document.visibilityState !== 'visible') return;
-        document.removeEventListener('visibilitychange', back);
-        recheckFriend(function (v) { if (v !== false) { el.innerHTML = ''; el.hidden = true; } });
-      }
-      document.addEventListener('visibilitychange', back);
+      saveFriend(null);
+      setTimeout(function () { el.innerHTML = ''; el.hidden = true; }, 300);
     });
   }
 
-  window.WindsLine = { start: start, session: session, friend: friend, recheckFriend: recheckFriend, finish: finish, safeReturn: safeReturn, mountFriend: mountFriend };
+  window.WindsLine = { start: start, session: session, friend: friend, finish: finish, safeReturn: safeReturn, mountFriend: mountFriend };
 })();
