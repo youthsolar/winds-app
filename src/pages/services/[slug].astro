@@ -91,10 +91,13 @@ const title = item.seoTitle ? `${item.seoTitle}｜找風問幸福` : `${item.nam
 const description = (lede || item.name).slice(0, 155);
 
 // 同類推薦：同 category 優先，不足則補同來源
+// 2026-10-16 Jeffery 拍板：只列能約的（暫停項目不列，跟列表頁一致），預約項目／法器分開，不放價格
 const related = [
   ...siblings.filter((s: any) => s.slug !== item.slug && s.category && s.category === item.category),
   ...siblings.filter((s: any) => s.slug !== item.slug && s.source === item.source),
-].filter((v: any, i: number, a: any[]) => a.findIndex((x) => x.slug === v.slug) === i).slice(0, 4);
+].filter((v: any) => v.source !== 'sb' || v.bookable)
+ .filter((v: any, i: number, a: any[]) => a.findIndex((x) => x.slug === v.slug) === i).slice(0, 4);
+const catName = isSB ? '預約項目' : '法器選物';
 
 const jsonLd = [
   {
@@ -118,7 +121,7 @@ const jsonLd = [
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: '首頁', item: 'https://winds.tw/' },
-      { '@type': 'ListItem', position: 2, name: '預約項目', item: 'https://winds.tw/services/' },
+      { '@type': 'ListItem', position: 2, name: catName, item: 'https://winds.tw/services/' },
       { '@type': 'ListItem', position: 3, name: item.name, item: canonical },
     ],
   },
@@ -128,15 +131,14 @@ const jsonLd = [
 <BaseLayout title={title} description={description} ogImage={item.image || '/og-default.jpg'} jsonLd={jsonLd}>
   <div class="svc-detail">
     <nav class="sd-crumb" aria-label="麵包屑">
-      <a href="/">首頁</a><i class="ph ph-caret-right sd-sep" aria-hidden="true"></i><a href="/services/">預約項目</a><i class="ph ph-caret-right sd-sep" aria-hidden="true"></i>
+      <a href="/">首頁</a><i class="ph ph-caret-right sd-sep" aria-hidden="true"></i><a href="/services/">{catName}</a><i class="ph ph-caret-right sd-sep" aria-hidden="true"></i>
       <span class="cur">{item.name}</span>
     </nav>
 
     <article class="sd-main">
       <header class="sd-head">
         <div class="sd-tags">
-          <span class="zf-badge rose">{isSB ? '靈性諮詢' : '開光法器'}</span>
-          {durTxt && <span class="zf-badge neutral">{durTxt}</span>}
+          <span class="zf-badge rose">{catName}</span>
         </div>
         <h1>{item.name}</h1>
         {lede && <p class="sd-lede">{lede}</p>}
@@ -148,7 +150,7 @@ const jsonLd = [
 
       {body && (
         <section class="sd-section">
-          <h2>項目說明</h2>
+          <h2>{isSB ? '項目說明' : '法器介紹'}</h2>
           <p>{body}</p>
         </section>
       )}
@@ -170,17 +172,17 @@ const jsonLd = [
           <div class="sd-t-row multi">
             <span class="sd-avs">{teachers.map((t) => <span class="zf-avatar ring sd-av sm"><img src={t.photo} alt="" width="40" height="40" /></span>)}</span>
             <div>
-              <div class="sd-t-name">{teachers[0].name}等 {teachers.length} 位老師</div>
+              <div class="sd-t-name">{teachers.length} 位老師可選</div>
               <div class="sd-t-title">{teachers.map((t) => t.name).join('、')}</div>
             </div>
           </div>
         )}
-        {teachers.length === 0 && <span class="sd-book-label">{paused ? '暫停開放預約' : isSB ? '預約這個項目' : '請這件法器'}</span>}
+        {teachers.length === 0 && <span class="sd-book-label">{paused ? '暫停線上預約' : isSB ? '預約這個項目' : '請這件法器'}</span>}
         {priceTxt && <div class="sd-book-price">{priceTxt}</div>}
         {paused ? (
           <>
-            <a class="zf-btn secondary lg full sd-btn" href="https://lin.ee/tQHsgWB" target="_blank" rel="noopener">加入官方 LINE 詢問</a>
-            <p class="sd-book-note">這個項目目前暫停開放線上預約，想了解可以加官方 LINE 問我們。</p>
+            <a class="zf-btn secondary lg full sd-btn" href="https://lin.ee/tQHsgWB" target="_blank" rel="noopener">到官方 LINE 詢問</a>
+            <p class="sd-book-note">這個項目目前暫停線上預約，想了解可以透過官方 LINE 詢問。</p>
           </>
         ) : (
           <>
@@ -188,24 +190,24 @@ const jsonLd = [
                {...(isSB ? {} : { target: '_blank', rel: 'noopener' })}>
               {isSB ? '預約老師' : '前往購買'}
             </a>
-            <p class="sd-book-note">{isSB ? '預約與付款將前往安全頁完成' : '超商店到店 · 7 天內 · 台灣限定'}</p>
+            <p class="sd-book-note">{isSB ? '選好老師與時段後，線上付訂金保留時段。' : '全台超商店到店 · 7 天內送達 · 台灣限定'}</p>
           </>
         )}
-        {isSB && <p class="sd-alt">還不確定？先線上起一卦，老師依卦給靈符解方（NT$360）。<a href="/divination/">先起一卦</a></p>}
+        {isSB && <p class="sd-alt">還沒決定想了解哪個項目？可以先到首頁免費起卦。<a href="/">到首頁免費起卦</a></p>}
       </section>
 
       {related.length > 0 && (
         <section class="sd-section">
-          <h2>其他相關項目</h2>
+          <h2>{isSB ? '其他預約項目' : '其他法器選物'}</h2>
           <ul class="sd-rel">
             {related.map((r: any) => (
-              <li><a href={`/services/${r.slug}/`}>{r.name}</a>{r.price ? <span> · NT$ {r.price.toLocaleString('en-US')}</span> : null}</li>
+              <li><a href={`/services/${r.slug}/`}>{r.name}</a></li>
             ))}
           </ul>
         </section>
       )}
 
-      <a class="sd-back" href="/services/">← 回項目列表</a>
+      <a class="sd-back" href="/services/">← 回預約項目與法器選物</a>
     </article>
   </div>
 
@@ -248,7 +250,6 @@ const jsonLd = [
     .sd-rel li { padding: 16px 0; border-bottom: 1px solid var(--border-soft); font-family: var(--font-serif); font-size: 17px; font-weight: 500; }
     .sd-rel a { color: var(--ink-900); text-decoration: none; }
     .sd-rel a:hover { color: var(--accent-press); }
-    .sd-rel span { font-family: var(--font-sans); color: var(--text-muted); font-size: 13px; font-weight: 400; }
     .sd-back { display: inline-block; margin-top: 36px; font-family: var(--font-sans); font-size: 13.5px; color: var(--text-muted); text-decoration: none; }
     .sd-back:hover { color: var(--accent-press); }
     .sd-alt { margin: 14px 0 0; font-family: var(--font-sans); font-size: 13px; color: var(--text-muted); line-height: 1.7; text-align: center; }
