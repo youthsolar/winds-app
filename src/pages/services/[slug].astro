@@ -41,7 +41,8 @@ try {
     ...sb.map((s: any) => ({
       source: 'sb', slug: `sb-${s.id}`, name: s.name, seoTitle: s.seo_title || '',
       price: Number(s.price) || 0, duration: s.duration || null, image: s.image || '',
-      desc: strip(s.desc), llm: strip(s.llm), category: s.category || '', url: '', sbId: String(s.sb_id || ''),
+      desc: strip(s.desc), paras: String(s.desc || '').split(/<\/p>/i).map(strip).filter(Boolean),   // 2026-10-16：命書籤詩開頭籤詩要自成一段
+      llm: strip(s.llm), category: s.category || '', url: '', sbId: String(s.sb_id || ''),
       bookable: s.bookable !== false,   // 2026-10-01：false＝介紹頁照留、暫停線上預約（worker bk_services.booking_paused）
     })),
     ...es.map((p: any) => ({
@@ -151,7 +152,7 @@ const jsonLd = [
       {body && (
         <section class="sd-section">
           <h2>{isSB ? '項目說明' : '法器介紹'}</h2>
-          <p>{body}</p>
+          {(item.paras && item.paras.length > 1 ? item.paras : [body]).map((t: string) => <p>{t}</p>)}
         </section>
       )}
 
@@ -228,6 +229,7 @@ const jsonLd = [
     .sd-dot { color: var(--rose-200); }
     .sd-section { margin-top: 36px; }
     .sd-section h2 { font-family: var(--font-serif); font-size: 24px; font-weight: 500; color: var(--ink-900); margin: 0 0 16px; }
+    .sd-section p + p { margin-top: 1em; }
     .sd-section p { font-family: var(--font-serif); font-weight: 300; font-size: 17.5px; line-height: 1.95; color: var(--ink-700); margin: 0; max-width: none; word-break: normal; overflow-wrap: anywhere; text-wrap: auto; }
     /* 預約卡＝DS 側欄 Card paper＋shadow-md */
     .sd-book { margin-top: 36px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 26px; background: var(--surface-card); box-shadow: var(--shadow-md); }
