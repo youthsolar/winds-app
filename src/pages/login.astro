@@ -32,6 +32,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .lg-sub{margin:14px auto 0;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.7;color:var(--text-secondary);}
     .lg-btns{margin-top:28px;display:flex;flex-direction:column;gap:12px;}
     .lg-gmount{display:flex;justify-content:center;min-height:44px;}
+    /* 10/17 Jeffery：LINE 鈕跟旁邊的 Google 官方鈕一樣高（Google 官方鈕固定 40，改不了） */
+    .lg-btns .zf-line-btn{height:40px;font-size:15px;}
+    .lg-btns .zf-line-btn .ic{width:40px;}
+    .lg-btns .zf-line-btn .ic img{width:24px;height:24px;}
+    .lg-btns .zf-line-btn .tx{padding-right:20px;}
     .lg-open{margin:20px 0 0;display:flex;justify-content:center;}
     .lg-open .zf-text-link i{font-size:15px;}
     .lg-hint{display:inline-flex;align-items:center;gap:8px;margin:16px 0 0;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}

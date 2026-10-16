@@ -89,7 +89,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .hr-gbtn:hover{background:var(--rice-100);}
     /* LINE 登入（DS line-login v1 ②）：LINE 在上、Google 在下，同寬 54、間距 12，不分主次 */
     .hr-auth-btns{margin-top:28px;display:flex;flex-direction:column;gap:12px;}
-    .hr-auth-btns .hr-gbtn{margin-top:0;}
+    .hr-auth-btns .hr-gbtn{margin-top:0;height:54px;min-height:0;padding-block:0;}   /* 10/17：原本被內距撐到 60，跟 LINE 鈕不一樣高 */
     .hr-expired{display:flex;gap:8px;align-items:flex-start;text-align:left;margin:18px 0 0;padding:10px 14px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);font-family:var(--font-sans);font-size:13.5px;line-height:1.7;color:var(--ink-700);}
     .hr-expired[hidden]{display:none;}
     .hr-expired i{flex:none;margin-top:3px;font-size:16px;color:var(--accent-press);}
