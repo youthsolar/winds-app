@@ -215,7 +215,8 @@ const pageDesc =
         ) : '';
 
         var cells = items.map(function (it) {
-          return '<li class="svc-cell" data-source="' + esc(it.source) + '">' +
+          // 2026-10-16 文案檢驗第 7 頁（Jeffery 選項卡）：主推大卡那一項在「全部」時不再重複出現在卡片牆；選「預約項目」時大卡收起，它照樣出現
+          return '<li class="svc-cell" data-source="' + esc(it.source) + '"' + (it === featured ? ' data-dup hidden' : '') + '>' +
             '<a class="svc-card zf-card interactive" href="/services/' + esc(it.source) + '-' + esc(it.id) + '/">' +
               '<div class="sc-top"><span class="sc-glyph">' + esc(glyphOf(it.name)) + '</span>' +
                 '<span class="zf-badge rose">' + esc(srcLabel(it.source)) + '</span></div>' +
@@ -251,7 +252,7 @@ const pageDesc =
         function apply(filter) {
           var shown = 0;
           cells.forEach(function (cell) {
-            var match = filter === 'all' || cell.dataset.source === filter;
+            var match = (filter === 'all' && !cell.hasAttribute('data-dup')) || cell.dataset.source === filter;
             cell.hidden = !match;
             if (match) shown++;
           });
