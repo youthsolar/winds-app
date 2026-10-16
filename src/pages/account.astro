@@ -15,15 +15,18 @@ const entries = [
   noindex={true}
 >
   <main class="ac-main" id="acMain" hidden>
-    <!-- 個人卡 -->
+    <!-- 個人卡（DS 會員中心標頭 v1，2026-10-17）：大標自己佔一整列，登出移到底列跟登入方式放一起；
+         手機頭像跟眉題同一列、大標在下一列。名字越長字級降一階，不截斷；「你好」黏住名字最後一個字 -->
     <div class="ac-card ac-person">
-      <div class="ac-person-row">
+      <div class="ac-top">
         <div class="ac-avatar" id="acAvatar"></div>
-        <div class="ac-person-id">
-          <div class="ac-eyebrow">會員中心</div>
-          <h1 class="ac-h1"><span id="acName"></span>，你好</h1>
+        <div class="ac-eyebrow">會員中心</div>
+        <h1 class="ac-h1" id="acTitle"></h1>
+      </div>
+      <div class="ac-meta">
+        <div class="ac-method">
           <div class="ac-email">
-            <svg width="14" height="14" viewBox="0 0 48 48" aria-hidden="true" style="flex:none;display:block">
+            <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true" style="flex:none;display:block">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
               <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
@@ -31,7 +34,7 @@ const entries = [
             </svg>
             <span id="acEmail"></span>
           </div>
-          <div class="ac-via-line" id="acViaLine" hidden><img src="/assets/line-btn-base.png" alt="" width="16" height="16">用 LINE 登入</div>
+          <div class="ac-via-line" id="acViaLine" hidden><img src="/assets/line-btn-base.png" alt="" width="18" height="18">用 LINE 登入</div>
         </div>
         <button id="acLogout" class="ac-logout" type="button"><i class="ph-thin ph-sign-out"></i>登出</button>
       </div>
@@ -61,22 +64,32 @@ const entries = [
     .ac-main{max-width:var(--container-narrow);width:100%;margin:0 auto;box-sizing:border-box;padding:52px 32px 72px;}
     /* DS Card */
     .ac-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);}
-    .ac-person{padding:32px 36px;box-shadow:var(--shadow-sm);}
-    .ac-person-row{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+    .ac-person{padding:30px 36px;border-radius:var(--radius-xl);box-shadow:var(--shadow-sm);}
+    /* 電腦：頭像在左跨兩列，右欄眉題＋大標；手機：頭像＋眉題一列，大標佔滿下一列 */
+    .ac-top{display:grid;grid-template-columns:72px minmax(0,1fr);column-gap:22px;align-items:start;}
+    .ac-top .ac-avatar{grid-row:1 / span 2;}
+    .ac-top .ac-eyebrow{padding-top:4px;margin-bottom:0;}
+    .ac-top .ac-h1{grid-column:2;margin-top:8px;}
     /* DS Avatar rose ring（淡底深字雙環）*/
     .ac-avatar{width:72px;height:72px;border-radius:999px;background:var(--rose-100);color:var(--rose-600);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;font-family:var(--font-serif);font-size:30px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300);}
     .ac-avatar img{width:100%;height:100%;object-fit:cover;}
-    .ac-person-id{flex:1;min-width:0;}
     .ac-eyebrow{font-family:var(--font-sans);font-size:12px;letter-spacing:0.02em;color:var(--accent-press);margin-bottom:4px;}
-    .ac-h1{margin:0;font-family:var(--font-serif);font-size:31px;font-weight:500;color:var(--ink-900);}
-    .ac-email{display:flex;align-items:center;gap:7px;margin-top:6px;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted);}
+    .ac-h1{margin:0;font-family:var(--font-serif);font-size:31px;font-weight:500;line-height:1.3;color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .ac-h1.sz2{font-size:28px;}
+    .ac-h1.sz3{font-size:25px;}
+    .ac-h1 .nb{white-space:nowrap;}
+    /* 底列：左登入方式、右登出，上面一條細線 */
+    .ac-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border-soft);}
+    .ac-method{flex:1 1 auto;min-width:0;}
+    .ac-email{display:flex;align-items:center;gap:8px;min-width:0;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted);}
+    .ac-email span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     /* DS line-login v1 ⑥：LINE 登入時名字下面標「LINE 小方塊＋用 LINE 登入」（圖示＝LINE 官方素材） */
-    .ac-via-line{display:flex;align-items:center;gap:6px;margin-top:6px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
+    .ac-via-line{display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);white-space:nowrap;}
     .ac-via-line[hidden]{display:none;}
-    .ac-via-line img{flex:none;display:block;width:16px;height:16px;border-radius:4px;}
+    .ac-via-line img{flex:none;display:block;width:18px;height:18px;border-radius:5px;}
     .ac-friend{margin-top:20px;}
     /* DS Btn secondary sm */
-    .ac-logout{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:var(--t-body-sm);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;white-space:nowrap;cursor:pointer;background:var(--surface-card);color:var(--ink-900);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
+    .ac-logout{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:var(--t-body-sm);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;white-space:nowrap;cursor:pointer;background:var(--surface-card);color:var(--ink-900);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
     .ac-logout:hover{background:var(--rice-100);}
     .ac-logout i{font-size:15px;line-height:1;}
 
@@ -93,10 +106,16 @@ const entries = [
 
     @media (max-width:760px){
       .ac-main{padding:32px 20px 48px;}
-      .ac-person{padding:24px 22px;}
-      .ac-person-row{gap:16px;}
-      .ac-avatar{width:60px;height:60px;font-size:25px;}
+      .ac-person{padding:22px 20px;}
+      .ac-top{grid-template-columns:56px minmax(0,1fr);column-gap:14px;align-items:center;}
+      .ac-top .ac-avatar{grid-row:auto;}
+      .ac-top .ac-eyebrow{padding-top:0;}
+      .ac-top .ac-h1{grid-column:1 / -1;margin-top:14px;}
+      .ac-avatar{width:56px;height:56px;font-size:24px;}
       .ac-h1{font-size:25px;}
+      .ac-h1.sz2{font-size:23px;}
+      .ac-h1.sz3{font-size:21px;}
+      .ac-meta{margin-top:16px;padding-top:14px;}
       .ac-entries{grid-template-columns:1fr;gap:14px;margin-top:22px;}
       .ac-friend{margin-top:16px;}
       .ac-entry{padding:20px 20px;}
@@ -124,10 +143,21 @@ const entries = [
       }
       if (!user) { location.href = '/login?return=' + encodeURIComponent('/account'); return; }
 
-      document.getElementById('acName').textContent = user.name;
-      document.getElementById('acEmail').textContent = user.email;
+      /* DS 會員中心標頭 v1：名字視覺長度（中文 1、半形 .55）決定字級三階；名字最後一個字＋「，你好」包進不換行的 span */
+      (function () {
+        var name = user.name, w = 0;
+        for (var ch of name) w += /[\u0000-\u024F]/.test(ch) ? 0.55 : 1;
+        var seg = (window.Intl && Intl.Segmenter) ? Array.from(new Intl.Segmenter('zh-Hant', { granularity: 'grapheme' }).segment(name), function (x) { return x.segment; }) : Array.from(name);
+        var t = document.getElementById('acTitle');
+        t.className = 'ac-h1' + (w > 15 ? ' sz3' : w > 9 ? ' sz2' : '');
+        t.textContent = seg.slice(0, -1).join('');
+        var nb = document.createElement('span'); nb.className = 'nb'; nb.textContent = (seg[seg.length - 1] || '') + '，你好';
+        t.appendChild(nb);
+      })();
+      var em = document.getElementById('acEmail');
+      em.textContent = user.email; em.title = user.email;
       /* LINE 登入沒有信箱，那行的 Google 圖示也不對 → 換成「用 LINE 登入」標示（DS line-login v1 ⑥） */
-      if (user.viaLine) { var em = document.querySelector('.ac-email'); if (em) em.style.display = 'none'; document.getElementById('acViaLine').hidden = false; }
+      if (user.viaLine) { var er = document.querySelector('.ac-email'); if (er) er.style.display = 'none'; document.getElementById('acViaLine').hidden = false; }
       var av = document.getElementById('acAvatar');
       if (user.picture) {
         var img = document.createElement('img');
