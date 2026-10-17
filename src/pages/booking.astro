@@ -289,7 +289,7 @@ import { PERSONAS } from '../data/booking-teachers';
       }
       function stepLocation(){
         var inner = '<div class="bw-list">'+W.locOpts.map(function(l,i){
-          var ic = l.type==='online' ? 'video-camera' : 'map-pin';
+          var ic = l.type==='online' ? 'phone' : 'map-pin';
           return '<button class="bw-opt" data-loc="'+i+'" type="button"><span class="bw-opt-main">'+
             '<span class="bw-opt-nm"><i class="ph ph-'+ic+'" style="margin-right:7px;color:var(--rose-400)"></i>'+locLabel(l)+'</span>'+
             (l.note?'<span class="bw-opt-meta">'+esc(l.note)+'</span>':'')+'</span></button>';
