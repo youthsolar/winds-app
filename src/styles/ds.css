@@ -117,6 +117,8 @@
 .zf-ph-eyebrow::before{content:"";width:6px;height:6px;border-radius:999px;background:var(--accent);flex:none}
 .zf-ph-title{margin:14px 0 0;font-family:var(--font-serif);font-size:42px;font-weight:var(--w-medium);line-height:1.2;color:var(--ink-900);word-break:normal;overflow-wrap:anywhere;text-wrap:auto}
 .zf-page-header.md .zf-ph-title{font-size:36px}
+/* DS PageHeader 10/17：沒有眉題時標題不留上距（14 是留給眉題的）；前面什麼都沒有時 lede 也不留 */
+.zf-page-header>.zf-ph-title:first-child,.zf-page-header>.zf-ph-lede:first-child{margin-top:0}
 .zf-ph-lede{margin:16px 0 0;font-family:var(--font-serif);font-weight:var(--w-light);font-size:18px;line-height:1.8;color:var(--text-secondary);word-break:normal;overflow-wrap:anywhere}
 .zf-page-header.center .zf-ph-lede{max-width:24em;margin-left:auto;margin-right:auto;text-wrap:pretty}
 .zf-ph-meta{margin:10px 0 0;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted)}
