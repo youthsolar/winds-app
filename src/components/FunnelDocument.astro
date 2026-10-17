@@ -2268,6 +2268,14 @@ function submitFree(){
   payload.cast_code=STATE.cast.code;payload.cast_at=STATE.cast.castAt;
   if(STATE.retLog&&STATE.retToken){payload.k_log_id=Number(STATE.retLog);payload.k=STATE.retToken;}
   if(STATE.ref)payload.ref_log_id=Number(STATE.ref)||undefined;
+  /* 2026-10-17 起卦來源：這次從哪來＋第一次從哪來（上面進站時記的），後端存 log_sources */
+  /* Astra castsrc-r1：兩份分開讀（一份壞了不拖累另一份）；本次來源 24 小時、第一次來源 90 天，過期或日期壞掉就不送 */
+  (function(){var _fresh=function(o,days){try{var t=Date.parse(String(o.at)),d=Date.now()-t;return o&&typeof o==="object"&&isFinite(t)&&d>=-6e5&&d<=days*864e5?o:null;}catch(e){return null;}};
+    var _now=window.__windsThisTouch||null,_ft=null;
+    if(!_now){try{_now=JSON.parse(sessionStorage.getItem("winds_this_touch")||"null");}catch(e){}}
+    try{_ft=JSON.parse(localStorage.getItem("winds_first_touch")||"null");}catch(e){}
+    _now=_fresh(_now,1);_ft=_fresh(_ft,90);
+    if(_now||_ft)payload.cast_source={path:location.pathname,now:_now||{},first:_ft||{}};})();
   var edmTok="";try{edmTok=localStorage.getItem("winds_edm_token")||"";}catch(e){}
   if(edmTok)payload.edm_token=edmTok;
   /* 2026-10-09 信箱驗證碼：這個瀏覽器驗過這個信箱就帶上憑證（30 天）；信箱已經有帳號又沒驗過，後端回 email_verify_required，下面接到就開驗證碼視窗 */
@@ -2720,6 +2728,23 @@ if(document.body.getAttribute("data-tarot")!=="1")boot();
     var q = new URLSearchParams(location.search);
     var c = q.get('utm_content');
     var s = q.get('utm_source');
+    /* 2026-10-17 起卦來源：占卜頁沒用 BaseLayout，直接點社群／廣告連結進來的人原本沒記「第一次從哪來」。
+       第一次來源與 BaseLayout 同規則（90 天、有了不蓋）；「這次從哪來」存這個分頁，起卦送單時一起帶（cast_source）。 */
+    try {
+      var ref = '';
+      try { ref = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : ''; } catch (e) {}
+      if (/(^|\.)winds\.tw$/.test(ref)) ref = '';
+      var ad = q.get('gclid') ? 'google-ads' : '';
+      if (s || c || ref || ad) {
+        var now = { source: (s || ad).slice(0, 40), content: (c || '').slice(0, 80), referrer: ref.slice(0, 80), at: new Date().toISOString() };
+        window.__windsThisTouch = now;   /* 存不進 sessionStorage（內建瀏覽器政策）時，這一頁送單還拿得到 */
+        try { sessionStorage.setItem('winds_this_touch', JSON.stringify(now)); } catch (e) {}
+        var ft = null;
+        try { ft = JSON.parse(localStorage.getItem('winds_first_touch') || 'null'); } catch (e) {}
+        if (!ft || Date.now() - Date.parse(ft.at) > 90 * 864e5)
+          localStorage.setItem('winds_first_touch', JSON.stringify({ source: now.source, content: now.content, referrer: now.referrer, at: new Date().toISOString() }));
+      }
+    } catch (e) {}
     if (!c && !s) return;
     try {
       navigator.sendBeacon('https://api.winds.tw/hit', JSON.stringify({
