@@ -2146,8 +2146,9 @@ function showGone(kind){
   wireSiteChrome();
 }
 /* DS ⑥：收碼完成但帳號沒連上——付款卡上方一條提示，連到會員中心（記成狀態，畫面重畫也還在） */
-function linkFailNote(){return STATE.linkFail?'<div class="am-note" id="amLinkFail">'+ic("check-circle")+'<span class="am-note-t">信箱確認好了，但帳號這次沒連上，到會員中心再連一次。</span><a class="zf-text-link" href="/account">去會員中心</a></div>':'';}
-function showLinkFail(){STATE.linkFail=true;if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}}
+function linkFailOn(){if(STATE.linkFail)return true;try{return sessionStorage.getItem("winds_link_fail")===String(STATE.logId||STATE.reportLogId||"x");}catch(e){return false;}}
+function linkFailNote(){return linkFailOn()?'<div class="am-note" id="amLinkFail">'+ic("check-circle")+'<span class="am-note-t">信箱確認好了，但帳號這次沒連上，到會員中心再連一次。</span><a class="zf-text-link" href="/account">去會員中心</a></div>':'';}
+function showLinkFail(){STATE.linkFail=true;try{sessionStorage.setItem("winds_link_fail",String(STATE.logId||STATE.reportLogId||""));}catch(e){}if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}}
 /* ===== 浮動付款 CTA（2026-07-20 拍板：點擊捲至付費牆／捲過第一屏浮出／付費牆可見隱藏）===== */
 var fabObs=null,fabPwVisible=false,fabEndVisible=false;
 function fabScroll(){
@@ -2286,7 +2287,7 @@ function submitFree(){
          if(!window.ZFEmailVerify||STATE.evAsked){STATE.evAsked=false;setTimeout(function(){showFfErr(d.message||"這個信箱要先確認是你本人。");},60);return null;}
          STATE.evAsked=true;
          ZFEmailVerify.ensure({email:payload.email,masked:d.email_masked}).then(function(t){
-           if(t&&ZFEmailVerify.lastLink)STATE.linkFail=true;   /* DS ⑥：信箱驗好了但帳號沒連上（結果頁付款卡上方提示） */
+           if(t&&ZFEmailVerify.lastLink){STATE.linkFail=true;STATE.linkFailPending=true;}   /* DS ⑥：信箱驗好了但帳號沒連上（結果頁付款卡上方提示；拿到這一卦的編號後記住） */
            if(t){STATE.evSubmitTok=t;submitFree();return;}
            STATE.evAsked=false;showFfErr("這個信箱之前在這裡用過，要收信確認是你本人才能接著看。不是你的信箱，就回上一步換一個。");
          });
@@ -2344,7 +2345,7 @@ function pollStatus(logId,alreadyWarm){
        if(d.warm_urls&&d.warm_urls.length&&!warmed){warmed=true;warmCards(d.warm_urls.slice());}
        if(d.ready&&d.summary){clearInterval(timer);finishResult(d,logId);}
        else if(attempts>=max){clearInterval(timer);pollGiveUp("老師還在寫，稍後再回來這一頁看。");}
-     }).catch(function(){if(attempts>=max){clearInterval(timer);pollGiveUp("連線中斷，稍後再回來這一頁看。");}});
+     }).catch(function(){if(myGen!==STATE.flowGen){clearInterval(timer);return;}if(attempts>=max){clearInterval(timer);pollGiveUp("連線中斷，稍後再回來這一頁看。");}});   /* 失敗也要核對是不是這一輪（Astra 完整驗收複核 #1） */
   },4000);
 }
 
@@ -2409,6 +2410,7 @@ function finishResult(d,logId){
   STATE.result.cross=d.cross||null;   /* 2026-10-17 帳號合併：另一個帳號的卦 → {kind, trusted, vt} */
   if(STATE.fullForLog!==String(STATE.logId)){STATE.fullForLog=String(STATE.logId);STATE.full=null;STATE.fullDenied=false;STATE.fullCardBase="";STATE.fullError=false;STATE.fullPolls=0;}
   stopCrossTimer();if(d.cross)startCrossTimer();
+  if(STATE.linkFailPending){STATE.linkFailPending=false;try{sessionStorage.setItem("winds_link_fail",String(STATE.logId));}catch(e){}}
   STATE.paid=!!d.purchased;
   /* 回看模式（會員中心 ?log_id=）沒走表單，userName 用後端回的真名補上，姓名學才有得算 */
   if(!STATE.userName&&d.client_last_name)STATE.userName={surname:d.client_last_name,given:d.client_first_name||""};
@@ -2709,7 +2711,7 @@ window.STATE=STATE;
 if(document.body.getAttribute("data-tarot")!=="1")boot();
 </script>
 {tarot && <script is:inline src="/assets/tarot/engine.js?v=1"></script>}
-{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=7"></script>}
+{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=8"></script>}
 <!-- 帶 utm 進站記點（2026-09-06 補）：占卜頁沒用 BaseLayout，之前從活動頁／社群帶 utm 進來的人 D1 一列都沒有，
      漏斗第四站是瞎的。與 BaseLayout 那段逐字相同：sendBeacon → api.winds.tw/hit → D1 link_hits。 -->
 <script is:inline>

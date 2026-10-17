@@ -400,7 +400,7 @@
         ? '你剛選的桃花問題，就是這份解方要接著談的重點。我會把這組牌的提醒說完整，再加上你的生辰與個性一起看，讓你帶著更完整的線索，看待接下來的感情機會。'
         : '你在意的，是這段關係接下來怎麼走。這份解方會把這組牌說完整，加上你的生辰與個性一起看。把牌面的提醒看完整，再想想自己的下一步。')
       : '挑房、入住、備符，你心裡在意的那件事，值得好好看一回。這份解方會把這組牌的提醒說完整，加上你的生辰與個性一起看，陪你整理眼前的居家疑問。';
-    return '<div class="paywall"><div class="behind"><p>解鎖後，你會拿到完整解讀，還有風易揚老師親手畫的靈符。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>' +
+    return (window.linkFailNote ? linkFailNote() : '') + '<div class="paywall"><div class="behind"><p>解鎖後，你會拿到完整解讀，還有風易揚老師親手畫的靈符。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>' +
       '<div class="veil"><span class="lk">' + ic('lock-simple', 'thin') + '</span><h3>風易揚老師的靈符解方</h3>' +
       '<p>' + lead + '</p>' +
       '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>' +

@@ -197,6 +197,9 @@
         if (d && d.success) { del(BIND); location.replace('/account?linked=1'); return true; }
         if (d && d.error === 'scope_changed') { ui.changed(preview); return false; }
         del(BIND); ui.show(d && d._status === 410 ? 'expired' : 'fail'); return false;
+      }, function () {
+        // 斷線：不知道後端有沒有寫入 → 同一筆交易重送會拿回第一次的結果（後端冪等），先讓他重新整理確認（Astra 建議）
+        ui.changed(preview); return false;
       });
     }
     step();
