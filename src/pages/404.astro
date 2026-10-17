@@ -14,8 +14,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 >
   <main class="nf-wrap">
     <header class="zf-page-header center">
-      <h1 class="zf-ph-title">這一頁不在這裡。</h1>
-      <p class="zf-ph-lede">也許連結舊了，也許路走岔了。<br />沒關係，回到起點，重新問一次就好。</p>
+      <h1 class="zf-ph-title">這一頁不在這裡<span class="nf-pe">。</span></h1>
+      <p class="zf-ph-lede">也許連結舊了，也許路走岔了<span class="nf-pe">。</span><br />沒關係，回到起點，重新問一次就好<span class="nf-pe">。</span></p>
     </header>
     <a class="zf-btn primary lg nf-btn" href="/">回首頁</a>
   </main>
@@ -24,6 +24,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* 版面照 login.astro 的置中卡殼；字級、按鈕走 ds.css 的 zf-page-header／zf-btn */
     .nf-wrap{min-height:calc(100vh - 76px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 32px;background:var(--surface-page);text-align:center;}
     .nf-btn{margin-top:32px;}
+    /* 行尾「。」的字身右半是空的，置中時整行看起來偏左（10/17 iPhone 量：標題左空 72、字墨右空約 88）→ 收掉右邊約三分之一個字寬（量過 .35em 最接近對稱）*/
+    .nf-pe{margin-right:-.35em;}
     @media (max-width:760px){
       .nf-wrap{min-height:calc(100vh - 64px);padding:40px 20px;}
       .nf-btn{margin-top:26px;}
