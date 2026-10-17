@@ -16,7 +16,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <a class="zf-line-btn md" id="lgLine" href="/auth/line-start?return=/account"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
           <div id="lgGoogle" class="lg-gmount" aria-label="使用 Google 登入"></div>
         </div>
-        <p class="lg-open"><a class="zf-text-link" href="https://liff.line.me/2009168674-G2KqF3Jv"><i class="ph ph-arrow-square-out"></i>已經在用 LINE？到 LINE 裡打開</a></p>
+        <p class="lg-open"><a class="zf-text-link" id="lgLiff" href="https://liff.line.me/2009168674-G2KqF3Jv"><i class="ph ph-arrow-square-out"></i>已經在用 LINE？到 LINE 裡打開</a></p>
         <p class="lg-hint" id="lgHint" hidden><span class="lg-spinner"></span>正在前往 Google…</p>
       </div>
       <p class="lg-terms">登入即表示你同意我們的<a href="/terms">使用條款</a>與<a href="/privacy">隱私權政策</a>。</p>
@@ -84,10 +84,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         }
       } catch (e) {}
       if (window.WindsLine && WindsLine.session()) { location.replace(ret()); return; }
-      /* LINE 登入只准回到白名單頁（/history、/bookings、/account），其他一律回會員中心 */
+      /* 2026-10-18（Astra 導流收單驗收 #1）：「到 LINE 裡打開」帶上這次從哪來（utm 兩欄），LINE 小幫手起卦時才對得到來源 */
+      /* Astra 第二輪：本頁的來源是頁尾才記的，這裡先讀會拿到舊的 → 改成按下去那一刻（以及整頁載完）才讀 */
+      (function () {
+        var a = document.getElementById('lgLiff'); if (!a) return;
+        var base = a.getAttribute('href');
+        function fix() {
+          var t = null, href = base;
+          try { t = JSON.parse(sessionStorage.getItem('winds_this_touch') || 'null'); } catch (e) {}
+          if (t && Date.now() - Date.parse(t.at) <= 864e5 && (t.source || t.content)) {
+            var q = new URLSearchParams();
+            if (t.source) q.set('utm_source', String(t.source).slice(0, 40));
+            if (t.content) q.set('utm_content', String(t.content).slice(0, 80));
+            href = base + '?' + q.toString();
+          }
+          a.setAttribute('href', href);
+        }
+        a.addEventListener('click', fix);
+        window.addEventListener('load', fix);
+      })();
+      /* LINE 登入只准回到白名單頁（/history、/bookings、/account、起卦頁帶 log_id），其他一律回會員中心 */
       (function () {
         var a = document.getElementById('lgLine');
-        try { if (a && window.WindsLine) a.setAttribute('href', '/auth/line-start?return=' + encodeURIComponent(WindsLine.safeReturn(new URL(ret()).pathname))); } catch (e) {}
+        try { if (a && window.WindsLine) a.setAttribute('href', '/auth/line-start?return=' + encodeURIComponent(WindsLine.safeReturn((function (u) { return u.pathname + u.search; })(new URL(ret()))))); } catch (e) {}
       })();
       function onCredential(resp) {
         if (!resp || !resp.credential) return;

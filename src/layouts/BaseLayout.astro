@@ -245,6 +245,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
       var q = new URLSearchParams(location.search);
       var c = q.get('utm_content');
       var s = q.get('utm_source');
+      var AUTH_HOP = /^\/auth\//.test(location.pathname) || /^(access\.line\.me|accounts\.google\.com)$/.test((function () { try { return document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) { return ''; } })());
       /* 2026-10-06 預約通路來源：第一次帶 utm 或從外站進來，記在這台瀏覽器 90 天，預約送單時一起帶（booking-source-survey）。
          已經有、而且沒過期就不蓋掉——要的是「第一次」從哪裡來。讀寫失敗（無痕、封鎖）就算了。 */
       /* 2026-10-17 起卦來源：一般頁面帶新來源進站，也要更新「這次從哪來」（同分頁之後走到起卦頁送單會帶上；FunnelDocument 同規則）。
@@ -253,6 +254,8 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
         var r0 = '';
         try { r0 = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : ''; } catch (e) {}
         if (/(^|\.)winds\.tw$/.test(r0)) r0 = '';
+        /* 2026-10-18（Astra 導流收單驗收 #2）：登入過場頁、從 LINE／Google 登入畫面回來，不算新的來源（不然 IG 進站登入 LINE 後會記成 access.line.me） */
+        if (AUTH_HOP) r0 = '';
         var a0 = q.get('gclid') ? 'google-ads' : '';
         if (s || c || r0 || a0) sessionStorage.setItem('winds_this_touch', JSON.stringify({ source: (s || a0).slice(0, 40), content: (c || '').slice(0, 80), referrer: r0.slice(0, 80), at: new Date().toISOString() }));
       } catch (e) {}
@@ -262,6 +265,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
           var ref = '';
           try { ref = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : ''; } catch (e) {}
           if (/(^|\.)winds\.tw$/.test(ref)) ref = '';
+          if (AUTH_HOP) ref = '';
           var ad = q.get('gclid') ? 'google-ads' : '';   // Google 廣告點擊通常不帶 utm，只帶 gclid
           if (s || c || ref || ad) localStorage.setItem('winds_first_touch', JSON.stringify({ source: (s || ad).slice(0, 40), content: (c || '').slice(0, 80), referrer: ref.slice(0, 80), at: new Date().toISOString() }));
         }

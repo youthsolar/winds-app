@@ -2275,7 +2275,7 @@ function submitFree(){
     if(!_now){try{_now=JSON.parse(sessionStorage.getItem("winds_this_touch")||"null");}catch(e){}}
     try{_ft=JSON.parse(localStorage.getItem("winds_first_touch")||"null");}catch(e){}
     _now=_fresh(_now,1);_ft=_fresh(_ft,90);
-    if(_now||_ft)payload.cast_source={path:location.pathname,now:_now||{},first:_ft||{}};})();
+    payload.cast_source={path:location.pathname,now:_now||{},first:_ft||{}};})();   /* 2026-10-18（Astra #1）：沒來源也送（＝直接進站），後端照樣記一列 */
   var edmTok="";try{edmTok=localStorage.getItem("winds_edm_token")||"";}catch(e){}
   if(edmTok)payload.edm_token=edmTok;
   /* 2026-10-09 信箱驗證碼：這個瀏覽器驗過這個信箱就帶上憑證（30 天）；信箱已經有帳號又沒驗過，後端回 email_verify_required，下面接到就開驗證碼視窗 */
@@ -2734,6 +2734,7 @@ if(document.body.getAttribute("data-tarot")!=="1")boot();
       var ref = '';
       try { ref = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : ''; } catch (e) {}
       if (/(^|\.)winds\.tw$/.test(ref)) ref = '';
+      if (/^(access\.line\.me|accounts\.google\.com)$/.test(ref)) ref = '';   /* 2026-10-18（Astra #2）：從 LINE／Google 登入畫面回來不算新來源 */
       var ad = q.get('gclid') ? 'google-ads' : '';
       if (s || c || ref || ad) {
         var now = { source: (s || ad).slice(0, 40), content: (c || '').slice(0, 80), referrer: ref.slice(0, 80), at: new Date().toISOString() };

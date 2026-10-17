@@ -51,9 +51,21 @@
     } catch (e) {}
   }
 
+  /* 2026-10-18（Astra 導流收單驗收 #3）：起卦頁（結果頁讀不到要登入時）也要回得去，只帶回 log_id、k 兩個參數，格式不對就丟掉 */
+  var FUNNELS = ['', '/divination', '/home-gua', '/home-tarot', '/love-gua', '/love-tarot', '/ziwei'];
   function safeReturn(r) {
-    var path = String(r || '').split('?')[0].replace(/\/+$/, '');
-    return RETURNS.indexOf(path) >= 0 ? path : '/account';
+    var raw = String(r || ''), i = raw.indexOf('?');
+    if (raw.charAt(0) !== '/') return '/account';
+    var path = (i < 0 ? raw : raw.slice(0, i)).replace(/\/+$/, '');
+    if (RETURNS.indexOf(path) >= 0) return path;
+    if (FUNNELS.indexOf(path) >= 0) {
+      var q = new URLSearchParams(i < 0 ? '' : raw.slice(i + 1)), o = new URLSearchParams();
+      if (/^[0-9]{1,12}$/.test(q.get('log_id') || '')) o.set('log_id', q.get('log_id'));
+      if (/^[a-f0-9]{24}$/.test(q.get('k') || '')) o.set('k', q.get('k'));
+      var qs = o.toString();
+      return path + '/' + (qs ? '?' + qs : '');
+    }
+    return '/account';
   }
 
   function decode(token) {
@@ -68,7 +80,9 @@
     var state = rand(24), nonce = rand(24), verifier = rand(48);
     return crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)).then(function (h) {
       pruneTxns();
-      setRequired(TXN + ':' + state, JSON.stringify({ state: state, nonce: nonce, verifier: verifier, ret: safeReturn(ret), t: Date.now() }));
+      /* 2026-10-18（Astra 導流收單驗收 #2）：LINE 有時回到新分頁，這個分頁的「這次從哪來」會不見——跟交易一起存，回來時補回去（原時間不變） */
+      var src = null; try { src = JSON.parse(sessionStorage.getItem('winds_this_touch') || 'null'); } catch (e) {}
+      setRequired(TXN + ':' + state, JSON.stringify({ state: state, nonce: nonce, verifier: verifier, ret: safeReturn(ret), src: src && typeof src === 'object' ? src : null, t: Date.now() }));
       var q = new URLSearchParams({
         response_type: 'code', client_id: CHANNEL_ID, redirect_uri: REDIRECT_URI,
         state: state, nonce: nonce, scope: 'openid profile', bot_prompt: 'normal',
@@ -115,7 +129,7 @@
     try {
       if (!localStorage.getItem('winds_google_token')) return;
       var kill = [];
-      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k.indexOf(TXN) !== 0) kill.push(k); }
+      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k !== 'winds_first_touch' && k.indexOf(TXN) !== 0) kill.push(k);   /* 第一次從哪來是這台瀏覽器的，不是前一位的（Astra 導流收單驗收 #2） */ }
       kill.forEach(function (k) { localStorage.removeItem(k); });
     } catch (e) {}
   }
@@ -132,6 +146,7 @@
     if (!txn || txn.state !== state || !(age >= 0 && age <= 10 * 60 * 1000)) return Promise.reject({ kind: 'state', ret: '/account' });
     var ret = safeReturn(txn.ret);
     del(key);
+    try { if (txn.src && !sessionStorage.getItem('winds_this_touch')) sessionStorage.setItem('winds_this_touch', JSON.stringify(txn.src)); } catch (e) {}
     if (params.get('error')) return Promise.reject({ kind: params.get('error') === 'access_denied' ? 'cancel' : 'exchange', ret: ret });
     if (!params.get('code')) return Promise.reject({ kind: 'state', ret: ret });
     return fetch(API + '/auth/line/exchange', {
