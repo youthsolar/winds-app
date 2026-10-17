@@ -25,6 +25,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* 版面照 login.astro 的置中卡殼；字級、按鈕走 ds.css 的 zf-page-header／zf-btn */
     .nf-wrap{min-height:calc(100vh - 76px);min-height:calc(100svh - 76px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 32px;background:var(--surface-page);text-align:center;}
     .nf-btn{margin-top:32px;}
+    /* 標題上方 14 是留給小眉題的，這頁沒有眉題，留著會讓整塊往下 7 */
+    .nf-wrap .zf-ph-title{margin-top:0;}
     /* 行尾「。」的字身右半是空的，置中時整行看起來偏左（10/17 iPhone 量：標題左空 72、字墨右空約 88）→ 收掉右邊約三分之一個字寬（量過 .35em 最接近對稱）*/
     .nf-pe{margin-right:-.35em;}
     @media (max-width:760px){
