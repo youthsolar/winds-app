@@ -102,6 +102,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         }
         a.addEventListener('click', fix);
         window.addEventListener('load', fix);
+        /* 2026-10-18（發片前走查 Astra 必改 #2）：要回到某一卦（return 帶 log_id）時，到 LINE 裡打開會變成重新選題、找不回原本那一卦 → 這時不顯示這個入口，用上面的「用 LINE 登入」回原卦 */
+        try { if (new URL(ret()).searchParams.get('log_id')) a.parentNode.style.display = 'none'; } catch (e) {}
       })();
       /* LINE 登入只准回到白名單頁（/history、/bookings、/account、起卦頁帶 log_id），其他一律回會員中心 */
       (function () {
@@ -110,8 +112,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       })();
       function onCredential(resp) {
         if (!resp || !resp.credential) return;
-        try { localStorage.setItem('winds_google_token', resp.credential); } catch (e) {}
-        var hint = document.getElementById('lgHint'); if (hint) hint.hidden = false;
+        var ok = false;
+        try { localStorage.setItem('winds_google_token', resp.credential); ok = localStorage.getItem('winds_google_token') === resp.credential; } catch (e) {}
+        var hint = document.getElementById('lgHint');
+        /* 2026-10-18（發片前走查 Astra 必改 #3）：這個瀏覽器存不了登入資料（無痕、擋網站資料），跳回去還是沒登入、又被帶回來，一直繞圈 → 存不進就停在這裡講清楚 */
+        if (!ok) { if (hint) { hint.textContent = '這個瀏覽器存不了登入資料。請改用 Safari 或 Chrome 打開，或用領取信裡的連結回到你的卦。'; hint.hidden = false; } return; }
+        if (hint) hint.hidden = false;
         location.replace(ret());
       }
       /* 2026-09-27：原本 init() 每 150ms 無限重試，3.5 秒後就算已經換成外開引導也不會停；

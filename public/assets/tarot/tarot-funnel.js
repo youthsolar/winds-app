@@ -41,7 +41,9 @@
   var TS = { state: null, timers: [], mount: null, adv: null };
   function later(fn, ms) { TS.timers.push(setTimeout(fn, reduced ? 0 : ms)); }
   function clearTimers() { TS.timers.forEach(clearTimeout); TS.timers = []; if (TS.adv) { clearTimeout(TS.adv); TS.adv = null; } }
-  function resetDraw() { clearTimers(); TS.state = null; }
+  /* 2026-10-18（發片前走查）：洗牌後引導框不再寫「然後，按下洗牌。」——開始洗牌、作廢重來都重畫一次 */
+  function refreshGuide() { var g = document.getElementById('lvGuide'); if (g && window.lvGuideHtml) g.innerHTML = lvGuideHtml(); }
+  function resetDraw() { clearTimers(); TS.state = null; refreshGuide(); }
 
   /* 牌由後端抽（同一套規則當場算好重點牌與配符，回抽牌簽名，送出時帶回驗證） */
   function fetchDraw() {
@@ -175,6 +177,7 @@
     if (!CARDS || !ready() || (TS.state && TS.state.st !== 'idle')) return;
     clearTimers();
     var s = TS.state = { label: askLabel(), question: askText(), at: Date.now(), draw: null, open: [false, false, false, false, false], st: 'shuffle', dealt: 0 };
+    refreshGuide();
     var t0 = Date.now();
     /* 洗牌動畫照跑，同時跟後端拿牌；牌回來且洗滿 2.1 秒才發牌 */
     fetchDraw().then(function (d) {
@@ -302,8 +305,8 @@
   window.lpToMirror = function () { lpScrollTo(document.querySelector('.lpd #hgCast .ts')); };
   window.lvGuideHtml = function () {
     if (!STATE.data.loveWho) return '<p class="hg-guide">想著最在意的感情事，按下洗牌。</p><p class="hg-guide">抽牌後，老師依牌給你一張親手畫的靈符解方。</p>';
-    if (lvSingle()) return '<p class="hg-guide">把心思放回自己。</p><p class="hg-guide">下一個是誰，先不要執著。</p><p class="hg-guide">先看看，現在的你準備好迎接一段感情了嗎？</p><p class="hg-guide">然後，按下洗牌。</p>';
-    return '<p class="hg-guide">就想著他。</p><p class="hg-guide">想起最近那次對話。</p><p class="hg-guide">先看這組牌：你們現在算什麼？</p><p class="hg-guide">然後，按下洗牌。</p>';
+    if (lvSingle()) return '<p class="hg-guide">把心思放回自己。</p><p class="hg-guide">下一個是誰，先不要執著。</p><p class="hg-guide">先看看，現在的你準備好迎接一段感情了嗎？</p>' + (TS.state ? '' : '<p class="hg-guide">然後，按下洗牌。</p>');
+    return '<p class="hg-guide">就想著他。</p><p class="hg-guide">想起最近那次對話。</p><p class="hg-guide">先看這組牌：你們現在算什麼？</p>' + (TS.state ? '' : '<p class="hg-guide">然後，按下洗牌。</p>');
   };
   window.viewLoveLanding = function () {
     return siteHeader() +
@@ -407,7 +410,7 @@
       items.map(function (x) { return '<div class="get">' + ic('check', 'bold') + '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div></div>'; }).join('') + '</div>' +
       (f1.expired
         ? '<button class="zf-btn primary lg" onclick="askAnother()">' + ic('arrow-counter-clockwise') + '這組牌已過期，重新抽一次牌</button><p class="veil-alt">靈符七天內有效，過了老師要依新的牌重新配符。</p>'
-        : '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>' +
+        : (STATE.payConfirming && window.payBtnConfirming ? payBtnConfirming() : '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>') +
           '<p class="veil-alt">這張靈符 ' + esc(f1.valid_until_label) + ' 前有效，過了要重新抽牌。</p>') +
       '<p class="veil-alt">想直接找老師談這件事？<a href="' + BOOK_URL + '" data-wc-open>預約老師</a></p></div></div>';
   }
@@ -455,7 +458,7 @@
         '<div style="margin-top:22px">' + fuHero(T, true) + '</div></div>';
       h += block('完整解讀', '', paywall(true));
       h += block('你的命理檔案', '', profileCard(true));
-      if (!(R.profile && R.profile.trim())) h += block('你的分靈體', '', spiritCard(true));
+      h += block('你的分靈體', '', spiritCard(true));   /* 2026-10-18（發片前走查）：原本只在還沒有分靈體時畫，生成完整區消失；改成一律畫，生成中／已生成由 spiritCard 處理（同網站付費頁） */
       if (T.talismans[1]) h += block('第二張靈符', '付款後第 14 天自動開，開了一樣存成手機桌布。', fuSecond(T, true), true);
       h += resEnd();
       return '<main class="shell" style="max-width:820px">' + h + '</main>';

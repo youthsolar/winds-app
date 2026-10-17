@@ -1933,7 +1933,7 @@ function paywall(paid){
     getsList()+
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
-      :'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>'+
+      :(STATE.payConfirming?payBtnConfirming():'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>')+
        (R.hexCard?'<p class="veil-alt">這張卦符 '+esc(R.hexCard.valid_until_label)+' 前有效，過了要重新起卦。</p>':''))+
     '<p class="veil-alt">想直接找老師談這件事？<a href="/booking" data-wc-open>預約老師</a></p></div></div>';
 }
@@ -2135,13 +2135,14 @@ function render(){
 /* 2026-10-17 帳號合併（DS account-merge v1 ⑧）：打不開的卦——LINE 卦的舊連結、或卦在另一個帳號 */
 function showGone(kind){
   STATE.step="gone";STATE.goneKind=kind;var root=document.getElementById("root");
-  var line=kind==="line";
+  var line=kind==="line",exp=kind==="expired";   /* expired（2026-10-18 發片前走查）：連結失效，沿用同一張卡 */
   root.innerHTML=siteHeader()+'<main class="am-gone"><div class="am-gone-card">'+
-    '<div class="am-gone-top"><span class="zf-icon-disc am-gone-disc">'+ic(line?"chat-circle-dots":"user-switch","thin")+'</span></div>'+
-    '<h1 class="am-gone-h1">'+(line?'這一卦在 LINE 裡':'這一卦在你另一個帳號')+'</h1>'+
-    '<p class="am-gone-sub">'+(line?'請到官方 LINE 打開。':'請用那個帳號登入看。')+'</p>'+
+    '<div class="am-gone-top"><span class="zf-icon-disc am-gone-disc">'+ic(exp?"link-break":line?"chat-circle-dots":"user-switch","thin")+'</span></div>'+
+    '<h1 class="am-gone-h1">'+(exp?'這個連結打不開':line?'這一卦在 LINE 裡':'這一卦在你另一個帳號')+'</h1>'+
+    '<p class="am-gone-sub">'+(exp?'網址可能不完整。請用信裡的連結再開一次，或重新起一卦。':line?'請到官方 LINE 打開。':'請用那個帳號登入看。')+'</p>'+
     '<div class="am-gone-act">'+(line
       ?'<a class="zf-line-btn" href="'+LINE_OA_URL+'" target="_blank" rel="noopener"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">打開官方 LINE</span></a>'
+      :exp?'<a class="zf-btn secondary lg full" href="'+location.pathname+'">重新起一卦</a>'
       :'<a class="zf-btn secondary lg full" href="/">回首頁</a>')+'</div></div></main>'+siteFooter();
   wireSiteChrome();
 }
@@ -2183,7 +2184,8 @@ function clearReportUrl(){STATE.flowGen=(STATE.flowGen||0)+1;stopCrossTimer();ST
 function back(){var map=(HOME||LOVE)?{cast:"landing",hex:"landing",ask:"hex",ret:"hex",result:"landing"}:{cast:"topic",hex:"topic",ask:"hex",ret:"hex",result:"topic"};if(STATE.step==="result")clearReportUrl();if(map[STATE.step])go(map[STATE.step])}
 function exitFlow(){location.href="/";}
 function openOA(){window.open(LINE_OA_URL,"_blank");}
-function askAnother(){STATE.qtype="";
+function askAnother(){STATE.qtype="";stopPayConfirm();   /* 重新起卦：付款確認的輪詢立刻停（Astra 複核） */
+
   /* 2026-10-01（廣告前全站掃描）：原本不重設 reportMode、也不清網址上的 ?log_id=&k=：從回看報告再問一卦，新結果頁沒有「上一步」，
      重新整理（或付款後按「完成後點我載入」）又回到舊報告。這裡歸零回看狀態、只拿掉網址的 log_id／k（utm 等照留），
      並清掉舊那一卦付款留下的 pending，否則還沒送出新卦前重新整理會被舊報告接管。 */
@@ -2342,6 +2344,11 @@ function pollStatus(logId,alreadyWarm){
           原本照樣轉 92 秒「老師正在看你的卦」才被帶去登入頁。這種情況直接收掉走 pollGiveUp（它會帶去登入頁）。
           有 k 或已登入的照舊輪詢（登入後同信箱合併要一點時間），5xx／斷線也照舊。 */
        if((r.status===403||r.status===404)&&STATE.reportMode&&!STATE.k&&!loggedIn()){clearInterval(timer);pollGiveUp("老師還在寫，稍後再回來這一頁看。");return null;}
+       /* 2026-10-18（發片前走查）：帶 k 回看，卻是找不到這一卦（404）或 k 對不上（403）——等再久也不會變，原本一直轉「老師正在看你的卦」；
+          改成直接說連結失效。另一個帳號、LINE 舊連結這兩種 403 照舊交給下面處理 */
+       if((r.status===403||r.status===404)&&STATE.reportMode&&STATE.k)return r.json().catch(function(){return{};}).then(function(j){
+         if(j&&(j.error==="k_revoked_line"||j.error==="other_account"))return j;
+         clearInterval(timer);if(!done&&myGen===STATE.flowGen){done=true;showGone("expired");}return null;});
        return r.json();
      }).then(function(d){
        if(!d)return;
@@ -2408,6 +2415,28 @@ function restoreAccount(btn){
   });
 }
 function markUrl(id,k){id=String(id||"");if(!id)return;try{var u=new URLSearchParams(location.search);if(u.get("log_id")===id)return;history.replaceState(null,"",location.pathname+"?log_id="+encodeURIComponent(id)+(k?"#k="+encodeURIComponent(k):""));}catch(e){}}
+/* 2026-10-18（發片前走查 Astra 必改 #1）：刷卡成功回到這頁時，綠界的背景通知可能還沒到，第一次查會是「還沒付」。
+   付款回跳網址帶 paid=1（只是提示，不當付款證明——付了沒一律問後端）：查到還沒付就每 3 秒再問，最多 2 分鐘，期間付款鈕顯示確認中、不能再按。 */
+var PAY_RETURN=(function(){try{var u=new URL(location.href);if(u.searchParams.get("paid")!=="1")return false;u.searchParams.delete("paid");history.replaceState(null,"",u.pathname+u.search+u.hash);return true;}catch(e){return false;}})();
+function payBtnConfirming(){return '<button class="zf-btn primary lg" id="unlockBtn" disabled>'+ic("sparkle")+'正在確認付款…</button>';}
+function stopPayConfirm(){if(STATE.payTimer){clearInterval(STATE.payTimer);STATE.payTimer=null;}STATE.payConfirming=false;}
+function startPayConfirm(){
+  var id=String(STATE.logId||STATE.reportLogId),myGen=STATE.flowGen,deadline=Date.now()+120000;if(!id)return;
+  stopPayConfirm();STATE.payConfirming=true;
+  /* Astra 複核：回呼一律核對還是不是同一輪、同一卦；兩分鐘截止獨立計時（請求卡住也會停）；逾時都給同一句提示 */
+  function alive(){return STATE.payConfirming&&STATE.payTimer===t&&myGen===STATE.flowGen&&id===String(STATE.logId||STATE.reportLogId);}
+  function timeout(){stopPayConfirm();go("result");setTimeout(function(){showFfErr("付款還在確認中。已經扣款的話先不要再付一次，過幾分鐘重新整理這一頁。");},60);}
+  var t=STATE.payTimer=setInterval(function(){
+    if(!alive()){if(STATE.payTimer===t)stopPayConfirm();else clearInterval(t);return;}
+    if(Date.now()>deadline){timeout();return;}
+    var ident=STATE.k?("&k="+encodeURIComponent(STATE.k)):identQ();
+    fetch(API.status+"?log_id="+encodeURIComponent(id)+ident,{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
+      if(!alive())return;
+      /* 查到已付款：用這次的完整回應重畫（付款後才有的交付連結、第二張符開放時間都在裡面），不能只改「已付款」 */
+      if(d&&d.purchased&&d.ready&&d.summary){stopPayConfirm();finishResult(d,id);}
+    }).catch(function(){});
+  },3000);
+}
 function finishResult(d,logId){
   STATE.submitting=false;
   STATE.logId=d.log_id||d.reading_id||logId||"";
@@ -2421,11 +2450,14 @@ function finishResult(d,logId){
   stopCrossTimer();if(d.cross)startCrossTimer();
   if(STATE.linkFailPending){STATE.linkFailPending=false;try{sessionStorage.setItem("winds_link_fail",String(STATE.logId));}catch(e){}}
   STATE.paid=!!d.purchased;
+  var _payWait=PAY_RETURN&&!STATE.paid;PAY_RETURN=false;
+  if(_payWait)STATE.payConfirming=true;
   /* 回看模式（會員中心 ?log_id=）沒走表單，userName 用後端回的真名補上，姓名學才有得算 */
   if(!STATE.userName&&d.client_last_name)STATE.userName={surname:d.client_last_name,given:d.client_first_name||""};
   if(!STATE.userName&&d.client_first_name)STATE.userName={surname:"",given:d.client_first_name||""};
   go("result");
   if(STATE.paid)loadFullContent();
+  else if(_payWait)startPayConfirm();
   if(STATE.logId)loadRecs(STATE.logId);
   loadNaming();
 }
