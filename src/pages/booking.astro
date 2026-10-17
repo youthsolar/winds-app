@@ -366,6 +366,8 @@ import { PERSONAS } from '../data/booking-teachers';
           '<p class="bw-err" id="wzErr" hidden></p></div>';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-next type="button">下一步</button>';
         shell(sn(3),'留下聯絡方式',inner,foot);
+        /* 2026-10-18 全站自動帶入：第一次打開這一步，帶入在別張表單填過的姓名、手機、Gmail（只補空格，客人可改；見 contact-memory.js） */
+        if(!W.fields&&window.ZFContact)ZFContact.autofill({name:{last:document.getElementById('wzLast'),first:document.getElementById('wzFirst')},phone:document.getElementById('wzPhone'),email:document.getElementById('wzEmail')});
         W.topicPick=f.topic||'';
         mount.querySelectorAll('[data-topic]').forEach(function(b){b.addEventListener('click',function(){
           W.topicPick=(W.topicPick===b.dataset.topic)?'':b.dataset.topic;
@@ -392,6 +394,7 @@ import { PERSONAS } from '../data/booking-teachers';
           if(!W.heardPick){return showErr(err,'請選一下你是從哪裡知道'+W.prov.name+'的（記不得就選「忘了」）。');}
           var hn=(W.heardPick==='friend'||W.heardPick==='other')?val('wzHeardNote'):'';
           W.fields={name:name,last:last,first:first,phone:phone.replace(/[\s-]/g,''),email:email,topic:W.topicPick,note:note,heard:W.heardPick,heardNote:hn};
+          if(window.ZFContact)ZFContact.save({last:last,first:first,phone:W.fields.phone,email:email});   /* 2026-10-18 記下來，下一張表單帶入 */
           stepConfirm();
         });
       }

@@ -70,6 +70,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <script is:inline src="/assets/line-login.js"></script>   <!-- 2026-10-17 帳號合併：結果頁也認網站 LINE 登入（boot 要用，不能 defer） -->
   <script src="/assets/nav-auth.js?v=7" defer></script>
   <script is:inline src="/assets/email-verify.js?v=3" defer></script>
+  <script is:inline src="/assets/contact-memory.js?v=1"></script>   <!-- 2026-10-18 全站表單自動帶入（表單一開就要用，不能 defer） -->
 
   <!-- 2026-10-13 塔羅頁恢復 GA4／Meta Pixel（10/12 試做期間關掉過） -->
   <!-- 量測層（2026-08-15）：此頁不走 BaseLayout，底座另裝一份（GA4 ＋ Meta Pixel）-->
@@ -2178,7 +2179,7 @@ function updateFabCta(){
   window.addEventListener("scroll",fabScroll,{passive:true});
   fabScroll();
 }
-function go(s){STATE.step=s;render()}
+function go(s){STATE.step=s;if(s==="ask")STATE.askSeen=true;render()}   /* askSeen：進過逐題回答就不再自動帶入（2026-10-18，退回上一頁後晚到的資料也不准改客人答過的） */
 /* 2026-10-01（廣告前全站掃描・總複驗）：從結果頁按上一步原本不清網址的 log_id，重新整理又回到那一卦；跟 askAnother 共用同一段清理 */
 function clearReportUrl(){STATE.flowGen=(STATE.flowGen||0)+1;stopCrossTimer();STATE.fullDenied=false;STATE.fullCardBase="";STATE.linkFail=false;STATE.reportMode=false;STATE.reportLogId="";try{var u=new URL(location.href);u.searchParams.delete("log_id");u.searchParams.delete("k");history.replaceState(null,"",u.pathname+(u.search||""));}catch(e){}try{sessionStorage.removeItem("winds_pending_log_id");sessionStorage.removeItem("winds_pending_path");}catch(e){}}
 function back(){var map=(HOME||LOVE)?{cast:"landing",hex:"landing",ask:"hex",ret:"hex",result:"landing"}:{cast:"topic",hex:"topic",ask:"hex",ret:"hex",result:"topic"};if(STATE.step==="result")clearReportUrl();if(map[STATE.step])go(map[STATE.step])}
@@ -2250,6 +2251,8 @@ function submitFree(){
     payload={date_of_birth:r.date_of_birth||"",last_name:r.last_name||"",first_name:r.first_name||"",gender:r.gender||"",email:r.email||""};
     if(needPhone)payload.phone=phoneE164(d.phone);
     STATE.userName={surname:r.last_name||"",given:r.first_name||""};
+    if(window.ZFContact){var _rd=String(r.date_of_birth||"").split(" "),_rh=parseInt((_rd[1]||"").split(":")[0],10);   /* 2026-10-18 回訪一行按「就用這個」也記下來（畫面上確認過的才記；手機只有這次補問才記，沒顯示的舊手機不刷新時間） */
+      ZFContact.save({last:r.last_name,first:r.first_name,phone:needPhone?d.phone:"",email:r.email,birth:_rd[0],shi:isNaN(_rh)?-1:Math.floor(((_rh+1)%24)/2)});}
   }else{
     if(HOME&&!d.home){showFfErr("先說一聲這張符要守護哪裡？");go("hex");return;}
     if(LOVE&&!lvReady()){showFfErr("先回到上一步，把兩個選項選完。");go("landing");return;}
@@ -2258,6 +2261,7 @@ function submitFree(){
     /* 2026-09-29 Jeffery 拍板：有分靈體的人改了生日或時辰要先確認。2026-10-06（Astra V73→V99）改由後端判斷：會清掉分靈體時回 409 spirit_reset_confirm，
        下面接到就問，按確定帶 confirm_spirit_reset 再送一次；前端自己比對猜不準最後寫進哪個帳號（換信箱可能落到另一個有分靈體的帳號）。 */
     STATE.userName={surname:payload.last_name,given:payload.first_name};
+    if(window.ZFContact)ZFContact.save({last:payload.last_name,first:payload.first_name,phone:d.phone,email:d.email,birth:payload.date_of_birth.split(" ")[0],shi:d.shi});   /* 2026-10-18 記下來，預約、商城帶入 */
   }
   payload.spirit_confirm=1;payload.phone_ask=1; /* 2026-10-06（Astra V101）：告訴後端這版頁面會處理「改生日要確認」的回覆 */
   if(STATE.spiritResetOk){payload.confirm_spirit_reset=true;STATE.spiritResetOk=false;}
@@ -2713,8 +2717,24 @@ function boot(){
       if(d&&d.error==="k_revoked_line"){dropRevokedK(rl);STATE.retLog="";if(!loggedIn())showGone("line");}
     }).catch(function(){});}
   else if(loggedIn())doPrefill();
+  ffContactFill();
   if(!HOME&&!LOVE&&homeCast)takeHomeCast(homeCast);
   render();
+}
+/* 2026-10-18 全站自動帶入（contact-memory.js）：在別張表單（預約、商城…）填過的姓名、手機、Gmail、生日時辰，帶進這裡還空著的題目；
+   只在客人開始逐題回答之前帶（之後晚到的不動，免得蓋掉剛選的）。帳號那份較新、晚一點到，可以換掉先前自動帶的，客人改過的不換。
+   回訪一行照舊優先（它有自己的資料）。姓名、生日時辰整組帶 */
+function ffContactFill(){
+  if(!window.ZFContact)return;
+  var A={};   /* 上次自動帶進去的值 */
+  ZFContact.get(function(c){if(STATE.step==="ask"||STATE.askSeen)return;var d=STATE.data;
+    var free=function(k,cur){return !cur||(k in A&&A[k]===cur);};
+    if(c.last&&c.first&&free("n",d.surname+"|"+d.given==="|"?"":d.surname+"|"+d.given)){d.surname=c.last;d.given=c.first;A.n=c.last+"|"+c.first;}
+    if(c.phone&&free("p",d.phone)){d.phone=c.phone;A.p=c.phone;}
+    if(c.email&&free("e",d.email)){d.email=c.email;A.e=c.email;}
+    var bcur=d.month?[d.year,d.month,d.day,d.shi].join("|"):(d.year!==1990?"y"+d.year:"");   /* 只轉了年份、還沒選月份，也算客人動過 */
+    if(c.birth&&free("b",bcur)){var y=c.birth.split("-");d.year=+y[0];d.month=+y[1];d.day=+y[2];d.shi=c.shi>=0?c.shi:6;A.b=[d.year,d.month,d.day,d.shi].join("|");}
+  });
 }
 /* 首頁交接的卦（見 boot）：選的情境帶 dir／sub／題目，問題字串照 pickQ 的寫法組，結果頁的推薦與文章區就跟從選題進來一樣 */
 /* 交接資料可能來自網址（外部可改），每個欄位先驗型別；任何不合格一律當沒有（Astra 複核：castAt 塞物件會讓 new Date 拋錯、整頁起不來） */

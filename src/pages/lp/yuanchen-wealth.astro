@@ -351,7 +351,11 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       });
 
       var qs = new URLSearchParams(location.search);
+      var hadDraft = false; try { hadDraft = !!sessionStorage.getItem(KEY); } catch (e) {}
       restore();
+      /* 2026-10-18 全站自動帶入：在別張表單（占卜、預約…）填過的姓名、手機、Email、生日時辰，帶進還空著的格子（客人可改；見 contact-memory.js）。
+         剛從超商地圖回來、已經還原草稿的，不帶（草稿是客人這次自己填的） */
+      if (window.ZFContact && !hadDraft) { var fe = form.elements; ZFContact.autofill({ name: { full: fe.name }, phone: fe.phone, email: fe.email, birth: { y: fe.byear, m: fe.bmonth, d: fe.bday, h: fe.bhour } }); }
       if (qs.get('cvs_store_id')) {
         showStore({ type: qs.get('cvs_type') || '', id: qs.get('cvs_store_id'), name: qs.get('cvs_store_name') || '', addr: qs.get('cvs_address') || '' }); save();
         history.replaceState(null, '', pageUrl + '#order');
@@ -399,6 +403,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         if (!validYmd(f.bdate)) return fail('這一天不存在，請再確認生日。');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return fail('請輸入正確 Email。');
         if (!store) return fail('請先選取貨門市。');
+        if (window.ZFContact) ZFContact.save({ name: f.name, phone: f.phone, email: f.email, birth: f.bdate, shi: form.elements.bhour.selectedIndex - 1 });   // 2026-10-18 記下來，下一張表單帶入（時辰「不確定」＝-1）
         var btn = document.getElementById('payBtn');
         var shown = shownAmount();
         lockForm(true); btn.textContent = '建立訂單中…';
