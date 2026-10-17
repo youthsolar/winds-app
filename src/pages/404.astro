@@ -21,13 +21,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </main>
 
   <style>
+    /* 10/17 Jeffery 手機看字偏低：手機的 100vh 算的是網址列收起來的高度，比實際看得到的高，置中點跟著往下 → 改用 100svh（網址列展開時看得到的高度），舊瀏覽器退回 100vh */
     /* 版面照 login.astro 的置中卡殼；字級、按鈕走 ds.css 的 zf-page-header／zf-btn */
-    .nf-wrap{min-height:calc(100vh - 76px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 32px;background:var(--surface-page);text-align:center;}
+    .nf-wrap{min-height:calc(100vh - 76px);min-height:calc(100svh - 76px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 32px;background:var(--surface-page);text-align:center;}
     .nf-btn{margin-top:32px;}
     /* 行尾「。」的字身右半是空的，置中時整行看起來偏左（10/17 iPhone 量：標題左空 72、字墨右空約 88）→ 收掉右邊約三分之一個字寬（量過 .35em 最接近對稱）*/
     .nf-pe{margin-right:-.35em;}
     @media (max-width:760px){
-      .nf-wrap{min-height:calc(100vh - 64px);padding:40px 20px;}
+      .nf-wrap{min-height:calc(100vh - 64px);min-height:calc(100svh - 64px);padding:40px 20px;}
       .nf-btn{margin-top:26px;}
     }
   </style>
