@@ -1905,7 +1905,7 @@ function paywall(paid){
   var R=STATE.result||{};
   if(paid){
     /* FI-SYNC：付費卡＝完整解讀本體（與 delivery 頁「完整解讀」區塊對齊；孔明／靈符各有專屬區塊） */
-    return '<div class="paid-card"><div class="topbar"></div><div class="body">'+
+    return linkFailNote()+'<div class="paid-card"><div class="topbar"></div><div class="body">'+   /* 付款後也留著「帳號沒連上、去會員中心」 */
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">'+ic("check-circle","fill")+'<span class="pc-title">完整解讀在這裡</span></div>'+
       (STATE.fullDenied
         ?'<div class="am-denied">'+ic("user-switch","thin")+'<span>完整解讀請用起這一卦的帳號看</span></div>'
@@ -2323,8 +2323,9 @@ function pollStatus(logId,alreadyWarm){
   STATE.reportLogId=logId;
   if(STATE.pollTimer)clearInterval(STATE.pollTimer);
   var myGen=STATE.flowGen=(STATE.flowGen||0)+1;   /* 2026-10-17（Astra 完整驗收 #2）：換卦後，舊那一輪晚到的回應一律丟掉 */
+  var done=false;   /* 這一輪已經出結果或放棄：同一輪晚到的成功／失敗都不再動畫面（Astra 完整驗收複核三 #1） */
   var timer=STATE.pollTimer=setInterval(function(){
-    if(myGen!==STATE.flowGen){clearInterval(timer);return;}
+    if(done||myGen!==STATE.flowGen){clearInterval(timer);return;}
     attempts++;
     var ident=STATE.k?("&k="+encodeURIComponent(STATE.k)):identQ();
     fetch(API.status+"?log_id="+encodeURIComponent(logId)+ident,{headers:authHeaders()})
@@ -2336,16 +2337,16 @@ function pollStatus(logId,alreadyWarm){
        return r.json();
      }).then(function(d){
        if(!d)return;
-       if(myGen!==STATE.flowGen){clearInterval(timer);return;}
+       if(done||myGen!==STATE.flowGen){clearInterval(timer);return;}
        /* 2026-10-17 帳號合併：LINE 卦的舊連結已停用——有網站登入就拿掉 k 改用登入再讀；沒有就請他到 LINE 打開 */
        if(d.error==="k_revoked_line"){dropRevokedK(logId);if(loggedIn())return;clearInterval(timer);showGone("line");return;}
        if(d.error==="other_account"){clearInterval(timer);showGone("other");return;}
        /* 網址帶的是一般 k（付款回跳、舊連結），這台裝置另存了這一卦收碼換到的本人 k → 帳號資料被遮就換那把再查一次（Astra 複核二 #1） */
        if(d.account_hidden&&STATE.kAlt){STATE.k=STATE.kAlt;STATE.kAlt="";return;}
        if(d.warm_urls&&d.warm_urls.length&&!warmed){warmed=true;warmCards(d.warm_urls.slice());}
-       if(d.ready&&d.summary){clearInterval(timer);finishResult(d,logId);}
-       else if(attempts>=max){clearInterval(timer);pollGiveUp("老師還在寫，稍後再回來這一頁看。");}
-     }).catch(function(){if(myGen!==STATE.flowGen){clearInterval(timer);return;}if(attempts>=max){clearInterval(timer);pollGiveUp("連線中斷，稍後再回來這一頁看。");}});   /* 失敗也要核對是不是這一輪（Astra 完整驗收複核 #1） */
+       if(d.ready&&d.summary){done=true;clearInterval(timer);finishResult(d,logId);}
+       else if(attempts>=max){done=true;clearInterval(timer);pollGiveUp("老師還在寫，稍後再回來這一頁看。");}
+     }).catch(function(){if(done||myGen!==STATE.flowGen){clearInterval(timer);return;}if(attempts>=max){done=true;clearInterval(timer);pollGiveUp("連線中斷，稍後再回來這一頁看。");}});   /* 失敗也要核對是不是這一輪（Astra 完整驗收複核 #1） */
   },4000);
 }
 
