@@ -1348,14 +1348,13 @@ function ffDialWire(){
 /* ── 4b 回訪一行 ── */
 function viewRet(){
   var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);var shi=isNaN(hh)?6:Math.floor(((hh+1)%24)/2);
-  var line=[(r.last_name||"")+(r.first_name||""),ymd.length===3?(+ymd[0])+"/"+(+ymd[1])+"/"+(+ymd[2]):"",shiName(shi),r.gender||""].filter(Boolean).join("・"),em=r.email_masked||"",mm=STATE.afReady?ffRetMismatch():"",mp=mm?ffMaskPair(r.email,mm):[];   /* 信箱另外包一段：不在 @ 中間斷行，換成新信箱時標色（DS v1 ③） */
+  var line=[(r.last_name||"")+(r.first_name||""),ymd.length===3?(+ymd[0])+"/"+(+ymd[1])+"/"+(+ymd[2]):"",shiName(shi),r.gender||""].filter(Boolean).join("・"),em=r.email?ffMaskOne(r.email):(r.email_masked||""),mm=STATE.afReady?ffRetMismatch():"";if(mm)STATE.retPair=ffMaskPair(r.email,mm);   /* 信箱另外包一段：不在 @ 中間斷行，換成新信箱時標色（DS v1 ③） */
   return '<main class="shell narrow ff"><div class="step-intro"><span class="eyebrow"><span class="dot"></span>老師開口</span></div>'+
     '<div class="ff-chat">'+ffWho()+ffBub("這一卦我知道了。上次你留過生辰，還是用同一份嗎？")+
-    '<div class="ff-chip"><span>'+esc(line)+(em?(line?'・':'')+'<span style="white-space:nowrap'+(STATE.retEmailPick==="new"?';color:var(--accent-press)':'')+'">'+esc(em)+'</span>':'')+'</span><a href="#" onclick="ffEditRet();return false;">改</a></div>'+
+    '<div class="ff-chip"><span>'+esc(line)+(ffRetChipEm(em,mm)?(line?'・':'')+'<span style="white-space:nowrap">'+ffRetChipEm(em,mm)+'</span>':'')+'</span><a href="#" onclick="ffEditRet();return false;">改</a></div>'+
     '<div class="zf-af-inline" style="margin-top:10px">不是你？<button type="button" class="zf-af-link" onclick="ffAfClear()">清除</button></div>'+
     /* DS v1 ③：信箱跟最近填的不一樣 → 老師多問一句，兩個選擇不分主次；選之前不出現〔就用這個〕（免得沒選就送出、信寄錯） */
-    (mm?ffBub("你最近用的是 "+esc(mp[1])+"，這次要改用這個嗎？")+
-      '<div class="ff-next"><button class="zf-btn ghost sm" onclick="ffRetPick(0)">'+(mp[0]===mp[1]?'維持原本的':'維持 '+esc(mp[0].split("@")[0]))+'</button><button class="zf-btn ghost sm" onclick="ffRetPick(1)">'+(mp[0]===mp[1]?'改用新的':'改用 '+esc(mp[1].split("@")[0]))+'</button></div>'
+    (mm?ffRetAsk(STATE.retPair)
     :'<div class="ff-next"><button class="zf-btn primary sm" onclick="submitFree()"'+(STATE.afReady?'':' disabled')+'>就用這個</button></div>')+'</div></main>';   /* 最近的信箱還在比對（最多 4 秒）先不能按 */
 }
 function ffEditRet(){var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);
@@ -2771,19 +2770,52 @@ function ffAfClear(){
   STATE.ret=false;STATE.retInfo=null;STATE.retLog="";STATE.retToken="";STATE.retPhone=false;STATE.retEmailPick="";
   STATE.ask=0;STATE.afClearedAt=0;go("ask");}   /* 老師從第一題開始逐題問 */
 /* DS v1 ③：回訪一行的信箱跟最近一次填的不一樣，回傳最近填的那個（客人選過就不再問） */
-/* 兩個信箱遮一半時要分得出來（Astra v2 #7）：先露前 2 個字；開頭一樣就露到第一個不同的字（最多 4 個字）；
-   差在後面（像 alice1／alice2）就改成前 2 個字＋最後幾個字（最多 3 個字）。整個帳號名稱至少遮住 2 個字 */
-function ffMaskPair(a,b){a=String(a||"");b=String(b||"");var da=a.slice(a.indexOf("@")),db=b.slice(b.indexOf("@")),la=a.split("@")[0],lb=b.split("@")[0],p=0,q=0;
+/* ── DS 表單自動帶入 v1.1（10/18 Jeffery 定字）：回訪一行兩個信箱要分得出來，而且不露太多 ──
+   隱私底線：帳號名稱（@ 前面）最多露一半、至少遮 3 個字。判斷順序：v1 遮法 → A 露差異字 → B 來源標籤（不用信箱字分） */
+function ffMaskPair(a,b){a=String(a||"").toLowerCase();b=String(b||"").toLowerCase();
+  var la=a.split("@")[0],lb=b.split("@")[0],da=a.slice(a.indexOf("@")),db=b.slice(b.indexOf("@")),p=0,q=0;
   while(p<la.length&&p<lb.length&&la[p]===lb[p])p++;
   while(q<la.length-p&&q<lb.length-p&&la[la.length-1-q]===lb[lb.length-1-q])q++;
-  var m=function(l,d,pre,suf){pre=Math.max(1,Math.min(pre,l.length-2-suf));return l.slice(0,pre)+"***"+(suf?l.slice(l.length-suf):"")+d;};
-  if(p<2||da!==db)return [m(la,da,2,0),m(lb,db,2,0)];
-  if(p<4)return [m(la,da,p+1,0),m(lb,db,p+1,0)];
-  var k=Math.min(q+1,3);return [m(la,da,2,k),m(lb,db,2,k)];}
+  var cap=function(l){return Math.min(Math.floor(l.length/2),l.length-3);};
+  var span=function(l,rs){var s={},n=0;rs.forEach(function(r){for(var i=Math.max(0,r[0]);i<Math.min(l.length,r[1]);i++)if(!s[i]){s[i]=1;n++;}});return {s:s,n:n};};
+  var build=function(l,d,s,lo,hi){var parts=[],cur=null;   /* lo～hi＝不同的字（要標色） */
+    for(var i=0;i<l.length;i++){if(s[i]){var df=i>=lo&&i<hi;if(cur&&!cur.hid&&cur.diff===df)cur.t+=l[i];else{cur={t:l[i],diff:df};parts.push(cur);}}else if(!cur||!cur.hid){cur={hid:true};parts.push(cur);}}
+    parts.push({t:d});return {str:parts.map(function(x){return x.hid?"***":x.t;}).join(""),parts:parts};};
+  var v1=function(ra,rb){var A=span(la,ra),B=span(lb,rb);if(A.n>cap(la)||B.n>cap(lb))return null;var x=build(la,da,A.s,0,0),y=build(lb,db,B.s,0,0);return x.str!==y.str?{mode:"v1",a:x,b:y}:null;};
+  var r=null;
+  if(da!==db||p<2)r=v1([[0,2]],[[0,2]]);
+  else if(p<4)r=v1([[0,p+1]],[[0,p+1]]);
+  else if(q<3)r=v1([[0,2],[la.length-q-1,la.length]],[[0,2],[lb.length-q-1,lb.length]]);
+  if(r)return r;
+  /* A：前 2 字＋不同的字（連前後各 1 字）＋末 2 字；貼著頭尾的就併進前 2／末 2 */
+  var ea=la.length-q,eb=lb.length-q;
+  if(da===db&&ea>p&&eb>p){var SA=span(la,[[0,2],[p-1,ea+1],[la.length-2,la.length]]),SB=span(lb,[[0,2],[p-1,eb+1],[lb.length-2,lb.length]]);
+    if(SA.n<=cap(la)&&SB.n<=cap(lb)){var xa=build(la,da,SA.s,p,ea),xb=build(lb,db,SB.s,p,eb);if(xa.str!==xb.str)return {mode:"A",a:xa,b:xb,n:Math.max(ea-p,eb-p),xa:la.slice(p,ea),xb:lb.slice(p,eb)};}}
+  return {mode:"B"};}
+/* 回訪一行平常的信箱遮法也守隱私底線：最多露前 2 個字，而且不超過帳號名稱的一半、至少遮 3 個字（DS v1.1；Astra） */
+function ffMaskOne(e){e=String(e||"");var at=e.indexOf("@");if(at<=0)return "";var l=e.slice(0,at),n=Math.max(0,Math.min(2,Math.floor(l.length/2),l.length-3));return l.slice(0,n)+"***"+e.slice(at);}
+var FF_MARK='color:var(--accent-press);text-decoration:underline;text-decoration-color:var(--rose-300);text-decoration-thickness:1.5px;text-underline-offset:3px';   /* 不同的字：TextLink 語彙，不加底色、不加粗 */
+function ffMark(t){return '<span style="'+FF_MARK+'">'+esc(t)+'</span>';}
+function ffMaskHtml(m){return m.parts.map(function(x){return x.hid?"***":x.diff?ffMark(x.t):esc(x.t);}).join("");}
+/* 回訪一行信箱那一段（DS v1 ③＋v1.1）：選了新的→ v1 整段標色／A 標差異字／B 寫「最近填的信箱」；A 在選之前或維持時，舊信箱也標差異字 */
+function ffRetChipEm(em,mm){var P=STATE.retPair,acc=function(h){return '<span style="color:var(--accent-press)">'+h+'</span>';};
+  if(STATE.retEmailPick==="new"&&P)return P.mode==="B"?acc("最近填的信箱"):P.mode==="A"?ffMaskHtml(P.b):acc(esc(P.b.str));
+  if(P&&P.mode==="A"&&(mm||STATE.retEmailPick==="old"))return ffMaskHtml(P.a);
+  return esc(em);}
+/* 老師多問的那一句＋兩顆選擇（不分主次、靠右；選之前不出現〔就用這個〕） */
+function ffRetAsk(P){
+  var btns=function(a,b){return '<div class="ff-next"><button class="zf-btn ghost sm" onclick="ffRetPick(0)"><span>'+a+'</span></button><button class="zf-btn ghost sm" onclick="ffRetPick(1)"><span>'+b+'</span></button></div>';};
+  if(P.mode==="A"){var lab='font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)',val='font-family:var(--font-serif);font-size:15px;color:var(--text-primary);white-space:nowrap;min-width:0';
+    return ffBub("你最近用的信箱跟上次的很像，只差"+(P.n>1?"幾":"一")+"個字。這次要改用最近填的嗎？")+
+      '<div style="margin:6px 0 0 44px;padding:10px 14px;border-radius:var(--radius-md);background:var(--surface-sunken);display:grid;grid-template-columns:64px minmax(0,1fr);gap:6px 8px;align-items:baseline">'+
+      '<span style="'+lab+'">上次這一卦</span><span style="'+val+'">'+ffMaskHtml(P.a)+'</span><span style="'+lab+'">最近填的</span><span style="'+val+'">'+ffMaskHtml(P.b)+'</span></div>'+
+      btns("維持 …"+ffMark(P.xa)+"…","改用 …"+ffMark(P.xb)+"…");}
+  if(P.mode==="B")return ffBub("你最近在別的地方留了另一個信箱，這次要改用最近填的嗎？")+btns("維持上次的","改用最近填的");
+  return ffBub("你最近用的是 "+esc(P.b.str)+"，這次要改用這個嗎？")+btns("維持 "+esc(P.a.str.split("@")[0]),"改用 "+esc(P.b.str.split("@")[0]));}
 function ffRetMismatch(){var r=STATE.retInfo||{},n=String(STATE.afEmail||"").toLowerCase(),o=String(r.email||"").toLowerCase();return !STATE.retEmailPick&&n&&o&&n!==o?n:"";}
 /* 最近的信箱晚到（逾時之後才回來）又跟先前不一樣：先前的選擇作廢、換回原本的信箱，重新問（Astra v2c） */
-function ffRetRepick(){var r=STATE.retInfo;if(!r||!STATE.retEmailPick)return;if(STATE.retOrig){r.email=STATE.retOrig.email;r.email_masked=STATE.retOrig.masked;}STATE.retEmailPick="";}
-function ffRetPick(useNew){var r=STATE.retInfo||{};STATE.retOrig={email:r.email,masked:r.email_masked};if(useNew){var _mp=ffMaskPair(r.email,STATE.afEmail);r.email=STATE.afEmail;r.email_masked=_mp[1];STATE.retEmailPick="new";}else STATE.retEmailPick="old";render();}
+function ffRetRepick(){var r=STATE.retInfo;if(!r||!STATE.retEmailPick)return;if(STATE.retOrig)r.email=STATE.retOrig;STATE.retEmailPick="";}
+function ffRetPick(useNew){var r=STATE.retInfo||{};STATE.retOrig=r.email;if(useNew){r.email=STATE.afEmail;STATE.retEmailPick="new";}else STATE.retEmailPick="old";render();}
 /* 首頁交接的卦（見 boot）：選的情境帶 dir／sub／題目，問題字串照 pickQ 的寫法組，結果頁的推薦與文章區就跟從選題進來一樣 */
 /* 交接資料可能來自網址（外部可改），每個欄位先驗型別；任何不合格一律當沒有（Astra 複核：castAt 塞物件會讓 new Date 拋錯、整頁起不來） */
 function homeCastOk(h){
