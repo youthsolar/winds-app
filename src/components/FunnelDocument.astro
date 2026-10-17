@@ -67,8 +67,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
         || /\bwv\b/.test(ua);   // Android WebView
     };
   </script>
+  <script is:inline src="/assets/line-login.js"></script>   <!-- 2026-10-17 帳號合併：結果頁也認網站 LINE 登入（boot 要用，不能 defer） -->
   <script src="/assets/nav-auth.js?v=7" defer></script>
-  <script is:inline src="/assets/email-verify.js?v=2" defer></script>
+  <script is:inline src="/assets/email-verify.js?v=3" defer></script>
 
   <!-- 2026-10-13 塔羅頁恢復 GA4／Meta Pixel（10/12 試做期間關掉過） -->
   <!-- 量測層（2026-08-15）：此頁不走 BaseLayout，底座另裝一份（GA4 ＋ Meta Pixel）-->
@@ -741,6 +742,24 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     @keyframes ffStaticHide{from,to{visibility:hidden}}
     @media print{html.ff-js .ff-static{animation:none}}
     .get b .tname{display:inline;font:inherit;color:inherit;margin:0;letter-spacing:inherit} /* .get span 是說明行樣式，名稱不吃它 */
+  /* 2026-10-17 帳號合併（DS account-merge v1 ⑥⑦⑧）——只組現有元件，數值照 DS 稿 */
+  .am-muted{min-height:54px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;font-family:var(--font-sans);font-size:14px;color:var(--text-muted);text-align:center;word-break:normal;overflow-wrap:anywhere;}
+  .am-muted i{font-size:16px;flex:none;}
+  .am-denied{margin-top:14px;padding:28px 16px;border-radius:var(--radius-md);background:var(--surface-sunken);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;}
+  .am-denied i{font-size:26px;color:var(--text-muted);}
+  .am-denied span{font-family:var(--font-sans);font-size:14px;color:var(--text-secondary);}
+  .am-note{margin:0 0 14px;padding:12px 14px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .am-note > i{flex:none;font-size:16px;color:var(--accent-press);}
+  .am-note-t{flex:1 1 12em;min-width:0;font-family:var(--font-sans);font-size:13.5px;line-height:1.7;color:var(--ink-700);}
+  .am-gone{display:flex;justify-content:center;padding:96px 32px 64px;background:var(--surface-page);min-height:calc(100vh - 76px);box-sizing:border-box;}
+  .am-gone-card{width:100%;max-width:460px;height:max-content;box-sizing:border-box;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:40px;text-align:center;}
+  .am-gone-top{display:flex;justify-content:center;margin-bottom:18px;}
+  .am-gone-disc{width:56px;height:56px;}
+  .am-gone-disc i{font-size:26px;}
+  .am-gone-h1{margin:0;font-family:var(--font-serif);font-size:26px;font-weight:500;line-height:1.4;color:var(--text-primary);}
+  .am-gone-sub{margin:12px auto 0;max-width:24em;font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.85;color:var(--text-secondary);}
+  .am-gone-act{margin-top:28px;display:flex;flex-direction:column;gap:12px;align-items:stretch;}
+  @media (max-width:760px){.am-gone{padding:28px 16px 40px;}.am-gone-card{padding:32px 24px;}.am-gone-h1{font-size:23px;}}
 </style>
 </head>
 <body data-mode={mode} data-tarot={tarot ? '1' : undefined}>
@@ -1481,7 +1500,7 @@ function viewReportPaid(R,q){
   h+=recsSection();
   h+='<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:14px">'+
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
-    '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'分享這一卦</button>'+
+    shareBtnHtml()+
     (F.purchased_at?'<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);margin:0">購買時間：'+esc(fmtPaidAt(F.purchased_at))+'</p>':'')+
     '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">重新起卦</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
@@ -1524,7 +1543,7 @@ function viewResult(){
   /* 10/10 Jeffery 選項卡：好愛結尾「還有另一個人…」那段拿掉，好愛／家結尾一致 */
   h+='<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">'+
     '<button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button>'+
-    '<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'分享這一卦</button>'+
+    shareBtnHtml()+
     '<button onclick="askAnother()" style="all:unset;cursor:pointer;font-family:var(--font-serif);font-size:15.5px;color:var(--rose-600);border-bottom:1px solid var(--rose-200);padding-bottom:3px">重新起卦</button></div>';
   return '<main class="shell" style="max-width:820px">'+h+'</main>';
 }
@@ -1681,7 +1700,10 @@ function pollSpirit(tok,n){
   },10000);
 }
 /* 2026-10-06 Jeffery：按「生成我的分靈體」畫面被拉回最上面 → 分靈體這塊包一層錨點，重畫後停回這裡 */
-function spiritCard(paid){return '<div id="spiritAnchor" style="scroll-margin-top:96px">'+spiritCardInner(paid)+'</div>';}
+function spiritCard(paid){return '<div id="spiritAnchor" style="scroll-margin-top:96px">'+((STATE.result&&STATE.result.cross&&paid)?amMuted("分靈體請用起這一卦的帳號看"):spiritCardInner(paid))+'</div>';}
+/* 2026-10-17 帳號合併（DS account-merge v1 ⑦）：另一個帳號起的卦，分享鈕、分靈體鈕的位置改成一行說明（不做成按鈕的樣子） */
+function amMuted(t){return '<div class="am-muted">'+ic("user-switch","thin")+'<span>'+t+'</span></div>';}
+function shareBtnHtml(){return (STATE.result&&STATE.result.cross)?amMuted("分享請用起這一卦的帳號"):'<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'分享這一卦</button>';}
 function spiritCardInner(paid){
   var R=STATE.result||{};
   /* 2026-09-11：側寫付款後才生成——未付款一律顯示鎖定說明 */
@@ -1765,14 +1787,14 @@ function hexTalismans(paid){
       var el=c.element;
       /* 未付款＋該位次已上傳真圖 → 顯示真模糊符令；否則退回符號佔位（同樣鎖住外觀） */
       /* 付費後照 delivery 頁同一套逐節氣自動開：step<=unlock_step 才給真圖（token 閘控），其餘鎖住等節氣（9/11 起不再加購） */
-      var F=STATE.full,tok=STATE.fullToken;
+      var F=STATE.full,tok=STATE.fullToken||STATE.fullCardBase;   /* 另一個帳號的卦：五符走短效票網址（card_image_base） */
       var step=i+1;
       var ustep=(paid&&F)?Math.max(1,Number(F.unlock_step)||1):0;
       var showClear=(paid&&F&&tok&&step<=ustep);
       var days=(paid&&F)?daysUntilUnlock(F.paid_at||F.purchased_at,step):null;
       var showReal=(!paid&&c.available&&c.blur_url);
       var inner=showClear
-        ? '<img src="'+esc(WORKER_API+"/card-image/"+tok+"/"+step)+'?v='+Date.now()+'" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" onclick="window.open(this.src,\'_blank\')">'
+        ? '<img src="'+esc(STATE.fullCardBase?STATE.fullCardBase+"/"+step:WORKER_API+"/card-image/"+tok+"/"+step)+'?v='+Date.now()+'" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in" onclick="window.open(this.src,\'_blank\')">'
         : showReal
         ? '<img src="'+esc(c.blur_url)+'" loading="lazy" decoding="async" draggable="false" oncontextmenu="return false;" style="width:100%;height:100%;object-fit:cover">'
         : '<div class="blurred" style="width:100%;height:100%">'+fulu(String(el).slice(0,1),el)+'</div>';
@@ -1810,6 +1832,7 @@ function kParam(){return STATE.k?"&k="+encodeURIComponent(STATE.k):"";}
 function loadFullContent(retry){
   var R=STATE.result||{};
   if(!R.purchased||STATE.full||(STATE.fullLoading&&!retry))return;
+  if(crossVt())return loadFullCross(retry);
   var m=(R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/);
   if(!m)return;
   STATE.fullLoading=true;STATE.fullError=false;STATE.fullNeedLogin=false;STATE.fullGenerating=false;STATE.fullToken=m[1];
@@ -1833,6 +1856,30 @@ function loadFullContent(retry){
     if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}
   }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}});
 }
+/* 2026-10-17 帳號合併 §8：另一個帳號的卦——全文、五符都用短效票讀；票過期（15 分鐘）就重讀結果頁拿新票。
+   拒讀（舊全文、或全文裡有卦主人帳號的資料）只顯示一次、不再輪詢（DS account-merge v1 ⑦） */
+function loadFullCross(retry){
+  STATE.fullLoading=true;STATE.fullError=false;STATE.fullNeedLogin=false;STATE.fullGenerating=false;STATE.fullDenied=false;
+  fetch(WORKER_API+"/delivery-content?vt="+encodeURIComponent(crossVt()),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){srvSkew(d);
+    STATE.fullLoading=false;
+    if(d&&d.reason==="vt_invalid"){if(!retry){refreshCross(function(){loadFullContent(true);});return;}STATE.fullError=true;}
+    else if(d&&d.ok){
+      STATE.fullCardBase=d.card_image_base||"";
+      if(d.full_denied){STATE.fullDenied=true;STATE.full={unlock_step:d.unlock_step,paid_at:d.paid_at,purchased_at:d.purchased_at};}
+      else if(d.hexagram_content){STATE.full=d;}
+      else{STATE.fullPolls=(STATE.fullPolls||0)+1;if(STATE.fullPolls<=20){STATE.fullGenerating=true;setTimeout(function(){STATE.fullLoading=false;loadFullContent(true);},6000);}else STATE.fullError=true;}
+    }else STATE.fullError=true;
+    if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}
+  }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}});
+}
+/* 重讀這一卦拿新的短效票（只換票，不重畫整頁） */
+function refreshCross(then){
+  var id=STATE.logId||STATE.reportLogId;if(!id)return;
+  fetch(API.status+"?log_id="+encodeURIComponent(id)+identQ(),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
+    if(d&&d.cross&&STATE.result){STATE.result.cross=d.cross;if(then)then();}
+    else if(d&&d.error==="other_account")showGone("other");
+  }).catch(function(){});
+}
 /* 量能靈符逐節氣自動開（FI-SYNC：機制與 liff/delivery.html 一致——每 14 天（節氣）一張、到期自動開＋通知；9/11 起不收 NT$100，與後端 talisman-gate.ts 對齊） */
 /* 2026-10-14：用伺服器時間算（SRV_SKEW＝伺服器比手機快多少，每次拿到交付資料就更新；沒拿到就是 0＝手機時間）。真正開不開仍由後端決定 */
 var SRV_SKEW=0;
@@ -1849,7 +1896,9 @@ function paywall(paid){
     /* FI-SYNC：付費卡＝完整解讀本體（與 delivery 頁「完整解讀」區塊對齊；孔明／靈符各有專屬區塊） */
     return '<div class="paid-card"><div class="topbar"></div><div class="body">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">'+ic("check-circle","fill")+'<span class="pc-title">完整解讀在這裡</span></div>'+
-      (STATE.full&&STATE.full.hexagram_content
+      (STATE.fullDenied
+        ?'<div class="am-denied">'+ic("user-switch","thin")+'<span>完整解讀請用起這一卦的帳號看</span></div>'
+        :STATE.full&&STATE.full.hexagram_content
         ?'<div class="fi-body">'+mdFull(STATE.full.hexagram_content)+'</div>'
         :'<div style="font-family:var(--font-sans);font-size:13px;color:var(--text-muted)">'+(STATE.fullError
           ?(STATE.fullNeedLogin
@@ -2047,6 +2096,7 @@ function render(){
   if(interpTimer){interpTimer();interpTimer=null;}
   document.body.classList.toggle("show-concierge",STATE.step==="result"||STATE.step==="cooldown");
   var root=document.getElementById("root");
+  if(STATE.step==="gone"){showGone(STATE.goneKind);return;}
   // 完整報告模式：以 log_id 回訪、已渲染結果頁 → 套站台 Nav/Footer（取代 funnel 進度條）。
   /* 10/10 Jeffery 選項卡：結果頁一律套網站導覽列＋頁尾（原本只有回訪才套，剛算完是起卦進度列、沒頁尾） */
   if(STATE.step==="result"){
@@ -2070,6 +2120,26 @@ function render(){
   renderScroll();
   if(STATE.step==="interpreting")startInterp();
   updateFabCta();
+}
+/* 2026-10-17 帳號合併（DS account-merge v1 ⑧）：打不開的卦——LINE 卦的舊連結、或卦在另一個帳號 */
+function showGone(kind){
+  STATE.step="gone";STATE.goneKind=kind;var root=document.getElementById("root");
+  var line=kind==="line";
+  root.innerHTML=siteHeader()+'<main class="am-gone"><div class="am-gone-card">'+
+    '<div class="am-gone-top"><span class="zf-icon-disc am-gone-disc">'+ic(line?"chat-circle-dots":"user-switch","thin")+'</span></div>'+
+    '<h1 class="am-gone-h1">'+(line?'這一卦在 LINE 裡':'這一卦在你另一個帳號')+'</h1>'+
+    '<p class="am-gone-sub">'+(line?'請到官方 LINE 打開。':'請用那個帳號登入看。')+'</p>'+
+    '<div class="am-gone-act">'+(line
+      ?'<a class="zf-line-btn" href="'+LINE_OA_URL+'" target="_blank" rel="noopener"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">打開官方 LINE</span></a>'
+      :'<a class="zf-btn secondary lg full" href="/">回首頁</a>')+'</div></div></main>'+siteFooter();
+  wireSiteChrome();
+}
+/* DS ⑥：收碼完成但帳號沒連上——付款卡上方一條提示，連到會員中心 */
+function showLinkFail(){
+  var pw=document.getElementById("paywall")||document.querySelector(".paywall")||document.getElementById("unlockBtn");if(!pw||document.getElementById("amLinkFail"))return;
+  var n=document.createElement("div");n.id="amLinkFail";n.className="am-note";
+  n.innerHTML=ic("check-circle")+'<span class="am-note-t">信箱確認好了，但帳號這次沒連上，到會員中心再連一次。</span><a class="zf-text-link" href="/account">去會員中心</a>';
+  pw.parentNode.insertBefore(n,pw);
 }
 /* ===== 浮動付款 CTA（2026-07-20 拍板：點擊捲至付費牆／捲過第一屏浮出／付費牆可見隱藏）===== */
 var fabObs=null,fabPwVisible=false,fabEndVisible=false;
@@ -2115,7 +2185,19 @@ function askAnother(){STATE.qtype="";
 /* ===== Google SSO auth ===== */
 var googleIdToken="";
 function getIdToken(){return googleIdToken||"";}
-function authHeaders(extra){var h={"X-Google-Id-Token":getIdToken()};if(extra)for(var k in extra)h[k]=extra[k];return h;}
+/* 2026-10-17 帳號合併：網站 LINE 登入也是登入身分（line-login.js；Google 登入優先） */
+function lineSess(){return (!getIdToken()&&window.WindsLine)?WindsLine.session():null;}
+function authHeaders(extra){var h={},ls=lineSess();if(getIdToken())h["X-Google-Id-Token"]=getIdToken();else if(ls)h["X-Line-Id-Token"]=ls.token;if(extra)for(var k in extra)h[k]=extra[k];return h;}
+function identQ(){var ls=lineSess();return STATE.userId?("&google_sub="+encodeURIComponent(STATE.userId)):(ls?("&line_user_id="+encodeURIComponent(ls.p.sub)):"");}
+function loggedIn(){return !!(STATE.userId||lineSess());}
+/* 另一個帳號的卦（同組／單卦授權）：讀全文、五符、姓名學、推薦都用結果頁回來的 15 分鐘短效票 */
+function crossVt(){return (STATE.result&&STATE.result.cross&&STATE.result.cross.vt)||"";}
+/* LINE 卦的舊提醒信連結已停用：k 從網址、STATE、本機記錄一起拿掉，重新整理才不會又撿回來 */
+function dropRevokedK(logId){
+  logId=String(logId||"");STATE.k="";STATE.kAlt="";STATE.retToken="";
+  try{if(localStorage.getItem("winds_ff_log")===logId){localStorage.removeItem("winds_ff_log");localStorage.removeItem("winds_ff_k");}var m=JSON.parse(localStorage.getItem("winds_ff_ks")||"{}")||{};if(m[logId]){delete m[logId];localStorage.setItem("winds_ff_ks",JSON.stringify(m));}}catch(e){}
+  try{var u=new URL(location.href);u.searchParams.delete("k");u.searchParams.delete("ret");history.replaceState(null,"",u.pathname+(u.search||""));}catch(e){}
+}
 
 /* ===== validators ===== */
 function validGmail(e){return /^[^\s@]+@gmail\.com$/i.test(e||"");}
@@ -2185,7 +2267,9 @@ function submitFree(){
   STATE.submitting=true;STATE.logId="";STATE.k="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;
   go("interpreting");
   if(window.ffPayloadHook)window.ffPayloadHook(payload);   /* 2026-10-12 塔羅頁（tarot-funnel.js）把「卦」換成抽牌簽名；其他頁沒有這個掛勾 */
-  fetch(API.submit,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+  /* 2026-10-17 帳號合併 §6：網站用 LINE 登入中起卦，帶 LINE 憑證——這一卦之後在 LINE 裡也看得到（只授權這一卦） */
+  var _sh={"Content-Type":"application/json"},_ls=window.WindsLine&&WindsLine.session();if(_ls)_sh["X-Line-Id-Token"]=_ls.token;
+  fetch(API.submit,{method:"POST",headers:_sh,body:JSON.stringify(payload)})
    .then(function(resp){
      if(!resp.ok){return resp.json().catch(function(){return{};}).then(function(d){
        if(d.recast){STATE.submitting=false;STATE.cast=null;go("cast");setTimeout(function(){showFfErr(d.message||"回到水鏡重新按一次。");},60);return null;}
@@ -2231,16 +2315,19 @@ function pollStatus(logId,alreadyWarm){
   if(STATE.pollTimer)clearInterval(STATE.pollTimer);
   var timer=STATE.pollTimer=setInterval(function(){
     attempts++;
-    var ident=STATE.k?("&k="+encodeURIComponent(STATE.k)):("&google_sub="+encodeURIComponent(STATE.userId||""));
+    var ident=STATE.k?("&k="+encodeURIComponent(STATE.k)):identQ();
     fetch(API.status+"?log_id="+encodeURIComponent(logId)+ident,{headers:authHeaders()})
      .then(function(r){
        /* 2026-10-01（廣告前全站掃描）：回看報告沒帶 k 也沒登入時，後端第一次就回 403（找不到回 404），等再久也不會變；
           原本照樣轉 92 秒「老師正在看你的卦」才被帶去登入頁。這種情況直接收掉走 pollGiveUp（它會帶去登入頁）。
           有 k 或已登入的照舊輪詢（登入後同信箱合併要一點時間），5xx／斷線也照舊。 */
-       if((r.status===403||r.status===404)&&STATE.reportMode&&!STATE.k&&!STATE.userId){clearInterval(timer);pollGiveUp("老師還在寫，稍後再回來這一頁看。");return null;}
+       if((r.status===403||r.status===404)&&STATE.reportMode&&!STATE.k&&!loggedIn()){clearInterval(timer);pollGiveUp("老師還在寫，稍後再回來這一頁看。");return null;}
        return r.json();
      }).then(function(d){
        if(!d)return;
+       /* 2026-10-17 帳號合併：LINE 卦的舊連結已停用——有網站登入就拿掉 k 改用登入再讀；沒有就請他到 LINE 打開 */
+       if(d.error==="k_revoked_line"){dropRevokedK(logId);if(loggedIn())return;clearInterval(timer);showGone("line");return;}
+       if(d.error==="other_account"){clearInterval(timer);showGone("other");return;}
        /* 網址帶的是一般 k（付款回跳、舊連結），這台裝置另存了這一卦收碼換到的本人 k → 帳號資料被遮就換那把再查一次（Astra 複核二 #1） */
        if(d.account_hidden&&STATE.kAlt){STATE.k=STATE.kAlt;STATE.kAlt="";return;}
        if(d.warm_urls&&d.warm_urls.length&&!warmed){warmed=true;warmCards(d.warm_urls.slice());}
@@ -2308,6 +2395,7 @@ function finishResult(d,logId){
   STATE.shareUrl=d.share_url||"";
   if(d.next_action)STATE.talismanName=d.next_action.talisman_name||STATE.talismanName;
   STATE.result=buildResult(d);
+  STATE.result.cross=d.cross||null;   /* 2026-10-17 帳號合併：另一個帳號的卦 → {kind, trusted, vt} */
   STATE.paid=!!d.purchased;
   /* 回看模式（會員中心 ?log_id=）沒走表單，userName 用後端回的真名補上，姓名學才有得算 */
   if(!STATE.userName&&d.client_last_name)STATE.userName={surname:d.client_last_name,given:d.client_first_name||""};
@@ -2338,8 +2426,10 @@ function loadNaming(){
      付費版的三才、格局與生肖分析（實測 4,814 位元組 vs 免費版 614）。改成把付款後才拿得到的
      delivery_token 一起送，由 worker 自己查這筆是不是真的付過。 */
   var _dt=((R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/)||[])[1]||"";
+  var _nb={surname:u.surname,given_name:u.given,zodiac:R.zodiac||"",full_access:!!STATE.paid,delivery_token:_dt};
+  if(!_dt&&crossVt()){delete _nb.delivery_token;_nb.vt=crossVt();}   /* 另一個帳號的卦：用短效票證明付過款 */
   fetch(API.naming,{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({surname:u.surname,given_name:u.given,zodiac:R.zodiac||"",full_access:!!STATE.paid,delivery_token:_dt})})
+    body:JSON.stringify(_nb)})
    .then(function(r){return r.json();}).then(function(d){
      var n=normName(d);if(!n||!STATE.result)return;
      STATE.result.name=n;
@@ -2350,7 +2440,9 @@ function loadNaming(){
 
 /* ===== 推薦 ===== */
 function loadRecs(logId){
-  fetch(API.recommend+"?log_id="+encodeURIComponent(logId)).then(function(r){return r.json();}).then(function(d){
+  /* 2026-10-17：推薦要證明讀得到這一卦（k、短效票或登入），不然後端不給 */
+  var _rq=STATE.k?"&k="+encodeURIComponent(STATE.k):crossVt()?"&vt="+encodeURIComponent(crossVt()):"";
+  fetch(API.recommend+"?log_id="+encodeURIComponent(logId)+_rq,{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
     if(!STATE.result)return;
     STATE.result.recs=(d.success&&d.recommendations)?d.recommendations:[];
     var mount=document.getElementById("recsMount");
@@ -2372,7 +2464,7 @@ function createOrder(){
   var _knownEmail=(STATE.data&&STATE.data.email)||(STATE.retInfo&&STATE.retInfo.email)||"";
   var _ev=STATE.evToken||(window.ZFEmailVerify&&_knownEmail?ZFEmailVerify.token(_knownEmail):"");
   fetch(API.order,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
-    body:JSON.stringify({google_sub:STATE.userId,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken,k:STATE.k||undefined,ev_token:_ev||undefined})})
+    body:JSON.stringify({google_sub:STATE.userId||undefined,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken,k:STATE.k||undefined,ev_token:_ev||undefined,surface:"web"})})
    .then(function(r){return r.json();}).then(function(d){
      STATE.ordering=false;
      if(d&&d.error==="email_verify_required"){
@@ -2381,11 +2473,13 @@ function createOrder(){
        if(!window.ZFEmailVerify||STATE.orderEvAsked){STATE.orderEvAsked=false;alert(d.message||"付款前先確認一下信箱。");return;}
        STATE.orderEvAsked=true;
        /* 有這一卦的 k 就讓後端寄到這一卦的信箱（從提醒信、付款回跳進來時頁面不知道完整信箱）；沒有才用頁面上的信箱 */
-       var _t=STATE.k?{logId:STATE.logId,k:STATE.k,masked:d.email_masked}:{email:_knownEmail,masked:d.email_masked};
-       if(!_t.k&&!_t.email){STATE.orderEvAsked=false;alert(d.message||"付款前先確認一下信箱。");return;}
+       /* 2026-10-17 帳號合併：另一個帳號的卦（沒有 k）→ 後端用登入＋授權找卦主人的信箱寄碼（前端只看遮罩） */
+       var _t=STATE.k?{logId:STATE.logId,k:STATE.k,masked:d.email_masked}:(STATE.result&&STATE.result.cross)?{logId:STATE.logId,masked:d.email_masked}:{email:_knownEmail,masked:d.email_masked};
+       if(!_t.k&&!_t.email&&!(STATE.result&&STATE.result.cross)){STATE.orderEvAsked=false;alert(d.message||"付款前先確認一下信箱。");return;}
        ZFEmailVerify.ensure(_t).then(function(t){
          /* 從這一卦驗過信箱：換成後端發的本人 k（Astra 最終驗收 #1；原本那把一般 k 驗過之後讀不到帳號資料） */
          if(t)adoptTrustedK(STATE.logId);
+         if(t&&ZFEmailVerify.lastLink)showLinkFail();   /* DS ⑥：信箱驗好了但帳號這次沒連上 */
          if(t){STATE.evToken=t;createOrder();}else STATE.orderEvAsked=false;});
        return;
      }
@@ -2435,8 +2529,9 @@ function shareResult(btn){
 
 /* ===== 預填（回訪）===== */
 function doPrefill(){
-  if(!STATE.userId)return;
-  fetch(API.prefill+"?google_sub="+encodeURIComponent(STATE.userId),{headers:authHeaders()})
+  if(!loggedIn())return;
+  /* 2026-10-17：網站 LINE 登入也預填自己的資料（只預填自己那一列） */
+  fetch(API.prefill+"?"+identQ().slice(1),{headers:authHeaders()})
    .then(function(r){return r.json();}).then(function(d){
      if(d&&d.error==="maintenance"){location.href="/maintenance.html";return;}
      if(!d||!d.found)return;
@@ -2547,19 +2642,21 @@ function boot(){
     if(pending&&!rid){try{pending_k=localStorage.getItem("winds_ff_log")===pending?(localStorage.getItem("winds_ff_k")||""):"";if(pending_k)STATE.k=pending_k;}catch(e){}}
     STATE.reportMode=true;   // 完整報告：回訪既有占卜 → 結果頁套站台 Nav/Footer
     STATE.step="interpreting";render();pollStatus(rid||pending);
-    if(!STATE.userId&&!STATE.k)initGoogleGIS();
+    if(!loggedIn()&&!STATE.k)initGoogleGIS();
     /* 2026-10-01（廣告前全站掃描）：零登入（信箱身分）的客人用同一個 Gmail 從 /login 回來、或已登入開沒帶 k 的舊連結，
        原本不會打 /liff-prefill，後端「同信箱合併」不會發生，google_sub 對不到這一卦，永遠 403。這裡補打一次，合併後輪詢就讀得到 */
-    if(STATE.userId&&!STATE.k)doPrefill();
+    if(loggedIn()&&!STATE.k)doPrefill();
     return;
   }
   /* 回訪一行：提醒信 ?ret=<卦>&k=<token>，或同一支手機上次留過（localStorage；FB 內建瀏覽器可能關了就清，清了就照常問） */
   var rl=ret,rk=kk;if(!(rl&&rk)){try{rl=localStorage.getItem("winds_ff_log")||"";rk=localStorage.getItem("winds_ff_k")||"";}catch(e){}}
   if(rl&&rk){STATE.retLog=rl;STATE.retToken=rk;
-    fetch(API.prefill+"?ret="+encodeURIComponent(rl)+"&k="+encodeURIComponent(rk)).then(function(r){return r.json();}).then(function(d){
-      if(d&&d.found){STATE.retInfo=d;STATE.ret=true;if(STATE.step==="hex")render();}
+    fetch(API.prefill+"?ret="+encodeURIComponent(rl)+"&k="+encodeURIComponent(rk),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
+      if(d&&d.found){STATE.retInfo=d;STATE.ret=true;if(STATE.step==="hex")render();return;}
+      /* 2026-10-17：LINE 卦的舊提醒信連結已停用——有登入時後端已改用登入者自己的資料；沒登入就請他到 LINE 打開 */
+      if(d&&d.error==="k_revoked_line"){dropRevokedK(rl);STATE.retLog="";if(!loggedIn())showGone("line");}
     }).catch(function(){});}
-  else if(STATE.userId)doPrefill();
+  else if(loggedIn())doPrefill();
   if(!HOME&&!LOVE&&homeCast)takeHomeCast(homeCast);
   render();
 }
@@ -2599,7 +2696,7 @@ window.STATE=STATE;
 if(document.body.getAttribute("data-tarot")!=="1")boot();
 </script>
 {tarot && <script is:inline src="/assets/tarot/engine.js?v=1"></script>}
-{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=5"></script>}
+{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=6"></script>}
 <!-- 帶 utm 進站記點（2026-09-06 補）：占卜頁沒用 BaseLayout，之前從活動頁／社群帶 utm 進來的人 D1 一列都沒有，
      漏斗第四站是瞎的。與 BaseLayout 那段逐字相同：sendBeacon → api.winds.tw/hit → D1 link_hits。 -->
 <script is:inline>

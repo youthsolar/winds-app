@@ -40,6 +40,7 @@ import SiteNav from '../components/SiteNav.astro';
     .bc-title{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);line-height:1.25}
     .bc-sub{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
   </style>
+  <script is:inline src="/assets/line-login.js"></script>   <!-- 2026-10-17 帳號合併：認網站 LINE 登入 -->
   <script src="/assets/nav-auth.js?v=7" defer></script>
 
   <style is:global>
@@ -177,10 +178,13 @@ import SiteNav from '../components/SiteNav.astro';
     try{ S.sessionId=localStorage.getItem(SESS_KEY)||null; }catch(e){}
 
     // 身份（有就帶，後端驗章預填；沒有＝訪客）
+    /* 2026-10-17 帳號合併：沒有 Google 登入時認網站 LINE 登入（line-login.js），查預約、改期跟會員中心同一套 */
     function getAuth(){
       var t=""; try{ t=localStorage.getItem('winds_google_token')||""; }catch(e){}
-      if(!t) return null;
-      try{ var p=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); return {token:t, sub:p.sub}; }catch(e){ return null; }
+      if(t){ try{ var p=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); if(p.exp&&p.exp*1000>Date.now()) return {token:t, sub:p.sub}; }catch(e){} }
+      var ls=window.WindsLine&&WindsLine.session();
+      if(ls) return {token:ls.token, sub:ls.p.sub, line:true};
+      return null;
     }
 
     var msgsEl=document.getElementById('msgs'), taEl=document.getElementById('ta'), sendEl=document.getElementById('send');
@@ -296,9 +300,9 @@ import SiteNav from '../components/SiteNav.astro';
       addBubble('user', msg); showTyping();
       var auth=getAuth();
       var body={ message:msg, channel:'web', sessionId:S.sessionId };
-      if(auth&&auth.sub) body.google_sub=auth.sub;
+      if(auth&&auth.sub){ if(auth.line) body.line_user_id=auth.sub; else body.google_sub=auth.sub; }
       var headers={'Content-Type':'application/json'};
-      if(auth&&auth.token) headers['X-Google-Id-Token']=auth.token;
+      if(auth&&auth.token) headers[auth.line?'X-Line-Id-Token':'X-Google-Id-Token']=auth.token;
       fetch(API,{method:'POST',headers:headers,body:JSON.stringify(body)})
         .then(function(r){return r.json()})
         .then(function(d){
@@ -395,9 +399,9 @@ import SiteNav from '../components/SiteNav.astro';
       var auth=getAuth();
       // 無本機 token：訪客→直接開場白；已登入→仍查 history（跨裝置接回最近一段對話）
       if(!S.sessionId && !(auth&&auth.sub)){ greet(); return; }
-      var qs=[]; if(S.sessionId) qs.push('sessionId='+encodeURIComponent(S.sessionId)); if(auth&&auth.sub) qs.push('google_sub='+encodeURIComponent(auth.sub));
+      var qs=[]; if(S.sessionId) qs.push('sessionId='+encodeURIComponent(S.sessionId)); if(auth&&auth.sub) qs.push((auth.line?'line_user_id=':'google_sub=')+encodeURIComponent(auth.sub));
       var url=HISTORY+'?'+qs.join('&');
-      var h={}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
+      var h={}; if(auth&&auth.token) h[auth.line?'X-Line-Id-Token':'X-Google-Id-Token']=auth.token;
       showTyping();
       S.hydrating=true; sendEl.disabled=true; taEl.disabled=true;   // 撈歷史期間不准送，避免兩邊打架
       function hydrateDone(){ S.hydrating=false; sendEl.disabled=false; taEl.disabled=false; }

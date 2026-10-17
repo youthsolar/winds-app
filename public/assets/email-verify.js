@@ -35,8 +35,22 @@
     var m = load(); if (m[e]) { delete m[e]; store(m); }
   }
 
+  /* 2026-10-17 帳號合併：網站登入中就帶登入憑證——
+     ① 網站 LINE 登入中親手收碼驗過這個 Gmail，後端把 LINE 與這個信箱連成一組（規格 §5a）
+     ② 在另一個帳號看到的卦要付款驗信：沒有 k，後端用「登入＋這一卦授權得到」找卦主人的信箱寄碼（規格 §8） */
+  function authHeaders() {
+    var h = {};
+    try {
+      var g = localStorage.getItem('winds_google_token');
+      if (g) { var p = JSON.parse(atob(g.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); if (p.exp && p.exp * 1000 > Date.now()) h['X-Google-Id-Token'] = g; }
+    } catch (e) {}
+    var s = window.WindsLine && WindsLine.session();
+    if (s) h['X-Line-Id-Token'] = s.token;
+    return h;
+  }
   function post(path, body) {
-    return fetch(API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    var h = authHeaders(); h['Content-Type'] = 'application/json';
+    return fetch(API + path, { method: 'POST', headers: h, body: JSON.stringify(body) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d = d || {}; d._status = r.status; return d; }); });
   }
 
@@ -89,7 +103,7 @@
   function ensure(opts) {
     opts = opts || {};
     if (open) return open;
-    var target = opts.email ? { email: norm(opts.email) } : { log_id: Number(opts.logId) || 0, k: opts.k || '' };
+    var target = opts.email ? { email: norm(opts.email) } : opts.k ? { log_id: Number(opts.logId) || 0, k: opts.k } : { log_id: Number(opts.logId) || 0 };
     var masked = opts.masked || '';
     if (!document.getElementById('zfev-css')) {
       var st = document.createElement('style'); st.id = 'zfev-css'; st.textContent = CSS; document.head.appendChild(st);
@@ -175,6 +189,8 @@
             if (em) save(em, d.token, d.expires_at);
             // 從那一卦驗的：後端回這一卦的本人 k（Astra 最終驗收 #1），留給頁面換掉手上的一般 k
             if (target.log_id && d.k) window.ZFEmailVerify.lastLogK = { logId: String(target.log_id), k: d.k };
+            // 帳號合併 5a：信箱驗好了但這次沒連上（例如要合的帳號分在兩組）→ 頁面提示到會員中心再連一次
+            window.ZFEmailVerify.lastLink = d.linked === false && d.link_reason !== 'line_invalid' ? { linked: false, reason: d.link_reason || '' } : null;
             finish(d.token);
             return;
           }

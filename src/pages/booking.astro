@@ -197,6 +197,7 @@ import { PERSONAS } from '../data/booking-teachers';
     }
   </style>
 
+  <script is:inline src="/assets/line-login.js"></script>   <!-- 2026-10-17 帳號合併：預約帶網站 LINE 登入 -->
   <script is:inline>
     (function () {
       var WORKER_API = 'https://api.winds.tw';
@@ -463,7 +464,10 @@ import { PERSONAS } from '../data/booking-teachers';
           payload.expected_amount=dep;payload.client_req_id=rid;
           if(evTok)payload.ev_token=evTok;   /* 放在識別碼算完之後：憑證不影響「同一份預約資料」的判斷 */
           try{payload.first_touch=JSON.parse(localStorage.getItem('winds_first_touch')||'null');}catch(e){}   /* 第一次進站的來源（BaseLayout 記的），讀不到就不帶 */
-          fetch(WORKER_API+'/sb-book',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},
+          /* 2026-10-17 帳號合併：網站登入中預約就帶登入憑證——後端只記「誰約的」（合併後的我的預約看得到），信箱驗證碼照舊要收 */
+          var _bh={'Content-Type':'application/json'};try{var _gt=localStorage.getItem('winds_google_token')||'';var _gp=_gt?JSON.parse(atob(_gt.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))):null;if(_gp&&_gp.exp*1000>Date.now())_bh['X-Google-Id-Token']=_gt;}catch(e){}
+          if(!_bh['X-Google-Id-Token']){var _ls=window.WindsLine&&WindsLine.session();if(_ls)_bh['X-Line-Id-Token']=_ls.token;}
+          fetch(WORKER_API+'/sb-book',{method:'POST',signal:ac.signal,headers:_bh,
             body:JSON.stringify(payload)})
            .then(function(r){return r.json().then(function(d){return{st:r.status,d:d};});}).then(function(o){var d=o.d;clearTimeout(to);
              if(d&&d.ok&&d.payment_url){/* 從付款頁按上一頁回來（BFCache 會保留「處理中、按鈕鎖住」的狀態）→ 解鎖；預約識別碼還在，再按一次會拿回同一張單（Astra 最終驗收 #6） */window.addEventListener('pageshow',function(e){if(e.persisted)unlockGo();},{once:true});location.href=d.payment_url;}

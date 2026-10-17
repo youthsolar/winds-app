@@ -56,6 +56,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="hr-friend" id="hrFriend" hidden></div>
       <div class="hr-cards" id="hrCards"></div>
       <div class="hr-pager" id="hrPager"></div>
+      <div class="hr-more" id="hrMore"></div>
     </main>
 
     <!-- 4 · 空狀態 -->
@@ -207,7 +208,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .hr-q{font-size:15.5px;}
       .hr-rec-foot{padding-top:13px;}
     }
-  </style>
+    .hr-more{display:flex;justify-content:center;margin-top:8px;}
+  .hr-more:empty{display:none;}
+  @media (max-width:760px){.hr-more .zf-btn{width:100%;}}
+</style>
 
   <script is:inline src="/assets/line-login.js"></script>
   <script is:inline>
@@ -297,11 +301,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         var slice = records.slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE);
         $('hrCards').innerHTML = slice.map(recordCard).join('');
         renderPager(cur, total);
+        renderMore(cur === total);
       }
 
       function renderHeader() {
         var name = clientName || '你';
-        $('hrSub').textContent = name + ' 的占卜歷程 · 共 ' + records.length + ' 次';
+        $('hrSub').textContent = name + ' 的占卜歷程 · 共 ' + records.length + (nextBefore ? '＋' : '') + ' 次';
         var av = $('hrAvatar');
         if (picture) av.innerHTML = '<img src="' + esc(picture) + '" alt="' + esc(name) + '">';
         else av.textContent = (name || '你').trim().slice(0, 1);
@@ -329,6 +334,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
          API 暫時失敗時，會以為自己的紀錄整批不見了。
          後端在「查不到這個人」時回的是 success:true, readings:[]，所以 !success 確實代表出錯，
          可以跟「真的是空的」分開。 */
+      /* DS account-merge v1 ⑨：清單最後一頁底下「看更早的」（後端還有下一批才出現） */
+      function renderMore(onLast) {
+        var m = $('hrMore'); if (!m) return;
+        m.innerHTML = nextBefore && onLast ? '<button type="button" class="zf-btn secondary lg" id="hrMoreBtn">看更早的</button>' : '';
+        var b = $('hrMoreBtn');
+        if (b) b.onclick = function () { b.disabled = true; if (lastArgs) loadReadings(lastArgs[0], lastArgs[1], lastArgs[2], true); };
+      }
       function showLoadError() {
         var h = $('hrEmptyH1'), p = $('hrEmptyP'), b = $('hrEmptyBtn');
         if (h) h.textContent = '紀錄暫時讀不到';
@@ -336,9 +348,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (b) { b.innerHTML = '<i class="ph ph-arrow-clockwise"></i>重新整理'; b.setAttribute('href', location.pathname); }
         show('hrEmpty');
       }
-      function loadReadings(sub, token, viaLine) {
+      /* 2026-10-17 帳號合併：清單是連在一起的帳號合成一份（後端），每次 50 筆；surface=web＝連結都開網站頁。
+         more＝按「看更早的」接著讀下一批（DS account-merge v1 ⑨） */
+      var nextBefore = null, lastArgs = null;
+      function loadReadings(sub, token, viaLine, more) {
+        lastArgs = [sub, token, viaLine];
         /* 2026-10-16：LINE 登入（line-login.js）拿到的是 LINE id_token → 走後端既有的 line_user_id＋X-Line-Id-Token 分支 */
-        fetch(WORKER_API + '/my-readings?' + (viaLine ? 'line_user_id=' : 'google_sub=') + encodeURIComponent(sub), { headers: viaLine ? { 'X-Line-Id-Token': token || '' } : { 'X-Google-Id-Token': token || '' } })
+        fetch(WORKER_API + '/my-readings?' + (viaLine ? 'line_user_id=' : 'google_sub=') + encodeURIComponent(sub) + '&surface=web' + (more && nextBefore ? '&before=' + encodeURIComponent(nextBefore) : ''), { headers: viaLine ? { 'X-Line-Id-Token': token || '' } : { 'X-Google-Id-Token': token || '' } })
           .then(function (r) {
             /* 2026-10-16（Astra 審 LINE 登入）：登入過期或 LINE／Google 不認這張憑證（401）原本也走「暫時讀不到」，
                客人重新整理幾次都一樣。改成清掉這張憑證、回到未登入畫面讓他重新登入；403 身分不符與其他錯誤照舊 */
@@ -356,8 +372,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           .then(function (d) {
             if (d === null) return;
             if (!d || !d.success) { showLoadError(); return; }
-            clientName = d.client_name || '';
-            records = d.readings || [];
+            clientName = d.client_name || clientName;
+            records = more ? records.concat(d.readings || []) : (d.readings || []);
+            nextBefore = d.next_before || null;
             if (!records.length) { show('hrEmpty'); return; }
             renderHeader(); renderList(); show('hrList');
             if (viaLine && window.WindsLine) WindsLine.mountFriend($('hrFriend'));

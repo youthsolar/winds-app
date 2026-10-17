@@ -1,0 +1,144 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+/* 帳號合併：綁定流程頁（2026-10-17，DS account-merge v1 ③）。
+   會員中心按「也用 Google／LINE 登入」→ 這裡：先重新登入目前的帳號、再登入要加的帳號（兩邊都帶這次綁定的 nonce）→
+   列出合在一起後的全部帳號 → 確定合併。版面＝置中卡（同 LINE 登入過場卡的 AuthCard）。 */
+---
+<BaseLayout title="連結帳號 · 找風問幸福" description="把你的 LINE 與 Google 帳號合成一份。" noindex={true}>
+  <main class="lk-wrap">
+    <div class="lk-card">
+      <div data-st="busy">
+        <div class="lk-top"><span class="zf-spinner lk-spin"></span></div>
+        <h1 class="lk-h1">請稍等</h1>
+      </div>
+      <div data-st="relogin" hidden>
+        <div class="lk-top"><span class="zf-spinner lk-spin"></span></div>
+        <h1 class="lk-h1" data-t="relogin">再登入一次目前的帳號</h1>
+        <p class="lk-sub" data-b="relogin">為了確認是你本人，請再登入一次目前的帳號。</p>
+      </div>
+      <div data-st="google" hidden>
+        <div class="lk-top"><span class="zf-icon-disc lk-disc"><i class="ph-thin ph-link-simple"></i></span></div>
+        <h1 class="lk-h1" id="lkGTitle">也用 Google 登入</h1>
+        <p class="lk-sub" id="lkGBody">登入要連在一起的 Google 帳號。</p>
+        <div class="lk-actions"><div id="lkGoogle" class="lk-gmount"></div></div>
+      </div>
+      <div data-st="confirm" hidden>
+        <div class="lk-top"><span class="zf-icon-disc lk-disc"><i class="ph-thin ph-link-simple"></i></span></div>
+        <h1 class="lk-h1">把這些帳號合成一份？</h1>
+        <div class="lk-stack">
+          <div class="am-note" id="lkChanged" hidden><i class="ph ph-arrows-clockwise"></i><span id="amNoteText">帳號狀態剛剛變了，請再確認一次</span><button type="button" class="zf-text-link" id="lkRefresh">重新整理</button></div>
+          <div class="lk-list" id="lkList"></div>
+          <p class="lk-body">合在一起之後，用其中任何一個登入都看得到全部紀錄和預約。之後可以在會員中心拆開。</p>
+          <button type="button" class="zf-btn primary lg full" id="lkYes">確定合併</button>
+          <button type="button" class="zf-btn secondary lg full" id="lkNo">先不要</button>
+        </div>
+      </div>
+      <div data-st="expired" hidden>
+        <div class="lk-top"><span class="zf-icon-disc lk-disc"><i class="ph-thin ph-clock"></i></span></div>
+        <h1 class="lk-h1">這次連結逾時了</h1>
+        <p class="lk-sub">回會員中心重新按一次就好。</p>
+        <div class="lk-actions"><a class="zf-btn secondary lg full" href="/account">回會員中心</a></div>
+      </div>
+      <div data-st="fail" hidden>
+        <div class="lk-top"><span class="zf-icon-disc lk-disc"><i class="ph-thin ph-warning-circle"></i></span></div>
+        <h1 class="lk-h1">這次沒有連成功</h1>
+        <p class="lk-sub">可能是等太久或網路不穩，回會員中心再試一次。</p>
+        <div class="lk-actions"><a class="zf-btn secondary lg full" href="/account">回會員中心</a></div>
+      </div>
+      <div data-st="storage" hidden>
+        <div class="lk-top"><span class="zf-icon-disc lk-disc"><i class="ph-thin ph-browser"></i></span></div>
+        <h1 class="lk-h1">這個瀏覽器存不了登入資料</h1>
+        <p class="lk-sub">請換一般的瀏覽器（不是無痕視窗）再試一次。</p>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .lk-wrap{display:flex;justify-content:center;padding:96px 32px 64px;background:var(--surface-page);min-height:calc(100vh - 76px);box-sizing:border-box;}
+    .lk-card{width:100%;max-width:460px;height:max-content;box-sizing:border-box;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:40px;text-align:center;}
+    .lk-card [hidden]{display:none !important;}
+    .lk-top{display:flex;justify-content:center;margin-bottom:18px;}
+    .lk-spin{width:44px;height:44px;border-width:4px;}
+    .lk-disc{width:56px;height:56px;}
+    .lk-disc i{font-size:26px;}
+    .lk-h1{margin:0;font-family:var(--font-serif);font-size:26px;font-weight:500;line-height:1.4;color:var(--text-primary);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .lk-sub{margin:12px auto 0;max-width:24em;font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.85;color:var(--text-secondary);text-wrap:pretty;}
+    .lk-actions{margin-top:28px;display:flex;flex-direction:column;gap:12px;align-items:stretch;}
+    .lk-gmount{display:flex;justify-content:center;min-height:44px;}
+    .lk-stack{margin-top:22px;display:flex;flex-direction:column;gap:14px;}
+    .lk-list{text-align:left;padding:0 16px;border-radius:var(--radius-md);border:1px solid var(--border-soft);transition:opacity var(--dur-fast) var(--ease-soft);}
+    .lk-list.dim{opacity:.5;}
+    .lk-body{margin:0;text-align:left;font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.85;color:var(--text-secondary);}
+    @media (max-width:760px){
+      .lk-wrap{padding:28px 16px 40px;min-height:calc(100vh - 64px);}
+      .lk-card{padding:32px 24px;}
+      .lk-h1{font-size:23px;}
+      .lk-sub{font-size:15px;}
+    }
+  </style>
+  <!-- 清單列是腳本畫的：沿用會員中心 am- 樣式（global） -->
+  <style is:global>
+    .lk-list .am-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border-soft);}
+    .lk-list .am-row:last-child{border-bottom:none;}
+    .lk-list .am-mark{width:36px;height:36px;flex:none;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;overflow:hidden;}
+    .lk-list .am-mark.line{background:#06C755;}
+    .lk-list .am-mark.line img{width:36px;height:36px;display:block;}
+    .lk-list .am-mark.google{background:var(--surface-card);border:1px solid var(--border-soft);}
+    .lk-list .am-mark.old{background:var(--rice-100);color:var(--ink-500);}
+    .lk-list .am-mark i{font-size:18px;line-height:1;}
+    .lk-list .am-who{flex:1;min-width:0;}
+    .lk-list .am-name{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--text-primary);word-break:normal;overflow-wrap:anywhere;}
+    .lk-list .am-sub{font-family:var(--font-sans);font-size:12.5px;line-height:1.6;color:var(--text-muted);word-break:normal;overflow-wrap:anywhere;}
+    .lk-count{flex:none;white-space:nowrap;font-family:var(--font-sans);font-size:13px;color:var(--text-secondary);}
+    .lk-card .am-note{text-align:left;padding:12px 14px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .lk-card .am-note > i{flex:none;font-size:16px;color:var(--accent-press);}
+    .lk-card .am-note #amNoteText{flex:1 1 12em;min-width:0;font-family:var(--font-sans);font-size:13.5px;line-height:1.7;color:var(--ink-700);}
+  </style>
+
+  <script is:inline src="/assets/line-login.js"></script>
+  <script is:inline src="/assets/account-link.js"></script>
+  <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
+  <script is:inline>
+    (function () {
+      function show(st) { document.querySelectorAll('.lk-card [data-st]').forEach(function (el) { el.hidden = el.getAttribute('data-st') !== st; }); }
+      var ui = {
+        show: function (st, initiator) {
+          if (st === 'relogin-line') { show('relogin'); return; }
+          if (st === 'google') {
+            document.getElementById('lkGTitle').textContent = initiator ? '再登入一次目前的帳號' : '也用 Google 登入';
+            document.getElementById('lkGBody').textContent = initiator ? '為了確認是你本人，請再登入一次目前的帳號。' : '登入要連在一起的 Google 帳號。';
+            show('google'); return;
+          }
+          show(st);
+        },
+        google: function (nonce, cb) {
+          var tries = 0;
+          (function init() {
+            if (!(window.google && google.accounts && google.accounts.id)) { if (++tries < 120) setTimeout(init, 250); else show('fail'); return; }
+            google.accounts.id.initialize({ client_id: WindsLink.CLIENT_ID, nonce: nonce, auto_select: false, context: 'signin', callback: function (r) { if (r && r.credential) cb(r.credential); } });
+            var m = document.getElementById('lkGoogle'); m.innerHTML = '';
+            google.accounts.id.renderButton(m, { theme: (window.ZFTheme && ZFTheme.isDark()) ? 'filled_black' : 'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: Math.min(380, m.clientWidth || 300), locale: 'zh-TW' });
+          })();
+        },
+        confirm: function (items, onYes, onNo) {
+          var list = document.getElementById('lkList');
+          list.className = 'lk-list';
+          list.innerHTML = items.map(function (it) { return WindsLink.row(it, '<span class="lk-count">' + (Number(it.readings) || 0) + ' 筆紀錄</span>'); }).join('');
+          document.getElementById('lkChanged').hidden = true;
+          var yes = document.getElementById('lkYes'); yes.disabled = false;
+          yes.onclick = function () { yes.disabled = true; onYes().then(function (ok) { if (!ok) yes.disabled = true; }); };
+          document.getElementById('lkNo').onclick = onNo;
+          show('confirm');
+        },
+        changed: function (again) {
+          document.getElementById('lkList').className = 'lk-list dim';
+          document.getElementById('lkYes').disabled = true;
+          document.getElementById('lkChanged').hidden = false;
+          document.getElementById('lkRefresh').onclick = again;
+        },
+      };
+      if (!window.WindsLink || !window.WindsLine) { show('fail'); return; }
+      WindsLink.runLinkPage(ui);
+    })();
+  </script>
+</BaseLayout>

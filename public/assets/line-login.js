@@ -17,7 +17,8 @@
   var REDIRECT_URI = 'https://winds.tw/auth/line-callback';
   var API = 'https://api.winds.tw';
   var TXN = 'winds_line_txn', TOKEN = 'winds_line_token', AT = 'winds_line_at', FRIEND = 'winds_line_friend';
-  var RETURNS = ['/history', '/bookings', '/account'];
+  var RETURNS = ['/history', '/bookings', '/account', '/account/link'];
+  var BIND = 'winds_bind';   // 2026-10-17 帳號合併：綁定交易（account-link.js 管），LINE 綁定模式回來把憑證放這裡
 
   function rand(n) {
     var a = new Uint8Array(n); crypto.getRandomValues(a);
@@ -77,6 +78,22 @@
     });
   }
 
+  /* 2026-10-17 帳號合併（規格 §5b）：綁定模式。nonce 用後端綁定交易給的（不是自己產生的），回來不換掉目前登入，
+     LINE 憑證只存進綁定交易，回 /account/link 繼續 */
+  function startBind(nonce, intentId) {
+    var state = rand(24), verifier = rand(48);
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)).then(function (h) {
+      pruneTxns();
+      setRequired(TXN + ':' + state, JSON.stringify({ state: state, nonce: nonce, verifier: verifier, ret: '/account/link', bind: intentId, t: Date.now() }));
+      var q = new URLSearchParams({
+        response_type: 'code', client_id: CHANNEL_ID, redirect_uri: REDIRECT_URI,
+        state: state, nonce: nonce, scope: 'openid profile',
+        code_challenge: b64url(new Uint8Array(h)), code_challenge_method: 'S256'
+      });
+      location.href = 'https://access.line.me/oauth2/v2.1/authorize?' + q.toString();
+    });
+  }
+
   function session() {
     var t = get(TOKEN); if (!t) return null;
     var p = decode(t);
@@ -123,6 +140,13 @@
     }).then(function (r) { return r.json().catch(function () { return null; }); })
       .then(function (d) {
         if (!d || !d.success || !d.id_token) throw { kind: 'exchange', ret: ret };
+        if (txn.bind) {
+          var b = null; try { b = JSON.parse(get(BIND) || 'null'); } catch (e) {}
+          if (!b || b.intent_id !== txn.bind) throw { kind: 'state', ret: '/account' };
+          b.line_token = d.id_token;
+          try { setRequired(BIND, JSON.stringify(b)); } catch (e) { throw { kind: 'storage', ret: '/account' }; }
+          return '/account/link';
+        }
         switchIdentity();
         try {
           setRequired(TOKEN, d.id_token);
@@ -165,5 +189,5 @@
     });
   }
 
-  window.WindsLine = { start: start, session: session, friend: friend, finish: finish, safeReturn: safeReturn, mountFriend: mountFriend };
+  window.WindsLine = { start: start, startBind: startBind, session: session, friend: friend, finish: finish, safeReturn: safeReturn, mountFriend: mountFriend };
 })();

@@ -15,6 +15,8 @@ const entries = [
   noindex={true}
 >
   <main class="ac-main" id="acMain" hidden>
+    <!-- 帳號合併提示（DS account-merge v1 ②④：拆完、兩組衝突、綁好） -->
+    <div class="am-note" id="amNote" hidden><i class="ph" id="amNoteIcon"></i><span id="amNoteText"></span><span id="amNoteAct"></span></div>
     <!-- 個人卡（DS 會員中心標頭 v1，2026-10-17）：大標自己佔一整列，登出移到底列跟登入方式放一起；
          手機頭像跟眉題同一列、大標在下一列。名字越長字級降一階，不截斷；「你好」黏住名字最後一個字 -->
     <div class="ac-card ac-person">
@@ -38,6 +40,15 @@ const entries = [
         </div>
         <button id="acLogout" class="ac-logout" type="button"><i class="ph-thin ph-sign-out"></i>登出</button>
       </div>
+    </div>
+
+    <!-- 已連結的帳號（DS account-merge v1 ①，2026-10-17）：連在一起的帳號，占卜紀錄和預約合在一起看 -->
+    <div class="ac-card ac-linked" id="amCard" hidden>
+      <h2 class="am-h2">已連結的帳號</h2>
+      <p class="am-body">連在一起的帳號，占卜紀錄和預約會合在一起看。</p>
+      <div class="am-rows" id="amRows"></div>
+      <p class="am-solo" id="amSolo" hidden>還沒連其他帳號</p>
+      <div class="am-add" id="amAdd" hidden></div>
     </div>
 
     <!-- 加入官方 LINE 提示（只給確定不是好友的 LINE 登入者） -->
@@ -88,6 +99,7 @@ const entries = [
     .ac-via-line[hidden]{display:none;}
     .ac-via-line img{flex:none;display:block;width:18px;height:18px;border-radius:5px;}
     .ac-friend{margin-top:20px;}
+
     /* DS Btn secondary sm */
     .ac-logout{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:var(--t-body-sm);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;white-space:nowrap;cursor:pointer;background:var(--surface-card);color:var(--ink-900);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
     .ac-logout:hover{background:var(--rice-100);}
@@ -118,11 +130,70 @@ const entries = [
       .ac-meta{margin-top:16px;padding-top:14px;}
       .ac-entries{grid-template-columns:1fr;gap:14px;margin-top:22px;}
       .ac-friend{margin-top:16px;}
+
       .ac-entry{padding:20px 20px;}
     }
   </style>
 
+
+  <!-- 帳號合併的元素是腳本畫出來的，scoped 樣式套不到 → 這段用 global（類名都以 am- 開頭） -->
+  <style is:global>
+    /* DS account-merge v1（2026-10-17）：已連結的帳號、拆開確認、提示框——只組現有元件，數值照 DS 稿 */
+    .ac-linked{margin-top:20px;padding:28px 32px;box-shadow:var(--shadow-sm);}
+    .ac-linked[hidden],.am-note[hidden]{display:none;}
+    .am-h2{margin:0;font-family:var(--font-serif);font-size:19px;font-weight:500;line-height:1.4;color:var(--text-primary);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .am-body{margin:6px 0 0;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.85;color:var(--text-secondary);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .am-rows{margin-top:8px;}
+    .am-solo{margin:4px 0 0;font-family:var(--font-sans);font-size:13.5px;line-height:1.6;color:var(--text-muted);}
+    .am-add{margin-top:18px;display:grid;grid-template-columns:1fr;gap:12px;max-width:360px;}
+    .am-add[hidden]{display:none;}
+    .am-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border-soft);}
+    .am-row:last-child{border-bottom:none;}
+    .am-mark{width:36px;height:36px;flex:none;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;overflow:hidden;}
+    .am-mark.line{background:#06C755;}
+    .am-mark.line img{width:36px;height:36px;display:block;}
+    .am-mark.google{background:var(--surface-card);border:1px solid var(--border-soft);}
+    .am-mark.old{background:var(--rice-100);color:var(--ink-500);}
+    .am-mark i{font-size:18px;line-height:1;}
+    .am-who{flex:1;min-width:0;}
+    .am-name{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--text-primary);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .am-sub{font-family:var(--font-sans);font-size:12.5px;line-height:1.6;color:var(--text-muted);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
+    .am-unlink{all:unset;cursor:pointer;flex:none;min-height:44px;padding:0 4px;display:inline-flex;align-items:center;font-family:var(--font-sans);font-size:14px;color:var(--accent-press);text-decoration:underline;text-decoration-color:var(--rose-300);text-underline-offset:4px;white-space:nowrap;}
+    .am-unlink:focus-visible{box-shadow:var(--focus-ring);border-radius:4px;}
+    /* Google 官方鈕的樣子（GIS size=large 40 高；按下才去 /account/link 開真的 Google 登入，要帶這次綁定的 nonce） */
+    .am-gbtn{all:unset;cursor:pointer;display:flex;width:100%;height:40px;border-radius:var(--radius-pill);box-sizing:border-box;align-items:center;padding:0 12px;gap:10px;background:#fff;border:1px solid #DADCE0;color:#1F1F1F;font-family:Roboto,var(--font-sans);font-size:14px;font-weight:500;white-space:nowrap;}
+    .am-gbtn span{flex:1;text-align:center;margin-right:28px;}
+    .am-gbtn:focus-visible{box-shadow:var(--focus-ring);}
+    [data-theme="dark"] .am-gbtn{background:#131314;border-color:#8E918F;color:#E3E3E3;}
+    @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .am-gbtn{background:#131314;border-color:#8E918F;color:#E3E3E3;}}
+    .am-note{margin-bottom:16px;padding:12px 14px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .am-note > i{flex:none;font-size:16px;color:var(--accent-press);}
+    .am-note #amNoteText{flex:1 1 12em;min-width:0;font-family:var(--font-sans);font-size:13.5px;line-height:1.7;color:var(--ink-700);word-break:normal;overflow-wrap:anywhere;}
+    /* 拆開確認：手機底部抽屜、電腦置中小視窗（站上既有 sheet／modal 的值） */
+    .am-sheet-bg{position:fixed;inset:0;z-index:200;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:32px;}
+    .am-sheet{width:100%;max-width:460px;box-sizing:border-box;background:var(--surface-card);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:32px 32px 28px;max-height:calc(100vh - 64px);overflow:auto;}
+    .am-handle{display:none;width:40px;height:4px;border-radius:999px;background:var(--border-strong);margin:0 auto 18px;}
+    .am-sheet h2{font-size:21px;}
+    .am-check{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;font-family:var(--font-sans);font-size:14px;color:var(--ink-700);margin-top:8px;}
+    .am-check i{flex:none;font-size:22px;}
+    .am-check .on{color:var(--accent);}
+    .am-check .off{color:var(--border-strong);}
+    .am-remain{margin-top:12px;padding:12px 16px 4px;border-radius:var(--radius-md);background:var(--surface-sunken);}
+    .am-remain-h{font-family:var(--font-sans);font-size:13.5px;line-height:1.6;color:var(--ink-700);}
+    .am-actions{margin-top:22px;display:flex;flex-direction:row-reverse;gap:10px;}
+    .am-err{margin:12px 0 0;font-family:var(--font-sans);font-size:13.5px;color:var(--critical);}
+    @media (max-width:760px){
+      .ac-linked{margin-top:16px;padding:22px 20px;}
+      .am-add{max-width:none;}
+      .am-sheet-bg{align-items:flex-end;padding:0;}
+      .am-sheet{max-width:none;border-radius:var(--radius-xl) var(--radius-xl) 0 0;box-shadow:var(--shadow-sheet-up);padding:12px 20px 28px;max-height:90vh;}
+      .am-handle{display:block;}
+      .am-actions{flex-direction:column;}
+      .am-actions .zf-btn{width:100%;}
+    }
+  </style>
   <script is:inline src="/assets/line-login.js"></script>
+  <script is:inline src="/assets/account-link.js"></script>
   <script is:inline>
     (function () {
       var token = '';
@@ -167,6 +238,7 @@ const entries = [
       }
       document.getElementById('acMain').hidden = false;
       if (user.viaLine) WindsLine.mountFriend(document.getElementById('acFriend'));
+      if (window.WindsLink) WindsLink.mountAccount();
 
       document.getElementById('acLogout').addEventListener('click', function () {
         /* 2026-09-26（Codex 複審抓到，實際比它說的更嚴重）：原本登出只清 winds_google_token，

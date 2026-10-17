@@ -54,6 +54,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
       <div class="hr-friend" id="hrFriend" hidden></div>
       <div class="hr-cards" id="hrCards"></div>
+      <div class="hr-more" id="hrMore"></div>
     </main>
 
     <!-- 4 · 空狀態 -->
@@ -175,7 +176,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .hr-q{font-size:15.5px;}
       .hr-rec-foot{padding-top:13px;}
     }
-  </style>
+    .hr-more{display:flex;justify-content:center;margin-top:8px;}
+  .hr-more:empty{display:none;}
+  @media (max-width:760px){.hr-more .zf-btn{width:100%;}}
+</style>
 
   <script is:inline src="/assets/line-login.js"></script>
   <script is:inline>
@@ -237,10 +241,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (picture) av.innerHTML = '<img src="' + esc(picture) + '" alt="' + esc(name) + '">';
         else av.textContent = (name || '你').trim().slice(0, 1);
       }
-      function renderList() { $('hrCards').innerHTML = records.map(bookingCard).join(''); }
+      function renderList() { $('hrCards').innerHTML = records.map(bookingCard).join(''); renderMore(true); }
 
       /* 2026-09-26（與 history.astro 同款問題，一併修）：網路失敗、非 JSON、驗證失敗與真的沒有預約
          原本全部導向同一個「還沒有預約」。已經有預約的人碰到 API 暫時失敗會以為預約被取消了。 */
+      /* DS account-merge v1 ⑨：清單最後一頁底下「看更早的」（後端還有下一批才出現） */
+      function renderMore(onLast) {
+        var m = $('hrMore'); if (!m) return;
+        m.innerHTML = nextBefore && onLast ? '<button type="button" class="zf-btn secondary lg" id="hrMoreBtn">看更早的</button>' : '';
+        var b = $('hrMoreBtn');
+        if (b) b.onclick = function () { b.disabled = true; if (lastArgs) loadBookings(lastArgs[0], lastArgs[1], lastArgs[2], true); };
+      }
       function showLoadError() {
         var h = $('hrEmptyH1'), p = $('hrEmptyP'), b = $('hrEmptyBtn');
         if (h) h.textContent = '預約暫時讀不到';
@@ -248,9 +259,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (b) { b.innerHTML = '<i class="ph ph-arrow-clockwise"></i>重新整理'; b.setAttribute('href', location.pathname); }
         show('hrEmpty');
       }
-      function loadBookings(sub, token, viaLine) {
+      /* 2026-10-17 帳號合併：清單是連在一起的帳號合成一份（後端），每次 50 筆；surface=web＝連結都開網站頁。
+         more＝按「看更早的」接著讀下一批（DS account-merge v1 ⑨） */
+      var nextBefore = null, lastArgs = null;
+      function loadBookings(sub, token, viaLine, more) {
+        lastArgs = [sub, token, viaLine];
         /* 2026-10-16：LINE 登入（line-login.js）拿到的是 LINE id_token → 走後端既有的 line_user_id＋X-Line-Id-Token 分支 */
-        fetch(WORKER_API + '/my-bookings?' + (viaLine ? 'line_user_id=' : 'google_sub=') + encodeURIComponent(sub), { headers: viaLine ? { 'X-Line-Id-Token': token || '' } : { 'X-Google-Id-Token': token || '' } })
+        fetch(WORKER_API + '/my-bookings?' + (viaLine ? 'line_user_id=' : 'google_sub=') + encodeURIComponent(sub) + '&surface=web' + (more && nextBefore ? '&before=' + encodeURIComponent(nextBefore) : ''), { headers: viaLine ? { 'X-Line-Id-Token': token || '' } : { 'X-Google-Id-Token': token || '' } })
           .then(function (r) {
             /* 2026-10-16（Astra 審 LINE 登入）：登入過期或 LINE／Google 不認這張憑證（401）原本也走「暫時讀不到」，
                客人重新整理幾次都一樣。改成清掉這張憑證、回到未登入畫面讓他重新登入；403 身分不符與其他錯誤照舊 */
@@ -268,8 +283,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           .then(function (d) {
             if (d === null) return;
             if (!d || !d.success) { showLoadError(); return; }
-            clientName = d.client_name || '';
-            records = d.bookings || [];
+            clientName = d.client_name || clientName;
+            records = more ? records.concat(d.bookings || []) : (d.bookings || []);
+            nextBefore = d.next_before || null;
             if (!records.length) { show('hrEmpty'); return; }
             renderHeader(); renderList(); show('hrList');
             if (viaLine && window.WindsLine) WindsLine.mountFriend($('hrFriend'));
