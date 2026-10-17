@@ -322,7 +322,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var fullLogin = document.getElementById('gfFullLogin');
       if (fullLogin) fullLogin.addEventListener('click', function () { var t = storedToken(); if (t) { claim(t, true); } else { reLogin(true); } });   // 憑證過期就換回登入鈕，登入後照「只取回」查
       // waitlist
-      if (window.ZFContact) ZFContact.autofill({ email: document.getElementById('gfWaitEmail') });   // 2026-10-18 全站自動帶入：別張表單填過的 Gmail
+      if (window.ZFContact) ZFContact.autofill({ email: document.getElementById('gfWaitEmail') }, { notice: document.getElementById('gfWaitEmail'), noticeGap: 10 });   // 2026-10-18 全站自動帶入：別張表單填過的 Gmail
       document.getElementById('gfWaitForm').addEventListener('submit', function (ev) {
         ev.preventDefault();
         var email = document.getElementById('gfWaitEmail').value.trim();

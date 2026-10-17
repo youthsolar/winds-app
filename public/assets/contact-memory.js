@@ -7,14 +7,20 @@
  *
  * ZFContact.save(o)       送出時記下來。o 可帶 last／first（分開兩格）或 name（只有一格全名）、phone、email、
  *                         birth（YYYY-MM-DD）＋shi（0–11 時辰序；-1＝客人選了「不確定」）
- * ZFContact.get(cb)       先回手機記的；登入帳號的那份到了，若有更新的再回一次（cb 可能被叫兩次）
+ * ZFContact.get(cb, done) 先回手機記的；登入帳號的那份到了，若有更新的再回一次（cb 可能被叫兩次）；done＝兩份都比完
  * ZFContact.autofill(g)   一般表單用：g = { name: {last, first} 或 {full}, phone, email, birth: {y, m, d, h} }（都是欄位元素）
  *                         客人動過的那一組就不再帶；還是自動帶的值（客人沒改）才會被更新的資料換掉
- * ZFContact.forget()      清掉這支手機記的
+ * ZFContact.forget()      清掉這支手機記的，這一頁也不再從帳號帶入（客人按「不是你？清除」）
+ * ZFContact.notice(onClear, inline)   「不是你？清除」那一列的元素（DS 10/18 v1）；inline＝占卜頁的一行小字版
+ * ZFContact.cleared(inline)           清除後的狀態字（role=status）
+ *
+ * autofill(g, { notice: 元素, noticeClass, noticeGap, noticeSpan })：有帶入時，把「已帶入上次填的資料・不是你？清除」放在該元素正上方；
+ * 按清除＝清掉手機記的、清空自動帶的格子（客人自己打的不動）、這一頁不再帶，那一列換成「已清空…」，客人一開始打字就收起。
  */
 (function () {
   var API = 'https://api.winds.tw';
   var KEY = 'winds_contact';
+  var suppressed = false;   // 這一頁按過「不是你？清除」：不再帶入（包括登入帳號那份）
   var mem = null;   // 只在 localStorage 寫不進去（無痕、部分內建瀏覽器）時用，這一頁還記得；寫得進去就每次重讀，別的分頁改過也讀得到
 
   function phone(v) { var x = String(v || '').replace(/[\s-]/g, '').replace(/^\+886/, '0'); return /^09\d{8}$/.test(x) ? x : ''; }
@@ -52,7 +58,39 @@
     try { localStorage.setItem(KEY, JSON.stringify(c)); mem = null; } catch (e) { mem = c; }
   }
 
-  function forget() { mem = null; try { localStorage.removeItem(KEY); } catch (e) {} }
+  function forget() {
+    mem = null; suppressed = true;
+    // winds_ff_log／winds_ff_k＝這支手機上次起卦那一卦（占卜頁「回訪一行」靠它）；不是本人就一起清，免得開占卜頁又出現上一位（Astra v2 #2）
+    try { localStorage.removeItem(KEY); localStorage.removeItem('winds_ff_log'); localStorage.removeItem('winds_ff_k'); } catch (e) {}
+  }
+
+  // ── 「不是你？清除」（DS 表單自動帶入 v1：sunken 淺底一列、TextLink 底線字；占卜頁是無底色的一行小字）──
+  var CSS = '.zf-af{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:var(--radius-md);background:var(--surface-sunken);font-family:var(--font-sans);font-size:13px;line-height:1.5;color:var(--text-secondary)}' +
+    '.zf-af-l{display:inline-flex;align-items:center;gap:8px;min-width:0}.zf-af-l i{font-size:16px;flex:none}.zf-af-l i.ok{color:var(--accent-press)}' +
+    '.zf-af-r{display:inline-flex;align-items:center;gap:6px;flex:none;white-space:nowrap}' +
+    '.zf-af-link{all:unset;cursor:pointer;font-family:var(--font-sans);font-size:13px;font-weight:500;color:var(--accent-press);border-bottom:1px solid var(--rose-200);padding-bottom:1px;line-height:1.4;white-space:nowrap}' +
+    '.zf-af-link:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}' +
+    '.zf-af-inline{display:flex;align-items:center;gap:6px;padding:0 4px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted)}';
+  function css() {
+    if (document.getElementById('zf-af-css')) return;
+    var st = document.createElement('style'); st.id = 'zf-af-css'; st.textContent = CSS; (document.head || document.documentElement).appendChild(st);
+  }
+  function notice(onClear, inline) {
+    css();
+    var el = document.createElement('div');
+    if (inline) { el.className = 'zf-af-inline'; el.innerHTML = '不是你？<button type="button" class="zf-af-link">清除</button>'; }
+    else { el.className = 'zf-af'; el.innerHTML = '<span class="zf-af-l"><i class="ph-thin ph-clock-counter-clockwise" aria-hidden="true"></i>已帶入上次填的資料</span><span class="zf-af-r">不是你？<button type="button" class="zf-af-link">清除</button></span>'; }
+    el.querySelector('button').addEventListener('click', function () { onClear(); });
+    return el;
+  }
+  function cleared(inline) {
+    css();
+    var el = document.createElement('div');
+    el.setAttribute('role', 'status');
+    if (inline) { el.className = 'zf-af-inline'; el.textContent = '已清空，請重新告訴老師你的資料。'; }
+    else { el.className = 'zf-af'; el.innerHTML = '<span class="zf-af-l"><i class="ph-thin ph-check-circle ok" aria-hidden="true"></i>已清空，請填寫你自己的資料。</span>'; }
+    return el;
+  }
 
   function authHeaders() {
     try {
@@ -88,28 +126,35 @@
   }
   function same(x, y) { return JSON.stringify(x) === JSON.stringify(y); }
 
-  function get(cb) {
+  // done（選填）：兩份都比完了才叫（沒登入就馬上叫；帳號那份回來、失敗或 4 秒沒回都算完）。占卜頁回訪一行要等它，才知道信箱有沒有比較新的
+  function get(cb, done) {
+    var fin = false, end = function () { if (!fin) { fin = true; if (done) done(); } };
+    if (suppressed) return end();
     var l = local(), first = l ? merge(l, null) : null;
     if (first) cb(first);
     var h = authHeaders();
-    if (!h) return;
+    if (!h) return end();
+    setTimeout(end, 4000);
     fetch(API + '/my-contact', { headers: h, cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
-      if (!d || !d.found) return;
+      if (!d || !d.found || suppressed) return;
       var m = merge(local(), fromAccount(d));
       if (!first || !same(first, m)) cb(m);
-    }).catch(function () {});
+    }).catch(function () {}).then(end);
   }
 
   // ── 一般表單：整組帶、客人動過的那組不再帶 ──
-  function autofill(g) {
-    g = g || {};
-    var groups = [];
+  function autofill(g, opts) {
+    g = g || {}; opts = opts || {};
+    var groups = [], box = null;
+    // 放進不同版面：opts.noticeClass（例如格線表單要跨兩欄的 wide）、opts.noticeGap（一般流排要的下距，px）
+    function deco(el) { if (opts.noticeClass) el.className += ' ' + opts.noticeClass; if (opts.noticeGap) el.style.marginBottom = opts.noticeGap + 'px'; if (opts.noticeSpan) el.style.gridColumn = '1 / -1'; return el; }
     function grp(key, els, setter) {
       els = els.filter(Boolean);
       if (!els.length) return;
       var G = { key: key, els: els, touched: false, set: setter };
       els.forEach(function (el) {
-        var mark = function (ev) { if (ev.isTrusted) G.touched = true; };
+        // 客人動過這一格：整組不再帶，這一格也不再算「自動帶的」（清除時不會清掉客人自己打的，就算打的字跟帶入的一樣；Astra v2 #5）
+        var mark = function (ev) { if (ev.isTrusted) { G.touched = true; el.removeAttribute('data-zf-auto'); } };
         el.addEventListener('input', mark); el.addEventListener('change', mark);
       });
       groups.push(G);
@@ -135,8 +180,30 @@
       // 時辰下拉：第一個選項是「不確定」，後面依子丑寅…排；記的是「不確定」(-1) 就選回第一個
       var h = g.birth.h; if (h) { var o = h.options[c.shi >= 0 ? c.shi + 1 : 0]; if (o) put(h, o.value); }
     });
-    get(function (c) { groups.forEach(function (G) { if (free(G)) G.set(c); }); });
+    function clearAll() {
+      forget();
+      groups.forEach(function (G) {
+        G.els.forEach(function (el) {
+          var a = el.getAttribute('data-zf-auto');
+          if (a !== null && el.value === a) el.value = el.tagName === 'SELECT' && el.options.length ? el.options[0].value : '';
+          el.removeAttribute('data-zf-auto');
+        });
+        G.touched = true;
+      });
+      if (window.zfFixDays) window.zfFixDays();
+      var done = deco(cleared(false));
+      if (box && box.parentNode) box.parentNode.replaceChild(done, box);
+      box = done;
+      // 客人開始填，就收起「已清空」
+      var off = function (ev) { if (!ev.isTrusted) return; if (box && box.parentNode) box.parentNode.removeChild(box); box = null; groups.forEach(function (G) { G.els.forEach(function (el) { el.removeEventListener('input', off); el.removeEventListener('change', off); }); }); };
+      groups.forEach(function (G) { G.els.forEach(function (el) { el.addEventListener('input', off); el.addEventListener('change', off); }); });
+    }
+    get(function (c) {
+      var any = false;
+      groups.forEach(function (G) { if (free(G) && G.set(c) !== false) any = true; });
+      if (any && opts.notice && !box && opts.notice.parentNode) { box = deco(notice(clearAll, false)); opts.notice.parentNode.insertBefore(box, opts.notice); }
+    });
   }
 
-  window.ZFContact = { save: save, get: get, autofill: autofill, forget: forget };
+  window.ZFContact = { save: save, get: get, autofill: autofill, forget: forget, notice: notice, cleared: cleared, css: css };
 })();

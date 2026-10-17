@@ -634,7 +634,7 @@ const jsonLd = prov ? [
           '<label class="bw-fld"><span class="bw-lbl">想先讓老師知道的事（選填）</span><textarea class="bw-in" id="wzNote" rows="3" maxlength="300" placeholder="可以簡單寫下想聊的事，也可以留白，預約當天再聊。">' + esc(f.note || '') + '</textarea></label>';
         shell(4, '留下聯絡方式', inner, BACK + nextBtn('data-next', '下一步'));
         /* 2026-10-18 全站自動帶入：第一次打開這一步，帶入在別張表單填過的姓名、手機、Gmail（只補空格，客人可改；見 contact-memory.js） */
-        if (!W.fields && window.ZFContact) ZFContact.autofill({ name: { last: document.getElementById('wzLast'), first: document.getElementById('wzFirst') }, phone: document.getElementById('wzPhone'), email: document.getElementById('wzEmail') });
+        if (!W.fields && window.ZFContact) ZFContact.autofill({ name: { last: document.getElementById('wzLast'), first: document.getElementById('wzFirst') }, phone: document.getElementById('wzPhone'), email: document.getElementById('wzEmail') }, { notice: document.getElementById('wzLast').closest('label, .bw-fld'), noticeSpan: true });   // DS v1 ①：帶入時「姓」上方出現「不是你？清除」（格線表單，跨兩欄）
         W.topicPick = f.topic || '';
         on('[data-topic]', function (b) { W.topicPick = W.topicPick === b.dataset.topic ? '' : b.dataset.topic; q('[data-topic]').forEach(function (c) { c.classList.toggle('on', c.dataset.topic === W.topicPick); }); });
         W.heardPick = f.heard || '';

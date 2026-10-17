@@ -1306,25 +1306,26 @@ function viewAsk(){
       '<div class="ff-shilabel">'+shiName(d.shi)+'<small>'+SHI[d.shi][1]+'</small></div>';
   }
   if(k==="gender")ctl='<div class="ff-seals">'+["女","男"].map(function(g){return '<button type="button" class="'+(d.gender===g?'on':'')+'" onclick="ffSet(\'gender\',\''+g+'\')">'+g+'</button>'}).join("")+'</div>';
-  if(k==="name")ctl='<div class="ff-name"><input class="ff-inp" id="ffSur" type="text" value="'+esc(d.surname)+'" placeholder="姓" aria-label="姓" autocomplete="family-name" oninput="STATE.data.surname=this.value"><input class="ff-inp" id="ffGiven" type="text" value="'+esc(d.given)+'" placeholder="名" aria-label="名" autocomplete="given-name" oninput="STATE.data.given=this.value"></div>';
-  if(k==="phone"){var pb=ffPhoneBad(d.phone);ctl='<input class="ff-inp'+(pb?' bad':'')+'" id="ffPhone" type="tel" inputmode="tel" autocomplete="tel" value="'+esc(d.phone)+'" placeholder="0912345678" aria-label="手機" oninput="STATE.data.phone=this.value.trim();ffNextState()">'+
+  if(k==="name")ctl='<div class="ff-name"><input class="ff-inp" id="ffSur" type="text" value="'+esc(d.surname)+'" placeholder="姓" aria-label="姓" autocomplete="family-name" oninput="STATE.data.surname=this.value;ffTouch(\'surname\')"><input class="ff-inp" id="ffGiven" type="text" value="'+esc(d.given)+'" placeholder="名" aria-label="名" autocomplete="given-name" oninput="STATE.data.given=this.value;ffTouch(\'given\')"></div>';
+  if(k==="phone"){var pb=ffPhoneBad(d.phone);ctl='<input class="ff-inp'+(pb?' bad':'')+'" id="ffPhone" type="tel" inputmode="tel" autocomplete="tel" value="'+esc(d.phone)+'" placeholder="0912345678" aria-label="手機" oninput="STATE.data.phone=this.value.trim();ffTouch(\'phone\');ffNextState()">'+
     '<div class="ff-hint" id="ffPhoneHint">'+(pb?'台灣手機請填 09 開頭 10 碼，國外號碼請加 + 國碼':'')+'</div>';}
-  if(k==="email"){var bad=!!d.email&&!validGmail(d.email);ctl='<input class="ff-inp'+(bad?' bad':'')+'" id="ffEmail" type="email" inputmode="email" autocomplete="email" value="'+esc(d.email)+'" placeholder="信箱" oninput="STATE.data.email=this.value.trim();ffNextState()">'+
+  if(k==="email"){var bad=!!d.email&&!validGmail(d.email);ctl='<input class="ff-inp'+(bad?' bad':'')+'" id="ffEmail" type="email" inputmode="email" autocomplete="email" value="'+esc(d.email)+'" placeholder="信箱" oninput="STATE.data.email=this.value.trim();ffTouch(\'email\');ffNextState()">'+
     '<div class="ff-hint" id="ffEmailHint">'+(bad?'目前只收 Gmail 信箱，再看一下拼法':'')+'</div>';}
   var canNext=!((k==="month"&&!d.month)||(k==="day"&&!d.day)||(k==="gender"&&!d.gender)||(k==="email"&&!validGmail(d.email))||(k==="phone"&&!phoneE164(d.phone)));
   return '<main class="shell narrow ff">'+
     '<div class="ff-prog">'+ASK.map(function(_,i){return '<i class="'+(i<=STATE.ask?'on':'')+'"></i>'}).join("")+'</div>'+
-    '<div class="ff-chat'+(still?' still':'')+'">'+ffWho()+bubbles+'<div class="ff-ctl">'+ctl+'</div>'+
+    '<div class="ff-chat'+(still?' still':'')+'">'+ffWho()+bubbles+'<div class="ff-ctl">'+ctl+ffAfLine(k)+'</div>'+
     '<div class="ff-next">'+(STATE.ask>0?'<button class="zf-btn secondary sm" onclick="ffPrev()">上一題</button>':'')+
     '<button class="zf-btn primary sm" id="ffNext" '+(canNext?'':'disabled')+' onclick="ffNext()">'+(STATE.ask===ASK.length-1||STATE.retPhone?'排命盤':'下一題')+'</button></div></div></main>';
 }
 /* 該月有幾天（閏年跟著年份走）：日子只列到月底；改了年或月，原本選的日子超過月底就清掉 */
 function ffDaysIn(y,m){return new Date(y||1990,m||1,0).getDate();}
 /* 10/10 Jeffery：選月份／日期／時辰會整頁重畫，泡泡的進場動畫跟著重播（看起來跳一下）→ 同一題裡的重畫不播 */
-function ffSet(key,val){STATE.data[key]=val;STATE.ffStill=true;var d=STATE.data;if((key==="month"||key==="year")&&d.day&&d.day>ffDaysIn(d.year,d.month))d.day=null;render();}
+function ffSet(key,val){STATE.data[key]=val;ffTouch(key);STATE.ffStill=true;var d=STATE.data;if((key==="month"||key==="year")&&d.day&&d.day>ffDaysIn(d.year,d.month))d.day=null;render();}
 function ffNextState(){var b=document.getElementById("ffNext");if(!b)return;var d=STATE.data,k=ASK[STATE.ask];var ok=!((k==="email"&&!validGmail(d.email))||(k==="phone"&&!phoneE164(d.phone)));b.disabled=!ok;ffPhoneHint();var h=document.getElementById("ffEmailHint"),inp=document.getElementById("ffEmail");if(h){var bad=!!d.email&&!validGmail(d.email);h.textContent=bad?'目前只收 Gmail 信箱，再看一下拼法':'';if(inp)inp.classList.toggle("bad",bad);}}
 function ffPrev(){if(STATE.retPhone){STATE.retPhone=false;go("ret");return;}if(STATE.ask>0){STATE.ask--;render();}}
 function ffNext(){
+  STATE.afClearedAt=-1;   /* 「已清空」只留在按清除的那一題 */
   var k=ASK[STATE.ask],d=STATE.data;
   if(k==="day"&&d.month&&d.day>new Date(d.year,d.month,0).getDate()){showFfErr(d.month+" 月沒有 "+d.day+" 日，再選一次。");return;}
   if(k==="phone"&&STATE.retPhone){if(!phoneE164(d.phone)){ffNextState();return;}submitFree();return;}
@@ -1335,7 +1336,7 @@ function ffNext(){
 function ffDialWire(){
   var m=document.getElementById("ffMirror");if(!m||!m.classList.contains("dial"))return;
   var sx=null,acc=0,moved=0;
-  function setY(y){y=Math.max(1940,Math.min(new Date().getFullYear(),y));if(y===STATE.data.year)return;STATE.data.year=y;if(STATE.data.day&&STATE.data.day>ffDaysIn(y,STATE.data.month))STATE.data.day=null;var t=m.querySelector(".ff-ticks");if(t)t.outerHTML=ffDialTicks(m.clientWidth-20,y);var e=document.getElementById("ffDialY");if(e)e.textContent=y;var mm=document.getElementById("ffDialM");if(mm)mm.textContent="民國 "+(y-1911);m.setAttribute("aria-valuenow",y);}
+  function setY(y){y=Math.max(1940,Math.min(new Date().getFullYear(),y));if(y===STATE.data.year)return;STATE.data.year=y;ffTouch("year");if(STATE.data.day&&STATE.data.day>ffDaysIn(y,STATE.data.month))STATE.data.day=null;var t=m.querySelector(".ff-ticks");if(t)t.outerHTML=ffDialTicks(m.clientWidth-20,y);var e=document.getElementById("ffDialY");if(e)e.textContent=y;var mm=document.getElementById("ffDialM");if(mm)mm.textContent="民國 "+(y-1911);m.setAttribute("aria-valuenow",y);}
   m.addEventListener("pointerdown",function(e){sx=e.clientX;acc=0;moved=0;try{m.setPointerCapture(e.pointerId);}catch(x){}});
   m.addEventListener("pointermove",function(e){if(sx===null)return;var dx=e.clientX-sx;sx=e.clientX;acc+=dx;moved+=Math.abs(dx);var step=Math.trunc(acc/9);if(step){acc-=step*9;setY(STATE.data.year+step);}});
   m.addEventListener("pointerup",function(e){if(sx===null)return;if(moved<4){var r=m.getBoundingClientRect();setY(STATE.data.year+((e.clientX-r.left)<r.width/2?-1:1));}sx=null;});
@@ -1347,11 +1348,15 @@ function ffDialWire(){
 /* ── 4b 回訪一行 ── */
 function viewRet(){
   var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);var shi=isNaN(hh)?6:Math.floor(((hh+1)%24)/2);
-  var line=[(r.last_name||"")+(r.first_name||""),ymd.length===3?(+ymd[0])+"/"+(+ymd[1])+"/"+(+ymd[2]):"",shiName(shi),r.gender||"",r.email_masked||""].filter(Boolean).join("・");
+  var line=[(r.last_name||"")+(r.first_name||""),ymd.length===3?(+ymd[0])+"/"+(+ymd[1])+"/"+(+ymd[2]):"",shiName(shi),r.gender||""].filter(Boolean).join("・"),em=r.email_masked||"",mm=STATE.afReady?ffRetMismatch():"",mp=mm?ffMaskPair(r.email,mm):[];   /* 信箱另外包一段：不在 @ 中間斷行，換成新信箱時標色（DS v1 ③） */
   return '<main class="shell narrow ff"><div class="step-intro"><span class="eyebrow"><span class="dot"></span>老師開口</span></div>'+
     '<div class="ff-chat">'+ffWho()+ffBub("這一卦我知道了。上次你留過生辰，還是用同一份嗎？")+
-    '<div class="ff-chip"><span>'+esc(line)+'</span><a href="#" onclick="ffEditRet();return false;">改</a></div>'+
-    '<div class="ff-next"><button class="zf-btn primary sm" onclick="submitFree()">就用這個</button></div></div></main>';
+    '<div class="ff-chip"><span>'+esc(line)+(em?(line?'・':'')+'<span style="white-space:nowrap'+(STATE.retEmailPick==="new"?';color:var(--accent-press)':'')+'">'+esc(em)+'</span>':'')+'</span><a href="#" onclick="ffEditRet();return false;">改</a></div>'+
+    '<div class="zf-af-inline" style="margin-top:10px">不是你？<button type="button" class="zf-af-link" onclick="ffAfClear()">清除</button></div>'+
+    /* DS v1 ③：信箱跟最近填的不一樣 → 老師多問一句，兩個選擇不分主次；選之前不出現〔就用這個〕（免得沒選就送出、信寄錯） */
+    (mm?ffBub("你最近用的是 "+esc(mp[1])+"，這次要改用這個嗎？")+
+      '<div class="ff-next"><button class="zf-btn ghost sm" onclick="ffRetPick(0)">'+(mp[0]===mp[1]?'維持原本的':'維持 '+esc(mp[0].split("@")[0]))+'</button><button class="zf-btn ghost sm" onclick="ffRetPick(1)">'+(mp[0]===mp[1]?'改用新的':'改用 '+esc(mp[1].split("@")[0]))+'</button></div>'
+    :'<div class="ff-next"><button class="zf-btn primary sm" onclick="submitFree()"'+(STATE.afReady?'':' disabled')+'>就用這個</button></div>')+'</div></main>';   /* 最近的信箱還在比對（最多 4 秒）先不能按 */
 }
 function ffEditRet(){var r=STATE.retInfo||{};var dob=String(r.date_of_birth||"").split(" ");var ymd=(dob[0]||"").split("-");var hh=parseInt((dob[1]||"12:00").split(":")[0],10);
   STATE.data={year:+ymd[0]||1990,month:+ymd[1]||null,day:+ymd[2]||null,shi:isNaN(hh)?6:Math.floor(((hh+1)%24)/2),gender:r.gender||"",surname:r.last_name||"",given:r.first_name||"",phone:r.phone||"",email:r.email||"",home:STATE.data.home||"",loveWho:STATE.data.loveWho||"",loveAngle:STATE.data.loveAngle||""}; /* 2026-09-26 Codex 抓到：原本只留 home，好愛兩題被清掉 → 送出時被踢回重選 */
@@ -2244,15 +2249,16 @@ function submitFree(){
     if(HOME&&!d.home){showFfErr("先說一聲這張符要守護哪裡？");go("hex");return;}
     if(LOVE&&!lvReady()){showFfErr("先回到上一步，把兩個選項選完。");go("landing");return;}
     var r=STATE.retInfo;
+    if(!STATE.afReady||ffRetMismatch()){go("ret");return;}   /* DS v1 ③：最近的信箱還沒比完、或還沒選要用哪個信箱，不送（Astra v2 #6） */
     /* 2026-10-09 起卦補問手機（必填）：回訪的人沒留過手機，只補問手機這一題（STATE.retPhone），其餘照上次原樣送。
        不走 ffEditRet：那會把出生時間換成時辰代表時間，誤觸「改生日要確認」（Astra 抓到） */
     var needPhone=!(r.has_phone||r.phone);
     if(needPhone&&!phoneE164(d.phone)){STATE.retPhone=true;STATE.ask=ASK.indexOf("phone");go("ask");return;}
     payload={date_of_birth:r.date_of_birth||"",last_name:r.last_name||"",first_name:r.first_name||"",gender:r.gender||"",email:r.email||""};
-    if(needPhone)payload.phone=phoneE164(d.phone);
+    if((needPhone||STATE.retPhone)&&phoneE164(d.phone))payload.phone=phoneE164(d.phone);   /* 補問過手機就一定送（改用新信箱後，後端可能另外要手機；Astra v2 #3） */
     STATE.userName={surname:r.last_name||"",given:r.first_name||""};
     if(window.ZFContact){var _rd=String(r.date_of_birth||"").split(" "),_rh=parseInt((_rd[1]||"").split(":")[0],10);   /* 2026-10-18 回訪一行按「就用這個」也記下來（畫面上確認過的才記；手機只有這次補問才記，沒顯示的舊手機不刷新時間） */
-      ZFContact.save({last:r.last_name,first:r.first_name,phone:needPhone?d.phone:"",email:r.email,birth:_rd[0],shi:isNaN(_rh)?-1:Math.floor(((_rh+1)%24)/2)});}
+      ZFContact.save({last:r.last_name,first:r.first_name,phone:(needPhone||STATE.retPhone)?d.phone:"",email:r.email,birth:_rd[0],shi:isNaN(_rh)?-1:Math.floor(((_rh+1)%24)/2)});}
   }else{
     if(HOME&&!d.home){showFfErr("先說一聲這張符要守護哪裡？");go("hex");return;}
     if(LOVE&&!lvReady()){showFfErr("先回到上一步，把兩個選項選完。");go("landing");return;}
@@ -2594,7 +2600,7 @@ function doPrefill(){
   fetch(API.prefill+"?"+identQ().slice(1),{headers:authHeaders()})
    .then(function(r){return r.json();}).then(function(d){
      if(d&&d.error==="maintenance"){location.href="/maintenance.html";return;}
-     if(!d||!d.found)return;
+     if(!d||!d.found||STATE.afCleared)return;   /* 按過「不是你？清除」：晚到的回訪資料不再接上（Astra v2 #1） */
      /* Google 老用戶：資料還在就走「回訪一行」，不再看表單 */
      var em=String(d.email||""),at=em.indexOf("@");
      if(d.date_of_birth){STATE.retInfo={last_name:d.last_name||"",first_name:d.first_name||"",date_of_birth:d.date_of_birth||"",gender:d.gender||"",has_spirit:!!d.personality_profile,phone:d.phone||"",email:em,email_masked:at>0?em.slice(0,Math.min(2,at))+"***"+em.slice(at):""};STATE.ret=true;}
@@ -2712,6 +2718,7 @@ function boot(){
   var rl=ret,rk=kk;if(!(rl&&rk)){try{rl=localStorage.getItem("winds_ff_log")||"";rk=localStorage.getItem("winds_ff_k")||"";}catch(e){}}
   if(rl&&rk){STATE.retLog=rl;STATE.retToken=rk;
     fetch(API.prefill+"?ret="+encodeURIComponent(rl)+"&k="+encodeURIComponent(rk),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
+      if(STATE.afCleared)return;   /* 按過「不是你？清除」：晚到的回訪資料不再接上 */
       if(d&&d.found){STATE.retInfo=d;STATE.ret=true;if(STATE.step==="hex")render();return;}
       /* 2026-10-17：LINE 卦的舊提醒信連結已停用——有登入時後端已改用登入者自己的資料；沒登入就請他到 LINE 打開 */
       if(d&&d.error==="k_revoked_line"){dropRevokedK(rl);STATE.retLog="";if(!loggedIn())showGone("line");}
@@ -2725,17 +2732,58 @@ function boot(){
    只在客人開始逐題回答之前帶（之後晚到的不動，免得蓋掉剛選的）。帳號那份較新、晚一點到，可以換掉先前自動帶的，客人改過的不換。
    回訪一行照舊優先（它有自己的資料）。姓名、生日時辰整組帶 */
 function ffContactFill(){
-  if(!window.ZFContact)return;
-  var A={};   /* 上次自動帶進去的值 */
-  ZFContact.get(function(c){if(STATE.step==="ask"||STATE.askSeen)return;var d=STATE.data;
-    var free=function(k,cur){return !cur||(k in A&&A[k]===cur);};
-    if(c.last&&c.first&&free("n",d.surname+"|"+d.given==="|"?"":d.surname+"|"+d.given)){d.surname=c.last;d.given=c.first;A.n=c.last+"|"+c.first;}
-    if(c.phone&&free("p",d.phone)){d.phone=c.phone;A.p=c.phone;}
-    if(c.email&&free("e",d.email)){d.email=c.email;A.e=c.email;}
-    var bcur=d.month?[d.year,d.month,d.day,d.shi].join("|"):(d.year!==1990?"y"+d.year:"");   /* 只轉了年份、還沒選月份，也算客人動過 */
-    if(c.birth&&free("b",bcur)){var y=c.birth.split("-");d.year=+y[0];d.month=+y[1];d.day=+y[2];d.shi=c.shi>=0?c.shi:6;A.b=[d.year,d.month,d.day,d.shi].join("|");}
-  });
+  if(!window.ZFContact){STATE.afReady=true;return;}   /* 共用程式沒載到：不擋回訪一行送出 */
+  ZFContact.css();
+  var A=STATE.ffAuto={};   /* 每一格自動帶進去的值（「不是你？清除」只清還是這個值、客人也沒動過的格子） */
+  STATE.afReady=false;
+  ZFContact.get(function(c){
+    /* DS v1 ③：最近一次填的信箱，回訪一行拿來比對（不一樣就多問一句） */
+    if(c.email&&c.email!==STATE.afEmail){STATE.afEmail=c.email;ffRetRepick();if(STATE.step==="ret")render();}
+    if(STATE.step==="ask"||STATE.askSeen||STATE.afCleared)return;var d=STATE.data;
+    var mine=function(f){return d[f]!==""&&d[f]!=null&&!(f in A&&A[f]===d[f]);};   /* 客人自己填的（不是空的、也不是自動帶的） */
+    if(c.last&&c.first&&!mine("surname")&&!mine("given")){d.surname=A.surname=c.last;d.given=A.given=c.first;}
+    if(c.phone&&!mine("phone")){d.phone=A.phone=c.phone;}
+    if(c.email&&!mine("email")){d.email=A.email=c.email;}
+    var bfree=!d.month||(A.month===d.month&&A.day===d.day&&A.year===d.year&&A.shi===d.shi);
+    if(c.birth&&bfree&&(d.month||d.year===1990||A.year===d.year)){var y=c.birth.split("-");d.year=A.year=+y[0];d.month=A.month=+y[1];d.day=A.day=+y[2];d.shi=A.shi=c.shi>=0?c.shi:6;}
+  },function(){STATE.afReady=true;if(STATE.step==="ret")render();});
 }
+function ffTouch(f){var A=STATE.ffAuto;if(A&&f in A)delete A[f];}   /* 客人動過這一格：不再算自動帶的（清除時不會清掉，就算打的字一樣；Astra v2 #5） */
+/* ── 2026-10-18 DS 表單自動帶入 v1 ①：占卜頁的「不是你？清除」（一行小字，跟在第一題有自動帶入值的題目下方；回訪一行下方也有）── */
+function ffMask(em){em=String(em||"");var at=em.indexOf("@");return at>0?em.slice(0,Math.min(2,at))+"***"+em.slice(at):"";}
+function ffAfKey(){var A=STATE.ffAuto||{},d=STATE.data,on=function(f){return f in A&&A[f]===d[f];};   /* 照 ASK 順序，第一題還有自動帶的值（客人沒動過）的題目 */
+  if(on("year")||on("month")||on("day")||on("shi"))return on("year")?"year":on("month")?"month":on("day")?"day":"shi";
+  if(on("surname")||on("given"))return "name";
+  if(on("phone"))return "phone";
+  if(on("email"))return "email";
+  return "";}
+function ffAfLine(k){
+  if(STATE.afClearedAt===STATE.ask)return '<div class="zf-af-inline" role="status" style="margin-top:10px">已清空，請重新告訴老師你的資料。</div>';
+  if(STATE.afCleared||!k||k!==ffAfKey())return "";
+  return '<div class="zf-af-inline" style="margin-top:10px">不是你？<button type="button" class="zf-af-link" onclick="ffAfClear()">清除</button></div>';}
+function ffAfClear(){
+  if(window.ZFContact)ZFContact.forget();   /* 清掉這支手機記的，這一頁也不再從帳號帶入 */
+  try{localStorage.removeItem("winds_ff_log");localStorage.removeItem("winds_ff_k");}catch(e){}   /* 回訪一行是這支手機上次留的那一卦；不是本人就不再用 */
+  var A=STATE.ffAuto||{},d=STATE.data,DEF={year:1990,month:null,day:null,shi:6,surname:"",given:"",phone:"",email:""};   /* 逐格清：只清還是自動帶的值、客人沒動過的格子 */
+  for(var f in DEF)if(f in A&&A[f]===d[f])d[f]=DEF[f];
+  if(d.day&&d.day>ffDaysIn(d.year,d.month))d.day=null;
+  STATE.ffAuto={};STATE.afCleared=true;STATE.afEmail="";
+  STATE.ret=false;STATE.retInfo=null;STATE.retLog="";STATE.retToken="";STATE.retPhone=false;STATE.retEmailPick="";
+  STATE.ask=0;STATE.afClearedAt=0;go("ask");}   /* 老師從第一題開始逐題問 */
+/* DS v1 ③：回訪一行的信箱跟最近一次填的不一樣，回傳最近填的那個（客人選過就不再問） */
+/* 兩個信箱遮一半時要分得出來（Astra v2 #7）：先露前 2 個字；開頭一樣就露到第一個不同的字（最多 4 個字）；
+   差在後面（像 alice1／alice2）就改成前 2 個字＋最後幾個字（最多 3 個字）。整個帳號名稱至少遮住 2 個字 */
+function ffMaskPair(a,b){a=String(a||"");b=String(b||"");var da=a.slice(a.indexOf("@")),db=b.slice(b.indexOf("@")),la=a.split("@")[0],lb=b.split("@")[0],p=0,q=0;
+  while(p<la.length&&p<lb.length&&la[p]===lb[p])p++;
+  while(q<la.length-p&&q<lb.length-p&&la[la.length-1-q]===lb[lb.length-1-q])q++;
+  var m=function(l,d,pre,suf){pre=Math.max(1,Math.min(pre,l.length-2-suf));return l.slice(0,pre)+"***"+(suf?l.slice(l.length-suf):"")+d;};
+  if(p<2||da!==db)return [m(la,da,2,0),m(lb,db,2,0)];
+  if(p<4)return [m(la,da,p+1,0),m(lb,db,p+1,0)];
+  var k=Math.min(q+1,3);return [m(la,da,2,k),m(lb,db,2,k)];}
+function ffRetMismatch(){var r=STATE.retInfo||{},n=String(STATE.afEmail||"").toLowerCase(),o=String(r.email||"").toLowerCase();return !STATE.retEmailPick&&n&&o&&n!==o?n:"";}
+/* 最近的信箱晚到（逾時之後才回來）又跟先前不一樣：先前的選擇作廢、換回原本的信箱，重新問（Astra v2c） */
+function ffRetRepick(){var r=STATE.retInfo;if(!r||!STATE.retEmailPick)return;if(STATE.retOrig){r.email=STATE.retOrig.email;r.email_masked=STATE.retOrig.masked;}STATE.retEmailPick="";}
+function ffRetPick(useNew){var r=STATE.retInfo||{};STATE.retOrig={email:r.email,masked:r.email_masked};if(useNew){var _mp=ffMaskPair(r.email,STATE.afEmail);r.email=STATE.afEmail;r.email_masked=_mp[1];STATE.retEmailPick="new";}else STATE.retEmailPick="old";render();}
 /* 首頁交接的卦（見 boot）：選的情境帶 dir／sub／題目，問題字串照 pickQ 的寫法組，結果頁的推薦與文章區就跟從選題進來一樣 */
 /* 交接資料可能來自網址（外部可改），每個欄位先驗型別；任何不合格一律當沒有（Astra 複核：castAt 塞物件會讓 new Date 拋錯、整頁起不來） */
 function homeCastOk(h){

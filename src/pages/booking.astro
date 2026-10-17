@@ -367,7 +367,7 @@ import { PERSONAS } from '../data/booking-teachers';
         var foot='<button class="zfbtn md secondary" data-back type="button">上一步</button><button class="zfbtn md primary" data-next type="button">下一步</button>';
         shell(sn(3),'留下聯絡方式',inner,foot);
         /* 2026-10-18 全站自動帶入：第一次打開這一步，帶入在別張表單填過的姓名、手機、Gmail（只補空格，客人可改；見 contact-memory.js） */
-        if(!W.fields&&window.ZFContact)ZFContact.autofill({name:{last:document.getElementById('wzLast'),first:document.getElementById('wzFirst')},phone:document.getElementById('wzPhone'),email:document.getElementById('wzEmail')});
+        if(!W.fields&&window.ZFContact)ZFContact.autofill({name:{last:document.getElementById('wzLast'),first:document.getElementById('wzFirst')},phone:document.getElementById('wzPhone'),email:document.getElementById('wzEmail')},{notice:document.getElementById('wzLast').closest('.bw-namerow')});   /* DS v1 ①：帶入時「姓／名」上方出現「不是你？清除」 */
         W.topicPick=f.topic||'';
         mount.querySelectorAll('[data-topic]').forEach(function(b){b.addEventListener('click',function(){
           W.topicPick=(W.topicPick===b.dataset.topic)?'':b.dataset.topic;

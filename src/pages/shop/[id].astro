@@ -143,8 +143,11 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
             <input type="hidden" name="variant" value={variants[0]?.title ?? ''} />
           )}
               <div class="lp-form">
-                <label class="zf-field"><span class="zf-field-label">本人姓名</span><input class="zf-input" name="name" type="text" autocomplete="name" required /></label>
-                <label class="zf-field"><span class="zf-field-label">手機</span><input class="zf-input" name="phone" type="tel" inputmode="numeric" placeholder="09xxxxxxxx" required /></label>
+                <div class="zf-namerow wide" id="lpNameRow">   {/* 2026-10-18 DS 表單自動帶入 v1 ②：姓名拆「姓」「名」兩格並排，同預約表單 */}
+                  <label class="zf-field"><span class="zf-field-label">姓</span><input class="zf-input" name="last" type="text" autocomplete="family-name" required /><span class="zf-field-hint" data-err="last" hidden></span></label>
+                  <label class="zf-field"><span class="zf-field-label">名</span><input class="zf-input" name="first" type="text" autocomplete="given-name" required /><span class="zf-field-hint" data-err="first" hidden></span></label>
+                </div>
+                <label class="zf-field wide"><span class="zf-field-label">手機</span><input class="zf-input" name="phone" type="tel" inputmode="numeric" placeholder="09xxxxxxxx" required /></label>
                 <label class="zf-field"><span class="zf-field-label">西元生日</span>
                   <div class="zf-select-row">
                     <div class="zf-select-wrap"><select class="zf-select" name="byear" required><option value="" disabled selected>年</option>{YEARS.map((y) => <option value={y}>{y} 年</option>)}</select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></div>
@@ -259,6 +262,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     .lp-radio:has(input:focus-visible) { box-shadow: 0 0 0 4px var(--focus-ring); }
     .lp-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .lp-form .wide { grid-column: 1 / -1; }
+    .zf-namerow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }   /* 手機、電腦都並排（同預約表單） */
     .lp-cvs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
     .lp-store { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 12px 14px; border: 1px solid var(--sage-300); background: var(--tint-sage-disc); border-radius: var(--radius-md); }
     .lp-store i { font-size: 22px; color: var(--sage-500); }
@@ -318,12 +322,12 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       function fail(m) { err.textContent = m; err.hidden = false; err.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       function fields() {
         var f = form.elements;
-        return { variant: (form.querySelector('[name=variant]:checked') || form.querySelector('input[type=hidden][name=variant]') || {}).value || '', name: f.name.value.trim(), phone: f.phone.value.replace(/[\s-]/g, ''), bdate: ymd(f.byear.value, f.bmonth.value, f.bday.value), bhour: f.bhour.value, email: f.email.value.trim(), note: f.note.value.trim() };
+        return { variant: (form.querySelector('[name=variant]:checked') || form.querySelector('input[type=hidden][name=variant]') || {}).value || '', last: f.last.value.trim(), first: f.first.value.trim(), name: f.last.value.trim() + f.first.value.trim(), phone: f.phone.value.replace(/[\s-]/g, ''), bdate: ymd(f.byear.value, f.bmonth.value, f.bday.value), bhour: f.bhour.value, email: f.email.value.trim(), note: f.note.value.trim() };
       }
       function restore() {
         try {
           var s = JSON.parse(sessionStorage.getItem(KEY) || 'null'); if (!s) return;
-          var f = form.elements; f.name.value = s.name || ''; f.phone.value = s.phone || ''; var b = String(s.bdate || '').split('-'); f.byear.value = b[0] ? String(+b[0]) : ''; f.bmonth.value = b[1] ? String(+b[1]) : ''; f.bday.value = b[2] ? String(+b[2]) : ''; f.bhour.value = s.bhour || '不確定'; f.email.value = s.email || ''; f.note.value = s.note || '';
+          var f = form.elements; f.last.value = s.last || ''; f.first.value = s.first || ''; f.phone.value = s.phone || ''; var b = String(s.bdate || '').split('-'); f.byear.value = b[0] ? String(+b[0]) : ''; f.bmonth.value = b[1] ? String(+b[1]) : ''; f.bday.value = b[2] ? String(+b[2]) : ''; f.bhour.value = s.bhour || '不確定'; f.email.value = s.email || ''; f.note.value = s.note || '';
           var r = form.querySelector('[name=variant][value="' + (s.variant || '').replace(/"/g, '') + '"]'); if (r) r.checked = true;
           if (s.store) showStore(s.store);
           /* 2026-09-26（Codex 複審抓到）：用程式設 checked 不會觸發 change，而更新總計的程式在
@@ -356,11 +360,12 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         t.addEventListener('click', function () { document.getElementById('heroImg').src = t.dataset.thumb; document.querySelectorAll('[data-thumb]').forEach(function (x) { x.classList.toggle('on', x === t); }); });
       });
       var qs = new URLSearchParams(location.search);
+      ['last', 'first'].forEach(function (k) { form.elements[k].addEventListener('input', function () { var h = form.querySelector('[data-err="' + k + '"]'); h.hidden = true; h.parentNode.classList.remove('invalid'); }); });   // 打字就收起「請輸入姓／名。」
       var hadDraft = false; try { hadDraft = !!sessionStorage.getItem(KEY); } catch (e) {}
       restore();
       /* 2026-10-18 全站自動帶入：在別張表單（占卜、預約…）填過的姓名、手機、Email、生日時辰，帶進還空著的格子（客人可改；見 contact-memory.js）。
          剛從超商地圖回來、已經還原草稿的，不帶（草稿是客人這次自己填的） */
-      if (window.ZFContact && !hadDraft) { var fe = form.elements; ZFContact.autofill({ name: { full: fe.name }, phone: fe.phone, email: fe.email, birth: { y: fe.byear, m: fe.bmonth, d: fe.bday, h: fe.bhour } }); }
+      if (window.ZFContact && !hadDraft) { var fe = form.elements; ZFContact.autofill({ name: { last: fe.last, first: fe.first }, phone: fe.phone, email: fe.email, birth: { y: fe.byear, m: fe.bmonth, d: fe.bday, h: fe.bhour } }, { notice: document.getElementById('lpNameRow'), noticeSpan: true }); }
       if (qs.get('cvs_store_id')) {
         showStore({ type: qs.get('cvs_type') || '', id: qs.get('cvs_store_id'), name: qs.get('cvs_store_name') || '', addr: qs.get('cvs_address') || '' }); save();
         history.replaceState(null, '', pageUrl + '#order');
@@ -402,13 +407,20 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         ev.preventDefault(); err.hidden = true;
         var f = fields();
         if (!f.variant && D.variants.length > 1) return fail('請選擇款式。');
-        if (!f.name) return fail('請輸入本人姓名。');
+        // 姓、名各自標錯（DS v1 ②：字同預約表單，紅框＋格子下方小字）
+        var nameBad = false;
+        [['last', '請輸入姓。'], ['first', '請輸入名。']].forEach(function (x) {
+          var bad = !f[x[0]], h = form.querySelector('[data-err="' + x[0] + '"]');
+          h.textContent = bad ? x[1] : ''; h.hidden = !bad; h.parentNode.classList.toggle('invalid', bad);
+          if (bad) nameBad = true;
+        });
+        if (nameBad) { document.getElementById('lpNameRow').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
         if (!/^09\d{8}$/.test(f.phone)) return fail('請輸入正確手機（09xxxxxxxx）。');
         if (!f.bdate) return fail('請選擇西元生日。');
         if (!validYmd(f.bdate)) return fail('這一天不存在，請再確認生日。');
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return fail('請輸入正確 Email。');
         if (!store) return fail('請先選取貨門市。');
-        if (window.ZFContact) ZFContact.save({ name: f.name, phone: f.phone, email: f.email, birth: f.bdate, shi: form.elements.bhour.selectedIndex - 1 });   // 2026-10-18 記下來，下一張表單帶入（時辰「不確定」＝-1）
+        if (window.ZFContact) ZFContact.save({ last: f.last, first: f.first, phone: f.phone, email: f.email, birth: f.bdate, shi: form.elements.bhour.selectedIndex - 1 });   // 2026-10-18 記下來，下一張表單帶入（時辰「不確定」＝-1）
         var btn = document.getElementById('payBtn');
         var shown = shownAmount();
         lockForm(true); btn.textContent = '建立訂單中…';
