@@ -500,13 +500,14 @@
     try { pending = sessionStorage.getItem('winds_pending_log_id') || ''; pendingPath = sessionStorage.getItem('winds_pending_path') || ''; sessionStorage.removeItem('winds_pending_log_id'); sessionStorage.removeItem('winds_pending_path'); } catch (e) {}
     if (pending && pendingPath && pendingPath !== location.pathname) pending = '';
     var id = rid || pending;
+    /* 2026-10-17（Astra 完整驗收 #4）：先接回網站 Google 登入（有 k 也要接）——LINE 卦的舊 k 停用時才有登入可以接手 */
+    try { var _g0 = localStorage.getItem('winds_google_token') || ''; if (_g0 && window.adoptGoogleToken) adoptGoogleToken(_g0); } catch (e) {}
     if (id) {
       STATE.k = kk || recallK(id) || '';
       /* 網址帶的是一般 k（付款回跳），這台裝置另存了收碼換到的本人 k → 帳號資料被遮時換那把（同網站 boot；Astra front-r1 #2） */
       if (kk) { var _sk = recallK(id); if (_sk && _sk !== kk) STATE.kAlt = _sk; }
       if (!STATE.k) { try { if (localStorage.getItem('winds_ff_log') === String(id)) STATE.k = localStorage.getItem('winds_ff_k') || ''; } catch (e) {} }
       /* 2026-10-17 帳號合併：沒有 k 但網站有登入（另一個帳號的卦、會員中心「我的占卜紀錄」點進來）→ 用登入讀這一局 */
-      if (!STATE.k) { try { var _g = localStorage.getItem('winds_google_token') || ''; if (_g && window.adoptGoogleToken) adoptGoogleToken(_g); } catch (e) {} }
       if (STATE.k || (window.loggedIn && loggedIn())) { STATE.reportMode = true; STATE.step = 'interpreting'; render(); pollStatus(id); return; }
     }
     render();
