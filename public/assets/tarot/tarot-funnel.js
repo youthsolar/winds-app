@@ -437,14 +437,15 @@
     if (f2.url) return '<div class="tal5-grid"><div class="tal5"><div style="position:relative">' + tframe('<img src="' + esc(f2.url) + '" alt="' + esc(f2.element) + '符" decoding="async" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">', false, EL_GLOW[f2.element]) + '</div>' +
       '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">法效期間 · ' + esc(f2.valid_until_label) + ' 止</div></div></div>';
     /* 還鎖著就至少寫 1 天；真正開不開由後端決定（Astra front-r1 #6）。2026-10-14：用後端回的伺服器時間算，不靠客人手機時鐘（舊後端沒回就退回手機時間） */
-    var wait = paid && f2.opens_at ? Math.max(1, Math.ceil((Date.parse(f2.opens_at) - (Date.parse(T.server_now) || Date.now())) / 864e5)) : 0;
+    var ot = paid && f2.opens_at ? Date.parse(f2.opens_at) : NaN;
+    var wait = isFinite(ot) ? Math.max(1, Math.ceil((ot - (Date.parse(T.server_now) || Date.now())) / 864e5)) : 0;
     /* 10/18：有節氣名就寫「立冬開」／「立冬（11 月 7 日）開」；舊後端沒給才退回天數 */
     var jq = paid && f2.opens_jieqi ? f2.opens_jieqi : '';
     var md = '';
-    if (jq && f2.opens_at) { var od = new Date(Date.parse(f2.opens_at) + 8 * 3600000); md = (od.getUTCMonth() + 1) + '\u00a0月 ' + od.getUTCDate() + '\u00a0日'; }
+    if (jq && isFinite(ot)) { var od = new Date(ot + 8 * 3600000); md = (od.getUTCMonth() + 1) + '\u00a0月 ' + od.getUTCDate() + '\u00a0日'; }
     return '<div class="tal5-grid"><div class="tal5" id="tsFu2"><div style="position:relative">' + tframe('', false, EL_GLOW[f2.element]) +
-      '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + (paid ? '<span class="fu-wait">' + (jq ? esc(jq) + '開' : wait + ' 天後自動開') + '</span>' : '') + '</div></div>' +
-      '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? (jq ? esc(jq) + '（' + md + '）開' : esc(f2.opens_label || '') + ' 自動開') : '付 NT$360 後，下一個節氣解開') + '</div></div></div>';
+      '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + (paid ? '<span class="fu-wait">' + (jq ? esc(jq) + '開' : wait ? wait + ' 天後自動開' : '節氣到時自動開') + '</span>' : '') + '</div></div>' +
+      '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? (jq ? esc(jq) + '（' + md + '）開' : f2.opens_label ? esc(f2.opens_label) + ' 自動開' : '節氣到時自動開') : '付 NT$360 後，下一個節氣解開') + '</div></div></div>';
   }
   function resEnd() {
     return '<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">' +
