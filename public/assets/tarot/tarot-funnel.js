@@ -396,13 +396,17 @@
     else if (LOVE) first = ['這段關係的完整牌陣解讀', '關係現況、卡點與接下來的提醒'];
     else first = ['這次居家問題的完整解讀', '住得卡、剛入住、想備符或挑房的疑問'];
     var items = [first];
-    if (two) items.push(['第二張靈符', '付 NT$360 後，下一個節氣解開']);   /* 10/18：照真正節氣開，不再是第 14 天 */
-    items.push(['完整節氣運勢分析', '看看接下來各節氣的運勢提醒']);
+    var J2 = (STATE.result || {}).jieqi, chat = '有想不通的地方，可以繼續聊這件事';
+    if (LOVE && lvSingle()) chat = '關於期待、猶豫或卡住的地方，都能聊'; else if (!LOVE) chat = '關於這次居家問題，可以接著聊';
+    /* 10/18 Jeffery 選項卡：第二張寫明有條件、節氣到時開；節氣那條配合主題；補分靈體 7 天（寫法同水鏡） */
+    if (two) items.push(['第二張靈符', '牌面需要時，第二張靈符在' + (J2 && J2.next ? '<bdi style="white-space:nowrap">下一個節氣（' + esc(J2.next) + '，' + esc(String(J2.next_date || '')) + '）開</bdi>' : '下一個節氣開')]);
+    items.push(LOVE ? ['各節氣的感情提醒', '延伸你選的感情問題，整理接下來每個節氣要留意的方向'] : ['接下來的居家提醒', '結合這次的牌，看看各節氣可以留意的居家重點']);
+    items.push(['專屬分靈體陪伴 7 天', chat]);
     var lead = LOVE
       ? (lvSingle()
-        ? '你剛選的桃花問題，就是這份解方要接著談的重點。我會把這組牌的提醒說完整，再加上你的生辰與個性一起看，讓你帶著更完整的線索，看待接下來的感情機會。'
-        : '你在意的，是這段關係接下來怎麼走。這份解方會把這組牌說完整，加上你的生辰與個性一起看。把牌面的提醒看完整，再想想自己的下一步。')
-      : '挑房、入住、備符，你心裡在意的那件事，值得好好看一回。這份解方會把這組牌的提醒說完整，加上你的生辰與個性一起看，陪你整理眼前的居家疑問。';
+        ? '你剛選的桃花問題，就是這份解方要接著談的重點。我會把這組牌的提醒說完整，再加上你的命盤與個性一起看，讓你帶著更完整的線索，看待接下來的感情機會。'
+        : '你在意的，是這段關係接下來怎麼走。這份解方會把這組牌說完整，加上你的命盤與個性，一起看這段關係。把牌面的提醒看完整，再想想自己的下一步。')
+      : '挑房、入住、備符，你心裡在意的那件事，值得好好看一回。這份解方會把這組牌的提醒說完整，加上你的命盤與個性，一起看你在意的居家問題。';
     return (window.linkFailNote ? linkFailNote() : '') + '<div class="paywall"><div class="behind"><p>解鎖後，你會拿到完整解讀，還有風易揚老師親手畫的靈符。</p><div class="row"><i></i><i></i><i></i><i></i><i></i></div></div>' +
       '<div class="veil"><span class="lk">' + ic('lock-simple', 'thin') + '</span><h3>風易揚老師的靈符解方</h3>' +
       '<p>' + lead + '</p>' +
@@ -427,8 +431,8 @@
       '<div class="tal-caption">' + ic('device-mobile') + '<span style="text-align:center">' + cap + '</span></div>' +
       ((f1.url && !f1.expired) ? '<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="' + esc(f1.url) + '" target="_blank" rel="noopener">' + ic('download-simple') + '存這張靈符</a></div>' : '') + '</div>' +
       '<div class="hexcol">' + tsBox('tsRes') +
-      (J && J.next ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + nbDate(J.next_date) + '）。' + PH_SOLAR.line + '</span></div>'
-        : nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + nbDate((tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日') + '）。' + PH_SOLAR.line + '</span></div>' : '') +
+      (J && J.next ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + nbDate(J.next_date) + '）。' + (paid ? '會通知你回來拿新的靈符。' : '') + '</span></div>'
+        : nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + nbDate((tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日') + '）。' + (paid ? '會通知你回來拿新的靈符。' : '') + '</span></div>' : '') +
       '</div></div></div>';
   }
   /* 第二張靈符：還沒開＝遮罩卡＋鎖（付款後寫「立冬開」：10/18 起照真正節氣開，後端給 opens_jieqi）；開了＝後端出圖 */
@@ -470,7 +474,7 @@
       return '<main class="shell" style="max-width:820px">' + h + '</main>';
     }
     h = '<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">' +
-      (LOVE ? (lvSingle() ? '這組牌，看見的是你現在的桃花狀態' : '這組牌，看見的是你們現在的關係') : '這組牌，看見的是你家現在的狀態') + '</h1>';
+      (LOVE ? (lvSingle() ? '這組牌，看見的是你現在的桃花狀態' : '這組牌，看見的是你們現在的關係') : homeHead('這組牌')) + '</h1>';
     if (HOME) h += '<p class="lede" style="margin:10px 0 4px">家不是單純的「住得好」或「住不好」。<br>有時候是格局與方位，悄悄影響每天的心情。<br>有時候是剛搬進去，人和房子還在磨合。<br>還在挑房子的話，也先看看你和它合不合。<br>先看看，你的家現在正在什麼位置。</p>';
     if (LOVE) h += (lvSingle()
       ? '<p class="lede" style="margin:10px 0 4px">桃花不是單純的「有人追」或「沒人追」。<br>有時候機會已經出現，只是你沒有注意。<br>有時候身邊明明有人，卻始終遇不到真正適合自己的關係。<br>也有些時候，是上一段感情留下的東西，還沒有真正離開。<br>先看看，你現在的感情正在什麼位置。</p>'

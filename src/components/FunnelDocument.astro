@@ -804,6 +804,8 @@ var LINE_OA_URL="https://lin.ee/tQHsgWB";
    同一條流程、同一個後端；差別：首屏是落地文案＋水鏡（landing）、不選題、卦出來第一題先問「家的情形」四選一，
    答案併進問題字串（老師解卦吃得到）並另存 home_situation（卦符卡那句話依此換）。非 home 模式一行都不走。 */
 var HOME=(document.body.getAttribute("data-mode")==="home");
+/* 10/18 Jeffery 選項卡：家裡的符結果大標依四種情境（塔羅把「這一卦」換「這組牌」）；不知道情境時維持原句 */
+function homeHead(w){var t={unsettled:'，先看你住得不順心的地方。',moved:'，陪你看看剛入住新家的感受。',keep:'，回應你想替家裡備張符的心意。',choosing:'，陪你整理挑房時最在意的事。'}[STATE.data.home];return w+(t||'，看見的是你家現在的狀態');}
 var HOME_SITU=[{k:"unsettled",l:"住得卡卡的"},{k:"moved",l:"新家剛住進"},{k:"keep",l:"想備張符在家"},{k:"choosing",l:"還沒挑定房"}];
 function homeSitu(k){return HOME_SITU.find(function(x){return x.k===k})||null;}
 /* 落地頁選狀況：只切換按鈕，不重畫整頁（重畫會跳回頁首，9/25 Jeffery 真機抓到） */
@@ -1294,7 +1296,7 @@ function viewAsk(){
   var still=!!STATE.ffStill;STATE.ffStill=false;
   /* 問句照 ASK 順序長出來；home 模式多了第一題「家的情形」，年份那題的開場跟著改口 */
   var QS={year:"這一卦我知道了。接下來看你的命盤，就可以給你更正確的命卦靈符。你哪一年出生的？",
-    month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定就先假設中午。",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，取回帳號時，才能確認是你。",
+    month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定的話，會先用午時來看。",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，取回帳號時，才能確認是你。",
     email:"靈符法效期屆至的提醒信要寄到哪個信箱？"};
   function ansOf(key){switch(key){case "year":return d.year+" 年";case "month":return d.month+" 月";case "day":return d.month+" 月 "+d.day+" 日";case "shi":return shiName(d.shi);case "gender":return esc(d.gender);case "name":return esc((String(d.surname||"").trim()+String(d.given||"").trim())||"—");case "phone":return esc(d.phone);}return "";}
   var all=[];
@@ -1525,7 +1527,7 @@ function viewResult(){
   if(paid)return viewReportPaid(R,q);
   /* 第一眼那句大字（9/9 拍板：Jeffery 親寫，逐字照用；放這一頁不放首頁）。2026-09-26：好愛改用規格 06A／06B 那兩句 */
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">'+
-    (LOVE?(lvSingle()?'這一卦，看見的是你現在的桃花狀態':'這一卦，看見的是你們現在的關係'):HOME?'這一卦，看見的是你家現在的狀態':'風易揚老師的幾張符令就能改善問題')+'</h1>';
+    (LOVE?(lvSingle()?'這一卦，看見的是你現在的桃花狀態':'這一卦，看見的是你們現在的關係'):HOME?homeHead('這一卦'):'風易揚老師的幾張符令就能改善問題')+'</h1>';
   /* 10/10 Jeffery：家裡的符結果頁開頭比照好愛（大標＋一段說明），草稿待 Jeffery 改 */
   if(HOME)h+='<p class="lede" style="margin:10px 0 4px">家不是單純的「住得好」或「住不好」。<br>有時候是格局與方位，悄悄影響每天的心情。<br>有時候是剛搬進去，人和房子還在磨合。<br>還在挑房子的話，也先看看你和它合不合。<br>先看看，你的家現在正在什麼位置。</p>';
   if(LOVE)h+=(lvSingle()
@@ -1580,7 +1582,7 @@ function getsList(){
   else if(HOME){first=['這次居家問題的完整解讀','住得卡、剛入住、想備符或挑房的疑問'];chat='關於這次居家問題，可以接著聊';}
   else first=['這次起卦的完整解讀','把前面還沒說完的卦象與提醒，完整看清楚。'];
   var items=[first,['揭曉你的命卦','依生辰算出，看看你是哪一卦'],['五張配合命卦的靈符','節氣到了開一張，自動通知'],
-    ['完整節氣運勢分析','看看接下來各節氣的運勢提醒'],['專屬分靈體陪伴 7 天',chat]];
+    (LOVE?['各節氣的感情提醒','延伸你選的感情問題，整理接下來每個節氣要留意的方向']:HOME?['接下來的居家提醒','結合這次的卦，看看各節氣可以留意的居家重點']:['各節氣的提醒','延伸你這次問的事，整理接下來每個節氣要留意的方向']),['專屬分靈體陪伴 7 天',chat]]; /* 10/18 Jeffery 選項卡：節氣那條配合活動主題，不泛稱運勢 */
   return '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>'+
     items.map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b>'+(x[1]?'<span>'+x[1]+'</span>':'')+'</div></div>';}).join('')+'</div>';
 }
@@ -1748,7 +1750,7 @@ function spiritCardInner(paid){
   return h;
 }
 function nbDate(s){return esc(String(s||'')).replace(/(\d+)\s*(年|月|日)/g,'<span style="white-space:nowrap">$1\u00a0$2</span>');} /* 10/18 版面：節氣日期只在數字與單位之間不換行（DS 規則），月與日之間仍可斷 */
-var PH_SOLAR={next:'芒種',date:'6 月 5 日',line:'可以再回來看看新的符，會比較符合你那時候的狀況。',seq:['芒種','夏至','小暑','大暑','立秋']};
+var PH_SOLAR={next:'芒種',date:'6 月 5 日',line:'' /* 10/18 Jeffery 選項卡：付款前刪掉「可以再回來看看新的符…」（會讓人等下次不付費）；付款後另寫「會通知你回來拿新的靈符」 */,seq:['芒種','夏至','小暑','大暑','立秋']};
 /* 2026-09-25 Jeffery：卦符卡移到解讀之前 → 拆成 hexCardHero（卦符卡＋分享盒）與 hexTalismans（五張符） */
 function hexCardHero(paid){
   var R=STATE.result||{};
