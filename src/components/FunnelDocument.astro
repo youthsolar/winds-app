@@ -1807,7 +1807,7 @@ function hexTalismans(paid){
       var fog='';
       if(!paid)fog='<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span></div>';
       else if(!showClear)fog='<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span>'+
-        (days!=null?'<span class="fu-wait">'+(days>0?(ua&&ua.jq?esc(ua.jq)+'開':days+' 天後自動開'):'節氣到了，重新整理就開')+'</span>':'')+'</div>';
+        (days!=null?'<span class="fu-wait">'+(days>0?(ua&&ua.jq?esc(ua.jq)+'開':'節氣到時自動開'):'節氣到了，重新整理就開')+'</span>':'')+'</div>';
       return '<div class="tal5"><div style="position:relative">'+tframe(inner,false,EL_GLOW[String(el).slice(0,1)])+fog+'</div>'+
         '<div class="nm">'+(ua&&ua.jq?esc(ua.jq):(SOLAR.seq[i]||SOLAR.next))+(el?' · '+esc(el):'')+'</div>'+
         (paid?'<div class="nm" style="margin-top:2px;color:var(--text-muted)">'+(showClear?'已開':unlockLabel(F,step))+'</div>':'')+'</div>';
@@ -1901,7 +1901,7 @@ function stopCrossTimer(){if(STATE.crossTimer){clearInterval(STATE.crossTimer);S
 /* 2026-10-14：用伺服器時間算（SRV_SKEW＝伺服器比手機快多少，每次拿到交付資料就更新；沒拿到就是 0＝手機時間）。真正開不開仍由後端決定 */
 var SRV_SKEW=0;
 function srvSkew(d){var t=d&&Date.parse(d.server_now);if(t)SRV_SKEW=t-Date.now();}
-function unlockAt(F,step){var s=F&&F.unlock_schedule,x=s&&s[step-1],t=x&&Date.parse(x.opens_at);return isFinite(t)?{t:t,jq:x.jieqi||''}:null;}
+function unlockAt(F,step){var s=F&&F.unlock_schedule,x=s&&s[step-1];if(!x||!x.opens_at)return null;var t=Date.parse(x.opens_at);return Number.isFinite(t)?{t:t,jq:x.jieqi||''}:null;}
 function unlockLabel(F,step){var u=unlockAt(F,step);if(!u||!u.jq)return '節氣到時自動開';var d=new Date(u.t+8*3600000);return esc(u.jq)+'（'+(d.getUTCMonth()+1)+'\u00a0月 '+d.getUTCDate()+'\u00a0日）開';}
 function daysUntilUnlock(paidAt,step,F){
   var u=unlockAt(F,step);   /* 10/18：只用後端的節氣時間表；沒有就不推算天數（不再用 14 天） */
