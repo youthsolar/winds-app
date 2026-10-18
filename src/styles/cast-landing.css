@@ -71,6 +71,7 @@
 .lc.ready .lc-guide .hg-guide{color:var(--text-primary)}
 .lc-mirror{display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.4;filter:saturate(.5);pointer-events:none;transition:opacity var(--dur-slow,.42s) var(--ease-soft),filter var(--dur-slow,.42s) var(--ease-soft)}
 .lc.ready .lc-mirror{opacity:1;filter:none;pointer-events:auto}
+.lc-mirror .zf-btn:disabled{opacity:1} /* 10/18 版面：外層未選情境已淡到 .4，〔洗牌〕停用不再疊一次 .45（疊起來剩 .18 看不見），等同全站停用按鈕的淡度 */
 .lc-mirror .ff-mirrorwrap{margin-top:0}
 .lc-mirror .ff-clock{min-height:18px;font-size:12px;letter-spacing:.08em}
 @keyframes lcIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -96,11 +97,11 @@
 @media (prefers-reduced-motion:reduce){.ff-sheen,.ff-rips span{animation:none!important}.ff-rips span{opacity:0}}
 /* ===== 落地頁 D 案（/home-gua、/love；DS landing-trim.jsx plan D，2026-10-10 Jeffery 拍板）=====
    只作用在 main.lpd，首頁 index.astro 的起卦區不受影響。 */
-.lpd .lc{padding:64px 0 0}
+.lpd .lc{padding:64px 32px 0} /* 10/18 Jeffery 拍板＋DS landing-trim D 案：電腦版左右內距 32，內容與導覽列同寬（x 112–1168） */
 .lpd .lc-qs{gap:32px}
 .lpd .lc-side{top:24px;display:flex;flex-direction:column;gap:16px}
 .lpd-hero{display:flex;flex-direction:column;align-items:flex-start}
-.lpd-bagua{width:40px;height:40px;align-self:center;margin:0 0 16px;opacity:.9}
+.lpd-bagua{width:40px;height:40px;align-self:flex-start;margin:0 0 16px;opacity:.9} /* 10/18 DS：電腦版八卦圖跟文字一起靠左（與導覽列 logo 同一條左線）；手機維持置中 */
 .lpd .lpd-hero .eyebrow{font-size:12.5px;font-weight:400}
 .lpd .hg-h1{font-size:40px;line-height:1.3;margin:8px 0 0}
 .lpd .lpd-hero .lede{font-size:17px;line-height:1.75;margin:12px 0 0}
@@ -130,7 +131,7 @@
   .lpd .lc{padding:20px 0 0}
   .lpd .lc-grid{gap:24px}
   .lpd .lc-qs{gap:24px}
-  .lpd-bagua{margin-bottom:12px}
+  .lpd-bagua{margin-bottom:12px;align-self:center}
   .lpd .hg-h1{font-size:26px}
   .lpd .lpd-hero .lede{font-size:15.5px;margin-top:8px}
   .lpd-by{margin-top:12px}

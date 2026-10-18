@@ -219,6 +219,8 @@ export default defineConfig({
         '/love-tarot/', '/home-tarot/',
         // 2026-10-14 好愛起卦頁搬到 /love-gua（noindex），不進 sitemap
         '/love-gua/',
+        // 2026-10-18 Jeffery 拍板：社群當期一卦三頁（/love 空、財運／運勢停在 9/6）先不讓 Google 收錄，頁面同步掛 noindex
+        '/love/', '/wealth-gua/', '/fortune-gua/',
         // 還沒有核准的卦、此刻掛 noindex 的主題卦頁（見上方 emptyTopicPages）
         ...EMPTY_TOPIC_PAGES,
       ].some((x) => page.includes(x)),

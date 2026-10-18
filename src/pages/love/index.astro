@@ -9,12 +9,13 @@ if (Astro.url.searchParams.has('log_id')) return Astro.redirect('/love-gua/' + A
 const topic = TOPICS['love'];
 const { data, failed } = await fetchTopicGua('love');
 Astro.response.headers.set('Cache-Control', failed ? 'no-store' : 'public, max-age=60');   // 故障時的空狀態不能被快取
+// 2026-10-18 Jeffery 拍板：社群當期一卦頁先不讓 Google 收錄（原本 noindex={!data}），要恢復發當期卦時再打開
 ---
 <BaseLayout
   title={data ? `${topic.label}卦・${data.hex.name} · 找風問幸福` : `${topic.label}卦 · 找風問幸福`}
   description={data ? `${data.posted_long}起的${topic.label}卦，走「${data.hex.char}」。${data.line} ${topic.descTail}` : `${topic.shareTitle}，${topic.descTail}`}
   ogImage={data?.og_url || undefined}
-  noindex={!data}
+  noindex={true}
 >
   <TopicGua data={data} topic={topic} isCurrent={true} />
 </BaseLayout>

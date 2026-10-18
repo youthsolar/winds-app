@@ -12,8 +12,10 @@ const { data, isCurrent, failed } = await fetchTopicGua('fortune', id);
 if (failed) return new Response('暫時讀不到這一卦，請稍後重新整理。', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': '30' } });
 if (!data) return Astro.redirect(`/${topic.path}/`, 302);
 Astro.response.headers.set('Cache-Control', 'public, max-age=300');
+// 2026-10-18 Jeffery 拍板：社群當期一卦頁（含舊篇存檔）先不讓 Google 收錄
 ---
 <BaseLayout
+  noindex={true}
   title={`${data.posted_label} 的${topic.label}卦・${data.hex.name} · 找風問幸福`}
   description={`${data.posted_long}起的${topic.label}卦，走「${data.hex.char}」。${data.line} 風易揚老師的解卦。`}
   ogImage={data.og_url || undefined}

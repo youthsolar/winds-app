@@ -67,7 +67,9 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
       <a class="lw-btn" href={guaUrl} data-src={topic.path}>現在抽一卦</a>
       <div class="lw-cta-note">起卦以你點下去的這一刻為準。</div>
       <a class="lw-btn lw-btn-ghost" href="/booking" data-wc-open>想直接找老師談？預約老師</a>
-      <div class="lw-cta-share"><button type="button" class="lw-btn lw-btn-quiet" id="lwShare" data-url={shareUrl} data-text={shareText} data-title={topic.shareTitle} data-path={topic.path}>把這一卦傳給那個人</button></div>
+      {data && (
+        <div class="lw-cta-share"><button type="button" class="lw-btn lw-btn-quiet" id="lwShare" data-url={shareUrl} data-text={shareText} data-title={topic.shareTitle} data-path={topic.path}>把這一卦傳給那個人</button></div>
+      )}
     </div>
 
     {data && data.prev && (
@@ -79,10 +81,6 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
 
     <p class="lw-terms">卦象文字為風易揚老師的解卦・分享時請保留出處</p>
 
-    <div class="lw-brand">
-      <a href="/"><img src="/assets/logo.png" alt="找風問幸福" /></a>
-      <p>選擇比努力更重要，命理是對自己的溫柔。</p>
-    </div>
   </div>
 </div>
 
@@ -156,9 +154,6 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
   .lw-arch a{color:var(--accent-press);text-decoration:none;}
   .lw-arch a:hover{text-decoration:underline;}
   .lw-terms{margin:14px 0 28px;font-family:var(--font-sans);font-size:12px;line-height:1.8;color:var(--text-muted);}
-  .lw-brand{text-align:center;border-top:1px solid var(--border-soft);padding-top:20px;}
-  .lw-brand img{height:50px;width:auto;opacity:0.8;}
-  .lw-brand p{font-family:var(--font-serif);font-weight:300;font-size:13px;color:var(--text-muted);margin:8px 0 0;}
   @media (min-width:768px){
     .lw-wrap{padding:56px 24px 88px;}
     .lw-inner{max-width:720px;}

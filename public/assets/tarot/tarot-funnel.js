@@ -427,7 +427,7 @@
       '<div class="tal-caption">' + ic('device-mobile') + '<span style="text-align:center">' + cap + '</span></div>' +
       ((f1.url && !f1.expired) ? '<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="' + esc(f1.url) + '" target="_blank" rel="noopener">' + ic('download-simple') + '存這張靈符</a></div>' : '') + '</div>' +
       '<div class="hexcol">' + tsBox('tsRes') +
-      (J && J.next ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + esc(J.next_date) + '）。' + PH_SOLAR.line + '</span></div>'
+      (J && J.next ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + esc(J.next_date).replace(/(\d+)\s*(年|月|日)/g, '<span style="white-space:nowrap">$1\u00a0$2</span>') + '）。' + PH_SOLAR.line + '</span></div>'
         : nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + (tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日）。' + PH_SOLAR.line + '</span></div>' : '') +
       '</div></div></div>';
   }

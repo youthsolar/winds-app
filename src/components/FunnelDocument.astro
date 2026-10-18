@@ -273,6 +273,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .pf-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
     .pf-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
     @media(max-width:760px){.pf-grid4,.pf-grid3{grid-template-columns:1fr 1fr}}
+    .pf-grid3.n1{grid-template-columns:1fr}.pf-grid3.n2{grid-template-columns:1fr 1fr} /* 10/18 版面：星君／太歲不足三張時不留空格、不孤立 */
+    @media(max-width:760px){.pf-grid4>.ftile:last-child:nth-child(odd),.pf-grid3>.ftile:last-child:nth-child(odd){grid-column:1/-1}}
     .ftile{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 18px}
     .ftile-l{font-family:var(--font-sans);font-size:12px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:7px}
     .ftile-v{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900);line-height:1.3}
@@ -393,7 +395,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .fog{position:absolute;inset:0;z-index:2;border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:0 18px 20px;background:linear-gradient(180deg,var(--veil-top),var(--veil-bottom) 78%)}
     .fog .lk{width:30px;height:30px;border-radius:999px;background:var(--paper);border:1px solid var(--rose-200);display:flex;align-items:center;justify-content:center;margin-bottom:8px;box-shadow:var(--shadow-xs);color:var(--rose-500)}
     .fog .cap{font-family:var(--font-serif);font-weight:300;font-size:13px;line-height:1.6;color:var(--ink-700)}
-    .tal-caption{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-family:var(--font-sans);font-size:12px;color:var(--text-muted)}
+    .tal-caption{display:flex;align-items:flex-start;justify-content:center;gap:6px;margin-top:10px;font-family:var(--font-sans);font-size:12px;color:var(--text-muted)}
     .hex-name{font-family:var(--font-serif);font-size:30px;font-weight:500;color:var(--ink-900)}
     @media(max-width:760px){.hex-name{font-size:24px}.tal-hero .hexcol{text-align:center}}
     .hex-read{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.9;color:var(--text-secondary);margin:12px 0 0;max-width:none}
@@ -403,6 +405,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .season-tip b{font-weight:500;color:var(--accent-press)}
     .tal5-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
     @media(max-width:760px){.tal5-grid{grid-template-columns:repeat(2,1fr);gap:12px}}
+    .tal5-grid>.tal5:last-child:nth-child(5n+1){grid-column:1/-1;justify-self:center;width:calc((100% - 56px)/5)} /* 10/18 Jeffery 拍板＋DS RpTalis：最後一排只剩一張（塔羅單張）→ 置中、卡寬一格寬、卡下小字不斷行 */
+    .tal5-grid>.tal5:last-child:nth-child(5n+1) :is(.nm,.ln){white-space:nowrap}
+    @media(max-width:760px){.tal5-grid>.tal5:last-child:nth-child(5n+1){grid-column:auto;justify-self:stretch;width:auto}.tal5-grid>.tal5:last-child:nth-child(5n+1) :is(.nm,.ln){white-space:normal}.tal5-grid>.tal5:last-child:nth-child(2n+1){grid-column:1/-1;justify-self:center;width:calc((100% - 12px)/2)}.tal5-grid>.tal5:last-child:nth-child(2n+1) :is(.nm,.ln){white-space:nowrap}}
     .tal5 .nm{font-family:var(--font-serif);font-size:14px;font-weight:500;color:var(--ink-900);text-align:center;margin-top:9px}
     .tal5 .ln{font-family:var(--font-serif);font-weight:300;font-size:12px;line-height:1.55;color:var(--text-secondary);text-align:center;margin-top:2px}
 
@@ -721,7 +726,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .paywall .veil .lk i{font-size:22px}
     .fog .lk i{font-size:15px}
     .paid-card .body .ph-check-circle{font-size:20px;color:var(--accent-press)}
-    .tal-caption i{font-size:13px;color:var(--rose-400)}
+    .tal-caption i{font-size:13px;color:var(--rose-400);margin-top:4px} /* 10/18 版面：手機圖示對齊第一行（DS RpOpen：flex-start＋上距 4） */
     .res-end{margin-top:54px}
     .cool-p{font-size:17.5px}
     @media(max-width:760px){
@@ -1597,7 +1602,7 @@ function profileCard(paid){
   var R=STATE.result||{};
   var h='<div class="zf-card sunken">';
   var tiles=[];
-  if(R.lunar){var lp=R.lunar.split(/\s+/);tiles.push(ftile2('農曆','<span style="display:block">'+esc(lp[0]||'')+'</span>'+(lp.slice(1).join(' ')?'<span style="display:block">'+esc(lp.slice(1).join(' '))+'</span>':'')));}
+  if(R.lunar){var lp=R.lunar.split(/\s+/);tiles.push(ftile2('農曆','<span style="display:block">'+esc(lp[0]||'').replace(/^(.+?年)(.+)$/,'<span style="white-space:nowrap">$1</span><span style="white-space:nowrap">$2</span>')+'</span>'+(lp.slice(1).join(' ')?'<span style="display:block">'+esc(lp.slice(1).join(' '))+'</span>':'')));}
   if(R.star)tiles.push(ftile2('星座',esc(R.star),starSub(R.star)));
   if(R.zodiac)tiles.push(ftile2('生肖',esc(R.zodiac),ZODIAC_BRANCH[R.zodiac]||''));
   if(R.mansion)tiles.push(ftile2('星宿',esc(R.mansion),xiuGroup(R.mansion)));
@@ -1606,7 +1611,7 @@ function profileCard(paid){
   if(R.deityBirth)tiles3.push(ftile2('本命星君',esc(R.deityBirth)));
   if(R.deityYear)tiles3.push(ftile2('流年星君',esc(R.deityYear)));
   if(R.taisui)tiles3.push(ftile2('太歲',esc(R.taisui)));
-  if(tiles3.length)h+='<div class="pf-grid3">'+tiles3.join("")+'</div>';
+  if(tiles3.length)h+='<div class="pf-grid3 n'+tiles3.length+'">'+tiles3.join("")+'</div>';
   var bazi4=(R.bazi&&String(R.bazi).trim())?String(R.bazi).trim().split(/\s+/):null;
   if(bazi4&&bazi4.length>=4)h+='<div class="pf-block"><div class="pf-lbl">八字四柱</div><div class="bazi-grid">'+
      ['年柱','月柱','日柱','時柱'].map(function(pos,i){var bz=bazi4[i]||'--';return '<div class="bz-cell"><div class="bz-pos">'+pos+'</div><div class="bz-ch">'+esc(bz[0]||'')+'</div><div class="bz-bar"></div><div class="bz-ch b">'+esc(bz[1]||'')+'</div></div>'}).join("")+'</div></div>';
@@ -1741,6 +1746,7 @@ function spiritCardInner(paid){
     '</div></div></div>';
   return h;
 }
+function nbDate(s){return String(s||'').replace(/(\d+)\s*(年|月|日)/g,'<span style="white-space:nowrap">$1\u00a0$2</span>');} /* 10/18 版面：節氣日期只在數字與單位之間不換行（DS 規則），月與日之間仍可斷 */
 var PH_SOLAR={next:'芒種',date:'6 月 5 日',line:'可以再回來看看新的符，會比較符合你那時候的狀況。',seq:['芒種','夏至','小暑','大暑','立秋']};
 /* 2026-09-25 Jeffery：卦符卡移到解讀之前 → 拆成 hexCardHero（卦符卡＋分享盒）與 hexTalismans（五張符） */
 function hexCardHero(paid){
@@ -1763,9 +1769,9 @@ function hexCardHero(paid){
     '<div class="tal-caption">'+ic("device-mobile")+'<span style="text-align:center">'+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止<br>長按存成手機桌布':'<span style="white-space:nowrap">讓這張卦符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">'+esc(HC.valid_until_label)+' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</span></div>'+
     ((HC&&!HC.expired)?'<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("download-simple")+'存這張卦符</a></div>':'')+'</div>'+
     /* 2026-10-06 Jeffery 選項卡：有命卦的紀錄，這張卡是運卦 → 寫明「此刻的運卦」；舊紀錄照舊 */
-    '<div class="hexcol"><span class="hex-name">'+((R.tian||R.tianPending)?'此刻的運卦，是「':'這次的卦，是「')+esc(R.hexName||'')+'」</span>'+
+    '<div class="hexcol"><span class="hex-name">'+((R.tian||R.tianPending)?'此刻的運卦，是':'這次的卦，是')+'<span style="white-space:nowrap">「'+esc(R.hexName||'')+'」</span></span>'+
     (guaSym?'<p class="hex-read" style="font-size:24px;letter-spacing:6px;color:var(--accent-press);margin:10px 0 0">'+guaSym+'</p>':'')+
-    '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+SOLAR.next+'</b>（'+SOLAR.date+'）。'+(paid?'會通知你回來拿新的靈符。':SOLAR.line)+'</span></div></div>'+
+    '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+SOLAR.next+'</b>（'+nbDate(SOLAR.date)+'）。'+(paid?'會通知你回來拿新的靈符。':SOLAR.line)+'</span></div></div>'+
     '</div></div>';
   /* 病毒環路（9/9 拍板）：把這一卦傳給那個該看到的人——圖（長按存）／連結（零登入收卡頁，縮圖＝同一張卡） */
   if(HC&&!HC.expired&&STATE.shareUrl)h+='<div class="zf-card ff-share"><span class="eyebrow"><span class="dot"></span>把這一卦分享出去</span>'+
@@ -2049,7 +2055,7 @@ function siteHeader(){
     '<div class="zf-nav-links">'+
       '<a href="/">首頁</a><a href="/divination">問一件事</a><a href="/blog">案例專欄</a><a href="/teachers/">老師介紹</a><a href="/shop">法器選物</a>'+
       '<a href="/divination" class="zf-btn ghost sm">占卜</a><a href="/booking" class="zf-btn primary sm" data-wc-open>預約老師</a>'+
-      '<button class="zf-theme-btn" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid var(--border-soft);border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'"></i></button>'+
+      '<button class="zf-theme-btn" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:none;border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer"><i class="zf-theme-ico nav ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon-stars')+'" style="font-size:19px;line-height:1"></i></button>'+
       '<div id="auth-button" class="zf-account"></div>'+
     '</div>'+
     '<button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>'+
@@ -2676,7 +2682,7 @@ function gsiCopyUrl(btn){
   try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(done,legacy);return;}}catch(e){}
   legacy();
 }
-window.addEventListener('zf-theme-change',function(){var d=window.ZFTheme&&ZFTheme.isDark();document.querySelectorAll('.zf-theme-ico').forEach(function(i){i.className='zf-theme-ico ph-thin ph-'+(d?'sun':'moon');});document.querySelectorAll('.zf-theme-lbl').forEach(function(s){s.textContent=d?'淺色模式':'深色模式';});});
+window.addEventListener('zf-theme-change',function(){var d=window.ZFTheme&&ZFTheme.isDark();document.querySelectorAll('.zf-theme-ico').forEach(function(i){var nv=i.classList.contains('nav');i.className='zf-theme-ico'+(nv?' nav':'')+' ph-thin ph-'+(d?'sun':(nv?'moon-stars':'moon'));});document.querySelectorAll('.zf-theme-lbl').forEach(function(s){s.textContent=d?'淺色模式':'深色模式';});});
 window.addEventListener('zf-theme-change',function(){mountGisButton._redo=true;mountGisButton();});
 function boot(){
   /* 量測：ViewContent＝進到占卜漏斗（/divination） */
