@@ -1598,11 +1598,12 @@ function starSub(s){s=String(s||'');for(var k in STAR_XIANG){if(s.indexOf(k)>=0)
 var ZODIAC_BRANCH={'鼠':'子鼠','牛':'丑牛','虎':'寅虎','兔':'卯兔','龍':'辰龍','蛇':'巳蛇','馬':'午馬','羊':'未羊','猴':'申猴','雞':'酉雞','狗':'戌狗','豬':'亥豬'};
 var XIU_GROUP={'角':'蒼龍七宿','亢':'蒼龍七宿','氐':'蒼龍七宿','房':'蒼龍七宿','心':'蒼龍七宿','尾':'蒼龍七宿','箕':'蒼龍七宿','斗':'玄武七宿','牛':'玄武七宿','女':'玄武七宿','虛':'玄武七宿','危':'玄武七宿','室':'玄武七宿','壁':'玄武七宿','奎':'白虎七宿','婁':'白虎七宿','胃':'白虎七宿','昴':'白虎七宿','畢':'白虎七宿','觜':'白虎七宿','參':'白虎七宿','井':'朱雀七宿','鬼':'朱雀七宿','柳':'朱雀七宿','星':'朱雀七宿','張':'朱雀七宿','翼':'朱雀七宿','軫':'朱雀七宿'};
 function xiuGroup(m){m=String(m||'');var x=(m.match(/（(.)宿）/)||[])[1]||m.charAt(0);return XIU_GROUP[x]||'';}
+function lunarHTML(v){var lp=String(v).trim().split(/\s+/),nw=function(t){return '<span style="white-space:nowrap">'+esc(t)+'</span>'};if(lp.length===1){var m=lp[0].match(/^(.+?年)(.+)$/);lp=m?[m[1],m[2]]:lp;}return '<span style="display:block">'+nw(lp[0]||'')+'</span>'+(lp.length>1?'<span style="display:block">'+lp.slice(1).map(nw).join(' ')+'</span>':'');} /* 10/18 版面：農曆每一段（年／月／日／時）各自不拆，只在段與段之間換行（原本「初五」會拆成「初／五」） */
 function profileCard(paid){
   var R=STATE.result||{};
   var h='<div class="zf-card sunken">';
   var tiles=[];
-  if(R.lunar){var lp=R.lunar.split(/\s+/);tiles.push(ftile2('農曆','<span style="display:block">'+esc(lp[0]||'').replace(/^(.+?年)(.+)$/,'<span style="white-space:nowrap">$1</span><span style="white-space:nowrap">$2</span>')+'</span>'+(lp.slice(1).join(' ')?'<span style="display:block">'+esc(lp.slice(1).join(' '))+'</span>':'')));}
+  if(R.lunar){tiles.push(ftile2('農曆',lunarHTML(R.lunar)));}
   if(R.star)tiles.push(ftile2('星座',esc(R.star),starSub(R.star)));
   if(R.zodiac)tiles.push(ftile2('生肖',esc(R.zodiac),ZODIAC_BRANCH[R.zodiac]||''));
   if(R.mansion)tiles.push(ftile2('星宿',esc(R.mansion),xiuGroup(R.mansion)));
