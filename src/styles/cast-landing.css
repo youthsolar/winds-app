@@ -97,8 +97,11 @@
 @media (prefers-reduced-motion:reduce){.ff-sheen,.ff-rips span{animation:none!important}.ff-rips span{opacity:0}}
 /* ===== 落地頁 D 案（/home-gua、/love；DS landing-trim.jsx plan D，2026-10-10 Jeffery 拍板）=====
    只作用在 main.lpd，首頁 index.astro 的起卦區不受影響。 */
-.lpd .lc{width:min(1120px,100vw);margin-left:calc((100% - min(1120px,100vw))/2);padding:64px 32px 0} /* 10/18 Jeffery 拍板＋DS landing-trim D 案：外框跟導覽列同寬（1120）、左右內距同導覽列 32，內容 x 112–1168 */
-@media (max-width:980px){.lpd .lc{padding-left:20px;padding-right:20px}} /* 導覽列 ≤980 內距改 20，跟著改 */
+.lpd .lc{padding:64px 0 0}
+/* 10/18 Jeffery 拍板＋DS landing-trim D 案：電腦版外框跟導覽列同寬（main 放寬到 1120、.lc 吃掉 main 的 28 內距），左右內距同導覽列 32（≤980 為 20），內容 x 112–1168；
+   不用 100vw（有捲軸時會比導覽列寬、出現橫向捲動） */
+@media (min-width:900px){.shell.narrow.lpd{max-width:var(--container)}.lpd .lc{width:auto;margin-left:-28px;margin-right:-28px;padding:64px 32px 0}}
+@media (min-width:900px) and (max-width:980px){.lpd .lc{padding-left:20px;padding-right:20px}}
 .lpd .lc-qs{gap:32px}
 .lpd .lc-side{top:24px;display:flex;flex-direction:column;gap:16px}
 .lpd-hero{display:flex;flex-direction:column;align-items:flex-start}
