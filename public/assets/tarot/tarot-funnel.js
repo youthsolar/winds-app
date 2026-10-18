@@ -396,7 +396,7 @@
     else if (LOVE) first = ['這段關係的完整牌陣解讀', '關係現況、卡點與接下來的提醒'];
     else first = ['這次居家問題的完整解讀', '住得卡、剛入住、想備符或挑房的疑問'];
     var items = [first];
-    if (two) items.push(['第二張靈符', '付 NT$360 後，第 14 天解開']);
+    if (two) items.push(['第二張靈符', '付 NT$360 後，下一個節氣解開']);   /* 10/18：照真正節氣開，不再是第 14 天 */
     items.push(['完整節氣運勢分析', '看看接下來各節氣的運勢提醒']);
     var lead = LOVE
       ? (lvSingle()
@@ -431,16 +431,20 @@
         : nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + (tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日）。' + PH_SOLAR.line + '</span></div>' : '') +
       '</div></div></div>';
   }
-  /* 第二張靈符：還沒開＝遮罩卡＋鎖（付款後寫「N 天後自動開」，同網站 daysUntilUnlock）；開了＝後端出圖 */
+  /* 第二張靈符：還沒開＝遮罩卡＋鎖（付款後寫「立冬開」：10/18 起照真正節氣開，後端給 opens_jieqi）；開了＝後端出圖 */
   function fuSecond(T, paid) {
     var f2 = T.talismans[1]; if (!f2) return '';
     if (f2.url) return '<div class="tal5-grid"><div class="tal5"><div style="position:relative">' + tframe('<img src="' + esc(f2.url) + '" alt="' + esc(f2.element) + '符" decoding="async" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">', false, EL_GLOW[f2.element]) + '</div>' +
       '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">法效期間 · ' + esc(f2.valid_until_label) + ' 止</div></div></div>';
     /* 還鎖著就至少寫 1 天；真正開不開由後端決定（Astra front-r1 #6）。2026-10-14：用後端回的伺服器時間算，不靠客人手機時鐘（舊後端沒回就退回手機時間） */
     var wait = paid && f2.opens_at ? Math.max(1, Math.ceil((Date.parse(f2.opens_at) - (Date.parse(T.server_now) || Date.now())) / 864e5)) : 0;
+    /* 10/18：有節氣名就寫「立冬開」／「立冬（11 月 7 日）開」；舊後端沒給才退回天數 */
+    var jq = paid && f2.opens_jieqi ? f2.opens_jieqi : '';
+    var md = '';
+    if (jq && f2.opens_at) { var od = new Date(Date.parse(f2.opens_at) + 8 * 3600000); md = (od.getUTCMonth() + 1) + '\u00a0月 ' + od.getUTCDate() + '\u00a0日'; }
     return '<div class="tal5-grid"><div class="tal5" id="tsFu2"><div style="position:relative">' + tframe('', false, EL_GLOW[f2.element]) +
-      '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + (paid ? '<span class="fu-wait">' + wait + ' 天後自動開</span>' : '') + '</div></div>' +
-      '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? esc(f2.opens_label || '') + ' 自動開' : '付 NT$360 後，第 14 天解開') + '</div></div></div>';
+      '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + (paid ? '<span class="fu-wait">' + (jq ? esc(jq) + '開' : wait + ' 天後自動開') + '</span>' : '') + '</div></div>' +
+      '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? (jq ? esc(jq) + '（' + md + '）開' : esc(f2.opens_label || '') + ' 自動開') : '付 NT$360 後，下一個節氣解開') + '</div></div></div>';
   }
   function resEnd() {
     return '<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">' +
@@ -459,7 +463,7 @@
       h += block('完整解讀', '', paywall(true));
       h += block('你的命理檔案', '', profileCard(true));
       h += block('你的分靈體', '', spiritCard(true));   /* 2026-10-18（發片前走查）：原本只在還沒有分靈體時畫，生成完整區消失；改成一律畫，生成中／已生成由 spiritCard 處理（同網站付費頁） */
-      if (T.talismans[1]) h += block('第二張靈符', '付款後第 14 天自動開，開了一樣存成手機桌布。', fuSecond(T, true), true);
+      if (T.talismans[1]) h += block('第二張靈符', '付款後下一個節氣自動開，開了一樣存成手機桌布。', fuSecond(T, true), true);
       h += resEnd();
       return '<main class="shell" style="max-width:820px">' + h + '</main>';
     }
