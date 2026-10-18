@@ -406,8 +406,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .tal5-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
     @media(max-width:760px){.tal5-grid{grid-template-columns:repeat(2,1fr);gap:12px}}
     .tal5-grid>.tal5:last-child:nth-child(5n+1){grid-column:1/-1;justify-self:center;width:calc((100% - 56px)/5)} /* 10/18 Jeffery 拍板＋DS RpTalis：最後一排只剩一張（塔羅單張）→ 置中、卡寬一格寬、卡下小字不斷行 */
-    .tal5-grid>.tal5:last-child:nth-child(5n+1) :is(.nm,.ln){white-space:nowrap}
-    @media(max-width:760px){.tal5-grid>.tal5:last-child:nth-child(5n+1){grid-column:auto;justify-self:stretch;width:auto}.tal5-grid>.tal5:last-child:nth-child(5n+1) :is(.nm,.ln){white-space:normal}.tal5-grid>.tal5:last-child:nth-child(2n+1){grid-column:1/-1;justify-self:center;width:calc((100% - 12px)/2)}.tal5-grid>.tal5:last-child:nth-child(2n+1) :is(.nm,.ln){white-space:nowrap}}
+    .tal5-grid>.tal5:last-child:nth-child(5n+1) :is(.nm,.ln){white-space:nowrap;width:max-content;max-width:calc(500% + 56px);position:relative;left:50%;transform:translateX(-50%)}
+    @media(max-width:760px){.tal5-grid>.tal5:last-child:nth-child(5n+1){grid-column:auto;justify-self:stretch;width:auto}.tal5-grid>.tal5:last-child:nth-child(5n+1) :is(.nm,.ln){white-space:normal;width:auto;max-width:none;left:auto;transform:none}.tal5-grid>.tal5:last-child:nth-child(2n+1){grid-column:1/-1;justify-self:center;width:calc((100% - 12px)/2)}.tal5-grid>.tal5:last-child:nth-child(2n+1) :is(.nm,.ln){white-space:nowrap;width:max-content;max-width:calc(200% + 12px);position:relative;left:50%;transform:translateX(-50%)}}
     .tal5 .nm{font-family:var(--font-serif);font-size:14px;font-weight:500;color:var(--ink-900);text-align:center;margin-top:9px}
     .tal5 .ln{font-family:var(--font-serif);font-weight:300;font-size:12px;line-height:1.55;color:var(--text-secondary);text-align:center;margin-top:2px}
 
@@ -1746,7 +1746,7 @@ function spiritCardInner(paid){
     '</div></div></div>';
   return h;
 }
-function nbDate(s){return String(s||'').replace(/(\d+)\s*(年|月|日)/g,'<span style="white-space:nowrap">$1\u00a0$2</span>');} /* 10/18 版面：節氣日期只在數字與單位之間不換行（DS 規則），月與日之間仍可斷 */
+function nbDate(s){return esc(String(s||'')).replace(/(\d+)\s*(年|月|日)/g,'<span style="white-space:nowrap">$1\u00a0$2</span>');} /* 10/18 版面：節氣日期只在數字與單位之間不換行（DS 規則），月與日之間仍可斷 */
 var PH_SOLAR={next:'芒種',date:'6 月 5 日',line:'可以再回來看看新的符，會比較符合你那時候的狀況。',seq:['芒種','夏至','小暑','大暑','立秋']};
 /* 2026-09-25 Jeffery：卦符卡移到解讀之前 → 拆成 hexCardHero（卦符卡＋分享盒）與 hexTalismans（五張符） */
 function hexCardHero(paid){

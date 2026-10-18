@@ -427,11 +427,13 @@
       '<div class="tal-caption">' + ic('device-mobile') + '<span style="text-align:center">' + cap + '</span></div>' +
       ((f1.url && !f1.expired) ? '<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="' + esc(f1.url) + '" target="_blank" rel="noopener">' + ic('download-simple') + '存這張靈符</a></div>' : '') + '</div>' +
       '<div class="hexcol">' + tsBox('tsRes') +
-      (J && J.next ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + esc(J.next_date).replace(/(\d+)\s*(年|月|日)/g, '<span style="white-space:nowrap">$1\u00a0$2</span>') + '）。' + PH_SOLAR.line + '</span></div>'
-        : nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + (tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日）。' + PH_SOLAR.line + '</span></div>' : '') +
+      (J && J.next ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + nbDate(J.next_date) + '）。' + PH_SOLAR.line + '</span></div>'
+        : nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + nbDate((tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日') + '）。' + PH_SOLAR.line + '</span></div>' : '') +
       '</div></div></div>';
   }
   /* 第二張靈符：還沒開＝遮罩卡＋鎖（付款後寫「立冬開」：10/18 起照真正節氣開，後端給 opens_jieqi）；開了＝後端出圖 */
+  /* 10/18 版面：節氣日期只在數字與單位之間不換行（DS 規則），月與日之間仍可斷；先 esc 再包 span */
+  function nbDate(d) { return esc(String(d == null ? '' : d)).replace(/(\d+)\s*(年|月|日)/g, '<span style="white-space:nowrap">$1\u00a0$2</span>'); }
   function fuSecond(T, paid) {
     var f2 = T.talismans[1]; if (!f2) return '';
     if (f2.url) return '<div class="tal5-grid"><div class="tal5"><div style="position:relative">' + tframe('<img src="' + esc(f2.url) + '" alt="' + esc(f2.element) + '符" decoding="async" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">', false, EL_GLOW[f2.element]) + '</div>' +
