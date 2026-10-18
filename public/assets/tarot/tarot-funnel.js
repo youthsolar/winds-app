@@ -421,6 +421,8 @@
   /* 第一張靈符（後端出圖，同卦符卡 hexCardHero 的放法）＋右邊五張牌與下一個節氣 */
   function fuHero(T, paid) {
     /* 下一個節氣：用後端照「現在」算的（兩週後回來看也對；Astra front-r1 #4），沒有才用抽牌那天推 */
+    /* 只有付費且第二張還鎖著，節氣到才有新符可通知（Astra 部署前審）*/
+    var more = paid && T.talismans[1] && !T.talismans[1].url;
     var s = TS.state, f1 = T.talismans[0], J = (STATE.result || {}).jieqi, nx = J && J.next ? null : jieqiNext(s.at);
     var inner = f1.url ? '<img src="' + esc(f1.url) + '" alt="' + esc(f1.element) + '符" decoding="async" onerror="this.onerror=null;this.style.visibility=\'hidden\'" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">' : '';
     var cap = f1.expired ? '這組牌已過期，重新抽一次牌'
@@ -431,8 +433,8 @@
       '<div class="tal-caption">' + ic('device-mobile') + '<span style="text-align:center">' + cap + '</span></div>' +
       ((f1.url && !f1.expired) ? '<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="' + esc(f1.url) + '" target="_blank" rel="noopener">' + ic('download-simple') + '存這張靈符</a></div>' : '') + '</div>' +
       '<div class="hexcol">' + tsBox('tsRes') +
-      (J && J.next ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + nbDate(J.next_date) + '）。' + (paid ? '會通知你回來拿新的靈符。' : '') + '</span></div>'
-        : nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + nbDate((tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日') + '）。' + (paid ? '會通知你回來拿新的靈符。' : '') + '</span></div>' : '') +
+      (J && J.next ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + nbDate(J.next_date) + '）。' + (more ? '會通知你回來拿新的靈符。' : '') + '</span></div>'
+        : nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + nbDate((tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日') + '）。' + (more ? '會通知你回來拿新的靈符。' : '') + '</span></div>' : '') +
       '</div></div></div>';
   }
   /* 第二張靈符：還沒開＝遮罩卡＋鎖（付款後寫「立冬開」：10/18 起照真正節氣開，後端給 opens_jieqi）；開了＝後端出圖 */
