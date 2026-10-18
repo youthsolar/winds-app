@@ -433,8 +433,9 @@
       '<div class="tal-caption">' + ic('device-mobile') + '<span style="text-align:center">' + cap + '</span></div>' +
       ((f1.url && !f1.expired) ? '<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="' + esc(f1.url) + '" target="_blank" rel="noopener">' + ic('download-simple') + '存這張靈符</a></div>' : '') + '</div>' +
       '<div class="hexcol">' + tsBox('tsRes') +
-      (J && J.next ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + nbDate(J.next_date) + '）。' + (more ? '會通知你回來拿新的靈符。' : '') + '</span></div>'
-        : nx ? '<div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + nbDate((tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日') + '）。' + (more ? '會通知你回來拿新的靈符。' : '') + '</span></div>' : '') +
+      /* 10/19 Jeffery 截圖：牌在右欄置中，節氣框也跟著置中 */
+      (J && J.next ? '<div style="text-align:center"><div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + esc(J.next) + '</b>（' + nbDate(J.next_date) + '）。' + (more ? '會通知你回來拿新的靈符。' : '') + '</span></div></div>'
+        : nx ? '<div style="text-align:center"><div class="season-tip">' + ic('leaf', 'thin') + '<span class="t">下一個節氣是 <b>' + nx[0] + '</b>（' + nbDate((tp(nx[1]).getUTCMonth() + 1) + ' 月 ' + tp(nx[1]).getUTCDate() + ' 日') + '）。' + (more ? '會通知你回來拿新的靈符。' : '') + '</span></div></div>' : '') +
       '</div></div></div>';
   }
   /* 第二張靈符：還沒開＝遮罩卡＋鎖（付款後寫「立冬開」：10/18 起照真正節氣開，後端給 opens_jieqi）；開了＝後端出圖 */
