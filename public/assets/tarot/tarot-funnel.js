@@ -444,7 +444,7 @@
     if (jq && Number.isFinite(ot)) { var od = new Date(ot + 8 * 3600000); md = (od.getUTCMonth() + 1) + '\u00a0月 ' + od.getUTCDate() + '\u00a0日'; }
     return '<div class="tal5-grid"><div class="tal5" id="tsFu2"><div style="position:relative">' + tframe('', false, EL_GLOW[f2.element]) +
       '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + (paid ? '<span class="fu-wait">' + (jq ? esc(jq) + '開' : '節氣到時自動開') + '</span>' : '') + '</div></div>' +
-      '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? (jq ? esc(jq) + '（' + md + '）開' : '節氣到時自動開') : '付 NT$360 後，下一個節氣解開') + '</div></div></div>';
+      '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? (jq ? esc(jq) + (md ? '（' + md + '）' : '') + '開' : '節氣到時自動開') : '付 NT$360 後，下一個節氣解開') + '</div></div></div>';
   }
   function resEnd() {
     return '<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">' +
