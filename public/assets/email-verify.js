@@ -54,15 +54,22 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d = d || {}; d._status = r.status; return d; }); });
   }
 
+  /* 10/19（Astra）：免費解讀也要驗信箱後，Google 登入換憑證還沒回來就送出會被要求收碼；送出前可以等這一張（最多 5 秒） */
+  var googlePending = null;
+  function waitGoogle() {
+    if (!googlePending) return Promise.resolve();
+    return Promise.race([googlePending, new Promise(function (r) { setTimeout(r, 5000); })]);
+  }
   function fromGoogle(idToken) {
     try {
       var p = JSON.parse(atob(String(idToken).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
       if (!p.email || token(p.email)) return;
     } catch (e) { return; }
-    fetch(API + '/email-verify/google', { method: 'POST', headers: { 'X-Google-Id-Token': idToken } })
+    var pr = googlePending = fetch(API + '/email-verify/google', { method: 'POST', headers: { 'X-Google-Id-Token': idToken } })
       .then(function (r) { return r.json(); })
       .then(function (d) { if (d && d.ok && d.token && d.email) save(d.email, d.token, d.expires_at); })
-      .catch(function () {});
+      .catch(function () {})
+      .then(function () { if (googlePending === pr) googlePending = null; });
   }
 
   /* 樣式逐值對齊 DS（2026-10-09）：版面＝預約精靈彈窗（DS ui_kits/booking lp-wizard，booking.astro .bw-*）：遮罩 --scrim＋模糊 3px、
@@ -237,5 +244,5 @@
     return open;
   }
 
-  window.ZFEmailVerify = { token: token, clear: clear, ensure: ensure, fromGoogle: fromGoogle };
+  window.ZFEmailVerify = { token: token, clear: clear, ensure: ensure, fromGoogle: fromGoogle, waitGoogle: waitGoogle, googlePending: function () { return !!googlePending; } };
 })();

@@ -2303,7 +2303,15 @@ function submitFree(){
   var edmTok="";try{edmTok=localStorage.getItem("winds_edm_token")||"";}catch(e){}
   if(edmTok)payload.edm_token=edmTok;
   /* 2026-10-09 信箱驗證碼：這個瀏覽器驗過這個信箱就帶上憑證（30 天）；信箱已經有帳號又沒驗過，後端回 email_verify_required，下面接到就開驗證碼視窗 */
-  var evTok=STATE.evSubmitTok||(window.ZFEmailVerify?ZFEmailVerify.token(payload.email):"");STATE.evSubmitTok="";if(evTok)payload.ev_token=evTok;   /* 剛在視窗驗好的優先（瀏覽器存不進去也不會再問一次） */
+  var evTok=STATE.evSubmitTok||(window.ZFEmailVerify?ZFEmailVerify.token(payload.email):"");
+  /* 10/19（Astra）：Google 登入換的憑證還在路上，先等它回來再送（最多 5 秒），不然同一個 Gmail 會被多要一次驗證碼 */
+  /* 等的時候先進「老師正在看」那一頁鎖住操作；等完用「這一次」組好的資料送，不重組（晚到的預填不會換掉客人剛填的；Astra 第 2–4 輪） */
+  if(!evTok&&window.ZFEmailVerify&&ZFEmailVerify.googlePending&&ZFEmailVerify.googlePending()){
+    STATE.submitting=true;go("interpreting");
+    ZFEmailVerify.waitGoogle().then(function(){sendFree(ZFEmailVerify.token(payload.email));});return;}
+  sendFree(evTok);
+  function sendFree(evTok){
+  STATE.evSubmitTok="";if(evTok)payload.ev_token=evTok;   /* 剛在視窗驗好的優先（瀏覽器存不進去也不會再問一次） */
   STATE.submitting=true;STATE.logId="";STATE.k="";STATE.result=null;STATE.paid=false;STATE.full=null;STATE.fullError=false;
   go("interpreting");
   if(window.ffPayloadHook)window.ffPayloadHook(payload);   /* 2026-10-12 塔羅頁（tarot-funnel.js）把「卦」換成抽牌簽名；其他頁沒有這個掛勾 */
@@ -2320,13 +2328,13 @@ function submitFree(){
          STATE.evAsked=true;
          ZFEmailVerify.ensure({email:payload.email,masked:d.email_masked}).then(function(t){
            if(t&&ZFEmailVerify.lastLink){STATE.linkFail=true;STATE.linkFailPending=true;}   /* DS ⑥：信箱驗好了但帳號沒連上（結果頁付款卡上方提示；拿到這一卦的編號後記住） */
-           if(t){STATE.evSubmitTok=t;submitFree();return;}
-           STATE.evAsked=false;showFfErr("這個信箱之前在這裡用過，要收信確認是你本人才能接著看。不是你的信箱，就回上一步換一個。");
+           if(t){sendFree(t);return;}   /* 10/19（Astra 第 5 輪）：用同一份資料重送，不重組 */
+           STATE.evAsked=false;showFfErr(d.cancel_message||"這個信箱之前在這裡用過，要收信確認是你本人才能接著看。不是你的信箱，就回上一步換一個。");   /* 10/19 起新信箱也要驗：後端依新舊信箱給不同的句子 */
          });
          return null;}
        if(d.error==="phone_invalid"){STATE.submitting=false;if(STATE.ret)STATE.retPhone=true;STATE.ask=ASK.indexOf("phone");go("ask");setTimeout(function(){showFfErr(d.message||"手機號碼格式不對，再看一下。");},60);return null;}
        if(d.error==="email_duplicate"){STATE.submitting=false;var _dupRet=STATE.ret;STATE.retPhone=false;if(!_dupRet)STATE.ask=ASK.length-1;go(_dupRet?"ret":"ask");setTimeout(function(){showFfErr(d.message||"這個信箱已被其他帳號使用。");},60);return null;}   /* 2026-10-09（Astra）：回訪的人（含補手機）信箱重複時留在回訪那一行按「改」；原本 ret=false 會掉進沒帶資料的逐題問答 */
-       if(d.error==="spirit_reset_confirm"){STATE.submitting=false;if(confirm(d.message||"改了生日或時辰，你的分靈體會重新與你連結，名字和個性都會跟著變。確定要改嗎？")){STATE.spiritResetOk=true;submitFree();}else{go(STATE.ret?"ret":"ask");}return null;}
+       if(d.error==="spirit_reset_confirm"){STATE.submitting=false;if(confirm(d.message||"改了生日或時辰，你的分靈體會重新與你連結，名字和個性都會跟著變。確定要改嗎？")){payload.confirm_spirit_reset=true;sendFree(payload.ev_token||"");}else{go(STATE.ret?"ret":"ask");}return null;}
        var er=new Error(d.message||d.error||("HTTP "+resp.status));er.srv=!!(d.message||d.error);throw er;
      });}
      return resp.json();
@@ -2345,6 +2353,7 @@ function submitFree(){
      finishResult(data);
    })
    .catch(function(e){STATE.submitting=false;STATE.evAsked=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr((e&&e.srv)?e.message:"送出的時候斷線了，再試一次；一直不行的話，來 LINE 跟我們說一聲。");},60);});
+  }
 }
 
 /* 預抓要一張接一張（同時抓＝多開無頭瀏覽器互搶，反而更慢還會 404）：卦符卡先，再第 1 張模糊卡（後端會五張一起出），其餘直接命中 */
@@ -2612,7 +2621,7 @@ function doPrefill(){
   fetch(API.prefill+"?"+identQ().slice(1),{headers:authHeaders()})
    .then(function(r){return r.json();}).then(function(d){
      if(d&&d.error==="maintenance"){location.href="/maintenance.html";return;}
-     if(!d||!d.found||STATE.afCleared)return;   /* 按過「不是你？清除」：晚到的回訪資料不再接上（Astra v2 #1） */
+     if(!d||!d.found||STATE.afCleared||STATE.submitting)return;   /* 按過「不是你？清除」：晚到的回訪資料不再接上（Astra v2 #1）；已經送出（含等 Google 憑證那幾秒）也不接，免得重送時換成舊資料（10/19 Astra） */
      /* Google 老用戶：資料還在就走「回訪一行」，不再看表單 */
      var em=String(d.email||""),at=em.indexOf("@");
      if(d.date_of_birth){STATE.retInfo={last_name:d.last_name||"",first_name:d.first_name||"",date_of_birth:d.date_of_birth||"",gender:d.gender||"",has_spirit:!!d.personality_profile,phone:d.phone||"",email:em,email_masked:at>0?em.slice(0,Math.min(2,at))+"***"+em.slice(at):""};STATE.ret=true;}
