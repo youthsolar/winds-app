@@ -866,7 +866,7 @@ function hgRestore(fc){
 var LOVE=(document.body.getAttribute("data-mode")==="love");
 var LOVE_WHO=[{k:"someone",l:"有，心裡有個人",d:"曖昧沒下文、交往變冷淡、分手想復合，心裡還是有他。"},{k:"single",l:"沒有，想看桃花",d:"心裡還沒人，想知道最近有沒有戀愛的機會。"}];
 var LOVE_ANGLE={
-  someone:[{k:"where",l:"我們現在算什麼"},{k:"heart",l:"他心離我的距離"},{k:"stuck",l:"我們到底卡在哪"},{k:"next",l:"我們接下來怎麼走"}],
+  someone:[{k:"where",l:"我們現在算什麼"},{k:"heart",l:"他的心，離我有多近"},{k:"stuck",l:"我們到底卡在哪"},{k:"next",l:"我們接下來怎麼走"}],
   single:[{k:"where",l:"什麼時候會來"},{k:"heart",l:"他是什麼樣的人"},{k:"stuck",l:"卡在哪裡"},{k:"next",l:"會在哪遇見他"}]   /* 10/10 晚 Jeffery＋OpenAI：四個拆成時機／對象／卡點／相遇，不再全問時機 */
 };
 function loveWho(k){return LOVE_WHO.find(function(x){return x.k===k})||null;}
@@ -893,7 +893,8 @@ function lvPickWho(k,btn){
    讀到關係版的字。存進瀏覽器、按這一卦的編號取回；只補這一處，不動後端。 */
 function lvRemember(){try{if(LOVE&&STATE.logId&&STATE.data.loveWho)localStorage.setItem("winds_love_"+STATE.logId,STATE.data.loveWho+"|"+STATE.data.loveAngle);}catch(e){}}
 /* 10/10 改寫前的舊說法（後台存的是當時的字），對回同一個選項 */
-var LOVE_ANGLE_OLD={"你們現在站在哪裡":"where","他的心離你多遠":"heart","真正卡住的地方":"stuck","接下來會往哪裡走":"next","我的桃花走到哪裡":"where","機會離我多遠":"where","為什麼一直沒有開始":"stuck","下一段正在靠近嗎":"where",
+var LOVE_ANGLE_OLD={"他心離我的距離":"heart",  /* 10/22 愛卦 4 改字前存的 */
+  "你們現在站在哪裡":"where","他的心離你多遠":"heart","真正卡住的地方":"stuck","接下來會往哪裡走":"next","我的桃花走到哪裡":"where","機會離我多遠":"where","為什麼一直沒有開始":"stuck","下一段正在靠近嗎":"where",
   /* 10/10 晚沒對象那組改成四個面向：問時機的舊選項都對到「什麼時候會來」 */
   "我的桃花有動靜嗎":"where","機會快到了嗎":"where","怎麼總是沒下文":"stuck","新戀情快到了嗎":"where"};
 function lvRestore(fc){
@@ -1219,9 +1220,10 @@ function lpFolds(cards){
 /* 找風問好愛落地頁（2026-09-26 文案規格 V1；2026-10-10 改 DS 定案款 D，版型同 viewLanding）。
    改文案：這裡與 LoveGuaStatic.astro 兩份要一起改（靜態版給不跑 JavaScript 的抓取工具看）。 */
 function lvGuideHtml(){
-  if(!STATE.data.loveWho)return '<p class="hg-guide">想著最在意的感情事，手指放上水鏡。</p><p class="hg-guide">起卦後，老師依卦給你一張親手畫的靈符解方。</p>';
-  if(lvSingle())return '<p class="hg-guide">把心思放回自己。</p><p class="hg-guide">下一個是誰，先不要執著。</p><p class="hg-guide">先看看，現在的你準備好迎接一段感情了嗎？</p><p class="hg-guide">然後，手指輕放水鏡上。</p>';
-  return '<p class="hg-guide">就想著他。</p><p class="hg-guide">想起最近那次對話。</p><p class="hg-guide">先看這一卦：你們現在算什麼？</p><p class="hg-guide">然後，手指輕放水鏡上。</p>';
+  /* 10/22 Jeffery 審核頁：愛卦 2 自寫、愛卦 3 改寫①（帶入客人點的那一題；還沒點題時先用愛卦 2 的開頭） */
+  if(!STATE.data.loveWho)return '<p class="hg-guide">想著最在意的感情事，手指放上水鏡。</p><p class="hg-guide">老師依卦給你一張親手畫的靈符解方。</p>';
+  var la=loveAngle(STATE.data.loveWho,STATE.data.loveAngle);
+  return la?'<p class="hg-guide">想著你剛選的「'+esc(la.l)+'」，再按住水鏡起卦。</p>':'<p class="hg-guide">想著最在意的感情事，再按住水鏡起卦。</p>';
 }
 function viewLoveLanding(){
   return siteHeader()+
@@ -1623,7 +1625,7 @@ function viewReportPaid(R,q){
   var F=STATE.full||{};
   var h='<div class="summary"><span class="eyebrow"><span class="dot"></span>已拿到靈符解方</span>'+
     '<h1 class="q">你的完整命理報告</h1>'+
-    (q?'<p class="sum-ask" style="margin:24px 0 10px">你問的是「'+esc(q)+'」</p>':'')+
+    (q?'<p class="sum-ask" style="margin:24px 0 10px">'+(LOVE?'你這次問的是：「'+esc(q)+'」。':'你問的是「'+esc(q)+'」')+'</p>':'')+
     /* 2026-10-06 Jeffery：卦符卡免費、付費都放最上面（同 9/25 免費頁的位置）；下面靈符解方區只留五張符 */
     ((R.hexCard&&R.hexCard.url)||R.talismanImg||R.hexName?'<div style="margin-top:22px">'+hexCardHero(true)+'</div>':'')+
     '</div>';
@@ -1662,7 +1664,7 @@ function viewResult(){
   if(LOVE)h+=(lvSingle()
     ?'<p class="lede" style="margin:10px 0 4px">桃花不是單純的「有人追」或「沒人追」。<br>有時候機會已經出現，只是你沒有注意。<br>有時候身邊明明有人，卻始終遇不到真正適合自己的關係。<br>也有些時候，是上一段感情留下的東西，還沒有真正離開。<br>先看看，你現在的感情正在什麼位置。</p>'
     :'<p class="lede" style="margin:10px 0 4px">有些人明明彼此在意，卻一直停在原地。<br>有些人越靠越近，其中一個卻突然退開。<br>也有些感情真正卡住的，從來不是「愛不愛」，而是兩個人已經站在不同的位置。<br>先別急著問結果。<br>先看看，你們現在怎麼了。</p>');
-  if(q)h+='<p class="sum-ask" style="margin:24px 0 10px">你問的是「'+esc(q)+'」</p>';
+  if(q)h+='<p class="sum-ask" style="margin:24px 0 10px">'+(LOVE?'你這次問的是：「'+esc(q)+'」。':'你問的是「'+esc(q)+'」')+'</p>';   /* 10/22 愛卦 10 改寫① */
   h+='<div style="margin-top:22px">'+hexCardHero(paid)+'</div>';
   if(R.summary)h+='<div class="sum-body">'+md(R.summary)+'</div>';
   h+='</div>';
@@ -1711,7 +1713,7 @@ function getsList(){
   else if(HOME){first=['這次居家問題的完整解讀','住得卡、剛入住、想備符或挑房的疑問'];chat='關於這次居家問題，可以接著聊';}
   else first=['這次起卦的完整解讀','把前面還沒說完的卦象與提醒，完整看清楚。'];
   var items=[first,['揭曉你的命卦','依生辰算出，看看你是哪一卦'],['五張配合命卦的靈符','節氣到了開一張，自動通知'],
-    (LOVE?['各節氣的感情提醒','延伸你選的感情問題，整理接下來每個節氣要留意的方向']:HOME?['接下來的居家提醒','結合這次的卦，看看各節氣可以留意的居家重點']:['各節氣的提醒','延伸你這次問的事，整理接下來每個節氣要留意的方向']),['專屬分靈體陪伴 7 天',chat]]; /* 10/18 Jeffery 選項卡：節氣那條配合活動主題，不泛稱運勢 */
+    (LOVE?['完整節氣感情解讀','說明這次感情問題在接下來各節氣可留意的線索']   /* 10/22 愛卦 17 改寫② */:HOME?['接下來的居家提醒','結合這次的卦，看看各節氣可以留意的居家重點']:['各節氣的提醒','延伸你這次問的事，整理接下來每個節氣要留意的方向']),['專屬分靈體陪伴 7 天',chat]]; /* 10/18 Jeffery 選項卡：節氣那條配合活動主題，不泛稱運勢 */
   return '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>'+
     items.map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b>'+(x[1]?'<span>'+x[1]+'</span>':'')+'</div></div>';}).join('')+'</div>';
 }
@@ -1901,12 +1903,12 @@ function hexCardHero(paid){
     '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
     ((paid||HC)?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這張靈符是風易揚老師親手畫的。解鎖後就能看清楚。</span></div>')+
     '</div>'+
-    '<div class="tal-caption">'+ic("device-mobile")+'<span style="text-align:center">'+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止<br>長按存成手機桌布':'<span style="white-space:nowrap">讓這張卦符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">'+esc(HC.valid_until_label)+' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</span></div>'+
+    '<div class="tal-caption">'+ic("device-mobile")+'<span style="text-align:center">'+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止<br>長按存成手機桌布':LOVE?'這張卦符由風易揚老師親手畫，<span style="white-space:nowrap">可存成手機桌布，</span><span style="white-space:nowrap">使用期限至 '+esc(HC.valid_until_label)+'。</span>':'<span style="white-space:nowrap">讓這張卦符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">'+esc(HC.valid_until_label)+' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</span></div>'+
     ((HC&&!HC.expired)?'<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("download-simple")+'存這張卦符</a></div>':'')+'</div>'+
     /* 2026-10-06 Jeffery 選項卡：有命卦的紀錄，這張卡是運卦 → 寫明「此刻的運卦」；舊紀錄照舊 */
     '<div class="hexcol"><span class="hex-name">'+((R.tian||R.tianPending)?'此刻的運卦，是':'這次的卦，是')+'<span style="white-space:nowrap">「'+esc(R.hexName||'')+'」</span></span>'+
     (guaSym?'<p class="hex-read" style="font-size:24px;letter-spacing:6px;color:var(--accent-press);margin:10px 0 0">'+guaSym+'</p>':'')+
-    '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+SOLAR.next+'</b>（'+nbDate(SOLAR.date)+'）。'+(paid?(_noNotify?'':'會通知你回來拿新的靈符。'):SOLAR.line)+'</span></div></div>'+
+    '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">'+((LOVE&&!paid)?'這份靈符解方會延伸你選的感情問題，整理完整卦象解讀、命卦與接下來的感情提醒。':'下一個節氣是 <b>'+SOLAR.next+'</b>（'+nbDate(SOLAR.date)+'）。'+(paid?(_noNotify?'':'會通知你回來拿新的靈符。'):SOLAR.line))+'</span></div></div>'+
     '</div></div>';
   /* 病毒環路（9/9 拍板）：把這一卦傳給那個該看到的人——圖（長按存）／連結（零登入收卡頁，縮圖＝同一張卡） */
   if(HC&&!HC.expired&&STATE.shareUrl)h+='<div class="zf-card ff-share"><span class="eyebrow"><span class="dot"></span>把這一卦分享出去</span>'+
@@ -1926,9 +1928,11 @@ function hexTalismans(paid){
   if(list.length){
     /* 2026-09-26 逐值對齊 DS step4-result.jsx L398-403：標題 17 與標籤同列 gap 10、margin 0 0 6px、標籤 12/字距 0、說明 14（手機 13.5）；區塊上方留 DS hero 卡的 margin-bottom 20（手機 16） */
     h+='<div class="tal5-sec"><div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span class="tal5-t">對應卦象的 '+list.length+' 張量能靈符</span><span class="zf-tag rose outline" style="font-size:12px;letter-spacing:0;white-space:nowrap">'+(R.tian?'隨命卦「'+esc(R.tian.name)+'」而對應':R.tianPending?'隨你的命卦而對應':'隨「'+esc(R.hexName||'本')+'卦」而對應')+'</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
-      (paid?'':'<p class="tal5-p">卦象、節氣和你現在的狀況，老師都知道了。</p>')+'<p class="tal5-p">這五張靈符，是照這次的卦象，對應風易揚老師親書的靈符，不是隨機挑的。</p>'+
+      /* 10/22 Jeffery 審核頁：好愛換愛卦 14 改寫②、愛卦 13 改寫①（13 已說命卦，好愛不再接下面那句） */
+      (LOVE?(paid?'':'<p class="tal5-p">這份解方會從卦象、命盤與節氣，延伸你這次最在意的感情問題。</p>')+'<p class="tal5-p">前面的卦象回應這次感情問題，以下五張靈符則由風易揚老師親手畫，依你的命卦搭配。</p>'
+      :(paid?'':'<p class="tal5-p">卦象、節氣和你現在的狀況，老師都知道了。</p>')+'<p class="tal5-p">這五張靈符，是照這次的卦象，對應風易揚老師親書的靈符，不是隨機挑的。</p>')+
       /* 2026-10-06 天卦制：免費看到的是運卦，這五張配的是依生辰起的命卦，付款後揭曉（文案待 Jeffery 改定） */
-      (!paid&&R.tianPending?'<p class="tal5-p">上面那一卦看的是此刻的運；以下這五張是依你的生辰起的命卦靈符解方。</p>':'')+'</div>';
+      (!LOVE&&!paid&&R.tianPending?'<p class="tal5-p">上面那一卦看的是此刻的運；以下這五張是依你的生辰起的命卦靈符解方。</p>':'')+'</div>';
     h+='<div class="tal5-grid">'+list.map(function(c,i){
       var el=c.element;
       /* 未付款＋該位次已上傳真圖 → 顯示真模糊符令；否則退回符號佔位（同樣鎖住外觀） */
@@ -2076,7 +2080,7 @@ function paywall(paid){
     '<p>'+(LOVE
       ?(lvSingle()
         ?'你剛選的桃花問題，就是這份解方要接著談的重點。我會把這一卦的提醒說完整，再揭曉你的命卦，配上五張我親手畫、開光的靈符，讓你帶著更完整的線索，看待接下來的感情機會。'
-        :'你在意的，是這段關係接下來怎麼走。這份解方會把這一卦說完整，也揭曉你的命卦，配上五張我親手畫、開光的靈符。把卦象的提醒看完整，再想想自己的下一步。')
+        :'從你最想釐清的感情疑問出發，完整解方會結合這次卦象與命卦，配上依節氣開放的五張老師親手畫的靈符。把卦象的提醒看完整，再想想自己的下一步。')   /* 10/22 愛卦 16 改寫② */
       :HOME
       ?'挑房、入住、備符，你心裡在意的那件事，值得好好看一回。這份解方會把這一卦的提醒說完整，揭曉你的命卦，配上五張我親手畫、開光的靈符，陪你整理眼前的居家疑問。'
       :'這份解方會把這一卦說完整，也揭曉你的命卦，配上五張我親手畫、開光的靈符。節氣到了開一張，並且自動通知你。')+'</p>'+
