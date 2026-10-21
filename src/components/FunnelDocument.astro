@@ -841,7 +841,7 @@ var LINE_OA_URL="https://lin.ee/tQHsgWB";
    答案併進問題字串（老師解卦吃得到）並另存 home_situation（卦符卡那句話依此換）。非 home 模式一行都不走。 */
 var HOME=(document.body.getAttribute("data-mode")==="home");
 /* 10/18 Jeffery 選項卡：家裡的符結果大標依四種情境（塔羅把「這一卦」換「這組牌」）；不知道情境時維持原句 */
-function homeHead(w){var t={unsettled:'，先看你住得不順心的地方。',moved:'，陪你看看剛入住新家的感受。',keep:'，回應你想替家裡備張符的心意。',choosing:'，陪你整理挑房時最在意的事。'}[STATE.data.home];return w+(t||'，看見的是你家現在的狀態');}
+function homeHead(w){var t={unsettled:'，先看你住得不順心的地方。',moved:'，陪你看看剛入住新家的感受。',keep:'，回應你想替家裡備張符的心意。',choosing:'，陪你整理挑房時最在意的事。'}[STATE.data.home];return w+(t||'，先看你和這個家合不合。');}
 var HOME_SITU=[{k:"unsettled",l:"住得卡卡的"},{k:"moved",l:"新家剛住進"},{k:"keep",l:"想備張符在家"},{k:"choosing",l:"還沒挑定房"}];
 function homeSitu(k){return HOME_SITU.find(function(x){return x.k===k})||null;}
 /* 落地頁選狀況：只切換按鈕，不重畫整頁（重畫會跳回頁首，9/25 Jeffery 真機抓到） */
