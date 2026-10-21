@@ -1893,6 +1893,9 @@ function hexCardHero(paid){
     : R.talismanImg
     ? '<img src="'+esc(R.talismanImg)+'" draggable="false" oncontextmenu="return false;" class="'+(paid?'':'blurred')+'" style="width:100%;height:100%;object-fit:cover">'
     : '<div class="'+(paid?'':'blurred')+'" style="width:100%;height:100%">'+fulu('䷀',R.hexName||'靈符',true)+'</div>';
+  /* 10/21：五張符都開完就不再說「會通知你回來拿新的靈符」 */
+  var _F=STATE.full,_nT=(R.talismanCards&&R.talismanCards.length)||(R.talismanElements&&R.talismanElements.length)||5;
+  var _noNotify=!!(paid&&(!_F||_F.unlock_step==null||Math.max(1,Number(_F.unlock_step)||1)>=_nT));   /* 還不知道開了幾張就先不講 */
   var guaSym=(GUA_UNI[R.upperGua]||'')+(GUA_UNI[R.lowerGua]||'');
   var h='<div class="zf-card sunken tal-hero-card"><div class="tal-hero">'+
     '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
@@ -1903,7 +1906,7 @@ function hexCardHero(paid){
     /* 2026-10-06 Jeffery 選項卡：有命卦的紀錄，這張卡是運卦 → 寫明「此刻的運卦」；舊紀錄照舊 */
     '<div class="hexcol"><span class="hex-name">'+((R.tian||R.tianPending)?'此刻的運卦，是':'這次的卦，是')+'<span style="white-space:nowrap">「'+esc(R.hexName||'')+'」</span></span>'+
     (guaSym?'<p class="hex-read" style="font-size:24px;letter-spacing:6px;color:var(--accent-press);margin:10px 0 0">'+guaSym+'</p>':'')+
-    '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+SOLAR.next+'</b>（'+nbDate(SOLAR.date)+'）。'+(paid?'會通知你回來拿新的靈符。':SOLAR.line)+'</span></div></div>'+
+    '<div class="season-tip">'+ic("leaf","thin")+'<span class="t">下一個節氣是 <b>'+SOLAR.next+'</b>（'+nbDate(SOLAR.date)+'）。'+(paid?(_noNotify?'':'會通知你回來拿新的靈符。'):SOLAR.line)+'</span></div></div>'+
     '</div></div>';
   /* 病毒環路（9/9 拍板）：把這一卦傳給那個該看到的人——圖（長按存）／連結（零登入收卡頁，縮圖＝同一張卡） */
   if(HC&&!HC.expired&&STATE.shareUrl)h+='<div class="zf-card ff-share"><span class="eyebrow"><span class="dot"></span>把這一卦分享出去</span>'+
@@ -1922,7 +1925,7 @@ function hexTalismans(paid){
   var list=cards.length?cards:els.map(function(el,i){return{pos:i+1,element:el,available:false,blur_url:""}});
   if(list.length){
     /* 2026-09-26 逐值對齊 DS step4-result.jsx L398-403：標題 17 與標籤同列 gap 10、margin 0 0 6px、標籤 12/字距 0、說明 14（手機 13.5）；區塊上方留 DS hero 卡的 margin-bottom 20（手機 16） */
-    h+='<div class="tal5-sec"><div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span class="tal5-t">對應卦象的 '+list.length+' 張量能靈符</span><span class="zf-tag rose outline" style="font-size:12px;letter-spacing:0">'+(R.tian?'隨命卦「'+esc(R.tian.name)+'」而對應':R.tianPending?'隨你的命卦而對應':'隨「'+esc(R.hexName||'本')+'卦」而對應')+'</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
+    h+='<div class="tal5-sec"><div style="display:flex;align-items:center;gap:10px;margin:0 0 6px;flex-wrap:wrap"><span class="tal5-t">對應卦象的 '+list.length+' 張量能靈符</span><span class="zf-tag rose outline" style="font-size:12px;letter-spacing:0;white-space:nowrap">'+(R.tian?'隨命卦「'+esc(R.tian.name)+'」而對應':R.tianPending?'隨你的命卦而對應':'隨「'+esc(R.hexName||'本')+'卦」而對應')+'</span>'+(paid?'':'<span style="font-family:var(--font-sans);font-size:12px;color:var(--rose-500)">'+ic("lock-simple")+' 解鎖後取得</span>')+'</div>'+
       (paid?'':'<p class="tal5-p">卦象、節氣和你現在的狀況，老師都知道了。</p>')+'<p class="tal5-p">這五張靈符，是照這次的卦象，對應風易揚老師親書的靈符，不是隨機挑的。</p>'+
       /* 2026-10-06 天卦制：免費看到的是運卦，這五張配的是依生辰起的命卦，付款後揭曉（文案待 Jeffery 改定） */
       (!paid&&R.tianPending?'<p class="tal5-p">上面那一卦看的是此刻的運；以下這五張是依你的生辰起的命卦靈符解方。</p>':'')+'</div>';
@@ -3018,7 +3021,7 @@ window.STATE=STATE;
 if(document.body.getAttribute("data-tarot")!=="1")boot();
 </script>
 {tarot && <script is:inline src="/assets/tarot/engine.js?v=1"></script>}
-{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=9"></script>}
+{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=10"></script>}
 <!-- 帶 utm 進站記點（2026-09-06 補）：占卜頁沒用 BaseLayout，之前從活動頁／社群帶 utm 進來的人 D1 一列都沒有，
      漏斗第四站是瞎的。與 BaseLayout 那段逐字相同：sendBeacon → api.winds.tw/hit → D1 link_hits。 -->
 <script is:inline>

@@ -466,7 +466,7 @@
     var md = '';
     if (jq && Number.isFinite(ot)) { var od = new Date(ot + 8 * 3600000); md = (od.getUTCMonth() + 1) + '\u00a0月 ' + od.getUTCDate() + '\u00a0日'; }
     return '<div class="tal5-grid"><div class="tal5" id="tsFu2"><div style="position:relative">' + tframe('', false, EL_GLOW[f2.element]) +
-      '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + (paid ? '<span class="fu-wait">' + (jq ? esc(jq) + '開' : '節氣到時自動開') + '</span>' : '') + '</div></div>' +
+      '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + '</div></div>' +   /* 10/21：付費後開符時間只留卡下那行，鎖上不再重複 */
       '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? (jq ? esc(jq) + (md ? '（' + md + '）' : '') + '開' : '節氣到時自動開') : '付 NT$' + TALISMAN_PRICE + ' 後，下一個節氣解開') + '</div></div></div>';
   }
   function resEnd() {
@@ -486,7 +486,7 @@
       h += block('完整解讀', '', paywall(true));
       h += block('你的命理檔案', '', profileCard(true));
       h += block('你的分靈體', '', spiritCard(true));   /* 2026-10-18（發片前走查）：原本只在還沒有分靈體時畫，生成完整區消失；改成一律畫，生成中／已生成由 spiritCard 處理（同網站付費頁） */
-      if (T.talismans[1]) h += block('第二張靈符', '付款後下一個節氣自動開，開了一樣存成手機桌布。', fuSecond(T, true), true);
+      if (T.talismans[1]) h += block('第二張靈符', '開了一樣存成手機桌布。', fuSecond(T, true), true);
       h += resEnd();
       return '<main class="shell" style="max-width:820px">' + h + '</main>';
     }
