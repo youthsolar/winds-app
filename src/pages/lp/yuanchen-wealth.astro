@@ -178,7 +178,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
                 <label class="zf-field"><span class="zf-field-label">出生時辰</span>
                   <div class="zf-select-wrap"><select class="zf-select" name="bhour"><option value="不確定">不確定</option>{HOURS.map((h) => <option value={h}>{h}</option>)}</select><span class="caret"><i class="ph-bold ph-caret-down"></i></span></div>
                 </label>
-                <label class="zf-field wide"><span class="zf-field-label">Email</span><input class="zf-input" name="email" type="email" autocomplete="email" required /><span class="zf-field-hint">出貨通知與門市取貨提醒會寄到這裡。</span></label>
+                <label class="zf-field wide"><span class="zf-field-label">Email（限 Gmail）</span><input class="zf-input" name="email" type="email" autocomplete="email" required /><span class="zf-field-hint">出貨通知與門市取貨提醒會寄到這裡。</span></label>
 
                 <div class="zf-field wide">
                   <span class="zf-field-label">取貨門市</span>
@@ -413,7 +413,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         if (!/^09\d{8}$/.test(f.phone)) return fail('請輸入正確手機（09xxxxxxxx）。');
         if (!f.bdate) return fail('請選擇西元生日。');
         if (!validYmd(f.bdate)) return fail('這一天不存在，請再確認生日。');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return fail('請輸入正確 Email。');
+        if (!/^[^\s@]+@gmail\.com$/i.test(f.email)) return fail('請輸入完整的 Gmail 信箱，結尾須為 @gmail.com。');   // 10/21 Jeffery：商城也只收 Gmail（驗證碼只寄 Gmail，同預約）
         if (!store) return fail('請先選取貨門市。');
         if (window.ZFContact) ZFContact.save({ last: f.last, first: f.first, phone: f.phone, email: f.email, birth: f.bdate, shi: form.elements.bhour.selectedIndex - 1 });   // 2026-10-18 記下來，下一張表單帶入（時辰「不確定」＝-1）
         var btn = document.getElementById('payBtn');
@@ -421,24 +421,37 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         lockForm(true); btn.textContent = '建立訂單中…';
         function unlock() { lockForm(false); btn.innerHTML = '確認並付款<i class="ph ph-lock-key"></i>'; }
         var payload = { product_id: D.id, variant: f.variant, name: f.name, birth: f.bdate + ' ' + f.bhour, phone: f.phone, email: f.email, cvs_type: store.type, cvs_store_id: store.id, cvs_store_name: store.name, cvs_address: store.addr, note: f.note, back_url: pageUrl };
-        var ac = new AbortController(), to = setTimeout(function () { ac.abort(); }, 20000);
-        fetch(API + '/shop-order', { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(Object.assign(payload, { expected_amount: shown, client_req_id: reqIdFor(payload) })) })
-          .then(function (r) { return r.json(); }).then(function (d) {
-            clearTimeout(to);
-            if (d && d.ok && d.payment_url) {
-              /* 記下「這張單對應哪一份草稿、哪一版」：付款成功回到訂單頁時只清這一份，而且客人之後沒再改過才清（gpt-6-astra 複核） */
-              var ver = Date.now(); save(ver);
-              try { if (d.trade_no) sessionStorage.setItem('shop-order-owner-' + d.trade_no, JSON.stringify({ key: KEY, v: ver, reqKey: REQ_KEY, reqId: payload.client_req_id })); } catch (e) {}
-              location.href = d.payment_url; return;
-            }
-            unlock();
-            if (d && d.error === 'price_changed' && d.amount) { setShownPrice(f.variant, Number(d.amount)); fail('價格剛更新為 ' + ntd(d.amount) + '（頁面原本顯示 ' + ntd(shown) + '），確認沒問題再按一次付款。'); return; }
-            /* 同一份資料剛剛已經付過款：告訴客人，清掉識別碼——要再買一份，再按一次就是新的一張（明確的第二個動作） */
-            if (d && d.error === 'already_paid') { dropReq(); fail('你剛剛已經用同樣的資料買過一份' + (d.trade_no ? '（訂單 ' + d.trade_no + '）' : '') + '。要再買一份，請再按一次付款。'); return; }
-            if (d && d.error === 'req_conflict') { dropReq(); }   // 換新的識別碼，下一次當成新的送單
-            fail((d && (d.message || d.error)) || '建立訂單失敗，請稍後再試。');
-          }).catch(function () { clearTimeout(to); unlock(); fail('網路太久沒回應。資料沒改的話直接再按一次付款，不會重複開單。'); });
+        // 2026-10-21 Jeffery：商城付款前也要收 6 位數碼確認信箱（同預約；這個瀏覽器 30 天內驗過就跳過）
+        var evRetried = false;
+        var reqId = reqIdFor(payload);   // 驗信箱前後同一份資料用同一個識別碼，重送不會多開一張（Astra）
+        function askCode() {
+          btn.textContent = '確認信箱中…';
+          ZFEmailVerify.ensure({ email: f.email }).then(function (t) { if (t) send(t); else { unlock(); fail('付款前先確認一下信箱，訂單通知會寄到這裡。'); } });
+        }
+        function send(evt) {
+          btn.textContent = '建立訂單中…';
+          var ac = new AbortController(), to = setTimeout(function () { ac.abort(); }, 20000);
+          fetch(API + '/shop-order', { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.assign({}, payload, { expected_amount: shown, client_req_id: reqId, ev_token: evt })) })
+            .then(function (r) { return r.json(); }).then(function (d) {
+              clearTimeout(to);
+              if (d && d.ok && d.payment_url) {
+                /* 記下「這張單對應哪一份草稿、哪一版」：付款成功回到訂單頁時只清這一份，而且客人之後沒再改過才清（gpt-6-astra 複核） */
+                var ver = Date.now(); save(ver);
+                try { if (d.trade_no) sessionStorage.setItem('shop-order-owner-' + d.trade_no, JSON.stringify({ key: KEY, v: ver, reqKey: REQ_KEY, reqId: reqId })); } catch (e) {}
+                location.href = d.payment_url; return;
+              }
+              if (d && d.error === 'email_verify_required' && window.ZFEmailVerify) { ZFEmailVerify.clear(f.email); if (!evRetried) { evRetried = true; askCode(); return; } }
+              unlock();
+              if (d && d.error === 'price_changed' && d.amount) { setShownPrice(f.variant, Number(d.amount)); fail('價格剛更新為 ' + ntd(d.amount) + '（頁面原本顯示 ' + ntd(shown) + '），確認沒問題再按一次付款。'); return; }
+              /* 同一份資料剛剛已經付過款：告訴客人，清掉識別碼——要再買一份，再按一次就是新的一張（明確的第二個動作） */
+              if (d && d.error === 'already_paid') { dropReq(); fail('你剛剛已經用同樣的資料買過一份' + (d.trade_no ? '（訂單 ' + d.trade_no + '）' : '') + '。要再買一份，請再按一次付款。'); return; }
+              if (d && d.error === 'req_conflict') { dropReq(); }   // 換新的識別碼，下一次當成新的送單
+              fail((d && (d.message || d.error)) || '建立訂單失敗，請稍後再試。');
+            }).catch(function () { clearTimeout(to); unlock(); fail('網路太久沒回應。資料沒改的話直接再按一次付款，不會重複開單。'); });
+        }
+        var evNow = window.ZFEmailVerify ? ZFEmailVerify.token(f.email) : '';
+        if (evNow || !window.ZFEmailVerify) send(evNow); else askCode();
       });
     })();
   </script>
