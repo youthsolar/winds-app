@@ -67,7 +67,7 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
       <a class="lw-btn" href={guaUrl} data-src={topic.path}>現在抽一卦</a>
       <div class="lw-cta-note">起卦以你點下去的這一刻為準。</div>
       <a class="lw-btn lw-btn-ghost" href="/booking" data-wc-open>想直接找老師談？預約老師</a>
-      {data && (
+      {(data || topic.key === 'love') && (   /* 10/22 第 3 批（三 7）：/love 沒有當期卦也給分享鈕，分享這一頁起卦入口（shareUrl＝/love/）；財運、運勢不變 */
         <div class="lw-cta-share"><button type="button" class="lw-btn lw-btn-quiet" id="lwShare" data-url={shareUrl} data-text={shareText} data-title={topic.shareTitle} data-path={topic.path}>{topic.shareBtn}</button></div>
       )}
     </div>

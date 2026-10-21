@@ -17,6 +17,8 @@
   function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
   function store(m) { try { localStorage.setItem(KEY, JSON.stringify(m)); } catch (e) {} }
   var mem = {};   // localStorage 寫不進去（無痕、部分內建瀏覽器）時，這一頁還是記得
+  // 10/22 第 3 批（三 11）：好愛／家裡的符（含塔羅兩頁）的錯誤句分開說；其他頁照舊
+  function actPage() { try { var m = document.body.getAttribute('data-mode'); return m === 'love' || m === 'home'; } catch (e) { return false; } }
 
   function token(email) {
     var e = norm(email); if (!e) return '';
@@ -171,7 +173,7 @@
           // 剛寄過：前一組碼還能用，照樣讓他輸入
           if (d.error === 'too_soon') { setMsg(masked); countdown(d.retry_after || 60); go.disabled = false; err.textContent = d.message || ''; inp.focus(); return; }
           msg.textContent = '驗證碼沒寄出去。';
-          err.textContent = d.message || '暫時寄不出去，請稍後再按「重寄」。';
+          err.textContent = (actPage() && d.error === 'send_failed') ? '驗證碼寄不出去，請確認信箱有沒有填對。' : (d.message || '暫時寄不出去，請稍後再按「重寄」。');
           re.disabled = false; re.textContent = '重寄';
           // 寄太多次只是不能再寄，手上最新那組碼還能輸入（Astra V110 #9）；只有猜錯太多次才停用確認
           if (d.error === 'too_many') { re.disabled = true; go.disabled = false; setMsg(masked); err.textContent = d.message || ''; inp.focus(); }
@@ -185,7 +187,7 @@
       function verify() {
         if (busy) return;
         var code = String(inp.value || '').replace(/\D/g, '').slice(0, 6);
-        if (code.length !== 6) { bad(true); err.textContent = '請輸入信裡的 6 位數字。'; inp.focus(); return; }
+        if (code.length !== 6) { bad(true); err.textContent = actPage() ? '請輸入信箱收到的 6 位數驗證碼。' : '請輸入信裡的 6 位數字。'; inp.focus(); return; }
         busy = true; go.disabled = true; go.textContent = '確認中…'; err.textContent = '';
         var body = { code: code };
         for (var key in target) body[key] = target[key];
@@ -202,7 +204,7 @@
             return;
           }
           go.disabled = d.error === 'locked';
-          bad(true); err.textContent = d.message || '沒有驗證成功，再試一次。';
+          bad(true); err.textContent = (actPage() && d.error === 'format') ? '請輸入信箱收到的 6 位數驗證碼。' : (d.message || '沒有驗證成功，再試一次。');
           if (d.error !== 'locked') { inp.select(); inp.focus(); }
           try { err.scrollIntoView({ block: 'nearest' }); } catch (e) {}   // 小螢幕叫出鍵盤時錯誤提示會落在底部按鈕後面
         }).catch(function () {

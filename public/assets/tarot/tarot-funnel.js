@@ -486,7 +486,7 @@
         '<div style="margin-top:22px">' + fuHero(T, true) + '</div></div>';
       h += block('完整解讀', '', paywall(true));
       h += block('你的命理檔案', '', profileCard(true));
-      h += block('你的分靈體', '', spiritCard(true));   /* 2026-10-18（發片前走查）：原本只在還沒有分靈體時畫，生成完整區消失；改成一律畫，生成中／已生成由 spiritCard 處理（同網站付費頁） */
+      h += block('你的分靈體', spiritPeriod(), spiritCard(true));   /* 10/22 第 3 批（三 13）：陪伴期 M/D 至 M/D */   /* 2026-10-18（發片前走查）：原本只在還沒有分靈體時畫，生成完整區消失；改成一律畫，生成中／已生成由 spiritCard 處理（同網站付費頁） */
       if (T.talismans[1]) h += block('第二張靈符', '風易揚老師親手畫的靈符會按下方日期開放，開放後可長按圖片儲存，設成手機桌布，陪你改善炁場。', fuSecond(T, true), true);
       h += resEnd();
       return '<main class="shell" style="max-width:820px">' + h + '</main>';
