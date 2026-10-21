@@ -70,7 +70,7 @@
 
   /* ── 抽牌元件（DS TarotShuffle） ── */
   function tsBox(id) {
-    return '<div class="ts" id="' + id + '"><div class="ts-sum" hidden><span class="ts-q"></span><span class="ts-p">觀察六個月</span></div>' +
+    return '<div class="ts" id="' + id + '"><div class="ts-sum" hidden><span class="ts-q"></span><span class="ts-p">' + (LOVE ? '牌面觀察這六個月' : '觀察六個月') + '</span></div>' +
       '<div class="ts-stage" aria-live="polite"></div><div class="ts-foot"></div></div>';
   }
   function geom() {
@@ -441,6 +441,8 @@
     var inner = f1.url ? '<img src="' + esc(f1.url) + '" alt="' + esc(f1.element) + '符" decoding="async" onerror="this.onerror=null;this.style.visibility=\'hidden\'" style="width:100%;height:100%;object-fit:cover;-webkit-touch-callout:default">' : '';
     var cap = f1.expired ? '這組牌已過期，重新抽一次牌'
       : paid ? '法效期間 · ' + esc(f1.valid_until_label) + ' 止<br>長按存成手機桌布'
+      /* 10/22 Jeffery 愛牌 12 改寫②：起訖用抽牌當天（台北）到 valid_until_label */
+      : LOVE ? '這張免費靈符的使用期間為 ' + new Date(s.at + 8 * 3600e3).toISOString().replace(/^\d+-0?(\d+)-0?(\d+).*$/, '$1/$2') + ' 至 ' + esc(f1.valid_until_label) + '，長按圖片即可儲存。'
       : '<span style="white-space:nowrap">讓這張靈符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">' + esc(f1.valid_until_label) + ' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>';
     return '<div class="zf-card sunken tal-hero-card"><div class="tal-hero">' +
       '<div class="tal-wrap" id="tsFu1"><div style="position:relative">' + tframe(inner, true) + '</div>' +
