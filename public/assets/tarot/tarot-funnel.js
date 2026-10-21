@@ -335,17 +335,17 @@
       '<main class="shell narrow ff hg lpd">' +
       '<section class="lc' + (STATE.data.home ? ' ready' : '') + '" id="hgCast">' +
         '<div class="lc-grid"><div class="lc-qs">' +
-          lpHero('找風問幸福 · 風水', '家，怎麼越住越悶？', '這個家，適合現在的你嗎？洗牌，抽五張牌。') +
+          lpHero('找風問幸福 · 風水', '關於住家，你現在最在意什麼？', '這個家，適合現在的你嗎？洗牌，抽五張牌。') +
           '<section class="lc-sec lc-sec0">' + lcStep(1, 'lcN1', '你家現在是哪種狀況？', '', !!STATE.data.home) +
             '<div class="lc-opts lc-opts2" role="group" id="hgChips">' + HOME_SITU.map(function (x) { return lcOpt(STATE.data.home === x.k, "hgPick('" + x.k + "',this)", x.l, ''); }).join('') + '</div></section>' +
         '</div>' +
         '<div class="lc-side">' + lpMirror() +
-          '<div class="lc-guide"><p class="hg-guide">想著你的家，按下洗牌。</p><p class="hg-guide">抽牌後，老師依牌給你一張親手畫的靈符解方。</p></div>' +
+          '<div class="lc-guide"><p class="hg-guide">選好居家情境，抽完五張牌並填寫基本資料後，先免費領取一張風易揚老師親手畫的靈符。</p></div>' +
         '</div></div>' +
         '</section>' +
       lpFolds([
-        ['家裡哪裡卡住', ['住久了，家裡的變化會反映在人身上。', '所以我會先看牌。']],
-        ['老師如何看牌', ['洗牌後抽出的五張牌，就是這個家現在給我的訊息。', '牌怎麼走，我就照著牌給符，每一張都是我親手畫的。']],
+        ['家裡哪裡卡住', ['從你選的居家問題開始，看看五張牌如何回應這次最在意的事。']],
+        ['老師如何看牌', ['牌怎麼走，我就照著牌給符，每一張都是我親手畫的。']],
         ['這次會拿到什麼', ['先送你一張這組牌的【靈符】，存成手機桌布，七天內幫你和家裡改善炁場。', '還想往下看，我再照你的牌把解讀說完整。']]]) +
       '</main>' + siteFooter(true);
   };
@@ -368,7 +368,7 @@
   };
   /* 逐題問照舊，只改第一題開場那句的「卦」 */
   var _viewAsk = window.viewAsk;
-  window.viewAsk = function () { return _viewAsk().replace('這一卦我知道了。接下來看你的命盤，就可以給你更正確的命卦靈符。', '這組牌我知道了。接下來看你的命盤，就可以給你更正確的靈符。'); };
+  window.viewAsk = function () { return _viewAsk().replace('這一卦我知道了。接下來會搭配你的命盤，繼續整理你這次提問的解讀。', '這組牌我知道了。接下來會搭配你的命盤，繼續整理你這次提問的解讀。'); };
   /* 送出：沿用網站的 submitFree（信箱驗證碼、手機必填、改生日確認、錯誤處理全部照舊），只把「卦」換成這一局的抽牌簽名 */
   var _submitFree = window.submitFree;
   window.submitFree = function () {
@@ -481,19 +481,19 @@
     var paid = STATE.paid || R.purchased, q = askLabel(), h;
     if (paid) {
       /* 付費後：同 viewReportPaid（靈符卡在最上面，完整解讀用網站同一張付費卡） */
-      h = '<div class="summary"><span class="eyebrow"><span class="dot"></span>已拿到靈符解方</span><h1 class="q">你的完整命理報告</h1>' +
+      h = '<div class="summary"><span class="eyebrow"><span class="dot"></span>已拿到靈符解方</span><h1 class="q">' + (LOVE ? '你的完整感情解讀' : '你的完整居家解讀') + '</h1>' +
         '<p class="sum-ask" style="margin:24px 0 10px">你問的是「' + esc(q) + '」</p>' +
         '<div style="margin-top:22px">' + fuHero(T, true) + '</div></div>';
       h += block('完整解讀', '', paywall(true));
       h += block('你的命理檔案', '', profileCard(true));
       h += block('你的分靈體', '', spiritCard(true));   /* 2026-10-18（發片前走查）：原本只在還沒有分靈體時畫，生成完整區消失；改成一律畫，生成中／已生成由 spiritCard 處理（同網站付費頁） */
-      if (T.talismans[1]) h += block('第二張靈符', '開了一樣存成手機桌布。', fuSecond(T, true), true);
+      if (T.talismans[1]) h += block('第二張靈符', '風易揚老師親手畫的靈符會按下方日期開放，開放後可長按圖片儲存，設成手機桌布，陪你改善炁場。', fuSecond(T, true), true);
       h += resEnd();
       return '<main class="shell" style="max-width:820px">' + h + '</main>';
     }
     h = '<div class="summary"><span class="eyebrow"><span class="dot"></span>為你讀好了</span><h1 class="ff-main">' +
       (LOVE ? (lvSingle() ? '這組牌，看見的是你現在的桃花狀態' : '這組牌，看見的是你們現在的關係') : homeHead('這組牌')) + '</h1>';
-    if (HOME) h += '<p class="lede" style="margin:10px 0 4px">家不是單純的「住得好」或「住不好」。<br>有時候是格局與方位，悄悄影響每天的心情。<br>有時候是剛搬進去，人和房子還在磨合。<br>還在挑房子的話，也先看看你和它合不合。<br>先看看，你的家現在正在什麼位置。</p>';
+    if (HOME) h += '<p class="lede" style="margin:10px 0 4px">家不是單純的「住得好」或「住不好」。<br>有時候是格局與方位，悄悄影響每天的心情。<br>有時候是剛搬進去，人和房子還在磨合。<br>從你剛才選的居家情境出發，先看看這組牌對目前疑問有哪些提醒。</p>';
     if (LOVE) h += (lvSingle()
       ? '<p class="lede" style="margin:10px 0 4px">桃花不是單純的「有人追」或「沒人追」。<br>有時候機會已經出現，只是你沒有注意。<br>有時候身邊明明有人，卻始終遇不到真正適合自己的關係。<br>也有些時候，是上一段感情留下的東西，還沒有真正離開。<br>先看看，你現在的感情正在什麼位置。</p>'
       : '<p class="lede" style="margin:10px 0 4px">有些人明明彼此在意，卻一直停在原地。<br>有些人越靠越近，其中一個卻突然退開。<br>也有些感情真正卡住的，從來不是「愛不愛」，而是兩個人已經站在不同的位置。<br>先別急著問結果。<br>先看看，你們現在怎麼了。</p>');
@@ -514,7 +514,7 @@
 
   /* 剛送出等解讀逾時：這一局已經建好了（有 log_id 與 k）→ 留在同一局給「再讀一次」，不要退回「你的牌」讓他重送（Astra front-r1 #1） */
   var _pollGiveUp = window.pollGiveUp;
-  window.pollGiveUp = function (msg) { if (STATE.reportLogId && STATE.k) STATE.reportMode = true; _pollGiveUp(msg); };
+  window.pollGiveUp = function (msg, kind) { if (STATE.reportLogId && STATE.k) STATE.reportMode = true; _pollGiveUp(msg, kind); };
 
   /* render() 之後掛抽牌區與靈符卡 */
   var _render = window.render;

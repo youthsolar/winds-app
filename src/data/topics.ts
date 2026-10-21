@@ -10,6 +10,7 @@ export interface GuaTopic {
   ctaTitle: string;
   ctaLead: string;
   shareTitle: string;
+  shareBtn: string;   // 分享鈕字（10/22 各主題分開）
   descTail: string;   // meta description 收尾
   emptyH1: string;    // 還沒有當期內容時的標題
   emptyLede: string;
@@ -21,24 +22,24 @@ export const TOPICS: Record<string, GuaTopic> = {
   love: {   // 2026-10-14 跟好愛交換網址（原 /love-gua）
     key: 'love', path: 'love', label: '愛情', eyebrow: '這一卦', kicker: '你現在的狀況',
     ctaTitle: '抽屬於你的一卦',
-    ctaLead: '同一件事，每個人的卦不一樣。點一下就起卦，不用登入、不用填生日。',
-    shareTitle: '愛情卦',
-    descTail: '風易揚老師的解卦；點一下就能抽屬於你的一卦，不用登入。',
-    emptyH1: '愛情卦，還在路上', emptyLede: EMPTY_LEDE,
+    ctaLead: '帶著你在意的感情問題，起屬於你的一卦，不用登入，也不用填生日。',
+    shareTitle: '愛情卦', shareBtn: '把這個愛情起卦入口分享給你想起的人',
+    descTail: '想釐清感情上的疑問，就來找風問幸福，起屬於自己的一卦，不用登入。',
+    emptyH1: '愛情卦，還在路上', emptyLede: '想看看自己的感情問題，可以先起一卦，從此刻最在意的事開始。',
   },
   wealth: {
-    key: 'wealth', path: 'wealth-gua', label: '財運', eyebrow: '這一卦', kicker: '你現在的狀況',
-    ctaTitle: '抽你自己的財運一卦',
-    ctaLead: '同樣是錢的事，每個人的卦不一樣。點一下就起卦，不用登入、不用填生日。',
-    shareTitle: '財運卦',
+    key: 'wealth', path: 'wealth-gua', label: '財運', eyebrow: '這一卦', kicker: '這一卦對不同收入情境，有以下幾項提醒。',
+    ctaTitle: '為自己的財運起一卦',
+    ctaLead: '同樣是錢的事，每個人在意的問題不同；帶著自己的財務疑問起一卦，不用登入，也不用填生日。',
+    shareTitle: '財運卦', shareBtn: '把這份財運提醒分享給朋友',
     descTail: '風易揚老師的解卦；點一下就能抽你自己的財運一卦，不用登入。',
     emptyH1: '財運卦，還在路上', emptyLede: EMPTY_LEDE,
   },
   fortune: {
     key: 'fortune', path: 'fortune-gua', label: '運勢', eyebrow: '這一卦', kicker: '這週先顧哪一頭',
     ctaTitle: '抽你自己的一卦',
-    ctaLead: '老師這一卦人人一樣，你的那一卦不一樣。點一下就起卦，不用登入、不用填生日。',
-    shareTitle: '運勢卦',
+    ctaLead: '老師這一卦是給大家的提醒，你也可以為自己在意的事起一卦，不用登入，也不用填生日。',
+    shareTitle: '運勢卦', shareBtn: '把這一卦分享給需要提醒的朋友',
     descTail: '風易揚老師的解卦；點一下就能抽你自己的一卦，不用登入。',
     emptyH1: '運勢卦，還在路上', emptyLede: EMPTY_LEDE,
   },

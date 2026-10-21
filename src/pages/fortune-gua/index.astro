@@ -11,7 +11,7 @@ Astro.response.headers.set('Cache-Control', failed ? 'no-store' : 'public, max-a
 ---
 <BaseLayout
   title={data ? `${topic.label}卦・${data.hex.name} · 找風問幸福` : `${topic.label}卦 · 找風問幸福`}
-  description={data ? `${data.posted_long}起的${topic.label}卦，走「${data.hex.char}」。${data.line} ${topic.descTail}` : `${topic.shareTitle}，${topic.descTail}`}
+  description={data ? `回看 ${String(data.posted_long).replace(/^\d+\s*年\s*/,'').replace(/\s*月\s*/,'/').replace(/\s*日.*$/,'')} 的${topic.label}卦『${data.hex.name}』，讀讀風易揚老師的提醒，也可以不用登入，起一卦問問自己的事。` : `${topic.shareTitle}，${topic.descTail}`}
   ogImage={data?.og_url || undefined}
   noindex={true}
 >

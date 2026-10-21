@@ -13,7 +13,7 @@ Astro.response.headers.set('Cache-Control', failed ? 'no-store' : 'public, max-a
 ---
 <BaseLayout
   title={data ? `${topic.label}卦・${data.hex.name} · 找風問幸福` : `${topic.label}卦 · 找風問幸福`}
-  description={data ? `${data.posted_long}起的${topic.label}卦，走「${data.hex.char}」。${data.line} ${topic.descTail}` : `${topic.shareTitle}，${topic.descTail}`}
+  description={data ? `${data.posted_long}起的${topic.label}卦，走「${data.hex.char}」。${data.line} ${topic.descTail}` : topic.descTail}
   ogImage={data?.og_url || undefined}
   noindex={true}
 >
