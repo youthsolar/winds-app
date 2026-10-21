@@ -1230,7 +1230,7 @@ function viewLoveLanding(){
     '<main class="shell narrow ff hg lpd">'+
     '<section class="lc'+(lvReady()?' ready':'')+'" id="hgCast">'+
       '<div class="lc-grid"><div class="lc-qs">'+
-        lpHero("找風問幸福 · 愛情","你們，到底算什麼？","有對象，想看清關係；沒對象，想知道桃花在哪。")+
+        lpHero("找風問幸福 · 愛情水鏡法","你們，到底算什麼？","有對象，想看清關係；沒對象，想知道桃花在哪。")+
         '<section class="lc-sec lc-sec0">'+lcStep(1,"lcN1","心裡，有個在意的人嗎？","",!!STATE.data.loveWho)+
           '<div class="lc-opts" role="group" id="lvWho">'+LOVE_WHO.map(function(x){return lcOpt(STATE.data.loveWho===x.k,"lvPickWho('"+x.k+"',this)",x.l,x.d)}).join("")+'</div></section>'+
         '<section class="lc-sec" id="lvAngleWrap"'+(STATE.data.loveWho?'':' style="display:none"')+'>'+lcStep(2,"lcN2","哪件事，你最想問？","",!!STATE.data.loveAngle)+
@@ -1903,7 +1903,7 @@ function hexCardHero(paid){
     '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
     ((paid||HC)?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這張靈符是風易揚老師親手畫的。解鎖後就能看清楚。</span></div>')+
     '</div>'+
-    '<div class="tal-caption">'+ic("device-mobile")+'<span style="text-align:center">'+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止<br>長按存成手機桌布':LOVE?'這張卦符由風易揚老師親手畫，<span style="white-space:nowrap">可存成手機桌布，</span><span style="white-space:nowrap">使用期限至 '+esc(HC.valid_until_label)+'。</span>':'<span style="white-space:nowrap">讓這張卦符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">'+esc(HC.valid_until_label)+' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</span></div>'+
+    '<div class="tal-caption">'+ic("device-mobile")+'<span style="text-align:center">'+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止<br>長按存成手機桌布':(LOVE||HOME)?'這張卦符由風易揚老師親手畫，<span style="white-space:nowrap">可存成手機桌布，</span><span style="white-space:nowrap">使用期限至 '+esc(HC.valid_until_label)+'。</span>':'<span style="white-space:nowrap">讓這張卦符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">'+esc(HC.valid_until_label)+' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</span></div>'+
     ((HC&&!HC.expired)?'<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("download-simple")+'存這張卦符</a></div>':'')+'</div>'+
     /* 2026-10-06 Jeffery 選項卡：有命卦的紀錄，這張卡是運卦 → 寫明「此刻的運卦」；舊紀錄照舊 */
     '<div class="hexcol"><span class="hex-name">'+((R.tian||R.tianPending)?'此刻的運卦，是':'這次的卦，是')+'<span style="white-space:nowrap">「'+esc(R.hexName||'')+'」</span></span>'+
@@ -2088,7 +2088,7 @@ function paywall(paid){
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
       :trialPriceHtml()+(STATE.payConfirming?payBtnConfirming():'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>')+
-       (R.hexCard?'<p class="veil-alt">這張卦符 '+esc(R.hexCard.valid_until_label)+' 前有效，過了要重新起卦。</p>':''))+
+       (R.hexCard&&!LOVE&&!HOME?'<p class="veil-alt">這張卦符 '+esc(R.hexCard.valid_until_label)+' 前有效，過了要重新起卦。</p>':''))+
     '<p class="veil-alt">想直接找老師談這件事？<a href="/booking" data-wc-open>預約老師</a></p></div></div>';
 }
 function recsSection(){

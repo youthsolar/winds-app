@@ -429,7 +429,7 @@
       (f1.expired
         ? '<button class="zf-btn primary lg" onclick="askAnother()">' + ic('arrow-counter-clockwise') + '這組牌已過期，重新抽一次牌</button><p class="veil-alt">靈符七天內有效，過了老師要依新的牌重新配符。</p>'
         : (window.trialPriceHtml ? trialPriceHtml() : '') + (STATE.payConfirming && window.payBtnConfirming ? payBtnConfirming() : '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>') +
-          '<p class="veil-alt">這張靈符 ' + esc(f1.valid_until_label) + ' 前有效，過了要重新抽牌。</p>') +
+          '') +
       '<p class="veil-alt">想直接找老師談這件事？<a href="' + BOOK_URL + '" data-wc-open>預約老師</a></p></div></div>';
   }
   /* 第一張靈符（後端出圖，同卦符卡 hexCardHero 的放法）＋右邊五張牌與下一個節氣 */
@@ -442,8 +442,7 @@
     var cap = f1.expired ? '這組牌已過期，重新抽一次牌'
       : paid ? '法效期間 · ' + esc(f1.valid_until_label) + ' 止<br>長按存成手機桌布'
       /* 10/22 Jeffery 愛牌 12 改寫②：起訖用抽牌當天（台北）到 valid_until_label */
-      : LOVE ? '這張免費靈符的使用期間為 ' + new Date(s.at + 8 * 3600e3).toISOString().replace(/^\d+-0?(\d+)-0?(\d+).*$/, '$1/$2') + ' 至 ' + esc(f1.valid_until_label) + '，長按圖片即可儲存。'
-      : '<span style="white-space:nowrap">讓這張靈符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">' + esc(f1.valid_until_label) + ' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>';
+      : '這張免費靈符的使用期間為 ' + new Date(s.at + 8 * 3600e3).toISOString().replace(/^\d+-0?(\d+)-0?(\d+).*$/, '$1/$2') + ' 至 ' + esc(f1.valid_until_label) + '，長按圖片即可儲存。';
     return '<div class="zf-card sunken tal-hero-card"><div class="tal-hero">' +
       '<div class="tal-wrap" id="tsFu1"><div style="position:relative">' + tframe(inner, true) + '</div>' +
       '<div class="tal-caption">' + ic('device-mobile') + '<span style="text-align:center">' + cap + '</span></div>' +
