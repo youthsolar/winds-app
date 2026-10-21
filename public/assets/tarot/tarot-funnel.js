@@ -414,7 +414,7 @@
       items.map(function (x) { return '<div class="get">' + ic('check', 'bold') + '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div></div>'; }).join('') + '</div>' +
       (f1.expired
         ? '<button class="zf-btn primary lg" onclick="askAnother()">' + ic('arrow-counter-clockwise') + '這組牌已過期，重新抽一次牌</button><p class="veil-alt">靈符七天內有效，過了老師要依新的牌重新配符。</p>'
-        : (STATE.payConfirming && window.payBtnConfirming ? payBtnConfirming() : '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>') +
+        : (window.trialPriceHtml ? trialPriceHtml() : '') + (STATE.payConfirming && window.payBtnConfirming ? payBtnConfirming() : '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>') +
           '<p class="veil-alt">這張靈符 ' + esc(f1.valid_until_label) + ' 前有效，過了要重新抽牌。</p>') +
       '<p class="veil-alt">想直接找老師談這件事？<a href="' + BOOK_URL + '" data-wc-open>預約老師</a></p></div></div>';
   }
@@ -453,7 +453,7 @@
     if (jq && Number.isFinite(ot)) { var od = new Date(ot + 8 * 3600000); md = (od.getUTCMonth() + 1) + '\u00a0月 ' + od.getUTCDate() + '\u00a0日'; }
     return '<div class="tal5-grid"><div class="tal5" id="tsFu2"><div style="position:relative">' + tframe('', false, EL_GLOW[f2.element]) +
       '<div class="fog"><span class="lk">' + ic('lock-simple', 'thin') + '</span>' + (paid ? '<span class="fu-wait">' + (jq ? esc(jq) + '開' : '節氣到時自動開') + '</span>' : '') + '</div></div>' +
-      '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? (jq ? esc(jq) + (md ? '（' + md + '）' : '') + '開' : '節氣到時自動開') : '付 NT$360 後，下一個節氣解開') + '</div></div></div>';
+      '<div class="nm">' + esc(f2.element) + '符</div><div class="ln">' + (paid ? (jq ? esc(jq) + (md ? '（' + md + '）' : '') + '開' : '節氣到時自動開') : '付 NT$' + TALISMAN_PRICE + ' 後，下一個節氣解開') + '</div></div></div>';
   }
   function resEnd() {
     return '<div class="res-end" style="display:flex;flex-direction:column;align-items:center;gap:22px">' +

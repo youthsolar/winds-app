@@ -71,6 +71,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <script src="/assets/nav-auth.js?v=7" defer></script>
   <script is:inline src="/assets/email-verify.js?v=3" defer></script>
   <script is:inline src="/assets/contact-memory.js?v=1"></script>   <!-- 2026-10-18 全站表單自動帶入（表單一開就要用，不能 defer） -->
+  <script is:inline src="/assets/zf-price.js?v=1" defer></script>   <!-- 2026-10-21 試營運價：價格以後端為準 -->
 
   <!-- 2026-10-13 塔羅頁恢復 GA4／Meta Pixel（10/12 試做期間關掉過） -->
   <!-- 量測層（2026-08-15）：此頁不走 BaseLayout，底座另裝一份（GA4 ＋ Meta Pixel）-->
@@ -427,6 +428,34 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .paywall .veil .lk{width:48px;height:48px;border-radius:999px;background:var(--rose-100);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--rose-500)}
     .paywall .veil h3{font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--ink-900);margin:0 0 8px}
     .paywall .veil .veil-alt{font-family:var(--font-sans);font-size:13px;color:var(--text-secondary);margin:14px 0 0}
+    /* 2026-10-21 信箱題登入區（DS login-email-step 第 2 輪）：或登入分隔線 20／12、Google 官方鈕＋LINE md 都 40 高間距 12、鈕下兩行 sans 12.5 muted 置中 */
+    .ff-or{display:flex;align-items:center;gap:12px;margin:20px 0 12px;font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)}
+    .ff-or::before,.ff-or::after{content:"";flex:1;border-top:1px solid var(--border-soft)}
+    .ff-login{display:flex;flex-direction:column;gap:12px}
+    .ff-gmount{min-height:40px;display:flex;justify-content:center}
+    .ff-login .zf-line-btn{width:100%}
+    .ff-login-note{margin:12px 0 0;text-align:center;font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)}
+    .ff-signed{display:flex;align-items:center;gap:7px;margin-top:20px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);word-break:break-all}
+    .ff-lm img{display:block;border-radius:3px}
+    .ff-going{position:fixed;inset:0;z-index:2147483000;background:var(--surface-page);display:flex;align-items:flex-start;justify-content:center;padding:120px 16px 0}
+    .ff-going-card,.ff-exp{width:100%;max-width:460px;box-sizing:border-box;text-align:center;padding:32px 24px;box-shadow:var(--shadow-md)}
+    .ff-going-card h2,.ff-exp h1{margin:0;font-family:var(--font-serif);font-size:23px;font-weight:500;line-height:1.4;color:var(--text-primary)}
+    .ff-going-card p,.ff-exp p{margin:12px auto 0;max-width:24em;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.85;color:var(--text-secondary)}
+    .ff-exp .zf-btn{margin-top:24px}
+    .ff-exp-disc{width:56px;height:56px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:var(--rose-100);color:var(--rose-500);font-size:26px}
+    .ff-spin{width:44px;height:44px;margin:0 auto 20px;border-radius:999px;border:3px solid var(--rose-100);border-top-color:var(--rose-400);animation:ffspin 0.9s linear infinite}
+    @keyframes ffspin{to{transform:rotate(360deg)}}
+    @media (min-width:761px){.ff-going-card,.ff-exp{padding:40px}.ff-going-card h2,.ff-exp h1{font-size:26px}.ff-going-card p,.ff-exp p{font-size:15.5px}}
+    /* 2026-10-21 試營運價（DS r3 TrialPrice）：原價劃線 muted 14／「試營運價」accent-press 12.5／NT$199 serif 22（手機 20）／日期 muted 12.5；只在三段之間換行 */
+    .trial-price{width:100%;max-width:26em;margin:0 auto 12px;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:flex-start;text-align:left;row-gap:2px}
+    .trial-price>*{white-space:nowrap}
+    .trial-price.c{justify-content:center;margin:0 auto 14px}
+    .trial-price s{font-family:var(--font-sans);font-size:14px;color:var(--text-muted);text-decoration-thickness:1px;margin-right:10px}
+    .trial-price .tp-l{font-family:var(--font-sans);font-size:12.5px;font-weight:500;color:var(--accent-press);margin-right:6px}
+    .trial-price .tp-p{display:inline-flex;align-items:baseline}
+    .trial-price b{font-family:var(--font-serif);font-size:22px;font-weight:500;line-height:1.3;color:var(--ink-900);margin-right:10px}
+    .trial-price .tp-d{font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted)}
+    @media (max-width:760px){.trial-price b{font-size:20px}}
     .paywall .veil .veil-alt a{color:var(--accent-press);text-decoration:none;border-bottom:1px solid var(--rose-200);padding-bottom:1px}
     .paywall .veil p{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.8;color:var(--text-secondary);margin:0 0 6px;max-width:26em;text-align:left}
     .feat{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:14px 0 20px}
@@ -797,7 +826,14 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
 var GOOGLE_CLIENT_ID="35219881811-2rnl87e0qmb9vsuhuqnfooo0a0af5ggd.apps.googleusercontent.com";
 var WORKER_API="https://api.winds.tw";
 var API={submit:WORKER_API+"/liff-submit",status:WORKER_API+"/liff-status",order:WORKER_API+"/liff-order",prefill:WORKER_API+"/liff-prefill",prefetch:WORKER_API+"/liff-prefetch-profile",recommend:WORKER_API+"/divination-recommend",naming:WORKER_API+"/api/naming/analyze"};
-var TALISMAN_PRICE=360;
+/* 2026-10-21 Jeffery 拍板試營運價：到 2027/1/31（台北）止 NT$199，之後回原價 NT$360（DS r3 TrialPrice）。開頁先用日期暫定，馬上換成後端的價格 */
+var TALISMAN_LIST_PRICE=360,TALISMAN_PRICE=Date.now()<Date.UTC(2027,0,31,16)?199:TALISMAN_LIST_PRICE;
+function trialPriceHtml(center){return TALISMAN_PRICE<TALISMAN_LIST_PRICE?'<div class="trial-price'+(center?' c':'')+'"><s>NT$'+TALISMAN_LIST_PRICE+'</s><span class="tp-p"><span class="tp-l">試營運價</span><b>NT$'+TALISMAN_PRICE+'</b></span><span class="tp-d">・到 1 月 31 日</span></div>':'';}
+/* 價格以後端為準（zf-price.js 跟 api /config 拿）；價格變了就重畫付款卡（Astra 試營運價第 1 輪：不用客人手機時間） */
+function ffPriceSync(){if(!window.ZFPrice)return;var p=ZFPrice.get(),ch=p.price!==TALISMAN_PRICE||p.list!==TALISMAN_LIST_PRICE;TALISMAN_PRICE=p.price;TALISMAN_LIST_PRICE=p.list;
+  if(ch&&(STATE.step==="result"||STATE.step==="cooldown")&&!STATE.ordering){var _y=window.scrollY;render();window.scrollTo(0,_y);}}
+window.addEventListener("zf-price",ffPriceSync);
+function ffSetPrice(p){TALISMAN_PRICE=p;if(window.ZFPrice){var z=ZFPrice.get();z.price=p;ZFPrice.apply();ZFPrice.refresh();}if(STATE.step==="result"||STATE.step==="cooldown"){var _y=window.scrollY;render();window.scrollTo(0,_y);}}
 var LINE_OA_URL="https://lin.ee/tQHsgWB";
 
 /* ===== 活動頁「家裡的符」home 模式（2026-09-23 /grill 11 題拍板；文案＝D 版 Jeffery 定稿）=====
@@ -1294,10 +1330,14 @@ function shiName(i){return SHI[i][0]+"時";}
 function viewAsk(){
   var k=ASK[STATE.ask],d=STATE.data;
   var still=!!STATE.ffStill;STATE.ffStill=false;
+  /* 2026-10-21 信箱題：本來就登入的人換句（Google 帶入 Gmail；LINE 照常收碼），Jeffery 定稿 */
+  if(k==="email"&&!STATE.ffEmailQ&&!ffIsTarot()){
+    if(STATE.userId&&STATE.gEmail&&validGmail(STATE.gEmail)){if(!d.email)d.email=STATE.gEmail;STATE.ffEmailQ="提醒信就寄到你登入的這個 Gmail，要換也可以改。";}
+    else if(window.WindsLine&&WindsLine.session())STATE.ffEmailQ="提醒信要寄到哪個信箱呢？";}
   /* 問句照 ASK 順序長出來；home 模式多了第一題「家的情形」，年份那題的開場跟著改口 */
   var QS={year:"這一卦我知道了。接下來看你的命盤，就可以給你更正確的命卦靈符。你哪一年出生的？",
     month:"幾月？",day:"幾號？",shi:"那天你是什麼時候出生的？不確定的話，會先用午時來看。",gender:"命盤要分陰陽。你是？",name:"留一下你的本名，等等會搭配姓名學一起看。",phone:"留個手機，取回帳號時，才能確認是你。",
-    email:"靈符法效期屆至的提醒信要寄到哪個信箱？"};
+    email:STATE.ffEmailQ||"靈符法效期屆至的提醒信要寄到哪個信箱？"};   /* 2026-10-21 信箱題登入：登入前後換句（ffEmailQ），Jeffery 定稿 */
   function ansOf(key){switch(key){case "year":return d.year+" 年";case "month":return d.month+" 月";case "day":return d.month+" 月 "+d.day+" 日";case "shi":return shiName(d.shi);case "gender":return esc(d.gender);case "name":return esc((String(d.surname||"").trim()+String(d.given||"").trim())||"—");case "phone":return esc(d.phone);}return "";}
   var all=[];
   for(var qi=0;qi<=STATE.ask;qi++){if(qi>0)all.push(ffBub(ansOf(ASK[qi-1]),1));all.push(ffBub(QS[ASK[qi]]));}
@@ -1317,13 +1357,97 @@ function viewAsk(){
   if(k==="phone"){var pb=ffPhoneBad(d.phone);ctl='<input class="ff-inp'+(pb?' bad':'')+'" id="ffPhone" type="tel" inputmode="tel" autocomplete="tel" value="'+esc(d.phone)+'" placeholder="0912345678" aria-label="手機" oninput="STATE.data.phone=this.value.trim();ffTouch(\'phone\');ffNextState()">'+
     '<div class="ff-hint" id="ffPhoneHint">'+(pb?'台灣手機請填 09 開頭 10 碼，國外號碼請加 + 國碼':'')+'</div>';}
   if(k==="email"){var bad=!!d.email&&!validGmail(d.email);ctl='<input class="ff-inp'+(bad?' bad':'')+'" id="ffEmail" type="email" inputmode="email" autocomplete="email" value="'+esc(d.email)+'" placeholder="信箱" oninput="STATE.data.email=this.value.trim();ffTouch(\'email\');ffNextState()">'+
-    '<div class="ff-hint" id="ffEmailHint">'+(bad?'目前只收 Gmail 信箱，再看一下拼法':'')+'</div>';}
+    '<div class="ff-hint" id="ffEmailHint">'+(bad?'目前只收 Gmail 信箱，再看一下拼法':'')+'</div>'+(STATE.retPhone?'':ffLoginBlock());}
   var canNext=!((k==="month"&&!d.month)||(k==="day"&&!d.day)||(k==="gender"&&!d.gender)||(k==="email"&&!validGmail(d.email))||(k==="phone"&&!phoneE164(d.phone)));
   return '<main class="shell narrow ff">'+
     '<div class="ff-prog">'+ASK.map(function(_,i){return '<i class="'+(i<=STATE.ask?'on':'')+'"></i>'}).join("")+'</div>'+
     '<div class="ff-chat'+(still?' still':'')+'">'+ffWho()+bubbles+'<div class="ff-ctl">'+ctl+ffAfLine(k)+'</div>'+
     '<div class="ff-next">'+(STATE.ask>0?'<button class="zf-btn secondary sm" onclick="ffPrev()">上一題</button>':'')+
     '<button class="zf-btn primary sm" id="ffNext" '+(canNext?'':'disabled')+' onclick="ffNext()">'+(STATE.ask===ASK.length-1||STATE.retPhone?'排命盤':'下一題')+'</button></div></div></main>';
+}
+/* ── 2026-10-21 信箱題加 Google／LINE 登入（DS d677a9a4 login-email-step 第 2 輪＋SYNC-信箱題登入定稿；Astra 審 astra-plan-1021）──
+   ・Google 在上、LINE 在下；IG／Threads／FB 等 App 內建瀏覽器整個登入區不顯示（跳 LINE 常回到另一個瀏覽器，答過的接不回來）
+   ・塔羅頁先不顯示（塔羅抽牌狀態另做匯出匯入）
+   ・已登入：不顯示登入鈕，改一行「已用○○登入」
+   ・按 LINE：先把答到哪存後端（funnel-draft，最多到起卦後 25 分鐘），秘密只放這個瀏覽器，回跳網址只帶 draft 編號 */
+var FF_DRAFT_KEY="zf_ffdraft:";   /* 不用 winds_ 開頭：LINE 登入換人時 line-login.js 會清掉 winds_ 開頭的。按草稿編號分開存（多分頁不互蓋；Astra 第 2 輪） */
+function ffIsTarot(){return document.body.getAttribute("data-tarot")==="1";}
+function ffLoginBlock(){
+  if(ffIsTarot()||(window.ZFInApp&&ZFInApp()))return "";
+  var ls=window.WindsLine&&WindsLine.session();
+  if(STATE.userId&&STATE.gEmail)return '<div class="ff-signed"><svg class="ff-gg" width="14" height="14" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>已用 Google 登入 · '+esc(STATE.gEmail)+'</div>';
+  if(ls)return '<div class="ff-signed"><span class="ff-lm"><img src="/assets/line-btn-base.png" alt="" width="14" height="14"></span>已用 LINE 登入</div>';
+  return '<div class="ff-or"><span>或登入</span></div>'+
+    '<div class="ff-login"><div id="googleSignInBtn" class="ff-gmount"></div>'+
+    '<a class="zf-line-btn md" href="#" onclick="ffLineLogin();return false"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">'+(STATE.ffLineFail?'用 LINE 再登入一次':'用 LINE 登入')+'</span></a></div>'+
+    '<p class="ff-login-note">登入後，下次回來就看得到這次占卜。<br>用 Gmail 登入，不用收驗證碼。</p>';
+}
+function ffDraftGet(id){if(!id)return null;try{return JSON.parse(localStorage.getItem(FF_DRAFT_KEY+id)||"null");}catch(e){return null;}}
+function ffDraftPrune(){try{var now=Date.now(),ks=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf(FF_DRAFT_KEY)===0)ks.push(k);}
+  ks.forEach(function(k){var x=null;try{x=JSON.parse(localStorage.getItem(k)||"null");}catch(e){}if(!x||!(Date.parse(x.exp)>now-36e5))localStorage.removeItem(k);});}catch(e){}}
+function ffDraftDrop(id){var x=ffDraftGet(id);try{localStorage.removeItem(FF_DRAFT_KEY+id);}catch(e){}if(x&&x.secret)fetch(WORKER_API+"/funnel-draft/delete",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:id,secret:x.secret}),keepalive:true}).catch(function(){});}
+window.addEventListener("pageshow",function(e){if(e.persisted&&STATE.ffLineBusy){STATE.ffLineBusy=false;var o=document.querySelector(".ff-going");if(o&&o.parentNode)o.parentNode.removeChild(o);}});   /* 從 LINE 授權頁按上一頁回來（Astra 第 3 輪） */
+function ffLineLogin(){
+  if(STATE.ffLineBusy||!window.WindsLine)return;
+  if(!STATE.cast||!STATE.cast.code){go("cast");return;}
+  STATE.ffLineBusy=true;
+  var st={path:location.pathname,text:STATE.text,qtype:STATE.qtype||"",qtypeText:STATE.qtypeText||"",ask:ASK.indexOf("email"),data:STATE.data,extra:{cast:STATE.cast,ref:STATE.ref||""}};
+  /* 「答過的不會不見，登入完就回到這一題。」先蓋一層，存好才跳 */
+  var ov=document.createElement("div");ov.className="ff-going";ov.innerHTML='<div class="zf-card ff-going-card"><div class="ff-spin" aria-hidden="true"></div><h2>正在前往 LINE…</h2><p>答過的不會不見，登入完就回到這一題。</p></div>';document.body.appendChild(ov);
+  function fail(msg){STATE.ffLineBusy=false;if(ov.parentNode)ov.parentNode.removeChild(ov);showFfErr(msg);}
+  fetch(WORKER_API+"/funnel-draft/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"gua",cast_code:STATE.cast.code,cast_at:STATE.cast.castAt,state:st})})
+   .then(function(r){return r.json().catch(function(){return{};});})
+   .then(function(d){
+     if(d&&d.error==="expired"){fail("離開太久了，要重新起卦。");return;}
+     if(!d||!d.ok){fail("現在接不上 LINE，先直接填信箱就好。");return;}
+     ffDraftPrune();
+     try{localStorage.setItem(FF_DRAFT_KEY+d.id,JSON.stringify({secret:d.secret,path:location.pathname,exp:d.expires_at}));if((ffDraftGet(d.id)||{}).secret!==d.secret)throw 0;}catch(e){fail("這個瀏覽器存不了進度，先直接填信箱就好。");return;}
+     /* WindsLine.start 會回 Promise（交易存不進去會 reject）：接住才不會卡在「正在前往 LINE」（Astra 第 2 輪） */
+     try{Promise.resolve(WindsLine.start(location.pathname+"?draft="+d.id)).catch(function(){ffDraftDrop(d.id);fail("現在接不上 LINE，先直接填信箱就好。");});}catch(e){ffDraftDrop(d.id);fail("現在接不上 LINE，先直接填信箱就好。");}
+   }).catch(function(){fail("網路不太穩，先直接填信箱就好。");});
+}
+/* 從 LINE 回來（?draft=）：同一個瀏覽器有秘密才讀得到；讀到就回信箱題，沒有秘密照一般流程（Astra 第 2 輪：暫時讀不到可重試、到期看本機記的期限、成功後才拿掉網址上的編號） */
+function ffDraftResume(id){
+  var x=ffDraftGet(id);
+  if(!x||x.path!==location.pathname){try{history.replaceState(null,"",location.pathname);}catch(e){}return false;}
+  if(x.exp&&Date.parse(x.exp)<=Date.now()){ffDraftDrop(id);try{history.replaceState(null,"",location.pathname);}catch(e){}STATE.step="ffexpired";render();return true;}
+  STATE.ffDraftId=id;STATE.ffResumeErr=false;STATE.step="ffresume";render();
+  fetch(WORKER_API+"/funnel-draft/read",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:id,secret:x.secret})})
+   .then(function(r){return r.json().catch(function(){return null;}).then(function(d){return {st:r.status,d:d};});})
+   .then(function(o){
+     var d=o.d;
+     if(o.st===200&&d&&d.ok&&d.state&&d.state.extra&&d.state.extra.cast){
+       try{history.replaceState(null,"",location.pathname);}catch(e){}
+       var s=d.state;STATE.text=s.text||"";STATE.qtype=s.qtype||"";STATE.qtypeText=s.qtypeText||"";STATE.data=s.data||STATE.data;STATE.cast=s.extra.cast;if(s.extra.ref)STATE.ref=s.extra.ref;
+       STATE.ask=ASK.indexOf("email");STATE.askSeen=true;
+       var ls=window.WindsLine&&WindsLine.session();
+       STATE.ffLineFail=!ls;
+       STATE.ffEmailQ=ls?"LINE 登入好了，前面答的都還在。提醒信要寄到哪個信箱呢？":"沒有登入成功，可以再試一次，或直接填信箱。";
+       go("ask");return;}
+     if(o.st===410||o.st===404){ffDraftDrop(id);try{history.replaceState(null,"",location.pathname);}catch(e){}
+       if(o.st===410||(x.exp&&Date.parse(x.exp)<=Date.now()+60e3)){STATE.step="ffexpired";render();}else ffRestart();return;}
+     STATE.ffResumeErr=true;render();   /* 伺服器暫時出錯：進度還在，給重試 */
+   }).catch(function(){STATE.ffResumeErr=true;render();});
+  return true;
+}
+function viewFfExpired(){
+  var ls=window.WindsLine&&WindsLine.session();
+  return '<main class="shell narrow ff"><div class="zf-card ff-exp"><span class="zf-icon-disc ff-exp-disc"><i class="ph-thin ph-hourglass-medium"></i></span>'+
+    '<h1>答過的題目已經超過保存時間</h1><p>離開太久了，要重新起卦。'+(ls?'LINE 已經登入好了。':'')+'</p>'+
+    '<button class="zf-btn primary lg" style="width:100%" onclick="ffRestart()">重新起卦</button></div></main>';
+}
+function viewFfResume(){
+  if(STATE.ffResumeErr)return '<main class="shell narrow ff"><div class="zf-card ff-exp"><span class="zf-icon-disc ff-exp-disc"><i class="ph-thin ph-wifi-slash"></i></span><h1>網路不太穩</h1><p>答過的題目還在，再試一次就好。</p>'+
+    '<button class="zf-btn primary lg" style="width:100%" onclick="ffDraftResume(STATE.ffDraftId)">再試一次</button><button class="zf-btn secondary lg" style="width:100%;margin-top:12px" onclick="ffRestart()">重新起卦</button></div></main>';
+  return '<main class="shell narrow ff"><div class="zf-card ff-exp"><div class="ff-spin" aria-hidden="true"></div><p>正在接回你答過的題目…</p></div></main>';}
+function ffRestart(){STATE.cast=null;STATE.ask=0;go((HOME||LOVE)?"landing":"topic");}
+/* 信箱題的 Google 官方鈕：只初始化一次、不跳 One Tap；6 秒還載不到就把空位收掉（不留空白按鈕區） */
+function ffGisMount(t){
+  var el=document.getElementById("googleSignInBtn");if(!el||STATE.userId)return;
+  if(typeof google==="undefined"||!google.accounts){t=t||0;if(t<24)setTimeout(function(){ffGisMount(t+1);},250);else if(el.parentNode)el.parentNode.removeChild(el);return;}
+  if(!ffGisMount.inited){ffGisMount.inited=true;google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:handleGoogleCredential,context:"signin"});}
+  el.innerHTML="";
+  google.accounts.id.renderButton(el,{theme:(window.ZFTheme&&ZFTheme.isDark())?"filled_black":"outline",size:"large",text:"signin_with",shape:"pill",width:Math.min(400,Math.max(200,el.clientWidth||300)),locale:"zh-TW"});
 }
 /* 該月有幾天（閏年跟著年份走）：日子只列到月底；改了年或月，原本選的日子超過月底就清掉 */
 function ffDaysIn(y,m){return new Date(y||1990,m||1,0).getDate();}
@@ -1951,7 +2075,7 @@ function paywall(paid){
     getsList()+
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
-      :(STATE.payConfirming?payBtnConfirming():'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>')+
+      :trialPriceHtml()+(STATE.payConfirming?payBtnConfirming():'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>')+
        (R.hexCard?'<p class="veil-alt">這張卦符 '+esc(R.hexCard.valid_until_label)+' 前有效，過了要重新起卦。</p>':''))+
     '<p class="veil-alt">想直接找老師談這件事？<a href="/booking" data-wc-open>預約老師</a></p></div></div>';
 }
@@ -2043,7 +2167,7 @@ function viewCooldown(){
     '<p class="cool-p" style="font-family:var(--font-serif);font-weight:300;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left;word-break:keep-all;overflow-wrap:anywhere">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
     (when?'<div class="when">'+ic("clock")+'<span>這一題，<b>'+esc(when)+'</b>可以再問</span></div>':'<div style="height:24px"></div>')+
     (c.last_log_id
-      ?'<div class="cool-btns"><button class="zf-btn primary md" id="unlockBtn" onclick="STATE.logId=String(STATE.cooldown.last_log_id);createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button><button class="zf-btn secondary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+
+      ?trialPriceHtml(true)+'<div class="cool-btns"><button class="zf-btn primary md" id="unlockBtn" onclick="STATE.logId=String(STATE.cooldown.last_log_id);createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button><button class="zf-btn secondary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+
        '<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-secondary);margin-top:14px">不想等的話——解鎖後 7 天陪伴期內，這一題隨時可以再問。</p>'
       :'<div class="cool-btns"><button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button><button class="zf-btn secondary md" onclick="openOA()">到 LINE 看看 '+ic("arrow-right")+'</button></div>')+
     '</div></div>';
@@ -2137,7 +2261,7 @@ function render(){
     return;
   }
   var showHdr=STATE.step!=="landing"&&STATE.step!=="cooldown"&&STATE.step!=="interpreting";
-  var fn={landing:viewLanding,topic:viewTopic,cast:viewCast,hex:viewHex,ask:viewAsk,ret:viewRet,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown}[STATE.step]||((HOME||LOVE)?viewLanding:viewTopic);
+  var fn={landing:viewLanding,topic:viewTopic,cast:viewCast,hex:viewHex,ask:viewAsk,ret:viewRet,interpreting:viewInterp,result:viewResult,cooldown:viewCooldown,ffexpired:viewFfExpired,ffresume:viewFfResume}[STATE.step]||((HOME||LOVE)?viewLanding:viewTopic);
   root.innerHTML=(showHdr?header():"")+fn();
   cjkWrap(root);
   if((HOME||LOVE)&&STATE.step==="landing")wireSiteChrome();
@@ -2146,6 +2270,7 @@ function render(){
   if(STATE.step==="cast"||STATE.step==="landing")ffCastWire();
   else if(STATE.step==="hex")ffRipStart(false);
   else if(STATE.step==="ask"&&ASK[STATE.ask]==="year")ffDialWire();
+  else if(STATE.step==="ask"&&ASK[STATE.ask]==="email")ffGisMount();   /* 2026-10-21 信箱題的 Google 官方鈕：每次重畫都重掛 */
   renderScroll();
   if(STATE.step==="interpreting")startInterp();
   updateFabCta();
@@ -2222,9 +2347,12 @@ function loggedIn(){return !!(STATE.userId||lineSess());}
 function crossVt(){return (STATE.result&&STATE.result.cross&&STATE.result.cross.vt)||"";}
 /* LINE 卦的舊提醒信連結已停用：k 從網址、STATE、本機記錄一起拿掉，重新整理才不會又撿回來 */
 function dropRevokedK(logId){
-  logId=String(logId||"");STATE.k="";STATE.kAlt="";STATE.retToken="";
+  logId=String(logId||"");
+  /* 2026-10-21（Astra 第 3 輪）：只清那一卦的憑證；晚到的撤銷回應不能清掉這一頁新起的卦的 k */
+  if(!STATE.logId||String(STATE.logId)===logId){STATE.k="";STATE.kAlt="";}
+  if(String(STATE.retLog||"")===logId)STATE.retToken="";
   try{if(localStorage.getItem("winds_ff_log")===logId){localStorage.removeItem("winds_ff_log");localStorage.removeItem("winds_ff_k");}var m=JSON.parse(localStorage.getItem("winds_ff_ks")||"{}")||{};if(m[logId]){delete m[logId];localStorage.setItem("winds_ff_ks",JSON.stringify(m));}}catch(e){}
-  try{var u=new URL(location.href);u.searchParams.delete("k");u.searchParams.delete("ret");history.replaceState(null,"",u.pathname+(u.search||""));}catch(e){}
+  try{var u=new URL(location.href);if(u.searchParams.get("ret")===logId||u.searchParams.get("log_id")===logId){u.searchParams.delete("k");u.searchParams.delete("ret");history.replaceState(null,"",u.pathname+(u.search||""));}}catch(e){}
 }
 
 /* ===== validators ===== */
@@ -2343,6 +2471,7 @@ function submitFree(){
      if(!data)return;
      if(data.blocked){STATE.cooldown={message:data.message,available_at:data.available_at,last_log_id:data.last_log_id||null};STATE.submitting=false;go("cooldown");return;}
      STATE.evAsked=false;
+     if(data.success!==false&&STATE.ffDraftId){ffDraftDrop(STATE.ffDraftId);STATE.ffDraftId="";}   /* 2026-10-21：這一頁接回的那份進度，送出成功就刪（有生日手機，不留） */
      if(data.success===false){STATE.submitting=false;go(STATE.ret?"ret":"ask");setTimeout(function(){showFfErr(data.message||"發生錯誤，請再試一次。");},60);return;}
      /* 2026-10-06（Astra V73，同 LINE 版 1f23f00）：按「改」送出成功後，回訪那一行換成剛送出的資料（確認與否已交給後端判斷） */
      if(STATE.ret&&STATE.retInfo&&payload.phone)STATE.retInfo.has_phone=true;STATE.retPhone=false;
@@ -2538,12 +2667,11 @@ function loadRecs(logId){
 }
 
 /* ===== 解鎖付款（ECPay）===== */
-function createOrder(){
+function createOrder(shown){
   if(STATE.ordering)return;
+  var _shown=Number(shown)>0?Number(shown):TALISMAN_PRICE;   /* 2026-10-21（Astra 第 3、4 輪）：客人按下去時畫面上的價格；驗信後自動重試沿用第一次按的，背景更新價格不改這次的確認依據 */
   var btn=document.getElementById("unlockBtn");
   if(!STATE.logId){alert("找不到占卜記錄，請重新占卜。");return;}
-  /* 量測：InitiateCheckout＝按下解鎖鈕（Purchase 由 worker 走 CAPI，event_id=訂單號） */
-  try{var _v=Number(TALISMAN_PRICE)||360;if(window.fbq)fbq('track','InitiateCheckout',{currency:'TWD',value:_v});if(window.gtag)gtag('event','begin_checkout',{currency:'TWD',value:_v});}catch(e){}
   STATE.ordering=true;
   if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'建立訂單中…';}
   var _pressToken="";try{_pressToken=localStorage.getItem("winds_press_token")||"";}catch(e){}
@@ -2567,7 +2695,7 @@ function createOrder(){
          /* 從這一卦驗過信箱：換成後端發的本人 k（Astra 最終驗收 #1；原本那把一般 k 驗過之後讀不到帳號資料） */
          if(t)adoptTrustedK(STATE.logId);
          if(t&&ZFEmailVerify.lastLink)showLinkFail();   /* DS ⑥：信箱驗好了但帳號這次沒連上 */
-         if(t){STATE.evToken=t;createOrder();}else STATE.orderEvAsked=false;});
+         if(t){STATE.evToken=t;createOrder(_shown);}else STATE.orderEvAsked=false;});
        return;
      }
      STATE.orderEvAsked=false;
@@ -2577,7 +2705,13 @@ function createOrder(){
        try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);sessionStorage.setItem("winds_pending_path",location.pathname);}catch(e){}
        location.href=location.pathname+"?log_id="+STATE.logId;return;
      }
+     if(d.success&&d.pay_url&&!(Number(d.amount)>0)){STATE.ordering=false;ffSetPrice(TALISMAN_PRICE);setTimeout(function(){alert("付款頁暫時打不開，稍後再按一次。");},80);return;}   /* 後端沒說這次收多少：不跳付款頁（Astra 第 4 輪） */
+     if(d.success&&d.pay_url&&Number(d.amount)>0&&Number(d.amount)===_shown)d.pay_url+=(d.pay_url.indexOf("?")<0?"?":"&")+"q="+_shown;   /* 付款頁照這個確認過的價格收；那時價格又變了就請客人回來確認（Astra 第 3 輪） */
      if(d.success&&d.pay_url){
+       /* 2026-10-21（Astra 第 2 輪）：付款頁要收的金額跟畫面上的不一樣（開著頁面跨過截止時間等）→ 先換掉畫面上的價格、請客人再按一次，不直接開付款頁 */
+       if(Number(d.amount)>0&&Number(d.amount)!==_shown){STATE.ordering=false;ffSetPrice(Number(d.amount));setTimeout(function(){alert("價格已經更新成 NT$"+d.amount+"，確認後再按一次。");},80);return;}
+       /* 量測：InitiateCheckout＝確定要去付款（金額用這次付款頁會收的；Purchase 由 worker 走 CAPI，event_id=訂單號） */
+       try{var _v=Number(d.amount)||Number(TALISMAN_PRICE)||360;if(window.fbq)fbq('track','InitiateCheckout',{currency:'TWD',value:_v});if(window.gtag)gtag('event','begin_checkout',{currency:'TWD',value:_v});}catch(e){}
        /* 2026-10-01（廣告前全站掃描）：pending 原本不綁頁面，開了付款頁沒付、回首頁再進別的漏斗，會被這一卦的舊報告接管一次。
           一併記下當時的頁面，boot 只在同一頁重新載入時才接管（見 boot 的 pendingPath） */
        try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);sessionStorage.setItem("winds_pending_path",location.pathname);}catch(e){}
@@ -2621,7 +2755,7 @@ function doPrefill(){
   fetch(API.prefill+"?"+identQ().slice(1),{headers:authHeaders()})
    .then(function(r){return r.json();}).then(function(d){
      if(d&&d.error==="maintenance"){location.href="/maintenance.html";return;}
-     if(!d||!d.found||STATE.afCleared||STATE.submitting)return;   /* 按過「不是你？清除」：晚到的回訪資料不再接上（Astra v2 #1）；已經送出（含等 Google 憑證那幾秒）也不接，免得重送時換成舊資料（10/19 Astra） */
+     if(!d||!d.found||STATE.afCleared||STATE.submitting||STATE.askSeen)return;   /* 2026-10-21（Astra 第 2 步）：已經開始逐題回答（例如走到信箱題才登入）就不切回訪一行，不然送出的是帳號裡的舊資料、這次答的被換掉 */   /* 按過「不是你？清除」：晚到的回訪資料不再接上（Astra v2 #1）；已經送出（含等 Google 憑證那幾秒）也不接，免得重送時換成舊資料（10/19 Astra） */
      /* Google 老用戶：資料還在就走「回訪一行」，不再看表單 */
      var em=String(d.email||""),at=em.indexOf("@");
      if(d.date_of_birth){STATE.retInfo={last_name:d.last_name||"",first_name:d.first_name||"",date_of_birth:d.date_of_birth||"",gender:d.gender||"",has_spirit:!!d.personality_profile,phone:d.phone||"",email:em,email_masked:at>0?em.slice(0,Math.min(2,at))+"***"+em.slice(at):""};STATE.ret=true;}
@@ -2649,6 +2783,8 @@ function handleGoogleCredential(resp){
   /* 量測：Lead＝此瀏覽器第一次登入/綁定（重複登入不重送） */
   if(firstLogin){try{if(window.fbq)fbq('track','Lead');if(window.gtag)gtag('event','sign_up',{method:'google'});}catch(e){}}
   doPrefill();
+  /* 2026-10-21（Astra 第 2 步）：答到一半才用 Google 登入：只把信箱換成這個 Gmail（客人可以再改），其他答案不動 */
+  if(STATE.askSeen&&!STATE.ret&&STATE.gEmail&&validGmail(STATE.gEmail)){STATE.data.email=STATE.gEmail;STATE.ffEmailQ="Google 登入好了，提醒信就寄到這個 Gmail，要換也可以改。";if(STATE.ffAuto)delete STATE.ffAuto.email;if(STATE.step==="ask"&&ASK[STATE.ask]==="email")render();}
   /* 回看報告途中才登入：輪詢已經逾時就重新讀一次（還在輪詢的話，下一次查詢會自動帶上新身分） */
   if(STATE.reportMode&&!STATE.result&&STATE.reportLogId&&STATE.step!=="interpreting"){go("interpreting");pollStatus(STATE.reportLogId);return;}
   if(STATE.result&&STATE.result.purchased&&STATE.fullNeedLogin){STATE.fullPolls=0;loadFullContent(true);}   /* 剛才只拿到摘要，登入後重抓全文 */
@@ -2720,6 +2856,9 @@ function boot(){
   /* 2026-10-02（Astra 審查 #1）：首頁剛起好的卦優先於「開了付款頁沒付」留下的舊單；網址明確帶 log_id 時仍以網址為準 */
   if(!rid&&!HOME&&!LOVE&&homeCastOk(homeCast))pending="";
   if(ref)STATE.ref=ref;   /* 從別人的卦符卡收卡頁「我也起一卦」進來 */
+  /* 2026-10-21 信箱題跳 LINE 登入回來：同一個瀏覽器接回答到一半的進度（讀不到就照一般流程） */
+  var draftId=params.get("draft")||"";
+  if(/^[a-f0-9]{32}$/.test(draftId)&&!rid&&ffDraftResume(draftId)){ffContactFill();return;}
   /* 去表單化：?log_id=&k= 用 log token 看結果，零登入（提醒信、付完款回跳都走這條） */
   /* 2026-09-28（Codex 複核）：pending 讀出來就清，任何報告分支 return 之前都要清到，否則殘留的 pending 會在下次進 /divination 接管 */
   try{sessionStorage.removeItem("winds_pending_log_id");sessionStorage.removeItem("winds_pending_path");}catch(e){}
@@ -2740,9 +2879,9 @@ function boot(){
   if(rl&&rk){STATE.retLog=rl;STATE.retToken=rk;
     fetch(API.prefill+"?ret="+encodeURIComponent(rl)+"&k="+encodeURIComponent(rk),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){
       if(STATE.afCleared)return;   /* 按過「不是你？清除」：晚到的回訪資料不再接上 */
-      if(d&&d.found){STATE.retInfo=d;STATE.ret=true;if(STATE.step==="hex")render();return;}
+      if(d&&d.found){if(STATE.askSeen)return;STATE.retInfo=d;STATE.ret=true;if(STATE.step==="hex")render();return;}   /* 2026-10-21：同上，開始答了就不接回訪資料 */
       /* 2026-10-17：LINE 卦的舊提醒信連結已停用——有登入時後端已改用登入者自己的資料；沒登入就請他到 LINE 打開 */
-      if(d&&d.error==="k_revoked_line"){dropRevokedK(rl);STATE.retLog="";if(!loggedIn())showGone("line");}
+      if(d&&d.error==="k_revoked_line"){dropRevokedK(rl);STATE.retLog="";if(!loggedIn()&&!STATE.askSeen)showGone("line");}   /* 2026-10-21（Astra）：開始答了就不切走畫面 */
     }).catch(function(){});}
   else if(loggedIn())doPrefill();
   ffContactFill();

@@ -62,6 +62,7 @@
       var q = new URLSearchParams(i < 0 ? '' : raw.slice(i + 1)), o = new URLSearchParams();
       if (/^[0-9]{1,12}$/.test(q.get('log_id') || '')) o.set('log_id', q.get('log_id'));
       if (/^[a-f0-9]{24}$/.test(q.get('k') || '')) o.set('k', q.get('k'));
+      if (/^[a-f0-9]{32}$/.test(q.get('draft') || '')) o.set('draft', q.get('draft'));   /* 2026-10-21 信箱題跳 LINE 登入：回來接回進度（只帶編號，讀取秘密留在原瀏覽器） */
       var qs = o.toString();
       return path + '/' + (qs ? '?' + qs : '');
     }

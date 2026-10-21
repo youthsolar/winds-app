@@ -66,6 +66,6 @@ esSource: "/pages/psychic"
 
 [我要預約](#terminal)
 
-還不確定要不要預約？可以先線上起一卦，老師依卦給你一張靈符解方（NT$360）。[先起一卦](/divination/)
+還不確定要不要預約？可以先線上起一卦，老師依卦給你一張靈符解方（<span data-zf-price="label">試營運價 NT$199</span>）。[先起一卦](/divination/)
 
 ##
