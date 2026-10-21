@@ -20,8 +20,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <h1 class="hr-cta-h1">請先登入查看你的預約</h1>
           <p class="hr-cta-p">登入後，你和老師約好的時間都會好好留在這裡，隨時可以回來看。</p>
           <p class="hr-expired" id="hrExpired" hidden><i class="ph ph-info"></i><span>登入已經過期了，再登入一次就好。</span></p>
-          <div class="hr-auth-btns">
-          <a class="zf-line-btn" href="/auth/line-start?return=/bookings"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
+          <div class="hr-auth-btns"><!-- 10/21 Jeffery：全站 Google 在上、LINE 在下 -->
           <a class="hr-gbtn" href="/login?return=/bookings">
             <svg class="hr-gg" width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -30,6 +29,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>用 Google 登入
           </a>
+          <a class="zf-line-btn" href="/auth/line-start?return=/bookings"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
           </div>
         </div>
       </div>
@@ -88,7 +88,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .hr-icondisc i{font-size:30px;color:var(--rose-500);line-height:1;}
     .hr-gbtn{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap;padding:14px 20px;min-height:54px;cursor:pointer;margin-top:30px;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);text-decoration:none;background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
     .hr-gbtn:hover{background:var(--rice-100);}
-    /* LINE 登入（DS line-login v1 ②）：LINE 在上、Google 在下，同寬 54、間距 12，不分主次 */
+    /* LINE 登入（DS line-login v1 ②）：10/21 改 Google 在上、LINE 在下，同寬 54、間距 12，不分主次 */
     .hr-auth-btns{margin-top:28px;display:flex;flex-direction:column;gap:12px;}
     .hr-auth-btns .hr-gbtn{margin-top:0;height:54px;min-height:0;padding-block:0;}   /* 10/17：原本被內距撐到 60，跟 LINE 鈕不一樣高 */
     .hr-expired{display:flex;gap:8px;align-items:flex-start;text-align:left;margin:18px 0 0;padding:10px 14px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);font-family:var(--font-sans);font-size:13.5px;line-height:1.7;color:var(--ink-700);}

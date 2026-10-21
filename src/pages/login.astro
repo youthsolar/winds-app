@@ -11,10 +11,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="lg-card">
         <h1 class="lg-h1">登入</h1>
         <p class="lg-sub">用 LINE 或 Google 帳戶登入，回看你的占卜紀錄、預約與紫微命盤。</p>
-        <!-- DS line-login v1 ①：LINE 在上、Google 官方鈕在下，同寬、間距 12；LINE 用 md（40 高）跟 Google 官方鈕一樣高（10/17） -->
+        <!-- DS line-login v1 ①：10/21 Jeffery 改全站 Google 在上、LINE 在下（原 LINE 在上），同寬、間距 12；LINE 用 md（40 高）跟 Google 官方鈕一樣高（10/17） -->
         <div class="lg-btns">
-          <a class="zf-line-btn md" id="lgLine" href="/auth/line-start?return=/account"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
           <div id="lgGoogle" class="lg-gmount" aria-label="使用 Google 登入"></div>
+          <a class="zf-line-btn md" id="lgLine" href="/auth/line-start?return=/account"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
         </div>
         <p class="lg-open"><a class="zf-text-link" id="lgLiff" href="https://liff.line.me/2009168674-G2KqF3Jv"><i class="ph ph-arrow-square-out"></i>用 LINE 打開占卜</a></p>
         <p class="lg-hint" id="lgHint" hidden><span class="lg-spinner"></span>正在前往 Google…</p>

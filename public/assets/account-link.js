@@ -80,8 +80,9 @@
     var hasLine = items.some(function (it) { return it.kind === 'line'; });
     var hasGoogle = items.some(function (it) { return it.kind === 'google'; });
     var add = document.getElementById('amAdd'); var html = '';
-    if (!hasLine) html += '<button type="button" class="zf-line-btn md am-add-line"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="24" height="24"></span><span class="tx">也用 LINE 登入</span></button>';
+    /* 10/21 Jeffery：全站 Google 在上、LINE 在下 */
     if (!hasGoogle) html += '<button type="button" class="am-gbtn am-add-google">' + G + '<span>也用 Google 登入</span></button>';
+    if (!hasLine) html += '<button type="button" class="zf-line-btn md am-add-line"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="24" height="24"></span><span class="tx">也用 LINE 登入</span></button>';
     add.innerHTML = html; add.hidden = !html;
     card.hidden = false;
     if (d.conflict) note('git-merge', '你的帳號連到兩組紀錄，要合成一組嗎？', '<button type="button" class="zf-btn secondary sm" id="amSelf">看看</button>');
