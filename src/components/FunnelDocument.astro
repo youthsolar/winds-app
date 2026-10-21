@@ -2720,8 +2720,8 @@ function createOrder(shown){
        /* 2026-10-01（廣告前全站掃描）：pending 原本不綁頁面，開了付款頁沒付、回首頁再進別的漏斗，會被這一卦的舊報告接管一次。
           一併記下當時的頁面，boot 只在同一頁重新載入時才接管（見 boot 的 pendingPath） */
        try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);sessionStorage.setItem("winds_pending_path",location.pathname);}catch(e){}
-       var w=window.open(d.pay_url,"_blank");if(!w){/* 從付款頁按上一頁回來（BFCache 會保留「處理中、按鈕鎖住」的狀態）→ 解鎖；預約識別碼還在，再按一次會拿回同一張單（Astra 最終驗收 #6） */window.addEventListener("pageshow",function(e){if(e.persisted&&btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}},{once:true});location.href=d.pay_url;return;}
-       if(btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'已開啟付款頁——完成後點我載入完整解讀';btn.onclick=function(){location.reload();};}
+       var w=window.open(d.pay_url,"_blank");if(!w){/* 從付款頁按上一頁回來（BFCache 會保留「處理中、按鈕鎖住」的狀態）→ 解鎖；預約識別碼還在，再按一次會拿回同一張單（Astra 最終驗收 #6） */window.addEventListener("pageshow",function(e){if(e.persisted&&btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'付款完成後點我看解讀';btn.onclick=function(){location.reload();};}},{once:true});location.href=d.pay_url;return;}
+       if(btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'付款完成後點我看解讀';btn.onclick=function(){location.reload();};}
      }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert(d.message||d.error||"建立訂單失敗，請再試一次。");}   /* 2026-10-01（廣告前全站掃描）：後端 errorResponse 回的是 error 欄位（例如「登入身分與請求不符，請重新登入」），原本只讀 message，只看得到通用訊息 */
    }).catch(function(e){STATE.ordering=false;STATE.orderEvAsked=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert("付款這邊卡住了，再試一次；一直不行的話，直接來 LINE 找老師。");});
 }
