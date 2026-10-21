@@ -378,6 +378,20 @@
     window.ffPayloadHook = function (p) { p.divination_method = '五行塔羅'; p.tarot_draw = s.token; delete p.cast_code; delete p.cast_at; };
     _submitFree();
   };
+  /* 2026-10-21 信箱題跳 LINE 登入前保存進度（FunnelDocument ffLineLogin／ffDraftResume）：匯出這一局（抽牌簽名＋後端抽牌結果），回來照原樣接回
+     不重抽、不重簽；送出時後端照樣驗抽牌簽名（30 分鐘），草稿只保存到抽牌後 25 分鐘 */
+  window.ffDraftKind = function () {
+    var s = TS.state; if (!s || s.st !== 'done' || !s.ok || !s.token || !s.srv) return null;
+    return { kind: 'tarot', tarot_draw: s.token, tarot: { srv: { cards: s.srv.cards, focus_ids: s.srv.focus_ids, needs_teacher: !!s.srv.needs_teacher, talismans: s.srv.talismans, draw_at: s.srv.draw_at }, at: s.at, token: s.token } };
+  };
+  window.ffDraftRestoreHook = function (t) {
+    var T = t && t.srv;
+    if (!T || !t.token || !T.cards || T.cards.length !== 5 || T.needs_teacher || !T.talismans || !T.talismans.length) return false;
+    clearTimers();
+    TS.state = { label: askLabel(), question: askText(), at: Number(t.at) || Date.parse(T.draw_at) || Date.now(), draw: T.cards.map(function (c) { return { id: c.id, orientation: c.orientation }; }),
+      open: [true, true, true, true, true], st: 'done', dealt: 5, sel: { focus_ids: T.focus_ids || [] }, tal: T.talismans, ok: true, srv: T, token: t.token };
+    return true;
+  };
   /* 抽太久（簽名過期）後端回 recast，網站那支會去「起卦」那一步 → 塔羅頁改回落地頁重新洗牌 */
   window.viewCast = function () { resetDraw(); setTimeout(function () { go('landing'); }, 0); return ''; };
   /* 等解讀那一頁的第一句（原「老師正在看你的卦」） */
@@ -515,6 +529,9 @@
     var kk = p.get('k') || (location.hash.match(/[#&]k=([a-f0-9]{24})/) || [])[1] || '', pending = '', pendingPath = '';
     try { pending = sessionStorage.getItem('winds_pending_log_id') || ''; pendingPath = sessionStorage.getItem('winds_pending_path') || ''; sessionStorage.removeItem('winds_pending_log_id'); sessionStorage.removeItem('winds_pending_path'); } catch (e) {}
     if (pending && pendingPath && pendingPath !== location.pathname) pending = '';
+    /* 2026-10-21 從 LINE 登入回來（?draft=）：同一個瀏覽器接回答到信箱題的那一局 */
+    var dr = p.get('draft') || '';
+    if (/^[a-f0-9]{32}$/.test(dr) && !rid && window.ffDraftResume && ffDraftResume(dr)) return;
     var id = rid || pending;
     /* 2026-10-17（Astra 完整驗收 #4）：先接回網站 Google 登入（有 k 也要接）——LINE 卦的舊 k 停用時才有登入可以接手 */
     try { var _g0 = localStorage.getItem('winds_google_token') || ''; if (_g0 && window.adoptGoogleToken) adoptGoogleToken(_g0); } catch (e) {}

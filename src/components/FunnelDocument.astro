@@ -56,7 +56,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
   {tarot && <link rel="stylesheet" href="/assets/tarot/tarot.css?v=2" />}
   <script is:inline src="/assets/cjk-wrap.js" defer></script>
-  {!tarot && <script src="https://accounts.google.com/gsi/client" async defer></script>}
+  <script src="https://accounts.google.com/gsi/client" async defer></script>   <!-- 2026-10-21 塔羅頁也載（信箱題的 Google 登入鈕；塔羅頁不跳 One Tap，只在信箱題掛按鈕） -->
 
   <!-- App 內嵌瀏覽器判定：此頁不走 BaseLayout，跟 BaseLayout.astro 那段逐字相同 -->
   <script is:inline>
@@ -1331,7 +1331,7 @@ function viewAsk(){
   var k=ASK[STATE.ask],d=STATE.data;
   var still=!!STATE.ffStill;STATE.ffStill=false;
   /* 2026-10-21 信箱題：本來就登入的人換句（Google 帶入 Gmail；LINE 照常收碼），Jeffery 定稿 */
-  if(k==="email"&&!STATE.ffEmailQ&&!ffIsTarot()){
+  if(k==="email"&&!STATE.ffEmailQ){
     if(STATE.userId&&STATE.gEmail&&validGmail(STATE.gEmail)){if(!d.email)d.email=STATE.gEmail;STATE.ffEmailQ="提醒信就寄到你登入的這個 Gmail，要換也可以改。";}
     else if(window.WindsLine&&WindsLine.session())STATE.ffEmailQ="提醒信要寄到哪個信箱呢？";}
   /* 問句照 ASK 順序長出來；home 模式多了第一題「家的情形」，年份那題的開場跟著改口 */
@@ -1367,13 +1367,13 @@ function viewAsk(){
 }
 /* ── 2026-10-21 信箱題加 Google／LINE 登入（DS d677a9a4 login-email-step 第 2 輪＋SYNC-信箱題登入定稿；Astra 審 astra-plan-1021）──
    ・Google 在上、LINE 在下；IG／Threads／FB 等 App 內建瀏覽器整個登入區不顯示（跳 LINE 常回到另一個瀏覽器，答過的接不回來）
-   ・塔羅頁先不顯示（塔羅抽牌狀態另做匯出匯入）
+   ・塔羅頁（10/21 第二批）：抽牌那一局由 tarot-funnel.js 的 ffDraftKind／ffDraftRestoreHook 匯出、匯入
    ・已登入：不顯示登入鈕，改一行「已用○○登入」
    ・按 LINE：先把答到哪存後端（funnel-draft，最多到起卦後 25 分鐘），秘密只放這個瀏覽器，回跳網址只帶 draft 編號 */
 var FF_DRAFT_KEY="zf_ffdraft:";   /* 不用 winds_ 開頭：LINE 登入換人時 line-login.js 會清掉 winds_ 開頭的。按草稿編號分開存（多分頁不互蓋；Astra 第 2 輪） */
 function ffIsTarot(){return document.body.getAttribute("data-tarot")==="1";}
 function ffLoginBlock(){
-  if(ffIsTarot()||(window.ZFInApp&&ZFInApp()))return "";
+  if(window.ZFInApp&&ZFInApp())return "";
   var ls=window.WindsLine&&WindsLine.session();
   if(STATE.userId&&STATE.gEmail)return '<div class="ff-signed"><svg class="ff-gg" width="14" height="14" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>已用 Google 登入 · '+esc(STATE.gEmail)+'</div>';
   if(ls)return '<div class="ff-signed"><span class="ff-lm"><img src="/assets/line-btn-base.png" alt="" width="14" height="14"></span>已用 LINE 登入</div>';
@@ -1389,16 +1389,18 @@ function ffDraftDrop(id){var x=ffDraftGet(id);try{localStorage.removeItem(FF_DRA
 window.addEventListener("pageshow",function(e){if(e.persisted&&STATE.ffLineBusy){STATE.ffLineBusy=false;var o=document.querySelector(".ff-going");if(o&&o.parentNode)o.parentNode.removeChild(o);}});   /* 從 LINE 授權頁按上一頁回來（Astra 第 3 輪） */
 function ffLineLogin(){
   if(STATE.ffLineBusy||!window.WindsLine)return;
-  if(!STATE.cast||!STATE.cast.code){go("cast");return;}
+  /* 水鏡存卦；塔羅頁由 tarot-funnel.js 給這一局的抽牌簽名與牌（ffDraftKind） */
+  var dk=window.ffDraftKind?ffDraftKind():(STATE.cast&&STATE.cast.code?{kind:"gua",cast_code:STATE.cast.code,cast_at:STATE.cast.castAt}:null);
+  if(!dk){go(ffIsTarot()?"landing":"cast");return;}
   STATE.ffLineBusy=true;
-  var st={path:location.pathname,text:STATE.text,qtype:STATE.qtype||"",qtypeText:STATE.qtypeText||"",ask:ASK.indexOf("email"),data:STATE.data,extra:{cast:STATE.cast,ref:STATE.ref||""}};
+  var st={path:location.pathname,text:STATE.text,qtype:STATE.qtype||"",qtypeText:STATE.qtypeText||"",ask:ASK.indexOf("email"),data:STATE.data,extra:{cast:dk.kind==="gua"?STATE.cast:null,tarot:dk.tarot||null,ref:STATE.ref||""}};
   /* 「答過的不會不見，登入完就回到這一題。」先蓋一層，存好才跳 */
   var ov=document.createElement("div");ov.className="ff-going";ov.innerHTML='<div class="zf-card ff-going-card"><div class="ff-spin" aria-hidden="true"></div><h2>正在前往 LINE…</h2><p>答過的不會不見，登入完就回到這一題。</p></div>';document.body.appendChild(ov);
   function fail(msg){STATE.ffLineBusy=false;if(ov.parentNode)ov.parentNode.removeChild(ov);showFfErr(msg);}
-  fetch(WORKER_API+"/funnel-draft/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"gua",cast_code:STATE.cast.code,cast_at:STATE.cast.castAt,state:st})})
+  fetch(WORKER_API+"/funnel-draft/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:dk.kind,cast_code:dk.cast_code||"",cast_at:dk.cast_at||"",tarot_draw:dk.tarot_draw||"",state:st})})
    .then(function(r){return r.json().catch(function(){return{};});})
    .then(function(d){
-     if(d&&d.error==="expired"){fail("離開太久了，要重新起卦。");return;}
+     if(d&&d.error==="expired"){fail(ffIsTarot()?"離開太久了，要重新抽牌。":"離開太久了，要重新起卦。");return;}
      if(!d||!d.ok){fail("現在接不上 LINE，先直接填信箱就好。");return;}
      ffDraftPrune();
      try{localStorage.setItem(FF_DRAFT_KEY+d.id,JSON.stringify({secret:d.secret,path:location.pathname,exp:d.expires_at}));if((ffDraftGet(d.id)||{}).secret!==d.secret)throw 0;}catch(e){fail("這個瀏覽器存不了進度，先直接填信箱就好。");return;}
@@ -1416,9 +1418,12 @@ function ffDraftResume(id){
    .then(function(r){return r.json().catch(function(){return null;}).then(function(d){return {st:r.status,d:d};});})
    .then(function(o){
      var d=o.d;
-     if(o.st===200&&d&&d.ok&&d.state&&d.state.extra&&d.state.extra.cast){
+     var ex=d&&d.state&&d.state.extra;
+     if(o.st===200&&d&&d.ok&&ex&&(ex.cast||ex.tarot)){
        try{history.replaceState(null,"",location.pathname);}catch(e){}
-       var s=d.state;STATE.text=s.text||"";STATE.qtype=s.qtype||"";STATE.qtypeText=s.qtypeText||"";STATE.data=s.data||STATE.data;STATE.cast=s.extra.cast;if(s.extra.ref)STATE.ref=s.extra.ref;
+       var s=d.state;STATE.text=s.text||"";STATE.qtype=s.qtype||"";STATE.qtypeText=s.qtypeText||"";STATE.data=s.data||STATE.data;if(s.extra.ref)STATE.ref=s.extra.ref;
+       if(ex.tarot){if(!(window.ffDraftRestoreHook&&ffDraftRestoreHook(ex.tarot))){ffDraftDrop(id);ffRestart();return;}}   /* 塔羅：把那一局牌接回抽牌區（送出時用原抽牌簽名，後端照樣驗 30 分鐘） */
+       else STATE.cast=ex.cast;
        STATE.ask=ASK.indexOf("email");STATE.askSeen=true;
        var ls=window.WindsLine&&WindsLine.session();
        STATE.ffLineFail=!ls;
@@ -1433,12 +1438,12 @@ function ffDraftResume(id){
 function viewFfExpired(){
   var ls=window.WindsLine&&WindsLine.session();
   return '<main class="shell narrow ff"><div class="zf-card ff-exp"><span class="zf-icon-disc ff-exp-disc"><i class="ph-thin ph-hourglass-medium"></i></span>'+
-    '<h1>答過的題目已經超過保存時間</h1><p>離開太久了，要重新起卦。'+(ls?'LINE 已經登入好了。':'')+'</p>'+
-    '<button class="zf-btn primary lg" style="width:100%" onclick="ffRestart()">重新起卦</button></div></main>';
+    '<h1>答過的題目已經超過保存時間</h1><p>離開太久了，'+(ffIsTarot()?'要重新抽牌。':'要重新起卦。')+(ls?'LINE 已經登入好了。':'')+'</p>'+
+    '<button class="zf-btn primary lg" style="width:100%" onclick="ffRestart()">'+(ffIsTarot()?'重新抽牌':'重新起卦')+'</button></div></main>';
 }
 function viewFfResume(){
   if(STATE.ffResumeErr)return '<main class="shell narrow ff"><div class="zf-card ff-exp"><span class="zf-icon-disc ff-exp-disc"><i class="ph-thin ph-wifi-slash"></i></span><h1>網路不太穩</h1><p>答過的題目還在，再試一次就好。</p>'+
-    '<button class="zf-btn primary lg" style="width:100%" onclick="ffDraftResume(STATE.ffDraftId)">再試一次</button><button class="zf-btn secondary lg" style="width:100%;margin-top:12px" onclick="ffRestart()">重新起卦</button></div></main>';
+    '<button class="zf-btn primary lg" style="width:100%" onclick="ffDraftResume(STATE.ffDraftId)">再試一次</button><button class="zf-btn secondary lg" style="width:100%;margin-top:12px" onclick="ffRestart()">'+(ffIsTarot()?'重新抽牌':'重新起卦')+'</button></div></main>';
   return '<main class="shell narrow ff"><div class="zf-card ff-exp"><div class="ff-spin" aria-hidden="true"></div><p>正在接回你答過的題目…</p></div></main>';}
 function ffRestart(){STATE.cast=null;STATE.ask=0;go((HOME||LOVE)?"landing":"topic");}
 /* 信箱題的 Google 官方鈕：只初始化一次、不跳 One Tap；6 秒還載不到就把空位收掉（不留空白按鈕區） */
@@ -3013,7 +3018,7 @@ window.STATE=STATE;
 if(document.body.getAttribute("data-tarot")!=="1")boot();
 </script>
 {tarot && <script is:inline src="/assets/tarot/engine.js?v=1"></script>}
-{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=8"></script>}
+{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=9"></script>}
 <!-- 帶 utm 進站記點（2026-09-06 補）：占卜頁沒用 BaseLayout，之前從活動頁／社群帶 utm 進來的人 D1 一列都沒有，
      漏斗第四站是瞎的。與 BaseLayout 那段逐字相同：sendBeacon → api.winds.tw/hit → D1 link_hits。 -->
 <script is:inline>
