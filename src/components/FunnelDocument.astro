@@ -1198,7 +1198,7 @@ function viewLanding(){
     lpFolds([
       ["家裡哪裡卡住",["住久了，家裡的變化會反映在人身上。","所以我會先看卦。"]],
       ["老師如何看卦",["按住水鏡三秒，起出來的卦，就是這個家現在給我的訊息。","卦怎麼走，我就照著卦給符，每一張都是我親手畫的。"]],
-      ["這次會拿到什麼",["先免費收下一張風易揚老師親手畫的卦符，存成手機桌布；靈符解方包含完整居家解讀、命卦，以及依節氣開放的五張老師親手畫的靈符。"]]])+
+      ["這次會拿到什麼",["先送你一張這一卦的【卦符】，存成手機桌布，七天內幫你和家裡改善炁場。","還想往下看，我再照你的卦解五張靈符。"]]])+
     '</main>'+siteFooter(true);
 }
 /* 落地頁 D 案共用小件（/home-gua、/love） */
@@ -1243,7 +1243,7 @@ function viewLoveLanding(){
     lpFolds([
       ["最難的，是放不下",["對話重看好多次，還是猜不透？","有對象看關係，沒對象看桃花，先起一卦。"]],
       ["老師如何看卦",["按住水鏡三秒，先起卦看感情；老師依卦給符，每張都親手畫。"]],
-      ["這次會拿到什麼",["先免費收下一張風易揚老師親手畫的卦符，存成手機桌布；靈符解方包含完整感情解讀、命卦，以及依節氣開放的五張老師親手畫的靈符。"]]])+
+      ["這次會拿到什麼",["先送你一張這一卦的【卦符】，存成手機桌布，七天內幫你改善炁場。","還想往下看，我再照你的卦解五張靈符。"]]])+
     '</main>'+siteFooter(true);
 }
 
@@ -1903,7 +1903,7 @@ function hexCardHero(paid){
     '<div class="tal-wrap"><div style="position:relative">'+tframe(inner,true)+
     ((paid||HC)?'':'<div class="fog"><span class="lk">'+ic("lock-simple","thin")+'</span><span class="cap">這張靈符是風易揚老師親手畫的。解鎖後就能看清楚。</span></div>')+
     '</div>'+
-    '<div class="tal-caption">'+ic("device-mobile")+'<span style="text-align:center">'+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止<br>長按存成手機桌布':(LOVE||HOME)?'這張卦符由風易揚老師親手畫，<span style="white-space:nowrap">可存成手機桌布，</span><span style="white-space:nowrap">使用期限至 '+esc(HC.valid_until_label)+'。</span>':'<span style="white-space:nowrap">讓這張卦符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">'+esc(HC.valid_until_label)+' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</span></div>'+
+    '<div class="tal-caption">'+ic("device-mobile")+'<span style="text-align:center">'+(HC?(HC.expired?'這一卦已過期，重新起一卦':HC.paid?'法效期間 · '+esc(HC.valid_until_label)+' 止<br>長按存成手機桌布':(LOVE||HOME)?'這張卦符由風易揚老師親手畫，<span style="white-space:nowrap">存成手機桌布陪你改善炁場，</span><span style="white-space:nowrap">使用期限至 '+esc(HC.valid_until_label)+'。</span>':'<span style="white-space:nowrap">讓這張卦符陪你改善炁場，</span><span style="white-space:nowrap">手機桌布放滿七天</span><br><span style="white-space:nowrap">'+esc(HC.valid_until_label)+' 前有效 · </span><span style="white-space:nowrap">長按存成手機桌布</span>'):(paid?'長按存成手機桌布 · 9:16':'手機桌布 · 9:16'))+'</span></div>'+
     ((HC&&!HC.expired)?'<div style="text-align:center;margin-top:10px"><a class="zf-btn secondary sm" href="'+esc(HC.url)+'" target="_blank" rel="noopener">'+ic("download-simple")+'存這張卦符</a></div>':'')+'</div>'+
     /* 2026-10-06 Jeffery 選項卡：有命卦的紀錄，這張卡是運卦 → 寫明「此刻的運卦」；舊紀錄照舊 */
     '<div class="hexcol"><span class="hex-name">'+((R.tian||R.tianPending)?'此刻的運卦，是':'這次的卦，是')+'<span style="white-space:nowrap">「'+esc(R.hexName||'')+'」</span></span>'+
