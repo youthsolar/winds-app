@@ -47,13 +47,21 @@ const body = html.includes('<hr>') ? html.slice(html.indexOf('<hr>') + 4) : html
 
 const canonical = `https://winds.tw/shop/${PRODUCT_ID}/`;
 const title = `${name}｜${isTalisman ? '風易揚老師親繪開光' : '找風問幸福'}｜法器選物`;
-const description = `${lede}${tagline ? '。' + tagline : ''}。全台超商店到店，7 天內送達。`;
+const description = `${lede}${tagline ? '。' + tagline : ''}。全台超商店到店，7 天內寄出。`;
 const jsonLd = [{
   '@context': 'https://schema.org', '@type': 'Product', name, image: images, description, url: canonical,
   brand: { '@type': 'Brand', name: '找風問幸福' },
   offers: (variants.length ? variants : [{ title: '', price: prod.price }]).map((v) => ({ '@type': 'Offer', name: v.title || name, price: v.price, priceCurrency: 'TWD', availability: 'https://schema.org/InStock', url: canonical + '#order', areaServed: 'TW' })),
 }];
 
+// 2026-10-22 商城文案 商 5／商 6（Jeffery 拍板）：說明要客人提供的資料，備註欄依商品換標題並改必填；範例句也依商品換
+const NOTE: Record<string, { label: string; ph: string; req: boolean }> = {
+  '9919735': { label: '對方的本名', ph: '例如：上個月吵架後冷戰到現在，他還會回訊息', req: true },
+  '10057656': { label: '要淨化的地點與住在那裡的人', ph: '例如：剛搬進舊公寓，半夜常驚醒', req: true },
+  '12259935': { label: '目前的感情狀況', ph: '例如：單身兩年，想遇到正緣', req: true },
+  '12117493': { label: '想問的一件事', ph: '例如：明年要不要轉職', req: true },
+};
+const note = NOTE[PRODUCT_ID] || { label: '想讓老師知道的狀況（選填）', ph: '例如：最近半年換了兩次工作、存款一直存不到十萬…', req: false };
 const HOURS = ['子時 23–01', '丑時 01–03', '寅時 03–05', '卯時 05–07', '辰時 07–09', '巳時 09–11', '午時 11–13', '未時 13–15', '申時 15–17', '酉時 17–19', '戌時 19–21', '亥時 21–23'];
 const YEARS = Array.from({ length: 2026 - 1940 + 1 }, (_, i) => 2026 - i);   // 同占卜頁 2026→1940
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -85,7 +93,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
             <a class="zf-btn primary lg" href="#order">請這件<i class="ph ph-arrow-down"></i></a>
             <a class="zf-btn secondary lg" href="#about">先看說明</a>
           </div>
-          <p class="lp-meta"><i class="ph ph-storefront"></i> 全台超商店到店 · 7 天內送達 · 台灣限定</p>
+          <p class="lp-meta"><i class="ph ph-storefront"></i> 全台超商店到店 · 7 天內寄出 · 台灣限定</p>
         </div>
       </div>
     </section>
@@ -175,7 +183,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
                   <span class="zf-field-hint">點品牌會開啟綠界門市地圖，選好會自動回到這裡。</span>
                 </div>
 
-                <label class="zf-field wide"><span class="zf-field-label">想讓老師知道的狀況（選填）</span><textarea class="zf-textarea" name="note" rows="3" maxlength="300" placeholder="例如：最近半年換了兩次工作、存款一直存不到十萬…"></textarea></label>
+                <label class="zf-field wide"><span class="zf-field-label">{note.label}</span><textarea class="zf-textarea" name="note" rows="3" maxlength="300" placeholder={note.ph} required={note.req} data-label={note.label}></textarea></label>
                 <p class="lp-err" id="orderErr" hidden></p>
               </div>
 
@@ -193,10 +201,10 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         <span class="zf-sh-eyebrow">常見問題</span>
         <h2 class="zf-sh-title">下單前想知道的</h2>
       </div>
-      <details><summary>多久會收到？</summary><p>老師依你提供的資料親製後出貨，全台超商店到店，通常 7 天內到店。到店會收到取貨通知。</p></details>
+      <details><summary>多久會收到？</summary><p>老師依你提供的資料親製後，7 天內寄出，全台超商店到店。到店會收到取貨通知。</p></details>
       <details><summary>可以寄海外嗎？</summary><p>目前台灣限定，僅提供超商店到店。</p></details>
-      <details><summary>生辰不確定時辰怎麼辦？</summary><p>時辰選「不確定」即可，老師會另行處理；有時辰的話效果更貼合。</p></details>
-      <details><summary>可以退換嗎？</summary><p>每一份都依個案親製，售出後不接受退換，下單前請確認姓名與生辰無誤。</p></details>
+      <details><summary>生辰不確定時辰怎麼辦？</summary><p>時辰選「不確定」即可，老師會另行處理。</p></details>
+      <details><summary>可以退換嗎？</summary><p>每一份都依個案親製，售出後不接受退換；收到時如有破損或寄錯，請聯絡我們。</p></details>
     </section>
   </div>
 
@@ -419,6 +427,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         if (!f.bdate) return fail('請選擇西元生日。');
         if (!validYmd(f.bdate)) return fail('這一天不存在，請再確認生日。');
         if (!/^[^\s@]+@gmail\.com$/i.test(f.email)) return fail('請輸入完整的 Gmail 信箱，結尾須為 @gmail.com。');   // 10/21 Jeffery：商城也只收 Gmail（驗證碼只寄 Gmail，同預約）
+        if (form.elements.note.required && !f.note) return fail('請填寫' + form.elements.note.dataset.label + '。');
         if (!store) return fail('請先選取貨門市。');
         if (window.ZFContact) ZFContact.save({ last: f.last, first: f.first, phone: f.phone, email: f.email, birth: f.bdate, shi: form.elements.bhour.selectedIndex - 1 });   // 2026-10-18 記下來，下一張表單帶入（時辰「不確定」＝-1）
         var btn = document.getElementById('payBtn');
