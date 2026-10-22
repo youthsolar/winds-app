@@ -46,7 +46,7 @@ const chips = (ps[1] || '').split('｜').map((s) => s.replace(/^[^\u4e00-\u9fff0
 const body = html.includes('<hr>') ? html.slice(html.indexOf('<hr>') + 4) : html;
 
 const canonical = `https://winds.tw/shop/${PRODUCT_ID}/`;
-const title = `${name}｜${isTalisman ? '風易揚老師親繪開光' : '找風問幸福'}｜法器選物`;
+const title = `${name}｜${isTalisman ? '風易揚老師親撰開光' : '找風問幸福'}｜法器選物`;
 const description = `${lede}${tagline ? '。' + tagline : ''}。全台超商店到店，7 天內寄出。`;
 const jsonLd = [{
   '@context': 'https://schema.org', '@type': 'Product', name, image: images, description, url: canonical,
@@ -56,7 +56,7 @@ const jsonLd = [{
 
 // 2026-10-22 商城文案 商 5／商 6（Jeffery 拍板）：說明要客人提供的資料，備註欄依商品換標題並改必填；範例句也依商品換
 const NOTE: Record<string, { label: string; ph: string; req: boolean }> = {
-  '9919735': { label: '對方的本名', ph: '例如：上個月吵架後冷戰到現在，他還會回訊息', req: true },
+  '9919735': { label: '對方的本名', ph: '例如：王小明。上個月吵架後冷戰到現在，他還會回訊息', req: true },
   '10057656': { label: '要淨化的地點與住在那裡的人', ph: '例如：剛搬進舊公寓，半夜常驚醒', req: true },
   '12259935': { label: '目前的感情狀況', ph: '例如：單身兩年，想遇到正緣', req: true },
   '12117493': { label: '想問的一件事', ph: '例如：明年要不要轉職', req: true },
@@ -81,7 +81,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
           )}
         </figure>
         <div class="lp-hero-text">
-          <span class="zf-ph-eyebrow">{isTalisman ? '開光符令 · 風易揚老師親繪' : `找風問幸福 · ${sub || '風易揚老師'}`}</span>
+          <span class="zf-ph-eyebrow">{isTalisman ? '開光符令 · 風易揚老師親撰開光' : `找風問幸福 · ${sub || '風易揚老師'}`}</span>
           <h1 class="lp-h1">{name}</h1>
           {lede && <p class="lp-lede">{lede}</p>}
           <div class="lp-chips">
