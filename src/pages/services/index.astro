@@ -180,6 +180,8 @@ const pageDesc =
         return m ? m[0] : (cleaned.charAt(0) || '·');
       }
       function excerptOf(it) { return it.llm || stripTags(it.desc); }
+      // 2026-10-22：法器連商城商品頁（/services/es- 已轉址）
+      function hrefOf(it) { return it.source === 'es' ? '/shop/' + esc(it.id) + '/' : '/services/' + esc(it.source) + '-' + esc(it.id) + '/'; }
 
       function fail() { skel && (skel.hidden = true); shell.innerHTML = ''; fallback.hidden = false; }
 
@@ -199,7 +201,7 @@ const pageDesc =
         }).join('');
 
         var featuredHtml = featured ? (
-          '<a class="featured zf-card tint interactive" href="/services/' + esc(featured.source) + '-' + esc(featured.id) + '/" data-featured>' +
+          '<a class="featured zf-card tint interactive" href="' + hrefOf(featured) + '" data-featured>' +
             '<span class="ft-glyph">' + esc(glyphOf(featured.name)) + '</span>' +
             '<div class="ft-body">' +
               '<span class="zf-badge rose">' + esc(srcLabel(featured.source)) + '</span>' +
@@ -217,7 +219,7 @@ const pageDesc =
         var cells = items.map(function (it) {
           // 2026-10-16 文案檢驗第 7 頁（Jeffery 選項卡）：主推大卡那一項在「全部」時不再重複出現在卡片牆；選「預約項目」時大卡收起，它照樣出現
           return '<li class="svc-cell" data-source="' + esc(it.source) + '"' + (it === featured ? ' data-dup hidden' : '') + '>' +
-            '<a class="svc-card zf-card interactive" href="/services/' + esc(it.source) + '-' + esc(it.id) + '/">' +
+            '<a class="svc-card zf-card interactive" href="' + hrefOf(it) + '">' +
               '<div class="sc-top"><span class="sc-glyph">' + esc(glyphOf(it.name)) + '</span>' +
                 '<span class="zf-badge rose">' + esc(srcLabel(it.source)) + '</span></div>' +
               '<h3 class="sc-name cjk-title">' + esc(it.name) + '</h3>' +
@@ -301,7 +303,8 @@ const pageDesc =
           return { source: 'sb', id: s.id, name: s.name, price: Number(s.price) || 0, duration: s.duration || null, image: s.image || '', desc: s.desc || '', llm: (s.llm || '').trim(), category: s.category || '', seo_title: s.seo_title || '', bookable: s.bookable !== false };
         }).filter(function (x) { return x.bookable; });   // 2026-10-16 文案檢驗第 7 頁（Jeffery 選項卡）：列表只放能線上預約的項目；暫停的介紹頁照留
         var es = ((res[1] && res[1].products) || []).map(function (p) {
-          return { source: 'es', id: p.id, name: p.name, price: Number(p.price) || 0, duration: null, image: p.image || '', desc: p.desc || '', llm: (p.llm || '').trim(), url: p.url || '', variants: p.variants || null };
+          var lede = /<p>([\s\S]*?)<\/p>/.exec(p.page_html || '');   // 2026-10-22：法器摘要用商城卡片同一句（page_html 第一段）
+          return { source: 'es', id: p.id, name: p.name, price: Number(p.price) || 0, duration: null, image: p.image || '', desc: p.desc || '', llm: lede ? stripTags(lede[1]).trim() : (p.llm || '').trim(), url: p.url || '', variants: p.variants || null };
         });
         var items = sb.concat(es);
         if (!items.length) { fail(); return; }

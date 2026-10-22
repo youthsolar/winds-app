@@ -12,7 +12,6 @@ async function servicePages() {
   const [sb, es] = await Promise.all([get('/sb-services'), get('/shop-products')]);
   return [
     ...(sb.services || []).filter((x) => x && x.name && !['51', '53', '54'].includes(String(x.id))).map((x) => `https://winds.tw/services/sb-${x.id}/`),
-    ...(es.products || []).filter((x) => x && x.name).map((x) => `https://winds.tw/services/es-${x.id}/`),
     // /shop/ 與 /shop/<id>/ 同日也改成即時讀，一起補
     'https://winds.tw/shop/',
     ...(es.products || []).filter((x) => x && x.name).map((x) => `https://winds.tw/shop/${x.id}/`),

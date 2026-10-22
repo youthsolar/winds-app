@@ -32,6 +32,10 @@ let items: any[] = [];
 let failed = false;
 // 只有這一頁自己的來源是必要的；另一個來源只拿來做「同類推薦」，壞了就省略，不要整頁 503（gpt-6-astra 複核）
 const needSb = String(Astro.params.slug || '').startsWith('sb-');
+// 2026-10-22 商城文案（Jeffery 選項卡「LINE 商城現在處理」時 Astra 查出）：es- 介紹頁還在顯示 EasyStore 舊長文（視訊、到府、#財富引爆）；
+// 法器一律以商城商品頁為準，比照 /lp/yuanchen-wealth 直接轉過去
+const esId = /^es-(\d+)$/.exec(String(Astro.params.slug || ''));
+if (esId) return Astro.redirect('/shop/' + esId[1] + '/', 301);
 try {
   const [sb, es] = await Promise.all([
     needSb ? j('/sb-services') : j('/sb-services', 4000).catch(() => []),
