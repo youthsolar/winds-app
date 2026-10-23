@@ -1736,9 +1736,9 @@ function giftOn(){return !!(ffLsPress()||ffAcctGift());}
 function payLabel(){
   var t=ffLsPress();
   STATE.giftShown=t?{t:"ls",token:t}:ffAcctGift()?{t:"acct"}:null;   /* 記下畫面現在寫的是哪一種，下單照這個送 */
-  return STATE.giftShown?'用贈送的一次，拿到靈符解方':'拿到靈符解方 · NT$ '+TALISMAN_PRICE;
+  return STATE.giftShown?'拿到靈符解方 · 贈送一次':'拿到靈符解方 · NT$ '+TALISMAN_PRICE;
 }
-function ffGiftBtnText(gs){return gs?'用贈送的一次，拿到靈符解方':'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}
+function ffGiftBtnText(gs){return gs?'拿到靈符解方 · 贈送一次':'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}
 function ffDropLsPress(tok){try{if(tok&&(localStorage.getItem("winds_press_token")||"").trim()===tok)localStorage.removeItem("winds_press_token");}catch(e){}}
 /* 下單結束（沒成功）時：付款中途贈送狀態變了，就整個付款區重畫（價格列、塔羅第二張符那行一起換；Astra 第 7 輪） */
 function ffOrderEnd(btn,gs){if(STATE.giftRepaint){STATE.giftRepaint=false;var _y=window.scrollY;render();window.scrollTo(0,_y);return;}STATE.giftShown=gs;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+ffGiftBtnText(gs);}}   /* 按鈕字跟下次送出的快照一致（Astra 第 8 輪） */
