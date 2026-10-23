@@ -1726,6 +1726,33 @@ function getsList(extra){   /* extra：付費牆在清單最後一行下面接�
   return '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>'+
     items.map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b>'+(x[1]?'<span>'+x[1]+'</span>':'')+'</div></div>';}).join('')+(extra||'')+'</div>';
 }
+/* 2026-10-23 Jeffery：贈送的完整解讀，付款鈕要寫免費。兩種贈送：
+   ・?pt= 帶進來的（存這個瀏覽器，認持有）；・合作夥伴的（跟著帳號走：/partner/gift 只回有沒有，token 留在後端）。
+   畫面只是顯示——扣不扣款以下單時後端判斷為準：畫面寫贈送卻用不了→gift_used 換回價格；畫面寫價格但帳號其實有贈送→gift_available 換成贈送。 */
+function ffGiftWho(){var ls=lineSess();return STATE.userId?"g:"+STATE.userId:(ls&&ls.p&&ls.p.sub?"l:"+ls.p.sub:"");}
+function ffLsPress(){try{return (localStorage.getItem("winds_press_token")||"").trim();}catch(e){return "";}}
+function ffAcctGift(){return !!(STATE.giftAvail&&STATE.giftWho&&STATE.giftWho===ffGiftWho());}
+function giftOn(){return !!(ffLsPress()||ffAcctGift());}
+function payLabel(){
+  var t=ffLsPress();
+  STATE.giftShown=t?{t:"ls",token:t}:ffAcctGift()?{t:"acct"}:null;   /* 記下畫面現在寫的是哪一種，下單照這個送 */
+  return STATE.giftShown?'用贈送的一次，拿到靈符解方':'拿到靈符解方 · NT$ '+TALISMAN_PRICE;
+}
+function ffGiftBtnText(gs){return gs?'用贈送的一次，拿到靈符解方':'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}
+function ffDropLsPress(tok){try{if(tok&&(localStorage.getItem("winds_press_token")||"").trim()===tok)localStorage.removeItem("winds_press_token");}catch(e){}}
+/* 下單結束（沒成功）時：付款中途贈送狀態變了，就整個付款區重畫（價格列、塔羅第二張符那行一起換；Astra 第 7 輪） */
+function ffOrderEnd(btn,gs){if(STATE.giftRepaint){STATE.giftRepaint=false;var _y=window.scrollY;render();window.scrollTo(0,_y);return;}STATE.giftShown=gs;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+ffGiftBtnText(gs);}}   /* 按鈕字跟下次送出的快照一致（Astra 第 8 輪） */
+function ffGiftCheck(){
+  var who=ffGiftWho();
+  if(!who||STATE.giftAskedWho===who)return;
+  STATE.giftAskedWho=who;
+  fetch(WORKER_API+"/partner/gift",{headers:authHeaders(),cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+    if(!d||!d.available||ffGiftWho()!==who)return;
+    STATE.giftAvail=true;STATE.giftWho=who;
+    if(STATE.ordering){STATE.giftRepaint=true;return;}
+    if(STATE.step==="result"||STATE.step==="cooldown"){var _y=window.scrollY;render();window.scrollTo(0,_y);}
+  }).catch(function(){});
+}
 /* 2026-10-23 DS paid-demo：付費牆的範例連結（文字連結、開新頁）；易經三頁連 /demo/gua/，塔羅由 tarot-funnel.js 傳 /demo/tarot/ */
 function pwDemoLink(href,pre){return '<div class="pw-demo'+(pre?' pre':'')+'"><a class="zf-demo-link" href="'+href+'" target="_blank" rel="noopener noreferrer">先看付費版長什麼樣子</a></div>';}
 /* 2026-10-06 命卦：五張符配的是命卦——付款後寫命卦名；付款前不能露出是哪一卦，只寫「靈符」 */
@@ -2106,7 +2133,7 @@ function paywall(paid){
     getsList()+   /* 10/23 Jeffery：清單下面那個範例連結拿掉，只留付款鈕正上方 */
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
-      :trialPriceHtml()+pwDemoLink("/demo/gua/",true)+(STATE.payConfirming?payBtnConfirming():'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>')+
+      :(ffGiftCheck(),giftOn()?'':trialPriceHtml())+pwDemoLink("/demo/gua/",true)+(STATE.payConfirming?payBtnConfirming():'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+payLabel()+'</button>')+
        (R.hexCard&&!LOVE&&!HOME?'<p class="veil-alt">這張卦符 '+esc(R.hexCard.valid_until_label)+' 前有效，過了要重新起卦。</p>':''))+
     '<p class="veil-alt">想直接找老師談這件事？<a href="/booking" data-wc-open>預約老師</a></p></div></div>';
 }
@@ -2204,7 +2231,7 @@ function viewCooldown(){
     '<p class="cool-p" style="font-family:var(--font-serif);font-weight:300;line-height:1.95;color:var(--ink-700);margin:0 auto;max-width:26em;text-align:left;word-break:keep-all;overflow-wrap:anywhere">'+esc(c.message||'但情緒還熱的時候重複問同一題，解讀很容易被放大、被你心裡的不安帶著走。先讓這份心，靜一靜。')+'</p>'+
     (when?'<div class="when">'+ic("clock")+'<span>這一題，<b>'+esc(when)+'</b>可以再問</span></div>':'<div style="height:24px"></div>')+
     (c.last_log_id
-      ?trialPriceHtml(true)+'<div class="cool-btns"><button class="zf-btn primary md" id="unlockBtn" onclick="STATE.logId=String(STATE.cooldown.last_log_id);createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button><button class="zf-btn secondary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+
+      ?(ffGiftCheck(),giftOn()?'':trialPriceHtml(true))+'<div class="cool-btns"><button class="zf-btn primary md" id="unlockBtn" onclick="STATE.logId=String(STATE.cooldown.last_log_id);createOrder()">'+ic("sparkle")+payLabel()+'</button><button class="zf-btn secondary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button></div>'+
        '<p style="font-family:var(--font-sans);font-size:12px;color:var(--text-secondary);margin-top:14px">不想等的話——解鎖後 7 天陪伴期內，這一題隨時可以再問。</p>'
       :'<div class="cool-btns"><button class="zf-btn primary md" data-wc-open>'+ic("calendar-heart","thin")+'預約老師</button><button class="zf-btn secondary md" onclick="exitFlow()">'+ic("house-simple")+'回首頁</button><button class="zf-btn secondary md" onclick="openOA()">到 LINE 看看 '+ic("arrow-right")+'</button></div>')+
     '</div></div>';
@@ -2708,23 +2735,23 @@ function loadRecs(logId){
 }
 
 /* ===== 解鎖付款（ECPay）===== */
-function createOrder(shown){
+function createOrder(shown,gsSnap){
   if(STATE.ordering)return;
   var _shown=Number(shown)>0?Number(shown):TALISMAN_PRICE;   /* 2026-10-21（Astra 第 3、4 輪）：客人按下去時畫面上的價格；驗信後自動重試沿用第一次按的，背景更新價格不改這次的確認依據 */
   var btn=document.getElementById("unlockBtn");
   if(!STATE.logId){alert("找不到占卜記錄，請重新占卜。");return;}
   STATE.ordering=true;
   if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'建立訂單中…';}
-  var _pressToken="";try{_pressToken=localStorage.getItem("winds_press_token")||"";}catch(e){}
+  var _gs=gsSnap!==undefined?gsSnap:(STATE.giftShown||null),_pressToken=_gs&&_gs.t==="ls"?_gs.token:"";   /* 照按下去那一刻畫面寫的送（10/23） */
   /* 2026-10-09 信箱驗證碼：付款前網站信箱身分要驗過信箱。帶這個瀏覽器存的憑證（剛在視窗驗過的優先）；後端說還沒驗就開視窗、驗過再建一次單 */
   var _knownEmail=(STATE.data&&STATE.data.email)||(STATE.retInfo&&STATE.retInfo.email)||"";
   var _ev=STATE.evToken||(window.ZFEmailVerify&&_knownEmail?ZFEmailVerify.token(_knownEmail):"");
   fetch(API.order,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
-    body:JSON.stringify({partner_pk:(function(){try{return localStorage.getItem("winds_partner_pk")||undefined;}catch(e){return undefined;}})(),google_sub:STATE.userId||undefined,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken,k:STATE.k||undefined,ev_token:_ev||undefined,surface:"web"})})
+    body:JSON.stringify({gift_aware:true,gift_shown:_gs?true:undefined,use_gift:_gs&&_gs.t==="acct"?true:undefined,partner_pk:(function(){try{return localStorage.getItem("winds_partner_pk")||undefined;}catch(e){return undefined;}})(),google_sub:STATE.userId||undefined,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken,k:STATE.k||undefined,ev_token:_ev||undefined,surface:"web"})})
    .then(function(r){return r.json();}).then(function(d){
      STATE.ordering=false;
      if(d&&d.error==="email_verify_required"){
-       if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}
+       ffOrderEnd(btn,_gs);
        STATE.evToken="";
        if(!window.ZFEmailVerify||STATE.orderEvAsked){STATE.orderEvAsked=false;alert(d.message||"付款前先確認一下信箱。");return;}
        STATE.orderEvAsked=true;
@@ -2736,13 +2763,18 @@ function createOrder(shown){
          /* 從這一卦驗過信箱：換成後端發的本人 k（Astra 最終驗收 #1；原本那把一般 k 驗過之後讀不到帳號資料） */
          if(t)adoptTrustedK(STATE.logId);
          if(t&&ZFEmailVerify.lastLink)showLinkFail();   /* DS ⑥：信箱驗好了但帳號這次沒連上 */
-         if(t){STATE.evToken=t;createOrder(_shown);}else STATE.orderEvAsked=false;});
+         if(t){STATE.evToken=t;createOrder(_shown,_gs);}else STATE.orderEvAsked=false;});
        return;
      }
      STATE.orderEvAsked=false;
+     if(d&&(d.error==="gift_used"||d.error==="gift_available")){   /* 10/23：畫面跟後端對不上→照後端換字重畫，請客人再按一次（不自動扣款） */
+       if(d.error==="gift_used"){if(_gs&&_gs.t==="ls")ffDropLsPress(_gs.token);else STATE.giftAvail=false;}
+       else{STATE.giftAvail=true;STATE.giftWho=ffGiftWho();}
+       var _gy=window.scrollY;render();window.scrollTo(0,_gy);setTimeout(function(){alert(d.message);},80);return;
+     }
      if(d.success&&d.free_unlock){
        /* 媒體 token 核銷成功：免付費，直接重載進完整解讀 */
-       try{localStorage.removeItem("winds_press_token");}catch(e){}
+       if(_gs&&_gs.t==="ls")ffDropLsPress(_gs.token);if(_gs&&_gs.t==="acct")STATE.giftAvail=false;
        try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);sessionStorage.setItem("winds_pending_path",location.pathname);}catch(e){}
        location.href=location.pathname+"?log_id="+STATE.logId;return;
      }
@@ -2758,8 +2790,8 @@ function createOrder(shown){
        try{sessionStorage.setItem("winds_pending_log_id",STATE.logId);sessionStorage.setItem("winds_pending_path",location.pathname);}catch(e){}
        var w=window.open(d.pay_url,"_blank");if(!w){/* 從付款頁按上一頁回來（BFCache 會保留「處理中、按鈕鎖住」的狀態）→ 解鎖；預約識別碼還在，再按一次會拿回同一張單（Astra 最終驗收 #6） */window.addEventListener("pageshow",function(e){if(e.persisted&&btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'付款完成後點我看解讀';btn.onclick=function(){location.reload();};}},{once:true});location.href=d.pay_url;return;}
        if(btn){btn.disabled=false;btn.innerHTML=ic("arrow-clockwise")+'付款完成後點我看解讀';btn.onclick=function(){location.reload();};}
-     }else{if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert(d.message||d.error||"建立訂單失敗，請再試一次。");}   /* 2026-10-01（廣告前全站掃描）：後端 errorResponse 回的是 error 欄位（例如「登入身分與請求不符，請重新登入」），原本只讀 message，只看得到通用訊息 */
-   }).catch(function(e){STATE.ordering=false;STATE.orderEvAsked=false;if(btn){btn.disabled=false;btn.innerHTML=ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE;}alert("付款這邊卡住了，再試一次；一直不行的話，直接來 LINE 找老師。");});
+     }else{ffOrderEnd(btn,_gs);alert(d.message||d.error||"建立訂單失敗，請再試一次。");}   /* 2026-10-01（廣告前全站掃描）：後端 errorResponse 回的是 error 欄位（例如「登入身分與請求不符，請重新登入」），原本只讀 message，只看得到通用訊息 */
+   }).catch(function(e){STATE.ordering=false;STATE.orderEvAsked=false;ffOrderEnd(btn,_gs);alert("付款這邊卡住了，再試一次；一直不行的話，直接來 LINE 找老師。");});
 }
 
 /* ===== 分享（Web Share API / 剪貼簿）===== */
