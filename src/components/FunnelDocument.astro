@@ -1579,7 +1579,7 @@ function tarotBlockFull(R){
     h+='<div class="zf-card" style="margin-bottom:20px"><div class="pf-lbl" style="margin-bottom:10px">本命塔羅牌組</div><div class="tarot-grid">'+
       bm.map(function(t){
         var face=t.image_url?'<img src="'+esc(t.image_url)+'" alt="'+esc(t.card_name||'')+'" style="width:100%;height:100%;object-fit:contain">':'<span class="nm">'+esc(t.card_name||'')+'</span>';
-        return '<div><div class="tcard"><span class="tpos-tag zf-tag rose outline">'+esc(t.label||'')+'</span>'+face+'</div><div class="tline">'+esc(t.card_name||'')+'</div></div>';
+        return '<div><div class="tcard"><span class="tpos-tag zf-tag rose">'+esc(t.label||'')+'</span>'+face+'</div><div class="tline">'+esc(t.card_name||'')+'</div></div>';
       }).join("")+'</div></div>';
   }
   if(R.tarot&&R.tarot.length){
@@ -1587,7 +1587,7 @@ function tarotBlockFull(R){
     h+='<div class="zf-card"><div class="pf-lbl" style="margin-bottom:10px">這次的問題 · 五張牌陣</div><div class="tarot-grid">'+R.tarot.map(function(c,i){
       var pol=c.is_reversed?"逆位":"正位";var img=c.image_url||c.image||"";
       var face=img?'<img src="'+esc(img)+'" alt="'+esc(c.card_name)+'" style="width:100%;height:100%;object-fit:contain">':'<span class="nm">'+esc(c.card_name)+'</span>';
-      return '<div><div class="tcard"><span class="tpos-tag zf-tag rose outline">'+(POS[i]||("牌位"+(i+1)))+'</span>'+face+'</div>'+
+      return '<div><div class="tcard"><span class="tpos-tag zf-tag rose">'+(POS[i]||("牌位"+(i+1)))+'</span>'+face+'</div>'+
         '<div class="tline">'+esc(c.card_name)+' · '+pol+'</div></div>';
     }).join("")+'</div></div>';
   }
