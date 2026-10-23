@@ -2103,7 +2103,7 @@ function paywall(paid){
       :HOME
       ?'挑房、入住、備符，你心裡在意的那件事，值得好好看一回。這份靈符解方會完整說明這次的居家問題與命卦，並依節氣陸續開放五張風易揚老師親手畫的靈符。'
       :'這份解方會把這一卦說完整，也揭曉你的命卦，配上五張我親手畫、開光的靈符。節氣到了開一張，並且自動通知你。')+'</p>'+
-    getsList(pwDemoLink("/demo/gua/"))+
+    getsList()+   /* 10/23 Jeffery：清單下面那個範例連結拿掉，只留付款鈕正上方 */
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
       :trialPriceHtml()+pwDemoLink("/demo/gua/",true)+(STATE.payConfirming?payBtnConfirming():'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>')+
@@ -2177,6 +2177,7 @@ function socialCta(){
     ['threads','threads-logo','Threads','最常聊天的地方','@uneedwind','https://www.threads.net/@uneedwind'],
     ['ig','instagram-logo','Instagram','每日語錄卡','@uneedwind','https://www.instagram.com/uneedwind'],
     ['fb','facebook-logo','Facebook','案例與公告','風易揚老師','https://www.facebook.com/1056598467870017'],
+    ['yt','youtube-logo','YouTube','影片與直播','@uneedwind','https://www.youtube.com/@uneedwind'],   /* 10/23 Jeffery：社群加 YouTube */
     ['line','chat-circle','LINE','貼身提醒與陪伴','官方帳號',LINE_OA_URL]
   ];
   return '<section class="social-cta">'+

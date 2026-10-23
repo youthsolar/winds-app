@@ -425,7 +425,7 @@
       '<div class="veil"><span class="lk">' + ic('lock-simple', 'thin') + '</span><h3>風易揚老師的靈符解方</h3>' +
       '<p>' + lead + '</p>' +
       '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>' +
-      items.map(function (x) { return '<div class="get">' + ic('check', 'bold') + '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div></div>'; }).join('') + demoLink() + '</div>' +
+      items.map(function (x) { return '<div class="get">' + ic('check', 'bold') + '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div></div>'; }).join('') + '</div>' +   /* 10/23 Jeffery：清單下面那個範例連結拿掉，只留付款鈕正上方 */
       (f1.expired
         ? '<button class="zf-btn primary lg" onclick="askAnother()">' + ic('arrow-counter-clockwise') + '這組牌已過期，重新抽一次牌</button><p class="veil-alt">靈符七天內有效，過了老師要依新的牌重新配符。</p>'
         : (window.trialPriceHtml ? trialPriceHtml() : '') + demoLink(true) + (STATE.payConfirming && window.payBtnConfirming ? payBtnConfirming() : '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>') +
