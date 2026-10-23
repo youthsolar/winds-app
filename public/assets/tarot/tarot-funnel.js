@@ -425,13 +425,15 @@
       '<div class="veil"><span class="lk">' + ic('lock-simple', 'thin') + '</span><h3>風易揚老師的靈符解方</h3>' +
       '<p>' + lead + '</p>' +
       '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>' +
-      items.map(function (x) { return '<div class="get">' + ic('check', 'bold') + '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div></div>'; }).join('') + '</div>' +
+      items.map(function (x) { return '<div class="get">' + ic('check', 'bold') + '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div></div>'; }).join('') + demoLink() + '</div>' +
       (f1.expired
         ? '<button class="zf-btn primary lg" onclick="askAnother()">' + ic('arrow-counter-clockwise') + '這組牌已過期，重新抽一次牌</button><p class="veil-alt">靈符七天內有效，過了老師要依新的牌重新配符。</p>'
-        : (window.trialPriceHtml ? trialPriceHtml() : '') + (STATE.payConfirming && window.payBtnConfirming ? payBtnConfirming() : '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>') +
+        : (window.trialPriceHtml ? trialPriceHtml() : '') + demoLink(true) + (STATE.payConfirming && window.payBtnConfirming ? payBtnConfirming() : '<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">' + ic('sparkle') + '拿到靈符解方 · NT$ ' + TALISMAN_PRICE + '</button>') +
           '') +
       '<p class="veil-alt">想直接找老師談這件事？<a href="' + BOOK_URL + '" data-wc-open>預約老師</a></p></div></div>';
   }
+  /* 2026-10-23 DS paid-demo：付費牆「先看付費版長什麼樣子」連 /demo/tarot/（清單下面一個、付款鈕正上方一個；樣式同主腳本 pwDemoLink） */
+  function demoLink(pre) { return window.pwDemoLink ? pwDemoLink('/demo/tarot/', pre) : ''; }
   /* 第一張靈符（後端出圖，同卦符卡 hexCardHero 的放法）＋右邊五張牌與下一個節氣 */
   function fuHero(T, paid) {
     /* 下一個節氣：用後端照「現在」算的（兩週後回來看也對；Astra front-r1 #4），沒有才用抽牌那天推 */
@@ -524,6 +526,11 @@
   /* 開機（同網站 boot 的報告分支）：付款回跳、重新整理帶 ?log_id=&k= 或「開了付款頁」留下的那一局 → 讀結果；其餘從落地頁開始。
      回訪預填（提醒信 ?ret=）這版先不接 */
   (function tarotBoot() {
+    /* 2026-10-23 付費版範例頁（/demo/tarot）：不開機（不量測、不打後端），只把還原牌局、抽牌區交給 paid-demo.js */
+    if (document.body.hasAttribute('data-demo')) {
+      window.TarotDemo = { restore: restoreFromServer, box: function () { return tsBox('tsRes'); }, mount: function () { mountStage('tsRes', 'result'); } };
+      return;
+    }
     /* 量測：ViewContent＝進到塔羅漏斗（2026-10-13 恢復量測；名稱分開，好跟水鏡版 love／home-gua 比） */
     try { var cn = HOME ? 'home-tarot' : 'love-tarot'; if (window.fbq) fbq('track', 'ViewContent', { content_name: cn }); if (window.gtag) gtag('event', 'view_item', { item_name: cn }); } catch (e) {}
     var p = new URLSearchParams(location.search), rid = p.get('log_id') || '';

@@ -17,8 +17,9 @@ import '../styles/global.css';
 import '../styles/cast-landing.css';   /* 水鏡＋起卦區塊，與首頁共用 */
 import ConciergeWidget from './ConciergeWidget.astro';
 /* tarot：2026-10-12 /love-tarot、/home-tarot 試做（水鏡換成五行通靈塔羅抽牌）；不帶就跟原本一模一樣。塔羅的流程全在 public/assets/tarot/tarot-funnel.js */
-interface Props { mode?: 'divination' | 'home' | 'love'; title: string; description: string; canonical: string; ogImage?: string; noindex?: boolean; tarot?: boolean; }
-const { mode = 'divination', title, description, canonical, ogImage = 'https://winds.tw/og-default.jpg', noindex = true, tarot = false } = Astro.props;
+/* demo：2026-10-23 付費版範例頁（/demo/gua、/demo/tarot）：不跑 boot、不打後端，由 public/assets/demo/paid-demo.js 用固定範例資料畫付費後結果頁；不帶就跟原本一模一樣 */
+interface Props { mode?: 'divination' | 'home' | 'love'; title: string; description: string; canonical: string; ogImage?: string; noindex?: boolean; tarot?: boolean; demo?: 'gua' | 'tarot'; }
+const { mode = 'divination', title, description, canonical, ogImage = 'https://winds.tw/og-default.jpg', noindex = true, tarot = false, demo } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -55,6 +56,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
   {tarot && <link rel="stylesheet" href="/assets/tarot/tarot.css?v=2" />}
+  {demo && <link rel="stylesheet" href="/assets/demo/paid-demo.css?v=1" />}
   <script is:inline src="/assets/cjk-wrap.js" defer></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>   <!-- 2026-10-21 塔羅頁也載（信箱題的 Google 登入鈕；塔羅頁不跳 One Tap，只在信箱題掛按鈕） -->
 
@@ -77,7 +79,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <!-- 量測層（2026-08-15）：此頁不走 BaseLayout，底座另裝一份（GA4 ＋ Meta Pixel）-->
   <script is:inline>
     /* 2026-10-09（Astra 最終驗收 #2，同 BaseLayout）：網址帶看結果憑證（?log_id=&k=、登入頁 return 裡夾帶的 k）整頁不載 GA／Pixel */
-    window.__windsNoTrack = /[?&](k|token)=|k%3D/i.test(location.search);
+    window.__windsNoTrack = /[?&](k|token)=|k%3D/i.test(location.search) || /^\/demo\//.test(location.pathname);   /* 2026-10-23（Astra r2 #5）：範例頁不載 GA／Pixel（來源頁網址可能帶讀卦憑證） */
     if (!window.__windsNoTrack) {
       var _g = document.createElement('script'); _g.async = true; _g.src = 'https://www.googletagmanager.com/gtag/js?id=G-2E65WJ8M93';
       document.head.appendChild(_g);
@@ -101,7 +103,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     fbq('track', 'PageView');
     }
   </script>
-  <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1460549484341275&ev=PageView&noscript=1"/></noscript>
+  {!demo && <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1460549484341275&ev=PageView&noscript=1"/></noscript>}   {/* 2026-10-23（Astra r3）：範例頁連關掉 JS 的 Pixel 也不送 */}
 
   <style is:global>
     #root{min-height:100vh}
@@ -771,6 +773,10 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .paywall .veil{align-items:stretch;text-align:left}
     .paywall .veil h3,.paywall .veil p,.paywall .veil .ns-line,.paywall .veil .veil-alt{text-align:left;max-width:none;margin-left:0;margin-right:0}
     .paywall .veil .gets{max-width:none;margin:14px 0 20px}
+    /* 2026-10-23 DS paid-demo：付費牆「先看付費版長什麼樣子」——清單最後一行下面上距 12；試營運價下距 10、連結下距 12 再接付款鈕 */
+    .paywall .veil .pw-demo{margin-top:12px}
+    .paywall .veil .pw-demo.pre{margin:0 0 12px}
+    .paywall .veil .trial-price{margin-bottom:10px}
     .tname{white-space:nowrap}
     /* 預設可見，只在前 2 秒用 backwards 藏住（Astra 10/11：外部強制停用動畫時不會卡在隱藏） */
     html.ff-js .ff-static{animation:ffStaticHide 0s 2s backwards}
@@ -797,11 +803,11 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   @media (max-width:760px){.am-gone{padding:28px 16px 40px;}.am-gone-card{padding:32px 24px;}.am-gone-h1{font-size:23px;}}
 </style>
 </head>
-<body data-mode={mode} data-tarot={tarot ? '1' : undefined}>
-<div id="root"><div class="ff-static">{mode === 'home' && !tarot && (
+<body data-mode={mode} data-tarot={tarot ? '1' : undefined} data-demo={demo}>
+<div id="root"><div class="ff-static">{mode === 'home' && !tarot && !demo && (
   <!-- 落地文案的靜態版：見 HomeGuaStatic.astro（與 /home-gua/text/ 共用） -->
   <HomeGuaStatic />
-)}{mode === 'love' && !tarot && (
+)}{mode === 'love' && !tarot && !demo && (
   <!-- 落地文案的靜態版：見 LoveGuaStatic.astro（文字＝2026-09-26 文案規格 V1，與 viewLoveLanding() 同一份） -->
   <LoveGuaStatic />
 )}{mode === 'divination' && (
@@ -1706,7 +1712,7 @@ function nextStepLines(){
     (NS.talisman_reason?'<p class="ns-line"><b>這張符對應你這次問題的原因是：</b>'+esc(NS.talisman_reason)+'</p>':'');
 }
 /* 2026-09-25 Jeffery 第 9 段：「你會拿到什麼」不再是四顆標籤，改成依價值排序的四項＋一句說明 */
-function getsList(){
+function getsList(extra){   /* extra：付費牆在清單最後一行下面接「先看付費版長什麼樣子」（2026-10-23 DS paid-demo） */
   /* 2026-10-10 晚 Jeffery 選項卡（OpenAI 討論）：好愛／家／主站統一五項——解讀／命卦／五張靈符／節氣運勢／分靈體；第一項跟著這一頁的問題換 */
   var first,chat='有想不通的地方，可以繼續聊這件事';
   if(LOVE&&lvSingle()){
@@ -1718,8 +1724,10 @@ function getsList(){
   var items=[first,['揭曉你的命卦','依生辰算出，看看你是哪一卦'],['五張配合命卦的靈符','節氣到了開一張，自動通知'],
     (LOVE?['完整節氣感情解讀','說明這次感情問題在接下來各節氣可留意的線索']   /* 10/22 愛卦 17 改寫② */:HOME?['接下來的居家提醒','結合這次的卦，看看各節氣可以留意的居家重點']:['各節氣的提醒','延伸你這次問的事，整理接下來每個節氣要留意的方向']),['專屬分靈體陪伴 7 天',chat]]; /* 10/18 Jeffery 選項卡：節氣那條配合活動主題，不泛稱運勢 */
   return '<div class="gets"><div class="gets-t">拿到靈符解方後，你會得到：</div>'+
-    items.map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b>'+(x[1]?'<span>'+x[1]+'</span>':'')+'</div></div>';}).join('')+'</div>';
+    items.map(function(x){return '<div class="get">'+ic("check","bold")+'<div><b>'+x[0]+'</b>'+(x[1]?'<span>'+x[1]+'</span>':'')+'</div></div>';}).join('')+(extra||'')+'</div>';
 }
+/* 2026-10-23 DS paid-demo：付費牆的範例連結（文字連結、開新頁）；易經三頁連 /demo/gua/，塔羅由 tarot-funnel.js 傳 /demo/tarot/ */
+function pwDemoLink(href,pre){return '<div class="pw-demo'+(pre?' pre':'')+'"><a class="zf-demo-link" href="'+href+'" target="_blank" rel="noopener noreferrer">先看付費版長什麼樣子</a></div>';}
 /* 2026-10-06 命卦：五張符配的是命卦——付款後寫命卦名；付款前不能露出是哪一卦，只寫「靈符」 */
 function talismanName(){var R=STATE.result||{};if(R.tian)return '<span class="tname">【'+esc(R.tian.name)+' 靈符】</span>';if(R.tianPending)return '靈符';return R.hexName?'<span class="tname">【'+esc(R.hexName)+' 靈符】</span>':'靈符';} /* 9/28：整組不換行（原本「【」會掉在行尾） */
 function block(title,note,inner,noteTag){return '<section class="res-block"><h3 class="res-h3">'+title+'</h3>'+(note?(noteTag?'<div class="res-note-tag"><span class="zf-tag rose outline">'+esc(note)+'</span></div>':'<p class="res-note">'+ic("sparkle")+esc(note)+'</p>'):'')+inner+'</section>'}
@@ -2095,10 +2103,10 @@ function paywall(paid){
       :HOME
       ?'挑房、入住、備符，你心裡在意的那件事，值得好好看一回。這份靈符解方會完整說明這次的居家問題與命卦，並依節氣陸續開放五張風易揚老師親手畫的靈符。'
       :'這份解方會把這一卦說完整，也揭曉你的命卦，配上五張我親手畫、開光的靈符。節氣到了開一張，並且自動通知你。')+'</p>'+
-    getsList()+
+    getsList(pwDemoLink("/demo/gua/"))+
     ((R.hexCard&&R.hexCard.expired)
       ?'<button class="zf-btn primary lg" onclick="askAnother()">'+ic("arrow-counter-clockwise")+'這一卦已過期，重新起一卦</button><p class="veil-alt">卦符七天內有效，過了老師要依新的卦重新配符。</p>'
-      :trialPriceHtml()+(STATE.payConfirming?payBtnConfirming():'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>')+
+      :trialPriceHtml()+pwDemoLink("/demo/gua/",true)+(STATE.payConfirming?payBtnConfirming():'<button class="zf-btn primary lg" id="unlockBtn" onclick="createOrder()">'+ic("sparkle")+'拿到靈符解方 · NT$ '+TALISMAN_PRICE+'</button>')+
        (R.hexCard&&!LOVE&&!HOME?'<p class="veil-alt">這張卦符 '+esc(R.hexCard.valid_until_label)+' 前有效，過了要重新起卦。</p>':''))+
     '<p class="veil-alt">想直接找老師談這件事？<a href="/booking" data-wc-open>預約老師</a></p></div></div>';
 }
@@ -2230,7 +2238,7 @@ function siteFooter(legal){
       '<div class="zf-footer-cols">'+
         '<div class="zf-fcol"><div class="zf-fh">命理項目</div><a href="/divination">易經</a><a href="/divination">塔羅</a><a href="/ziwei">紫微</a><a href="/spirit">分靈體</a></div>'+
         '<div class="zf-fcol"><div class="zf-fh">探索</div><a href="/blog">案例專欄</a><a href="/services">預約項目</a><a href="/teachers/">老師介紹</a><a href="/shop">法器選物</a><a href="/course">靈修課程</a></div>'+
-        '<div class="zf-fcol"><div class="zf-fh">關於</div><a href="/about">品牌故事</a><a href="/account">會員中心</a><a href="/faq">常見問題</a></div>'+
+        '<div class="zf-fcol"><div class="zf-fh">關於</div><a href="/about">品牌故事</a><a href="/account">會員中心</a><a href="/faq">常見問題</a><a href="/partner">合作分潤</a></div>'+
         /* 2026-10-10 對齊 BaseLayout：找風站群是第四欄（七站唯一從有權重網域進來的路徑，別拿掉） */
         '<div class="zf-fcol"><div class="zf-fh">找風站群</div><a href="https://love.winds.tw/">找風問好愛</a><a href="https://home.winds.tw/">找風問好窩</a><a href="https://beauty.winds.tw/">找風問好美</a><a href="https://food.winds.tw/">找風問好食</a><a href="https://wine.winds.tw/">找風問好酒</a><a href="https://oc.com.tw/">超頻者天堂</a><a href="https://2pr.winds.tw/">2PR.ai</a></div>'+
       '</div>'+
@@ -2455,7 +2463,9 @@ function submitFree(){
     if(!_now){try{_now=JSON.parse(sessionStorage.getItem("winds_this_touch")||"null");}catch(e){}}
     try{_ft=JSON.parse(localStorage.getItem("winds_first_touch")||"null");}catch(e){}
     _now=_fresh(_now,1);_ft=_fresh(_ft,90);
-    payload.cast_source={path:location.pathname,now:_now||{},first:_ft||{}};})();   /* 2026-10-18（Astra #1）：沒來源也送（＝直接進站），後端照樣記一列 */
+    payload.cast_source={path:location.pathname,now:_now||{},first:_ft||{}};})();
+  /* 2026-10-23 合作分潤：帶最新的夥伴點擊憑證（簽章、7 天、是否自己買都由後端判斷） */
+  try{var _pk=localStorage.getItem("winds_partner_pk")||"";if(_pk)payload.partner_pk=_pk;}catch(e){}   /* 2026-10-18（Astra #1）：沒來源也送（＝直接進站），後端照樣記一列 */
   var edmTok="";try{edmTok=localStorage.getItem("winds_edm_token")||"";}catch(e){}
   if(edmTok)payload.edm_token=edmTok;
   /* 2026-10-09 信箱驗證碼：這個瀏覽器驗過這個信箱就帶上憑證（30 天）；信箱已經有帳號又沒驗過，後端回 email_verify_required，下面接到就開驗證碼視窗 */
@@ -2709,7 +2719,7 @@ function createOrder(shown){
   var _knownEmail=(STATE.data&&STATE.data.email)||(STATE.retInfo&&STATE.retInfo.email)||"";
   var _ev=STATE.evToken||(window.ZFEmailVerify&&_knownEmail?ZFEmailVerify.token(_knownEmail):"");
   fetch(API.order,{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),
-    body:JSON.stringify({google_sub:STATE.userId||undefined,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken,k:STATE.k||undefined,ev_token:_ev||undefined,surface:"web"})})
+    body:JSON.stringify({partner_pk:(function(){try{return localStorage.getItem("winds_partner_pk")||undefined;}catch(e){return undefined;}})(),google_sub:STATE.userId||undefined,divination_log_id:Number(STATE.logId)||0,talisman_name:STATE.talismanName,press_token:_pressToken,k:STATE.k||undefined,ev_token:_ev||undefined,surface:"web"})})
    .then(function(r){return r.json();}).then(function(d){
      STATE.ordering=false;
      if(d&&d.error==="email_verify_required"){
@@ -3040,14 +3050,17 @@ window.submitFree=submitFree;window.ffSet=ffSet;window.ffNext=ffNext;window.ffPr
 window.STATE=STATE;
 
 /* 塔羅試做頁（data-tarot）不跑 boot：不打後端（回訪預填、量測事件、Google 登入），改由 tarot-funnel.js 自己開機 */
-if(document.body.getAttribute("data-tarot")!=="1")boot();
+/* 2026-10-23 付費版範例頁（data-demo）也不跑 boot：不打後端、不量測、不登入，由 paid-demo.js 畫固定的範例 */
+if(document.body.getAttribute("data-tarot")!=="1"&&!document.body.hasAttribute("data-demo"))boot();
 </script>
 {tarot && <script is:inline src="/assets/tarot/engine.js?v=1"></script>}
-{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=10"></script>}
+{tarot && <script is:inline src="/assets/tarot/tarot-funnel.js?v=11"></script>}
+{demo && <script is:inline src="/assets/demo/paid-demo.js?v=1"></script>}
 <!-- 帶 utm 進站記點（2026-09-06 補）：占卜頁沒用 BaseLayout，之前從活動頁／社群帶 utm 進來的人 D1 一列都沒有，
      漏斗第四站是瞎的。與 BaseLayout 那段逐字相同：sendBeacon → api.winds.tw/hit → D1 link_hits。 -->
 <script is:inline>
   (function () {
+    if (document.body.hasAttribute('data-demo')) return;   /* 2026-10-23 付費版範例頁不記來源、不送 /hit（Astra #6） */
     var q = new URLSearchParams(location.search);
     var c = q.get('utm_content');
     var s = q.get('utm_source');
@@ -3067,6 +3080,14 @@ if(document.body.getAttribute("data-tarot")!=="1")boot();
         try { ft = JSON.parse(localStorage.getItem('winds_first_touch') || 'null'); } catch (e) {}
         if (!ft || Date.now() - Date.parse(ft.at) > 90 * 864e5)
           localStorage.setItem('winds_first_touch', JSON.stringify({ source: now.source, content: now.content, referrer: now.referrer, at: new Date().toISOString() }));
+      }
+    } catch (e) {}
+    /* 2026-10-23 合作分潤：同 BaseLayout，存最新的 pk（伺服器簽的點擊憑證），從網址列拿掉 */
+    try {
+      var pk = q.get('pk');
+      if (s === 'partner' && pk && /^[A-Za-z0-9._-]{10,200}$/.test(pk)) {
+        localStorage.setItem('winds_partner_pk', pk);
+        q.delete('pk'); history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash);
       }
     } catch (e) {}
     if (!c && !s) return;

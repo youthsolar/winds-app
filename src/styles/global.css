@@ -251,3 +251,6 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
 
 /* gsi-iframe-fix：頁面 color-scheme:dark 時跨域 GIS iframe 會被塗白底 → 指回 light 恢復透明 */
 #lgGoogle iframe,#googleSignInBtn iframe,#gfGmount iframe,#g_id_signin_ziwei iframe{color-scheme:light}
+
+/* 2026-10-23 DS paid-demo：付費牆「先看付費版長什麼樣子」文字連結（同付費牆「預約老師」連結：sans 13、--accent-press、1px --rose-200 底線；網站占卜、塔羅、紫微、分靈體共用） */
+.zf-demo-link{font-family:var(--font-sans);font-size:13px;line-height:1.5;color:var(--accent-press);text-decoration:none;border-bottom:1px solid var(--rose-200);padding-bottom:1px}

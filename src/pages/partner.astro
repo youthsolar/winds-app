@@ -1,0 +1,415 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// 合作分潤自助頁（2026-10-23 Jeffery 拍板，正本＝Design System ui_kits/partner/partner.jsx；規則文案逐字照「合作規則定稿-2026-10-23」）。
+// 狀態：沒登入＝規則頁；登入後 none 申請表／pending 等待審核／approved 我的合作頁（含補轉帳資料）／rejected／stopped。
+// 吃 api.winds.tw /partner/me、/partner/apply、/partner/payout-info；登入沿用占卜紀錄頁（Google 在上、LINE 在下）。
+const FAQ = [
+  ['Q：要付錢才能加入嗎？', '不用，加入免費。'],
+  ['Q：粉絲很少也可以申請嗎？', '可以，帳號人數沒有門檻，每一筆一樣 NT$30。'],
+  ['Q：私人帳號可以嗎？', '可以。粉絲 5 萬以上自動升級 NT$50 只看得到 IG 商業或創作者帳號；其他帳號由我們人工確認。'],
+  ['Q：規則會改嗎？', '有調整會先公告在這一頁，並通知已加入的夥伴。調整前已經算進你成績的分潤，照原本的規則轉帳。'],
+];
+---
+<BaseLayout
+  title="找風問幸福 合作分潤計畫"
+  description="你分享找風問幸福的水鏡愛情、塔羅愛情，有人透過你的專屬連結付款，你就拿得到分潤。每月轉帳，隨時看得到自己的成績。"
+>
+  <main class="pt-main">
+    <!-- 開頭（規則頁與申請表共用） -->
+    <header class="pt-head" id="ptHead">
+      <h1 class="pt-h1">找風問幸福 合作分潤計畫</h1>
+      <p class="pt-lede">把找風問幸福分享給你的朋友和粉絲。有人透過你的專屬連結起卦、付款，每一筆你都拿得到分潤。</p>
+      <div class="pt-auth" id="ptAuth"><!-- 10/21 Jeffery：全站 Google 在上、LINE 在下 -->
+        <a class="pt-gbtn" href="/login?return=/partner">
+          <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>用 Google 登入
+        </a>
+        <a class="zf-line-btn" href="/auth/line-start?return=/partner"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
+      </div>
+    </header>
+
+    <!-- 載入中 -->
+    <div class="pt-loading" id="ptLoading" hidden><span class="pt-spin"></span></div>
+
+    <!-- ② 申請表 -->
+    <section class="pt-card pt-narrow" id="ptApply" hidden>
+      <div class="pt-lbl">主要平台</div>
+      <div class="pt-chips" id="ptChips">
+        <button type="button" class="pt-chip is-on" aria-pressed="true" data-v="IG">IG</button>
+        <button type="button" class="pt-chip" aria-pressed="false" data-v="FB">FB</button>
+        <button type="button" class="pt-chip" aria-pressed="false" data-v="Threads">Threads</button>
+        <button type="button" class="pt-chip" aria-pressed="false" data-v="LINE">LINE</button>
+        <button type="button" class="pt-chip" aria-pressed="false" data-v="YouTube">YouTube</button>
+      </div>
+      <label class="pt-field"><span class="pt-lbl">平台帳號</span><input id="ptHandle" type="text" placeholder="@xxx" autocomplete="off" maxlength="60"><span class="pt-hint">例：@xxx</span></label>
+      <label class="pt-check"><input type="checkbox" id="ptAgree"><span>我已閱讀<a class="pt-link" href="#rules">合作規則</a></span></label>
+      <p class="pt-err" id="ptApplyErr" role="alert" hidden></p>
+      <button type="button" class="pt-btn pt-btn-primary pt-btn-full" id="ptApplyBtn" disabled>送出申請</button>
+    </section>
+
+    <!-- ③ 等待審核／⑥ 沒通過／停止合作 -->
+    <section class="pt-card pt-narrow pt-state" id="ptState" hidden>
+      <span class="pt-disc"><i class="ph-thin" id="ptStateIcon"></i></span>
+      <p class="pt-state-tx" id="ptStateTx"></p>
+      <div class="pt-rows" id="ptStateRows"></div>
+    </section>
+
+    <!-- ④ 我的合作頁（⑤ 補轉帳資料在最上面） -->
+    <section class="pt-home" id="ptHome" hidden>
+      <div id="ptBank" hidden>
+        <div class="pt-note" id="ptBankNote"><i class="ph ph-bank"></i><span>你的分潤已滿 NT$300，請補上轉帳資料，10 號就能轉給你。</span></div>
+        <div class="pt-card pt-bank-form" id="ptBankForm">
+          <div class="pt-grid2">
+            <label class="pt-field"><span class="pt-lbl">真實姓名</span><input id="bkName" type="text" maxlength="40" autocomplete="name"></label>
+            <label class="pt-field"><span class="pt-lbl">身分證字號</span><input id="bkId" type="text" maxlength="10" autocomplete="off"></label>
+            <label class="pt-field"><span class="pt-lbl">銀行代碼</span><input id="bkCode" type="text" inputmode="numeric" maxlength="3"></label>
+            <label class="pt-field"><span class="pt-lbl">分行</span><input id="bkBranch" type="text" maxlength="40"></label>
+            <label class="pt-field"><span class="pt-lbl">帳號</span><input id="bkAcct" type="text" inputmode="numeric" maxlength="20"></label>
+            <label class="pt-field"><span class="pt-lbl">戶名</span><input id="bkHolder" type="text" maxlength="40"></label>
+          </div>
+          <p class="pt-small">作為轉帳和報稅使用，不會用在其他地方。</p>
+          <p class="pt-err" id="ptBankErr" role="alert" hidden></p>
+          <div><button type="button" class="pt-btn pt-btn-primary" id="ptBankBtn">送出</button></div>
+        </div>
+      </div>
+      <div class="pt-who"><span class="pt-handle" id="ptWho"></span><span class="pt-tag" id="ptTier"></span></div>
+      <div class="pt-links" id="ptLinks"></div>
+      <div class="pt-stats-wrap">
+        <div class="pt-tabs" role="tablist">
+          <button type="button" class="pt-tab" role="tab" aria-selected="false" data-r="today">今天</button>
+          <button type="button" class="pt-tab is-on" role="tab" aria-selected="true" data-r="month">這個月</button>
+          <button type="button" class="pt-tab" role="tab" aria-selected="false" data-r="all">全部</button>
+        </div>
+        <div class="pt-stats" id="ptStats"></div>
+      </div>
+      <div class="pt-card pt-money" id="ptMoney"></div>
+      <div class="pt-card pt-gift" id="ptGift"></div>
+      <div class="pt-center"><a class="pt-link" href="#rules" id="ptShowRules">看合作規則</a></div>
+    </section>
+
+    <!-- ① 合作規則（定稿全文，沒登入時直接顯示） -->
+    <article class="pt-rules" id="rules">
+      <section>
+        <h2 class="pt-h2">怎麼加入</h2>
+        <ol class="pt-list">
+          <li>用 Google 或 LINE 登入，填你的平台帳號（IG、FB、Threads、LINE 或 YouTube）。</li>
+          <li>送出申請，通常一天內會用 LINE 或 Email 通知你結果。</li>
+          <li>回到這一頁拿你的專屬連結，貼到貼文、限動或私訊裡就可以開始。</li>
+        </ol>
+        <p class="pt-p">申請通過，會先送你一次完整解讀，親自體驗過再分享。</p>
+      </section>
+      <section>
+        <h2 class="pt-h2">你可以分享的</h2>
+        <ul class="pt-list">
+          <li><b>水鏡愛情</b>：按住水鏡起一卦，看你們現在的關係</li>
+          <li><b>塔羅愛情</b>：抽五張牌，看這段感情卡在哪裡</li>
+        </ul>
+        <p class="pt-p">兩個都有各自的專屬連結，分享哪一個就用哪一條。</p>
+      </section>
+      <section>
+        <h2 class="pt-h2">分潤怎麼算</h2>
+        <ul class="pt-list">
+          <li>有人點了你的連結，<b>7 天內</b>付款拿到靈符解方，這一筆就算你的。</li>
+          <li>每一筆 <b>NT$30</b>；IG 粉絲 5 萬以上的帳號，每一筆 <b>NT$50</b>。</li>
+          <li>只算付款的筆數，點擊和免費起卦不算錢，但都會顯示在你的成績裡。</li>
+          <li>同一位客人點過好幾位夥伴的連結，算最後點的那一位。</li>
+          <li>用自己的連結自己付款，不算分潤。</li>
+        </ul>
+      </section>
+      <section>
+        <h2 class="pt-h2">什麼時候拿到錢</h2>
+        <ul class="pt-list">
+          <li>每月 10 號，把上個月的分潤轉到你的銀行帳戶。</li>
+          <li>付款滿 7 天、沒有退款的才算數。</li>
+          <li>累積滿 <b>NT$300</b> 才轉帳，沒滿的留到下個月一起算。</li>
+          <li>第一次轉帳前，請在這一頁補上真實姓名、身分證字號和銀行帳戶，作為轉帳和報稅使用，不會用在其他地方。</li>
+        </ul>
+      </section>
+      <section>
+        <h2 class="pt-h2">你的成績</h2>
+        <p class="pt-p">登入這一頁，隨時看得到：</p>
+        <ul class="pt-list">
+          <li>有幾個人點了你的連結</li>
+          <li>幾個人起了卦</li>
+          <li>幾筆付款</li>
+          <li>待轉帳和已轉帳的分潤</li>
+        </ul>
+      </section>
+      <section>
+        <h2 class="pt-h2">分享時請注意</h2>
+        <ul class="pt-list">
+          <li>建議在貼文標示「合作」，讓看的人知道這是分享計畫。</li>
+          <li>這些情況會停止合作，已經累積的分潤也不會轉帳：灌單或刷單、冒用找風問幸福或風易揚老師的名義、在別人的貼文底下大量留連結。</li>
+        </ul>
+      </section>
+      <section>
+        <h2 class="pt-h2">常見問題</h2>
+        <div class="pt-faq">
+          {FAQ.map(([q, a], i) => (
+            <details class="faq-item" name="ptfaq" open={i === 0}>
+              <summary><span class="q cjk">{q}</span><span class="toggle"><i class="ph-bold ph-plus plus"></i><i class="ph-bold ph-minus minus"></i></span></summary>
+              <p class="a cjk">{a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <style is:global>
+    /* 2026-10-23（Astra #1）：卡片是程式產生的，scoped 樣式套不到，改全域（全部 pt- 開頭，只在本頁） */
+    .pt-main{max-width:720px;margin:0 auto;padding:64px 32px 88px;box-sizing:border-box;display:flex;flex-direction:column;gap:44px;}
+    .pt-main.is-wide{max-width:880px;}
+    .pt-head{display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center;}
+    .pt-h1{margin:0;font-family:var(--font-serif);font-weight:500;font-size:clamp(28px,4vw,38px);line-height:1.35;color:var(--ink-900);}
+    .pt-lede{margin:0;max-width:34em;font-family:var(--font-serif);font-weight:300;font-size:17px;line-height:1.9;color:var(--text-secondary);}
+    .pt-auth{width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px;margin-top:4px;}
+    .pt-gbtn{box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:12px;height:54px;white-space:nowrap;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);text-decoration:none;background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);}
+    .pt-gbtn:hover{background:var(--rice-100);}
+    .pt-h2{margin:0 0 12px;font-family:var(--font-serif);font-weight:500;font-size:22px;line-height:1.4;letter-spacing:.02em;color:var(--ink-900);}
+    .pt-rules{display:flex;flex-direction:column;gap:44px;}
+    .pt-p,.pt-list li{font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.9;color:var(--text-secondary);}
+    .pt-p{margin:12px 0 0;}
+    .pt-list{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px;}
+    .pt-list b,.pt-p b{font-weight:500;color:var(--ink-900);}
+    .pt-faq{border-top:1px solid var(--border-soft);}
+    .pt-faq .faq-item{border-bottom:1px solid var(--border-soft);}
+    .pt-faq .faq-item summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 4px;}
+    .pt-faq .faq-item summary::-webkit-details-marker{display:none;}
+    .pt-faq .faq-item .q{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);line-height:1.5;}
+    .pt-faq .faq-item .toggle{flex:none;width:30px;height:30px;border-radius:999px;background:var(--surface-tint);display:inline-flex;align-items:center;justify-content:center;}
+    .pt-faq .faq-item .toggle i{font-size:15px;color:var(--rose-500);}
+    .pt-faq .faq-item .toggle .minus{display:none;}
+    .pt-faq .faq-item[open] .toggle{background:var(--rose-100);}
+    .pt-faq .faq-item[open] .toggle .plus{display:none;}
+    .pt-faq .faq-item[open] .toggle .minus{display:inline;}
+    .pt-faq .faq-item .a{font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.9;color:var(--text-secondary);margin:0;padding:0 44px 22px 4px;}
+    .pt-card{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:32px;box-sizing:border-box;}
+    .pt-narrow{max-width:560px;width:100%;margin:0 auto;}
+    #ptApply{display:flex;flex-direction:column;gap:22px;}
+    #ptApply[hidden],#ptState[hidden],#ptHome[hidden],#ptBank[hidden],.pt-err[hidden]{display:none;}
+    .pt-lbl{font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
+    .pt-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+    .pt-chip{font-family:var(--font-sans);font-size:14px;padding:7px 16px;border-radius:var(--radius-pill);border:1px solid var(--border-soft);background:var(--surface-card);color:var(--ink-700);cursor:pointer;}
+    .pt-chip.is-on{background:var(--rose-50);border-color:var(--rose-300);color:var(--accent-press);}
+    .pt-field{display:flex;flex-direction:column;gap:8px;}
+    .pt-field input{box-sizing:border-box;width:100%;height:48px;padding:0 14px;font-family:var(--font-sans);font-size:16px;color:var(--ink-900);background:var(--surface-page);border:1px solid var(--border-strong);border-radius:var(--radius-md);}
+    .pt-field input:focus{outline:2px solid var(--rose-200);border-color:var(--rose-300);}
+    .pt-hint{font-family:var(--font-sans);font-size:12.5px;color:var(--text-muted);}
+    .pt-check{display:flex;align-items:center;gap:10px;font-family:var(--font-serif);font-size:16px;color:var(--ink-900);cursor:pointer;}
+    .pt-check input{width:18px;height:18px;accent-color:var(--accent);}
+    .pt-btn{font-family:var(--font-serif);font-size:16px;font-weight:500;border-radius:var(--radius-pill);padding:12px 28px;cursor:pointer;border:1px solid transparent;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+    .pt-btn-primary{background:var(--accent);color:var(--text-on-accent);}
+    .pt-btn-primary:disabled{opacity:.45;cursor:not-allowed;}
+    .pt-btn-secondary{background:var(--surface-card);border-color:var(--border-strong);color:var(--ink-900);}
+    .pt-btn-sm{font-size:14px;padding:8px 18px;}
+    .pt-btn-full{width:100%;}
+    .pt-err{margin:0;font-family:var(--font-sans);font-size:14px;color:var(--critical,#b5473a);}
+    .pt-loading{display:flex;justify-content:center;padding:40px 0;}
+    .pt-spin{width:32px;height:32px;border-radius:50%;border:2px solid var(--rose-100);border-top-color:var(--rose-500);animation:pt-spin 1s linear infinite;}
+    @keyframes pt-spin{to{transform:rotate(360deg);}}
+    .pt-state{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;box-shadow:var(--shadow-md);}
+    .pt-disc{width:56px;height:56px;border-radius:50%;background:var(--surface-tint);border:1px solid var(--rose-100);display:inline-flex;align-items:center;justify-content:center;}
+    .pt-disc i{font-size:26px;color:var(--rose-500);}
+    .pt-state-tx{margin:0;font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--ink-900);}
+    .pt-rows{width:100%;max-width:320px;}
+    .pt-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--border-soft);font-family:var(--font-serif);font-size:15.5px;}
+    .pt-row .k{color:var(--text-secondary);} .pt-row .v{color:var(--ink-900);white-space:nowrap;} .pt-row .v.strong{color:var(--accent-press);font-weight:500;}
+    .pt-home{display:flex;flex-direction:column;gap:28px;}
+    .pt-note{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);font-family:var(--font-serif);font-size:15px;line-height:1.7;color:var(--ink-700);}
+    .pt-note i{flex:none;margin-top:3px;font-size:18px;color:var(--rose-500);}
+    #ptBank{display:flex;flex-direction:column;gap:14px;}
+    .pt-bank-form{display:flex;flex-direction:column;gap:16px;padding:28px;}
+    .pt-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .pt-small{margin:0;font-family:var(--font-sans);font-size:13px;line-height:1.7;color:var(--text-muted);}
+    .pt-who{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .pt-handle{font-family:var(--font-serif);font-size:26px;font-weight:500;color:var(--ink-900);}
+    .pt-tag{font-family:var(--font-sans);font-size:13px;padding:4px 12px;border-radius:var(--radius-pill);background:var(--rose-50);color:var(--accent-press);border:1px solid var(--rose-100);}
+    .pt-links{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .pt-lcard{display:flex;flex-direction:column;gap:12px;padding:20px 22px;}
+    .pt-lcard .t{font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);}
+    .pt-lcard .u{padding:10px 12px;border-radius:var(--radius-md);background:var(--surface-sunken);font-family:var(--font-sans);font-size:13.5px;color:var(--ink-700);overflow-wrap:anywhere;}
+    .pt-stats-wrap{display:flex;flex-direction:column;gap:12px;}
+    .pt-tabs{display:inline-flex;align-self:flex-start;padding:3px;border-radius:var(--radius-pill);background:var(--surface-sunken);gap:2px;}
+    .pt-tab{font-family:var(--font-sans);font-size:14px;padding:6px 16px;border-radius:var(--radius-pill);border:0;background:transparent;color:var(--ink-700);cursor:pointer;}
+    .pt-tab.is-on{background:var(--surface-card);color:var(--ink-900);box-shadow:var(--shadow-xs);}
+    .pt-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+    .pt-stat{padding:18px;border-radius:var(--radius-md);background:var(--surface-card);border:1px solid var(--border-soft);}
+    .pt-stat .n{margin-top:4px;font-family:var(--font-serif);font-size:28px;font-weight:500;color:var(--ink-900);font-variant-numeric:tabular-nums;white-space:nowrap;}
+    .pt-money{padding:8px 24px;}
+    .pt-money .pt-row:first-child{border-top:0;}
+    .pt-gift{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:22px 24px;}
+    .pt-gift.is-used{opacity:.55;}
+    .pt-gift .l{display:flex;align-items:center;gap:12px;font-family:var(--font-serif);font-size:17px;color:var(--ink-900);}
+    .pt-gift .pt-disc{width:44px;height:44px;} .pt-gift .pt-disc i{font-size:20px;}
+    .pt-used{font-family:var(--font-sans);font-size:13px;padding:4px 12px;border-radius:var(--radius-pill);border:1px solid var(--border-strong);color:var(--text-muted);}
+    .pt-center{display:flex;justify-content:center;}
+    .pt-link{font-family:var(--font-sans);font-size:14px;color:var(--accent-press);text-decoration:none;border-bottom:1px solid var(--rose-200);}
+    .pt-main.is-app .pt-rules{display:none;}
+    .pt-main.is-app.show-rules .pt-rules{display:flex;}
+    @media (max-width:760px){
+      .pt-main{padding:32px 20px 56px;gap:36px;}
+      .pt-card{padding:24px 20px;}
+      .pt-bank-form{padding:22px 18px;}
+      .pt-grid2,.pt-links{grid-template-columns:1fr;}
+      .pt-stats{grid-template-columns:1fr 1fr;}
+      .pt-stat{padding:14px;} .pt-stat .n{font-size:24px;}
+      .pt-handle{font-size:22px;}
+      .pt-h2{font-size:20px;}
+      .pt-p,.pt-list li{font-size:15.5px;}
+      .pt-faq .faq-item summary{padding:18px 2px;} .pt-faq .faq-item .q{font-size:16.5px;} .pt-faq .faq-item .a{font-size:15px;padding:0 2px 20px;}
+      .pt-money{padding:6px 18px;} .pt-gift{padding:20px 18px;}
+    }
+  </style>
+
+  <script is:inline src="/assets/line-login.js"></script>
+  <script is:inline>
+    (function () {
+      var API = 'https://api.winds.tw';
+      var auth = null, me = null, range = 'month';
+      function $(id) { return document.getElementById(id); }
+      function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+      function money(n) { return 'NT$' + (Number(n) || 0).toLocaleString('en-US'); }
+      function hdrs(json) {
+        var h = auth.line ? { 'X-Line-Id-Token': auth.token } : { 'X-Google-Id-Token': auth.token };
+        if (json) h['Content-Type'] = 'application/json';
+        return h;
+      }
+      function view(name) {
+        var main = document.querySelector('.pt-main');
+        main.classList.toggle('is-app', !!name && name !== 'apply');   /* 申請時要看得到規則（Astra #3） */
+        main.classList.toggle('is-wide', name === 'home');
+        $('ptAuth').hidden = !!name;
+        $('ptHead').hidden = !(name === null || name === 'apply');
+        $('ptLoading').hidden = name !== 'loading';
+        $('ptApply').hidden = name !== 'apply';
+        $('ptState').hidden = name !== 'state';
+        $('ptHome').hidden = name !== 'home';
+      }
+      function state(icon, text, rows) {
+        $('ptStateIcon').className = 'ph-thin ph-' + icon;
+        $('ptStateTx').textContent = text;
+        $('ptStateRows').innerHTML = (rows || []).map(function (r) { return '<div class="pt-row"><span class="k">' + esc(r[0]) + '</span><span class="v">' + esc(r[1]) + '</span></div>'; }).join('');
+        view('state');
+      }
+      function renderStats() {
+        var s = (me.partner.stats || {})[range] || {};
+        var cell = function (k, v) { return '<div class="pt-stat"><div class="pt-lbl">' + k + '</div><div class="n">' + esc(v) + '</div></div>'; };
+        $('ptStats').innerHTML = cell('點進來', Number(s.clicks) || 0) + cell('起卦', Number(s.casts) || 0) + cell('付款', Number(s.payments) || 0) + cell('分潤', money(s.commission));
+        document.querySelectorAll('.pt-tab').forEach(function (b) { var on = b.getAttribute('data-r') === range; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+      }
+      function renderHome() {
+        var p = me.partner, m = p.money || {};
+        $('ptWho').textContent = p.handle || '';
+        $('ptTier').textContent = '每筆 NT$' + (p.tier_amount || 30);
+        $('ptLinks').innerHTML = (p.links || []).map(function (l, i) {
+          return '<div class="pt-card pt-lcard"><div class="t">' + esc(l.title) + '</div><div class="u">' + esc(l.url) + '</div><div><button type="button" class="pt-btn pt-btn-secondary pt-btn-sm" data-copy="' + i + '"><i class="ph ph-copy"></i><span>複製連結</span></button></div></div>';
+        }).join('');
+        renderStats();
+        var row = function (k, v, strong) { return '<div class="pt-row"><span class="k">' + k + '</span><span class="v' + (strong ? ' strong' : '') + '">' + v + '</span></div>'; };
+        $('ptMoney').innerHTML = row('待轉帳', money((m.pending || 0) + (m.available || 0)), true) + row('已轉帳', money(m.paid)) + row('下次轉帳日', '每月 10 號') + row('離 NT$300 還差', money(m.to_threshold));
+        var g = p.gift || {};
+        $('ptGift').className = 'pt-card pt-gift' + (g.used ? ' is-used' : '');
+        $('ptGift').innerHTML = '<div class="l"><span class="pt-disc"><i class="ph-thin ph-gift"></i></span><span>送你一次完整解讀</span></div>' +
+          (g.used ? '<span class="pt-used">已使用</span>' : (/^https:\/\/winds\.tw\//.test(String(g.url || '')) ? '<a class="pt-btn pt-btn-primary pt-btn-sm" href="' + esc(g.url) + '">去起一卦</a>' : ''));
+        var bank = $('ptBank');
+        var reached = ((Number(m.pending) || 0) + (Number(m.available) || 0)) > 0 && (Number(m.to_threshold) || 0) <= 0;   /* Astra #4：還沒滿 NT$300 不要求個資 */
+        if ((me.needs_payout_info && reached) || me.just_sent_bank) {
+          bank.hidden = false;
+          var done = !me.needs_payout_info;
+          $('ptBankNote').innerHTML = done ? '<i class="ph ph-check-circle"></i><span>已收到，10 號轉帳</span>' : '<i class="ph ph-bank"></i><span>你的分潤已滿 NT$300，請補上轉帳資料，10 號就能轉給你。</span>';
+          $('ptBankForm').hidden = done;
+        } else bank.hidden = true;
+        view('home');
+      }
+      function render() {
+        var st = me.status;
+        if (st === 'none') { view('apply'); return; }
+        if (st === 'pending') { state('hourglass-medium', '申請已送出，通常一天內會用 LINE 或 Email 通知你結果。', [['主要平台', (me.partner && me.partner.platform) || ''], ['平台帳號', (me.partner && me.partner.handle) || '']]); return; }
+        if (st === 'rejected') { state('envelope-simple', '這次沒有通過申請，謝謝你的支持。'); return; }
+        if (st === 'stopped') { state('pause', '這個帳號已停止合作。'); return; }
+        if (st === 'approved') { renderHome(); return; }
+        view(null);
+      }
+      function expired() { try { localStorage.removeItem(auth.line ? 'winds_line_token' : 'winds_google_token'); } catch (x) {} auth = null; view(null); }
+      function load() {
+        view('loading');
+        fetch(API + '/partner/me', { headers: hdrs() })
+          .then(function (r) { if (r.status === 401) { throw 'auth'; } return r.json(); })
+          .then(function (d) { if (!d || !d.success) throw 'bad'; me = d; if (me.partner) me.needs_payout_info = !!(me.partner.needs_payout_info); render(); })
+          .catch(function (e) {
+            if (e === 'auth') { expired(); return; }
+            state('warning-circle', '暫時讀不到資料，請稍後再回來看看。');
+          });
+      }
+      /* 申請表 */
+      var platform = 'IG';
+      document.querySelectorAll('.pt-chip').forEach(function (b) {
+        b.addEventListener('click', function () { platform = b.getAttribute('data-v'); document.querySelectorAll('.pt-chip').forEach(function (x) { x.classList.toggle('is-on', x === b); x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); });
+      });
+      function applyReady() { $('ptApplyBtn').disabled = !($('ptAgree').checked && $('ptHandle').value.trim()); }
+      $('ptAgree').addEventListener('change', applyReady);
+      $('ptHandle').addEventListener('input', applyReady);
+      $('ptApplyBtn').addEventListener('click', function () {
+        var btn = this; btn.disabled = true; $('ptApplyErr').hidden = true;
+        fetch(API + '/partner/apply', { method: 'POST', headers: hdrs(true), body: JSON.stringify({ platform: platform, handle: $('ptHandle').value.trim(), agree: true }) })
+          .then(function (r) { if (r.status === 401) throw 'auth'; return r.json().catch(function () { return {}; }); })
+          .then(function (d) { if (d && d.success) { load(); return; } $('ptApplyErr').textContent = (d && (d.error || d.message)) || '送出沒有成功，請再按一次。'; $('ptApplyErr').hidden = false; applyReady(); })
+          .catch(function (e) { if (e === 'auth') { expired(); return; } $('ptApplyErr').textContent = '網路不太穩，請再按一次。'; $('ptApplyErr').hidden = false; applyReady(); });
+      });
+      /* 補轉帳資料 */
+      $('ptBankBtn').addEventListener('click', function () {
+        var btn = this; btn.disabled = true; $('ptBankErr').hidden = true;
+        var body = { real_name: $('bkName').value.trim(), id_no: $('bkId').value.trim().toUpperCase(), bank_code: $('bkCode').value.trim(), bank_branch: $('bkBranch').value.trim(), account_no: $('bkAcct').value.trim(), account_holder: $('bkHolder').value.trim() };
+        fetch(API + '/partner/payout-info', { method: 'POST', headers: hdrs(true), body: JSON.stringify(body) })
+          .then(function (r) { if (r.status === 401) throw 'auth'; return r.json().catch(function () { return {}; }); })
+          .then(function (d) {
+            btn.disabled = false;
+            if (d && d.success) {
+              ['bkName', 'bkId', 'bkCode', 'bkBranch', 'bkAcct', 'bkHolder'].forEach(function (k) { $(k).value = ''; });   /* 送出後清掉畫面上的個資 */
+              me.needs_payout_info = false; me.just_sent_bank = true; me.partner.payout_info = { submitted: true }; renderHome(); return;
+            }
+            $('ptBankErr').textContent = (d && (d.error || d.message)) || '送出沒有成功，請確認每一欄都填好。'; $('ptBankErr').hidden = false;
+          })
+          .catch(function (e) { btn.disabled = false; if (e === 'auth') { expired(); return; } $('ptBankErr').textContent = '網路不太穩，請再按一次。'; $('ptBankErr').hidden = false; });
+      });
+      /* 我的合作頁：複製連結、切換區間、看規則 */
+      $('ptLinks').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-copy]'); if (!b) return;
+        var url = me.partner.links[Number(b.getAttribute('data-copy'))].url;
+        var done = function () { b.innerHTML = '<i class="ph ph-check"></i><span>已複製</span>'; };
+        var fail = function () {   /* Astra #7：複製不了就把網址選起來，請對方自己複製 */
+          var box = b.closest('.pt-lcard').querySelector('.u');
+          try { var rg = document.createRange(); rg.selectNodeContents(box); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(rg); } catch (x) {}
+          b.innerHTML = '<span>網址已選取，請長按複製</span>';
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, fail); else fail();
+      });
+      document.querySelectorAll('.pt-tab').forEach(function (b) { b.addEventListener('click', function () { range = b.getAttribute('data-r'); renderStats(); }); });
+      $('ptShowRules').addEventListener('click', function (e) {
+        e.preventDefault(); var main = document.querySelector('.pt-main'); main.classList.toggle('show-rules');
+        if (main.classList.contains('show-rules')) $('rules').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      /* 登入狀態（同占卜紀錄頁） */
+      (function init() {
+        var token = '';
+        try { token = localStorage.getItem('winds_google_token') || ''; } catch (e) {}
+        if (token) {
+          try {
+            var p = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (p.exp && p.exp * 1000 > Date.now()) { auth = { token: token, line: false }; load(); return; }
+          } catch (e) {}
+          try { localStorage.removeItem('winds_google_token'); } catch (e2) {}
+        }
+        var ls = window.WindsLine && WindsLine.session();
+        if (ls) { auth = { token: ls.token, line: true }; load(); return; }
+        view(null);
+      })();
+    })();
+  </script>
+</BaseLayout>

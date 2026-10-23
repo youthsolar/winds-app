@@ -1,0 +1,36 @@
+/* 付費版範例頁（/demo/gua、/demo/tarot，2026-10-23 DS paid-demo.jsx）：只放付費頁沒有的那幾格，數值照 DS 回稿與現有頁面，不自創顏色或元件 */
+
+/* 最上面的範例提示框：沿用付費頁「下一個節氣」提示框（.season-tip），整列寬 */
+.dm-banner{display:flex;margin:0 0 18px}
+.dm-anchor{scroll-margin-top:96px}
+
+/* #ziwei：樣式＝紫微頁宮位解讀（小標 serif 20／手機 18、500、ink-900；內文 serif 300 17／手機 15.5、行高 1.95、ink-800、段距 16） */
+.dm-zw-h{font-family:var(--font-serif);font-size:20px;font-weight:500;line-height:1.5;color:var(--ink-900);margin:0 0 14px}
+.dm-zw p{font-family:var(--font-serif);font-weight:300;font-size:17px;line-height:1.95;color:var(--ink-800);margin:0 0 16px}
+.dm-zw p:last-child{margin-bottom:0}
+/* 卡下小字（sans 13／300／text-muted） */
+.dm-foot{font-family:var(--font-sans);font-size:13px;font-weight:300;line-height:1.7;color:var(--text-muted);margin:12px 0 0}
+
+/* #spirit：分靈體頁頂部卡（spirit.astro .sp-prof 同值；不放命理檔案鈕） */
+.dm-sp-prof{background:linear-gradient(168deg,var(--surface-tint),var(--paper) 78%);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:16px 20px;margin-bottom:14px}
+.dm-sp-row{display:flex;gap:12px;align-items:center}
+.dm-sp-pav{flex:none;width:54px;height:54px;border-radius:999px;background:var(--rose-100);color:var(--rose-600);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:22.7px;font-weight:500;box-shadow:0 0 0 3px var(--surface-page),0 0 0 4.5px var(--rose-300)}
+.dm-sp-name{font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink-900)}
+.dm-sp-tag{font-family:var(--font-sans);font-size:11px;color:var(--text-muted)}
+.dm-sp-sub{font-family:var(--font-sans);font-size:12px;color:var(--text-secondary);margin-top:3px}
+/* 三問三答泡泡（spirit.astro .sp-bubble 同值：客人靠右 accent 底；星湖靠左 32 小頭像＋surface-card 底 border-soft 框；serif 16 行高 1.75；保留換行） */
+.dm-chat{padding:4px 0 0}
+.dm-bub{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px}
+.dm-bub.user{justify-content:flex-end}
+.dm-av{flex:none;width:32px;height:32px;border-radius:999px;background:var(--rose-200);border:2px solid var(--rose-300);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:12.8px;font-weight:500;color:var(--rose-700, var(--rose-600))}
+.dm-bub-in{max-width:calc(100% - 52px)}
+.dm-bub-txt{padding:12px 16px;border-radius:18px 18px 18px 6px;background:var(--surface-card);border:1px solid var(--border-soft);box-shadow:var(--shadow-sm);font-family:var(--font-serif);font-size:16px;font-weight:300;line-height:1.75;color:var(--ink-900);margin:0;white-space:pre-line;word-break:normal;text-wrap:wrap}
+.dm-bub.user .dm-bub-txt{border-radius:18px 18px 6px 18px;background:var(--accent);border:none;color:var(--text-on-accent);font-weight:400}
+
+@media(max-width:760px){
+  .dm-zw-h{font-size:18px}
+  .dm-zw p{font-size:15.5px}
+  .dm-sp-prof{padding:12px 14px}
+  .dm-sp-pav{width:46px;height:46px;font-size:19.3px}
+  .dm-sp-name{font-size:16px}
+}

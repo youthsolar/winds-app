@@ -193,7 +193,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
         <div class="zf-footer-cols">
           <div class="zf-fcol"><div class="zf-fh">命理項目</div><a href="/divination">易經</a><a href="/divination">塔羅</a><a href="/ziwei">紫微</a><a href="/spirit">分靈體</a></div>
           <div class="zf-fcol"><div class="zf-fh">探索</div><a href="/blog">案例專欄</a><a href="/services">預約項目</a><a href="/teachers/">老師介紹</a><a href="/shop">法器選物</a><a href="/course">靈修課程</a></div>
-          <div class="zf-fcol"><div class="zf-fh">關於</div><a href="/about">品牌故事</a><a href="/account">會員中心</a><a href="/faq">常見問題</a></div>
+          <div class="zf-fcol"><div class="zf-fh">關於</div><a href="/about">品牌故事</a><a href="/account">會員中心</a><a href="/faq">常見問題</a><a href="/partner">合作分潤</a></div>
           <!-- 找風站群（2026-09-02）：主站原本對七站零連結，七站又都沒有 sitemap，
                等於爬蟲完全找不到入口。這裡是它們唯一從有權重網域進來的路徑，別拿掉。 -->
           <div class="zf-fcol"><div class="zf-fh">找風站群</div>
@@ -260,6 +260,15 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
         if (AUTH_HOP) r0 = '';
         var a0 = q.get('gclid') ? 'google-ads' : '';
         if (s || c || r0 || a0) sessionStorage.setItem('winds_this_touch', JSON.stringify({ source: (s || a0).slice(0, 40), content: (c || '').slice(0, 80), referrer: r0.slice(0, 80), at: new Date().toISOString() }));
+      } catch (e) {}
+      /* 2026-10-23 合作分潤：夥伴連結經 api.winds.tw/p/… 記點擊後轉來，帶伺服器簽的 pk；只存最新一個（新的蓋舊的），起卦／付款時送回，7 天期限由伺服器判斷。
+         讀完就從網址列拿掉，避免連 pk 一起被轉貼（FunnelDocument 同規則） */
+      try {
+        var pk = q.get('pk');
+        if (s === 'partner' && pk && /^[A-Za-z0-9._-]{10,200}$/.test(pk)) {
+          localStorage.setItem('winds_partner_pk', pk);
+          q.delete('pk'); history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash);
+        }
       } catch (e) {}
       try {
         var ft = JSON.parse(localStorage.getItem('winds_first_touch') || 'null');
