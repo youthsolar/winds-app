@@ -17,7 +17,7 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 
 const nf = (n: number) => 'NT$ ' + (Number(n) || 0).toLocaleString('en-US');
 const cleanName = (s: string) => String(s).split('/')[0].replace(/[【】]/g, '').trim();
-const variantsOf = (p: any) => (p.variants || []).filter((v: any) => v && v.id);
+const variantsOf = (p: any) => (p.variants || []).filter((v: any) => v && (v.id || v.vid));   // D1 款式用 id、Woo 款式用 vid（2026-10-23 商城切 Woo）
 const priceLabel = (p: any) => {
   const vs = variantsOf(p); if (!vs.length) return nf(p.price);
   const min = Math.min(...vs.map((v: any) => Number(v.price) || 0));

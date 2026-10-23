@@ -74,7 +74,8 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
 
   <!-- GEO: JSON-LD Structured Data -->
   {jsonLd && (
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <!-- JSON 裡的 < 一律寫成 \u003c：資料含 </script> 時不會把這段提早關掉（Astra 10/23） -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/\x3c/g, '\\u003c')} />
   )}
 
   <!-- 量測層（2026-08-15）：GA4 ＋ Meta Pixel 底座 → 全站 PageView；轉換事件掛在各頁 -->

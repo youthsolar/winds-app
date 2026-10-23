@@ -5,7 +5,7 @@
 // 表單與流程沿用 /lp/yuanchen-wealth.astro（那頁是手寫版樣板，之後可退役）。
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { retryPage } from '../../data/retry-page';
-import { getShopProducts, SHOP_FROM_WP, WP_CHECKOUT } from '../../data/shop-products';
+import { getShopProducts, WP_CHECKOUT } from '../../data/shop-products';
 
 // 2026-09-28（gpt-6-astra 體檢）：原本 build 時抓＝調價後頁面還是舊價（後端照現價收）、API 一抖就發殘缺頁且不會自己好。
 // 改成每次請求即時讀＋瀏覽器快取 5 分鐘（Workers 回應不經邊緣快取，實測無 cf-cache-status）；讀不到回 503 讓人重整。
@@ -21,6 +21,8 @@ const prod: any = products.find((p: any) => String(p.id) === String(Astro.params
 if (!prod) return new Response(null, { status: 404 });
 Astro.response.headers.set('Cache-Control', 'public, max-age=300');
 const PRODUCT_ID = String(prod.id);
+// 2026-10-23 商城切 Woo：目錄帶 wooId（worker 讀 WooCommerce）才出 Woo 結帳表單；worker 回退 D1 目錄時這裡自動回自家結帳，兩邊永遠同一個開關（Astra）
+const fromWp = !!prod.wooId;
 
 const ntd = (n: number) => 'NT$ ' + Number(n).toLocaleString('en-US');
 const [rawName, rawSub = ''] = String(prod.name).split('/');
@@ -111,13 +113,14 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     <section id="order" class="lp-wrap lp-block">
       <div class="zf-section-heading">
         <span class="zf-sh-eyebrow">訂購</span>
-        <h2 class="zf-sh-title">{SHOP_FROM_WP ? '選好款式，下一頁填資料、付款' : '就在這裡，選門市、付款，完成'}</h2>
+        <h2 class="zf-sh-title">{fromWp ? '選好款式，下一頁填資料、付款' : '就在這裡，選門市、付款，完成'}</h2>
       </div>
       <div class="zf-card lp-order" id="orderCard">
-        {SHOP_FROM_WP && (
+        {fromWp && (
           /* 2026-09-29 WP 後台遷移：結帳改走 WooCommerce 結帳頁（姓名／生日時辰／取貨門市／付款都在那一頁）。
-             這裡只選款式，用一般的 GET 表單把「這一件」帶過去；winds=1 讓 WP 先清空購物車，維持單件結帳。 */
-          <form class="lp-woo" action={WP_CHECKOUT} method="get">
+             這裡選款式＋填備註（10/22 拍板依商品必填，留在這一頁），用一般表單 POST 把「這一件」帶過去；
+             winds=1 讓 WP 先清空購物車維持單件結帳，winds_note 由 WP Code Snippet #13 收進購物車品項與客人備註。 */
+          <form class="lp-woo" id="wooForm" action={WP_CHECKOUT} method="post" novalidate>
             <input type="hidden" name="winds" value="1" />
             <input type="hidden" name="add-to-cart" value={prod.wooId} />
             <input type="hidden" name="quantity" value="1" />
@@ -131,12 +134,16 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
                 </div>
               </fieldset>
             ) : (variants[0]?.vid ? <input type="hidden" name="variation_id" value={variants[0].vid} /> : null)}
+            <div class="lp-form">
+              <label class="zf-field wide"><span class="zf-field-label">{note.label}</span><textarea class="zf-textarea" name="winds_note" rows="3" maxlength="300" placeholder={note.ph} required={note.req} data-label={note.label}></textarea></label>
+              <p class="lp-err" id="wooErr" hidden></p>
+            </div>
             <div class="lp-total"><span>總計（{blessed ? '含開光，' : ''}運費 0）</span><b id="wooTotal">{ntd(variants[0]?.price ?? prod.price)}</b></div>
             <button class="zf-btn primary lg full" type="submit">前往填資料與付款<i class="ph ph-arrow-right"></i></button>
-            <p class="lp-paynote">下一頁填本人姓名、西元生日與時辰、取貨門市後付款。付款由綠界 ECPay 處理，支援信用卡、Apple Pay、LINE Pay、台灣 Pay；本站不會保存你的卡號。</p>
+            <p class="lp-paynote">下一頁填本人姓名、西元生日與時辰、取貨門市後付款。付款由綠界 ECPay 處理，支援信用卡、網路 ATM、台灣 Pay；本站不會保存你的卡號。</p>
           </form>
         )}
-        {!SHOP_FROM_WP && (
+        {!fromWp && (
         <form id="orderForm" novalidate>
           {multi ? (
             <fieldset class="lp-fs">
@@ -208,12 +215,20 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     </section>
   </div>
 
-  <script type="application/json" id="lpData" set:html={JSON.stringify({ id: PRODUCT_ID, name, variants, price: Number(prod.price) || 0 })} />
-  <!-- Woo 結帳版只要換款式時更新總計；下面原本那段看到沒有 orderForm 會直接結束 -->
+  <script type="application/json" id="lpData" set:html={JSON.stringify({ id: PRODUCT_ID, name, variants, price: Number(prod.price) || 0 }).replace(/\x3c/g, '\\u003c')} />
+  <!-- Woo 結帳版：換款式時更新總計；備註依商品必填（錯誤字同自家表單「請填寫○○。」）。下面原本那段看到沒有 orderForm 會直接結束 -->
   <script is:inline>
     document.querySelectorAll('.lp-woo [name=variation_id]').forEach(function (r) {
       r.addEventListener('change', function () { document.getElementById('wooTotal').textContent = 'NT$ ' + (Number(r.dataset.price) || 0).toLocaleString('en-US'); });
     });
+    (function () {
+      var wf = document.getElementById('wooForm'); if (!wf) return;
+      wf.addEventListener('submit', function (e) {
+        var n = wf.elements.winds_note, er = document.getElementById('wooErr');
+        if (n && n.required && !n.value.trim()) { e.preventDefault(); er.textContent = '請填寫' + n.dataset.label + '。'; er.hidden = false; n.focus(); return; }
+        er.hidden = true;
+      });
+    })();
   </script>
 
   <style>
