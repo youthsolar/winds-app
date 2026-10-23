@@ -435,7 +435,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-or::before,.ff-or::after{content:"";flex:1;border-top:1px solid var(--border-soft)}
     .ff-login{display:flex;flex-direction:column;gap:12px}
     .ff-gmount{min-height:40px;display:flex;justify-content:center}
-    .ff-login .zf-line-btn{width:100%}
+    .ff-login .zf-line-btn{width:100%;max-width:400px;margin:0 auto}   /* 2026-10-23 跟 Google 鈕同寬（Google 最寬 400），平板以上不再一長條 */
     .ff-login-note{margin:12px 0 0;text-align:center;font-family:var(--font-sans);font-size:12.5px;line-height:1.7;color:var(--text-muted)}
     .ff-signed{display:flex;align-items:center;gap:7px;margin-top:20px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);word-break:break-all}
     .ff-lm img{display:block;border-radius:3px}
