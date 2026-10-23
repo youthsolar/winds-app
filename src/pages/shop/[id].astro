@@ -221,6 +221,10 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     document.querySelectorAll('.lp-woo [name=variation_id]').forEach(function (r) {
       r.addEventListener('change', function () { document.getElementById('wooTotal').textContent = 'NT$ ' + (Number(r.dataset.price) || 0).toLocaleString('en-US'); });
     });
+    // 縮圖換大圖：兩種結帳模式都要能用（原本放在自家表單那段，Woo 模式沒有 orderForm 就提早結束，點縮圖沒反應——2026-10-24 Jeffery 手機抓到）
+    document.querySelectorAll('[data-thumb]').forEach(function (t) {
+      t.addEventListener('click', function () { document.getElementById('heroImg').src = t.dataset.thumb; document.querySelectorAll('[data-thumb]').forEach(function (x) { x.classList.toggle('on', x === t); }); });
+    });
     (function () {
       var wf = document.getElementById('wooForm'); if (!wf) return;
       wf.addEventListener('submit', function (e) {
@@ -379,9 +383,6 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         document.getElementById('totalTxt').textContent = ntd(vv ? vv.price : (D.price || 0));
       });
 
-      document.querySelectorAll('[data-thumb]').forEach(function (t) {
-        t.addEventListener('click', function () { document.getElementById('heroImg').src = t.dataset.thumb; document.querySelectorAll('[data-thumb]').forEach(function (x) { x.classList.toggle('on', x === t); }); });
-      });
       var qs = new URLSearchParams(location.search);
       ['last', 'first'].forEach(function (k) { form.elements[k].addEventListener('input', function () { var h = form.querySelector('[data-err="' + k + '"]'); h.hidden = true; h.parentNode.classList.remove('invalid'); }); });   // 打字就收起「請輸入姓／名。」
       var hadDraft = false; try { hadDraft = !!sessionStorage.getItem(KEY); } catch (e) {}
