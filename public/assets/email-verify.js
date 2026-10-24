@@ -127,7 +127,7 @@
             '<p class="zfev-msg">正在寄驗證碼…</p>' +
             '<input class="zfev-in" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" enterkeyhint="done" placeholder="6 位數字" aria-label="驗證碼">' +
             '<span class="zfev-err" aria-live="polite"></span>' +
-            '<button class="zfev-re" type="button" disabled>重寄</button>' +
+            '<button class="zfev-re" type="button" disabled>沒收到？ 稍後可以重寄</button>' +
             '<span class="zfev-hint">收不到的話，看一下 Gmail 的「促銷內容」或「垃圾郵件」。</span>' +
           '</div>' +
           '<div class="zfev-foot"><button class="zfev-btn zfev-sec zfev-x" type="button">取消</button><button class="zfev-btn zfev-pri zfev-go" type="button" disabled>確認</button></div>' +
@@ -148,11 +148,12 @@
       function countdown(sec) {
         clearInterval(timer);
         var left = Math.max(1, Number(sec) || 60);
-        re.disabled = true; re.textContent = '重寄（' + left + ' 秒）';
+        function t() { var m = Math.floor(left / 60), s = left % 60; re.textContent = '沒收到？ ' + m + ':' + (s < 10 ? '0' : '') + s + ' 後可以重寄'; }
+        re.disabled = true; t();
         timer = setInterval(function () {
           left--;
-          if (left <= 0) { clearInterval(timer); re.disabled = false; re.textContent = '重寄'; }
-          else re.textContent = '重寄（' + left + ' 秒）';
+          if (left <= 0) { clearInterval(timer); re.disabled = false; re.textContent = '重寄驗證碼'; }
+          else t();
         }, 1000);
       }
       function finish(v) {
@@ -172,15 +173,15 @@
           // 剛寄過：前一組碼還能用，照樣讓他輸入
           if (d.error === 'too_soon') { setMsg(masked); countdown(d.retry_after || 60); go.disabled = false; err.textContent = d.message || ''; inp.focus(); return; }
           msg.textContent = '驗證碼沒寄出去。';
-          err.textContent = (d.error === 'send_failed') ? '驗證碼寄不出去，請確認信箱有沒有填對。' : (d.message || '暫時寄不出去，請稍後再按「重寄」。');
-          re.disabled = false; re.textContent = '重寄';
+          err.textContent = (d.error === 'send_failed') ? '驗證碼寄不出去，請確認信箱有沒有填對。' : (d.message || '暫時寄不出去，請稍後再按「重寄驗證碼」。');
+          re.disabled = false; re.textContent = '重寄驗證碼';
           // 寄太多次只是不能再寄，手上最新那組碼還能輸入（Astra V110 #9）；只有猜錯太多次才停用確認
           if (d.error === 'too_many') { re.disabled = true; go.disabled = false; setMsg(masked); err.textContent = d.message || ''; inp.focus(); }
           if (d.error === 'locked') { re.disabled = true; go.disabled = true; }
         }).catch(function () {
           msg.textContent = '驗證碼沒寄出去。';
-          err.textContent = '網路不太穩，請再按一次「重寄」。';
-          re.disabled = false; re.textContent = '重寄';
+          err.textContent = '網路不太穩，請再按一次「重寄驗證碼」。';
+          re.disabled = false; re.textContent = '重寄驗證碼';
         });
       }
       function verify() {

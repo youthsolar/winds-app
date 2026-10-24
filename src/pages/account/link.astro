@@ -13,8 +13,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </div>
       <div data-st="relogin" hidden>
         <div class="lk-top"><span class="zf-spinner lk-spin"></span></div>
-        <h1 class="lk-h1" data-t="relogin">再登入一次目前的帳號</h1>
-        <p class="lk-sub" data-b="relogin">為了確認是你本人，請再登入一次目前的帳號。</p>
+        <h1 class="lk-h1" data-t="relogin">先確認是你本人</h1>
+        <p class="lk-sub" data-b="relogin">請用目前的帳號再登入一次。</p>
       </div>
       <div data-st="google" hidden>
         <div class="lk-top"><span class="zf-icon-disc lk-disc"><i class="ph-thin ph-link-simple"></i></span></div>
@@ -26,7 +26,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <div class="lk-top"><span class="zf-icon-disc lk-disc"><i class="ph-thin ph-link-simple"></i></span></div>
         <h1 class="lk-h1">把這些帳號合成一份？</h1>
         <div class="lk-stack">
-          <div class="am-note" id="lkChanged" hidden><i class="ph ph-arrows-clockwise"></i><span id="amNoteText">帳號狀態剛剛變了，請再確認一次</span><button type="button" class="zf-text-link" id="lkRefresh">重新整理</button></div>
+          <div class="am-note" id="lkChanged" hidden><i class="ph ph-arrows-clockwise"></i><span id="amNoteText">帳號剛剛有變動，請重新整理再試</span><button type="button" class="zf-text-link" id="lkRefresh">重新整理</button></div>
           <div class="lk-list" id="lkList"></div>
           <p class="lk-body">合在一起之後，用其中任何一個登入都看得到全部紀錄和預約。之後可以在會員中心拆開。</p>
           <button type="button" class="zf-btn primary lg full" id="lkYes">確定合併</button>
@@ -105,8 +105,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         show: function (st, initiator) {
           if (st === 'relogin-line') { show('relogin'); return; }
           if (st === 'google') {
-            document.getElementById('lkGTitle').textContent = initiator ? '再登入一次目前的帳號' : '也用 Google 登入';
-            document.getElementById('lkGBody').textContent = initiator ? '為了確認是你本人，請再登入一次目前的帳號。' : '登入要連在一起的 Google 帳號。';
+            document.getElementById('lkGTitle').textContent = initiator ? '先確認是你本人' : '也用 Google 登入';
+            document.getElementById('lkGBody').textContent = initiator ? '請用目前的帳號再登入一次。' : '登入要連在一起的 Google 帳號。';
             show('google'); return;
           }
           show(st);
