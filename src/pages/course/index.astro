@@ -145,16 +145,6 @@ const STREAM = JSON.stringify(streams);
     .course-root .fc-h { font-family: var(--font-serif); font-size: 16.5px; font-weight: 500; color: var(--ink-900); margin-top: 10px; }
     .course-root .fc-s { font-family: var(--font-serif); font-weight: 300; font-size: 14px; line-height: 1.7; color: var(--text-secondary); margin-top: 4px; }
 
-    .course-root .outline-link { display: flex; align-items: center; gap: 16px; text-decoration: none; color: inherit; padding: 20px 22px; }
-    @media (max-width: 760px) { .course-root .outline-link { padding: 18px 18px; } }
-    .course-root .ol-icon { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: var(--paper); border: 1px solid var(--rose-100); border-radius: var(--radius-md); color: var(--accent-press); }
-    .course-root .ol-icon .ph { font-size: 22px; }
-    .course-root .ol-text { min-width: 0; display: flex; flex-direction: column; gap: 4px; flex: 1; }
-    .course-root .ol-title { font-family: var(--font-serif); font-size: 17px; font-weight: 500; color: var(--ink-900); }
-    .course-root .outline-link:hover .ol-title { color: var(--accent-press); }
-    .course-root .ol-desc { font-family: var(--font-serif); font-weight: 300; font-size: 14px; line-height: 1.7; color: var(--text-secondary); }
-    .course-root .ol-arrow { flex: none; font-size: 18px; color: var(--text-muted); }
-    .course-root .outline-link:hover .ol-arrow { color: var(--accent-press); }
 
     .course-root .forwho-card { padding: 26px 28px; }
     @media (max-width: 760px) { .course-root .forwho-card { padding: 22px 20px; } }
@@ -192,10 +182,6 @@ const STREAM = JSON.stringify(streams);
     .course-root .ec-t-name { font-family: var(--font-serif); font-size: 18px; font-weight: 500; color: var(--ink-900); }
     .course-root .ec-t-title { font-family: var(--font-sans); font-size: 12.5px; color: var(--text-muted); }
     .course-root .ec-t-line { margin: 0 0 4px; font-family: var(--font-serif); font-weight: 300; font-size: 14.5px; line-height: 1.8; color: var(--text-secondary); max-width: none; }
-    .course-root .ec-note { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-sans); font-size: 12px; line-height: 1.6; color: var(--text-muted); margin: 12px 0 0; }
-    .course-root .ec-note .ph { font-size: 13px; }
-    .course-root .ec-secondary { display: block; text-align: center; margin-top: 12px; font-family: var(--font-sans); font-size: 13px; color: var(--accent-press); text-decoration: none; }
-    .course-root .ec-secondary:hover { text-decoration: underline; }
 
     .course-root .back-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 40px; font-family: var(--font-sans); font-size: 14px; color: var(--accent-press); text-decoration: none; }
     .course-root .back-link .ph { font-size: 15px; }
@@ -380,12 +366,6 @@ const STREAM = JSON.stringify(streams);
             '<section class="dt-section"><h2>課程介紹</h2><p class="dt-body">' + esc(c.body) + '</p></section>' +
             '<section class="dt-section"><h2>你會學到</h2><ul class="learn-list">' + learnHtml + '</ul></section>' +
             '<section class="dt-section"><div class="format-grid">' + notesHtml + '</div></section>' +
-            '<section class="dt-section"><h2>完整課綱導引</h2>' +
-              '<a class="outline-link zf-card interactive" href="' + esc(c.outline) + '" target="_blank" rel="noopener">' +
-                '<span class="ol-icon"><i class="ph ph-list-bullets"></i></span>' +
-                '<span class="ol-text"><span class="ol-title">查看完整課綱</span>' +
-                '<span class="ol-desc">完整的課綱導引，由老師在 SimplyBook 課程頁說明。</span></span>' +
-                '<i class="ph ph-arrow-up-right ol-arrow"></i></a></section>' +
             '<section class="dt-section"><div class="zf-card tint forwho-card">' +
               '<h2 class="fw-title">這門課適合誰</h2><ul class="forwho-list">' + forWhoHtml + '</ul></div></section>' +
             relatedHtml +
@@ -397,9 +377,7 @@ const STREAM = JSON.stringify(streams);
             '<span class="ec-sessions">' + esc(c.sessionsLabel) + '</span></div>' +
             '<div class="ec-tags"><span class="zf-tag sage outline format-tag"><i class="ph ph-users-three"></i>' + esc(c.format) + '</span>' +
             '<span class="zf-tag rose">' + esc(c.level) + '</span></div>' +
-            '<a class="zf-btn primary lg full ec-btn" href="' + esc(c.outline) + '" target="_blank" rel="noopener">前往報名<i class="ph ph-arrow-up-right"></i></a>' +
-            '<p class="ec-note"><i class="ph ph-lock-simple"></i>報名與付款將於 SimplyBook 安全頁完成</p>' +
-            '<a class="ec-secondary" href="' + esc(c.outline) + '" target="_blank" rel="noopener">看完整課綱</a></div>' +
+            '<a class="zf-btn primary lg full ec-btn" href="/booking" data-wc-open>前往報名</a></div>' +
             '<section class="reading-cta compact"><p class="rc-line cjk-title">還在猶豫？先占卜看看</p>' +
             '<div class="rc-actions"><a class="zf-btn ghost sm" href="/">立即占卜<i class="ph ph-arrow-right" style="font-size:14px"></i></a></div></section>' +
           '</aside></div>';
