@@ -61,7 +61,7 @@
     ]
   },
   "_format_notes": [
-    { "icon": "users-three", "h": "實體授課", "s": "台北市松江路 3 號 3 樓" },
+    { "icon": "users-three", "h": "實體授課", "s": "" },
     { "icon": "calendar-dots", "h": "上課頻率", "s": "每 7-10 天一次 · 晚上 7:00–9:00" },
     { "icon": "arrow-counter-clockwise", "h": "免費回訓一次", "s": "沒學好可免費重上同一級" }
   ]

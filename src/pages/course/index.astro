@@ -339,7 +339,7 @@ const STREAM = JSON.stringify(streams);
         }).join('');
         var notesHtml = formatNotes.map(function (t) {
           return '<div class="format-card"><i class="ph ph-' + esc(t.icon) + '"></i>' +
-            '<div class="fc-h">' + esc(t.h) + '</div><div class="fc-s">' + esc(t.s) + '</div></div>';
+            '<div class="fc-h">' + esc(t.h) + '</div>' + (t.s ? '<div class="fc-s">' + esc(t.s) + '</div>' : '') + '</div>';
         }).join('');
         var forWhoHtml = (c.forWho || []).map(function (x) {
           return '<li><i class="ph-fill ph-heart"></i><span>' + esc(x) + '</span></li>';
