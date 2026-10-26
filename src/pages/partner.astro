@@ -108,7 +108,10 @@ const FAQ = [
         </a>
             <a class="zf-line-btn" href="/auth/line-start?return=/partner"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
           </div>
-          <p class="pt-p pt-join-note">申請通過，水鏡愛情和塔羅愛情各送你一次完整解讀，親自體驗過再分享。</p>
+          <div class="pt-notice pt-join-note"><!-- 10/26 Jeffery：跟「分享時請注意」一樣的樣式 -->
+            <i class="ph ph-info"></i>
+            <div class="b"><p>申請通過，水鏡愛情和塔羅愛情各送你一次完整解讀，親自體驗過再分享。</p></div>
+          </div>
         </div>
       </section>
       <section>
@@ -206,7 +209,7 @@ const FAQ = [
     .pt-step p{margin:0;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.75;color:var(--text-secondary);}
     .pt-join{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:36px;}
     .pt-join .pt-auth{margin-top:0;}
-    .is-guest .pt-join-note{margin:0;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted);text-align:center;}
+    .pt-join .pt-join-note{align-self:stretch;margin-top:10px;}
     .pt-main:not(.is-guest) .pt-join{align-items:stretch;margin-top:0;}
     .pt-main:not(.is-guest) .pt-join-end{display:none;}
     .pt-join-end{margin-top:0;}
