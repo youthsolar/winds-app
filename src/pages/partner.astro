@@ -9,27 +9,23 @@ const FAQ = [
   ['Q：粉絲很少也可以申請嗎？', '可以，帳號人數沒有門檻，每一筆一樣 NT$30。'],
   ['Q：私人帳號可以嗎？', '可以。粉絲 5 萬以上自動升級 NT$50 只看得到 IG 商業或創作者帳號；其他帳號由我們人工確認。'],
   ['Q：規則會改嗎？', '有調整會先公告在這一頁，並通知已加入的夥伴。調整前已經算進你成績的分潤，照原本的規則轉帳。'],
+  // 10/26 DS 改版：原「什麼時候拿到錢」最後一條移過來，答案一字不改
+  ['Q：轉帳要提供哪些資料？', '第一次轉帳前，請在這一頁補上真實姓名、身分證字號和銀行帳戶，作為轉帳和報稅使用，不會用在其他地方。'],
 ];
 ---
 <BaseLayout
   title="找風問幸福 合作分潤計畫"
   description="你分享找風問幸福的水鏡愛情、塔羅愛情，有人透過你的專屬連結付款，你就拿得到分潤。每月轉帳，隨時看得到自己的成績。"
 >
-  <main class="pt-main">
+  <main class="pt-main is-guest is-wide">
     <!-- 開頭（規則頁與申請表共用） -->
     <header class="pt-head" id="ptHead">
       <h1 class="pt-h1">找風問幸福 合作分潤計畫</h1>
       <p class="pt-lede">把找風問幸福分享給你的朋友和粉絲。有人透過你的專屬連結起卦、付款，每一筆你都拿得到分潤。</p>
-      <div class="pt-auth" id="ptAuth"><!-- 10/21 Jeffery：全站 Google 在上、LINE 在下 -->
-        <a class="pt-gbtn" href="/login?return=/partner">
-          <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-          </svg>用 Google 登入
-        </a>
-        <a class="zf-line-btn" href="/auth/line-start?return=/partner"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
+      <div class="pt-hstats"><!-- 10/26 DS 改版：開頭三格數字，只在沒登入時出現 -->
+        <div class="pt-stat"><div class="pt-lbl">每一筆</div><div class="n">NT$30</div></div>
+        <div class="pt-stat"><div class="pt-lbl">付款都算</div><div class="n">7 天內</div></div>
+        <div class="pt-stat"><div class="pt-lbl">轉帳</div><div class="n">每月 10 號</div></div>
       </div>
     </header>
 
@@ -96,57 +92,70 @@ const FAQ = [
     <article class="pt-rules" id="rules">
       <section>
         <h2 class="pt-h2">怎麼加入</h2>
-        <ol class="pt-list">
-          <li>用 Google 或 LINE 登入，填你的平台帳號（IG、FB、Threads、LINE 或 YouTube）。</li>
-          <li>送出申請，通常一天內會用 LINE 或 Email 通知你結果。</li>
-          <li>回到這一頁拿你的專屬連結，貼到貼文、限動或私訊裡就可以開始。</li>
-        </ol>
-        <p class="pt-p">申請通過，會先送你一次完整解讀，親自體驗過再分享。</p>
+        <div class="pt-steps">
+          <div class="pt-card pt-step"><span class="zf-icon-disc"><i class="ph-thin ph-sign-in"></i></span><div class="b"><div class="h"><span class="no">1</span><span>登入</span></div><p>用 Google 或 LINE 登入</p></div></div>
+          <div class="pt-card pt-step"><span class="zf-icon-disc"><i class="ph-thin ph-at"></i></span><div class="b"><div class="h"><span class="no">2</span><span>填平台帳號</span></div><p>填你的平台帳號（IG、FB、Threads、LINE 或 YouTube）。送出申請，通常一天內會用 LINE 或 Email 通知你結果。</p></div></div>
+          <div class="pt-card pt-step"><span class="zf-icon-disc"><i class="ph-thin ph-link-simple"></i></span><div class="b"><div class="h"><span class="no">3</span><span>拿專屬連結</span></div><p>回到這一頁拿你的專屬連結，貼到貼文、限動或私訊裡就可以開始。</p></div></div>
+        </div>
+        <div class="pt-join">
+          <div class="pt-auth"><!-- 10/21 Jeffery：全站 Google 在上、LINE 在下；10/26 DS 改版移到步驟下與頁尾 -->
+            <a class="pt-gbtn" href="/login?return=/partner">
+          <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>用 Google 登入
+        </a>
+            <a class="zf-line-btn" href="/auth/line-start?return=/partner"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
+          </div>
+          <p class="pt-p pt-join-note">申請通過，會先送你一次完整解讀，親自體驗過再分享。</p>
+        </div>
       </section>
       <section>
         <h2 class="pt-h2">你可以分享的</h2>
-        <ul class="pt-list">
-          <li><b>水鏡愛情</b>：按住水鏡起一卦，看你們現在的關係</li>
-          <li><b>塔羅愛情</b>：抽五張牌，看這段感情卡在哪裡</li>
-        </ul>
+        <div class="pt-share">
+          <div class="pt-card pt-sc"><span class="zf-icon-disc"><i class="ph-thin ph-drop"></i></span><div class="b"><span class="h">水鏡愛情</span><span class="d">按住水鏡起一卦，看你們現在的關係</span></div></div>
+          <div class="pt-card pt-sc"><span class="zf-icon-disc"><i class="ph-thin ph-cards"></i></span><div class="b"><span class="h">塔羅愛情</span><span class="d">抽五張牌，看這段感情卡在哪裡</span></div></div>
+        </div>
         <p class="pt-p">兩個都有各自的專屬連結，分享哪一個就用哪一條。</p>
       </section>
       <section>
         <h2 class="pt-h2">分潤怎麼算</h2>
-        <ul class="pt-list">
-          <li>有人點了你的連結，<b>7 天內</b>付款拿到靈符解方，這一筆就算你的。</li>
-          <li>每一筆 <b>NT$30</b>；IG 粉絲 5 萬以上的帳號，每一筆 <b>NT$50</b>。</li>
-          <li>只算付款的筆數，點擊和免費起卦不算錢，但都會顯示在你的成績裡。</li>
-          <li>同一位客人點過好幾位夥伴的連結，算最後點的那一位。</li>
-          <li>用自己的連結自己付款，不算分潤。</li>
-        </ul>
-      </section>
-      <section>
-        <h2 class="pt-h2">什麼時候拿到錢</h2>
-        <ul class="pt-list">
-          <li>每月 10 號，把上個月的分潤轉到你的銀行帳戶。</li>
-          <li>付款滿 7 天、沒有退款的才算數。</li>
-          <li>累積滿 <b>NT$300</b> 才轉帳，沒滿的留到下個月一起算。</li>
-          <li>第一次轉帳前，請在這一頁補上真實姓名、身分證字號和銀行帳戶，作為轉帳和報稅使用，不會用在其他地方。</li>
-        </ul>
+        <div class="pt-card pt-rulecard">
+          <ul class="pt-dots">
+            <li>有人點了你的連結，<b>7 天內</b>付款拿到靈符解方，這一筆就算你的。</li>
+            <li>每一筆 <b>NT$30</b>；IG 粉絲 5 萬以上的帳號，每一筆 <b>NT$50</b>。</li>
+            <li>只算付款的筆數，點擊和免費起卦不算錢，但都會顯示在你的成績裡。</li>
+            <li>同一位客人點過好幾位夥伴的連結，算最後點的那一位。</li>
+            <li>用自己的連結自己付款，不算分潤。</li>
+          </ul>
+          <h3 class="pt-h3">什麼時候拿到錢</h3>
+          <ul class="pt-dots">
+            <li><b>每月 10 號</b>，把上個月的分潤轉到你的銀行帳戶。</li>
+            <li>付款滿 <b>7 天</b>、沒有退款的才算數。</li>
+            <li>累積滿 <b>NT$300</b> 才轉帳，沒滿的留到下個月一起算。</li>
+          </ul>
+        </div>
       </section>
       <section>
         <h2 class="pt-h2">你的成績</h2>
-        <p class="pt-p">登入這一頁，隨時看得到：</p>
-        <ul class="pt-list">
-          <li>有幾個人點了你的連結</li>
-          <li>幾個人起了卦</li>
-          <li>幾筆付款</li>
-          <li>待轉帳和已轉帳的分潤</li>
-        </ul>
+        <p class="pt-p pt-lead">登入這一頁，隨時看得到：</p>
+        <div class="pt-stats">
+          <div class="pt-stat"><div class="pt-lbl">點進來</div><div class="n">0</div></div>
+          <div class="pt-stat"><div class="pt-lbl">起卦</div><div class="n">0</div></div>
+          <div class="pt-stat"><div class="pt-lbl">付款</div><div class="n">0</div></div>
+          <div class="pt-stat"><div class="pt-lbl">分潤</div><div class="n">NT$0</div></div>
+        </div>
       </section>
-      <section>
-        <h2 class="pt-h2">分享時請注意</h2>
-        <ul class="pt-list">
-          <li>建議在貼文標示「合作」，讓看的人知道這是分享計畫。</li>
-          <li>這些情況會停止合作，已經累積的分潤也不會轉帳：灌單或刷單、冒用找風問幸福或風易揚老師的名義、在別人的貼文底下大量留連結。</li>
-        </ul>
-      </section>
+      <div class="pt-notice">
+        <i class="ph ph-info"></i>
+        <div class="b">
+          <span class="h">分享時請注意</span>
+          <p>建議在貼文標示「合作」，讓看的人知道這是分享計畫。</p>
+          <p>這些情況會停止合作，已經累積的分潤也不會轉帳：灌單或刷單、冒用找風問幸福或風易揚老師的名義、在別人的貼文底下大量留連結。</p>
+        </div>
+      </div>
       <section>
         <h2 class="pt-h2">常見問題</h2>
         <div class="pt-faq">
@@ -158,12 +167,25 @@ const FAQ = [
           ))}
         </div>
       </section>
+      <div class="pt-join pt-join-end">
+          <div class="pt-auth"><!-- 10/21 Jeffery：全站 Google 在上、LINE 在下；10/26 DS 改版移到步驟下與頁尾 -->
+            <a class="pt-gbtn" href="/login?return=/partner">
+          <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>用 Google 登入
+        </a>
+            <a class="zf-line-btn" href="/auth/line-start?return=/partner"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
+          </div>
+      </div>
     </article>
   </main>
 
   <style is:global>
     /* 2026-10-23（Astra #1）：卡片是程式產生的，scoped 樣式套不到，改全域（全部 pt- 開頭，只在本頁） */
-    .pt-main{max-width:720px;margin:0 auto;padding:64px 32px 88px;box-sizing:border-box;display:flex;flex-direction:column;gap:44px;}
+    .pt-main{max-width:720px;margin:0 auto;padding:64px 32px 32px;box-sizing:border-box;display:flex;flex-direction:column;gap:64px;}
     .pt-main.is-wide{max-width:880px;}
     .pt-head{display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center;}
     .pt-h1{margin:0;font-family:var(--font-serif);font-weight:500;font-size:clamp(28px,4vw,38px);line-height:1.35;color:var(--ink-900);}
@@ -171,12 +193,45 @@ const FAQ = [
     .pt-auth{width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px;margin-top:4px;}
     .pt-gbtn{box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:12px;height:54px;white-space:nowrap;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);text-decoration:none;background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);}
     .pt-gbtn:hover{background:var(--rice-100);}
-    .pt-h2{margin:0 0 12px;font-family:var(--font-serif);font-weight:500;font-size:22px;line-height:1.4;letter-spacing:.02em;color:var(--ink-900);}
-    .pt-rules{display:flex;flex-direction:column;gap:44px;}
-    .pt-p,.pt-list li{font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.9;color:var(--text-secondary);}
+    .pt-h2{margin:0 0 20px;font-family:var(--font-serif);font-weight:500;font-size:22px;line-height:1.4;letter-spacing:.02em;color:var(--ink-900);}
+    .pt-rules{display:flex;flex-direction:column;gap:64px;}
+    /* 10/26 DS 改版（ui_kits/partner/partner.jsx）：三格數字、三步驟、分享小卡、規則卡、注意提示框 */
+    .pt-head{gap:24px;}
+    .pt-hstats{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;text-align:left;}
+    .pt-main:not(.is-guest) .pt-hstats,.pt-main:not(.is-guest) .pt-auth{display:none;}
+    .pt-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+    .pt-step{padding:22px;display:flex;flex-direction:column;align-items:flex-start;gap:14px;box-shadow:none;}
+    .pt-step .zf-icon-disc,.pt-sc .zf-icon-disc{width:44px;height:44px;} .pt-step .zf-icon-disc i,.pt-sc .zf-icon-disc i{font-size:20px;}
+    .pt-step .b,.pt-sc .b{display:flex;flex-direction:column;gap:6px;min-width:0;}
+    .pt-step .h{display:flex;align-items:baseline;gap:8px;font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);letter-spacing:.02em;}
+    .pt-step .no{font-family:var(--font-sans);font-size:13px;font-weight:400;color:var(--rose-500);font-variant-numeric:tabular-nums;}
+    .pt-step p{margin:0;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.75;color:var(--text-secondary);}
+    .pt-join{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:12px;}
+    .pt-join .pt-auth{margin-top:0;}
+    .is-guest .pt-join-note{margin:0;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted);text-align:center;}
+    .pt-main:not(.is-guest) .pt-join{align-items:stretch;margin-top:0;}
+    .pt-main:not(.is-guest) .pt-join-end{display:none;}
+    .pt-join-end{margin-top:0;}
+    .pt-share{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .pt-sc{padding:20px 22px;display:flex;align-items:center;gap:14px;box-shadow:none;}
+    .pt-sc .h{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);letter-spacing:.02em;}
+    .pt-sc .d{font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.7;color:var(--text-secondary);}
+    .pt-rulecard{padding:12px 26px;box-shadow:none;}
+    .pt-dots{list-style:none;margin:0;padding:0;}
+    .pt-dots li{position:relative;padding:12px 0 12px 18px;border-top:1px solid var(--border-soft);font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.8;color:var(--text-secondary);}
+    .pt-dots li:first-child{border-top:0;}
+    .pt-dots li::before{content:"";position:absolute;left:0;top:24px;width:6px;height:6px;border-radius:999px;background:var(--rose-400);}
+    .pt-dots b{font-weight:500;color:var(--ink-900);}
+    .pt-h3{margin:0;padding:22px 0 4px;border-top:1px solid var(--border-soft);font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);letter-spacing:.02em;}
+    .pt-lead{margin:-14px 0 20px;}
+    .pt-notice{display:flex;gap:12px;align-items:flex-start;padding:20px 24px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);}
+    .pt-notice > i{flex:none;margin-top:2px;font-size:20px;color:var(--rose-500);}
+    .pt-notice .b{display:flex;flex-direction:column;gap:8px;min-width:0;}
+    .pt-notice .h{font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);letter-spacing:.02em;}
+    .pt-notice p{margin:0;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.8;color:var(--ink-700);}
+    .pt-p{font-family:var(--font-serif);font-weight:300;font-size:16.5px;line-height:1.9;color:var(--text-secondary);}
     .pt-p{margin:12px 0 0;}
-    .pt-list{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px;}
-    .pt-list b,.pt-p b{font-weight:500;color:var(--ink-900);}
+    .pt-p b{font-weight:500;color:var(--ink-900);}
     .pt-faq{border-top:1px solid var(--border-soft);}
     .pt-faq .faq-item{border-bottom:1px solid var(--border-soft);}
     .pt-faq .faq-item summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 4px;}
@@ -253,7 +308,25 @@ const FAQ = [
     .pt-main.is-app .pt-rules{display:none;}
     .pt-main.is-app.show-rules .pt-rules{display:flex;}
     @media (max-width:760px){
-      .pt-main{padding:32px 20px 56px;gap:36px;}
+      .pt-main{padding:32px 20px 24px;gap:48px;}
+      .pt-rules{gap:48px;}
+      .pt-h2{margin-bottom:16px;}
+      .pt-hstats{grid-template-columns:1fr;}
+      .pt-hstats .pt-stat{display:flex;flex-direction:row-reverse;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 16px;}
+      .pt-hstats .pt-stat .n{margin-top:0;font-size:22px;}
+      .pt-steps,.pt-share{grid-template-columns:1fr;gap:10px;}
+      .pt-step{flex-direction:row;padding:16px 18px;}
+      .pt-step .zf-icon-disc{width:40px;height:40px;} .pt-step .zf-icon-disc i{font-size:18px;}
+      .pt-step .h,.pt-sc .h{font-size:17px;}
+      .pt-step p,.pt-sc .d{font-size:14.5px;}
+      .pt-sc{padding:16px 18px;}
+      .pt-join{margin-top:8px;}
+      .pt-rulecard{padding:8px 18px;}
+      .pt-dots li{font-size:15.5px;} .pt-dots li::before{top:23px;}
+      .pt-h3{font-size:17px;padding-top:18px;}
+      .pt-lead{margin:-10px 0 16px;}
+      .pt-notice{padding:16px 18px;}
+      .pt-notice .h{font-size:16px;} .pt-notice p{font-size:14.5px;}
       .pt-card{padding:24px 20px;}
       .pt-bank-form{padding:22px 18px;}
       .pt-grid2,.pt-links{grid-template-columns:1fr;}
@@ -261,7 +334,7 @@ const FAQ = [
       .pt-stat{padding:14px;} .pt-stat .n{font-size:24px;}
       .pt-handle{font-size:22px;}
       .pt-h2{font-size:20px;}
-      .pt-p,.pt-list li{font-size:15.5px;}
+      .pt-p{font-size:15.5px;}
       .pt-faq .faq-item summary{padding:18px 2px;} .pt-faq .faq-item .q{font-size:16.5px;} .pt-faq .faq-item .a{font-size:15px;padding:0 2px 20px;}
       .pt-money{padding:6px 18px;} .pt-gift{padding:20px 18px;}
     }
@@ -283,8 +356,8 @@ const FAQ = [
       function view(name) {
         var main = document.querySelector('.pt-main');
         main.classList.toggle('is-app', !!name && name !== 'apply');   /* 申請時要看得到規則（Astra #3） */
-        main.classList.toggle('is-wide', name === 'home');
-        $('ptAuth').hidden = !!name;
+        main.classList.toggle('is-guest', name === null);   /* 10/26 DS 改版：三格數字、登入鈕只在沒登入時出現 */
+        main.classList.toggle('is-wide', name === 'home' || name === null);
         $('ptHead').hidden = !(name === null || name === 'apply');
         $('ptLoading').hidden = name !== 'loading';
         $('ptApply').hidden = name !== 'apply';
