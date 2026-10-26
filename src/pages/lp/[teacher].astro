@@ -669,7 +669,7 @@ const jsonLd = prov ? [
         });
       }
       function mdw(s) { var d = new Date(s + 'T00:00:00'); return (d.getMonth() + 1) + '/' + d.getDate() + '（週' + '日一二三四五六'.charAt(d.getDay()) + '）'; }
-      function locLabel(l) { return l && l.type === 'online' ? '遠端通話' : '現場面談'; }
+      function locLabel(l) { if (l && l.type === 'online') return '遠端通話'; var m = String((l && (l.note || l.name)) || '').match(/台北市(\S{2}區)/); var nPhys = (LOCS || []).filter(function (x) { return x.type !== 'online'; }).length; return nPhys > 1 && m ? '現場面談（' + m[1] + '）' : '現場面談'; }   /* 2026-10-27 兩個現場地點時標區名（同 /booking） */
       function row(k, v) { return '<dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd>'; }
       var HEARD_LABEL = { youtube: 'YouTube', threads: 'Threads', instagram: 'Instagram', facebook: 'Facebook', google: 'Google 搜尋', friend: '朋友介紹', line: 'LINE', edm: '電子報', returning: '之前就約過', other: '其他', forgot: '忘了' };
       function stepConfirm() {
