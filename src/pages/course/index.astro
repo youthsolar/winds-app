@@ -215,6 +215,8 @@ const STREAM = JSON.stringify(streams);
       function priceLabel(c) { return 'NT$ ' + nf(c.price); }
       // 每門課繼承其 stream 的敘述框架（新課程落到已知 stream 仍有好內容）
       function merge(c) {
+        // 2026-10-27：道場設立不屬於靈修／通靈／法術三條路，不繼承任何一條的敘述（內容先空白）
+        if (/道場/.test(c.name)) c = Object.assign({}, c, { stream: 'dojo', glyph: '道' });
         var s = STREAM[c.stream] || {};
         return Object.assign({}, c, {
           kind: s.kind || '',
@@ -360,14 +362,14 @@ const STREAM = JSON.stringify(streams);
               '<span class="zf-tag sage outline format-tag"><i class="ph ph-users-three"></i>' + esc(c.format) + '</span>' +
               '<span class="zf-tag rose">' + esc(c.level) + '</span></div>' +
               '<h2 class="cjk-title">' + esc(c.name) + '</h2>' +
-              '<p class="dt-intro">' + esc(c.intro) + '</p>' +
+              (c.intro ? '<p class="dt-intro">' + esc(c.intro) + '</p>' : '') +
               '<div class="dt-meta"><span class="dt-price">' + priceLabel(c) + '</span>' +
-              '<span class="dot">·</span><span>' + esc(c.sessionsLabel) + '</span></div></header>' +
-            '<section class="dt-section"><h2>課程介紹</h2><p class="dt-body">' + esc(c.body) + '</p></section>' +
-            '<section class="dt-section"><h2>你會學到</h2><ul class="learn-list">' + learnHtml + '</ul></section>' +
-            '<section class="dt-section"><div class="format-grid">' + notesHtml + '</div></section>' +
-            '<section class="dt-section"><div class="zf-card tint forwho-card">' +
-              '<h2 class="fw-title">這門課適合誰</h2><ul class="forwho-list">' + forWhoHtml + '</ul></div></section>' +
+              (c.sessionsLabel ? '<span class="dot">·</span><span>' + esc(c.sessionsLabel) + '</span>' : '') + '</div></header>' +
+            (c.body ? '<section class="dt-section"><h2>課程介紹</h2><p class="dt-body">' + esc(c.body) + '</p></section>' : '') +
+            (learnHtml ? '<section class="dt-section"><h2>你會學到</h2><ul class="learn-list">' + learnHtml + '</ul></section>' : '') +
+            (c.stream !== 'dojo' ? '<section class="dt-section"><div class="format-grid">' + notesHtml + '</div></section>' : '') +
+            (forWhoHtml ? '<section class="dt-section"><div class="zf-card tint forwho-card">' +
+              '<h2 class="fw-title">這門課適合誰</h2><ul class="forwho-list">' + forWhoHtml + '</ul></div></section>' : '') +
             relatedHtml +
             '<a class="back-link" href="/course"><i class="ph ph-arrow-left"></i>回課程列表</a>' +
           '</article>' +
