@@ -117,7 +117,10 @@ const FAQ = [
           <div class="pt-card pt-sc"><span class="zf-icon-disc"><i class="ph-thin ph-drop"></i></span><div class="b"><span class="h">水鏡愛情</span><span class="d">按住水鏡起一卦，看你們現在的關係</span></div></div>
           <div class="pt-card pt-sc"><span class="zf-icon-disc"><i class="ph-thin ph-cards"></i></span><div class="b"><span class="h">塔羅愛情</span><span class="d">抽五張牌，看這段感情卡在哪裡</span></div></div>
         </div>
-        <p class="pt-p">兩個都有各自的專屬連結，分享哪一個就用哪一條。</p>
+        <div class="pt-notice"><!-- 10/26 Jeffery：跟「分享時請注意」一樣的樣式 -->
+          <i class="ph ph-info"></i>
+          <div class="b"><p>兩個都有各自的專屬連結，分享哪一個就用哪一條。</p></div>
+        </div>
       </section>
       <section>
         <h2 class="pt-h2">分潤怎麼算</h2>
@@ -220,6 +223,7 @@ const FAQ = [
     .pt-h3{margin:0;padding:22px 0 4px;border-top:1px solid var(--border-soft);font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);letter-spacing:.02em;}
     .pt-p.pt-lead{margin:-14px 0 20px;}
     .pt-notice{display:flex;gap:12px;align-items:flex-start;padding:20px 24px;border-radius:var(--radius-md);background:var(--surface-tint);border:1px solid var(--rose-100);}
+    .pt-share + .pt-notice{margin-top:12px;}
     .pt-notice > i{flex:none;margin-top:2px;font-size:20px;color:var(--rose-500);}
     .pt-notice .b{display:flex;flex-direction:column;gap:8px;min-width:0;}
     .pt-notice .h{font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);letter-spacing:.02em;}
