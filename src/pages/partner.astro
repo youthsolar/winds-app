@@ -140,8 +140,9 @@ const FAQ = [
         <div class="pt-stats">
           <div class="pt-stat"><div class="pt-lbl">點進來</div><div class="n">0</div></div>
           <div class="pt-stat"><div class="pt-lbl">起卦</div><div class="n">0</div></div>
+          <div class="pt-stat"><div class="pt-lbl">付款</div><div class="n">0</div></div>
           <div class="pt-stat"><div class="pt-lbl">分潤</div><div class="n">NT$0</div></div>
-          <div class="pt-stat"><div class="pt-lbl">已付款</div><div class="n">0</div></div>
+          <div class="pt-stat"><div class="pt-lbl">已轉帳</div><div class="n">NT$0</div></div>
         </div>
       </section>
       <div class="pt-notice">
@@ -287,7 +288,9 @@ const FAQ = [
     .pt-tabs{display:inline-flex;align-self:flex-start;padding:3px;border-radius:var(--radius-pill);background:var(--surface-sunken);gap:2px;}
     .pt-tab{font-family:var(--font-sans);font-size:14px;padding:6px 16px;border-radius:var(--radius-pill);border:0;background:transparent;color:var(--ink-700);cursor:pointer;}
     .pt-tab.is-on{background:var(--surface-card);color:var(--ink-900);box-shadow:var(--shadow-xs);}
-    .pt-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+    .pt-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;}
+    .pt-stats .pt-stat{padding:16px;} .pt-stats .pt-stat .n{font-size:24px;white-space:normal;overflow-wrap:anywhere;}   /* 10/26 五格：Astra 抓長金額會擠出格子 */
+    @media (max-width:1000px){ .pt-stats{grid-template-columns:repeat(3,minmax(0,1fr));} }
     .pt-stat{padding:18px;border-radius:var(--radius-md);background:var(--surface-card);border:1px solid var(--border-soft);}
     .pt-stat .pt-sub .nw{white-space:nowrap;}
     .pt-stat .pt-sub{margin-top:6px;font-family:var(--font-sans);font-size:13px;line-height:1.5;color:var(--text-muted);}
@@ -327,7 +330,7 @@ const FAQ = [
       .pt-card{padding:24px 20px;}
       .pt-bank-form{padding:22px 18px;}
       .pt-grid2,.pt-links{grid-template-columns:1fr;}
-      .pt-stats{grid-template-columns:1fr 1fr;}
+      .pt-stats{grid-template-columns:repeat(2,minmax(0,1fr));} .pt-stats .pt-stat:nth-child(5){grid-column:1/-1;}
       .pt-stat{padding:14px;} .pt-stat .n{font-size:24px;}
       .pt-handle{font-size:22px;}
       .pt-h2{font-size:20px;}
@@ -370,7 +373,7 @@ const FAQ = [
       function renderStats() {
         var s = (me.partner.stats || {})[range] || {};
         var cell = function (k, v) { return '<div class="pt-stat"><div class="pt-lbl">' + k + '</div><div class="n">' + esc(v) + '</div></div>'; };
-        $('ptStats').innerHTML = cell('點進來', Number(s.clicks) || 0) + cell('起卦', Number(s.casts) || 0) + cell('分潤', money(s.commission)) + cell('已付款', Number(s.payments) || 0);
+        $('ptStats').innerHTML = cell('點進來', Number(s.clicks) || 0) + cell('起卦', Number(s.casts) || 0) + cell('付款', Number(s.payments) || 0) + cell('分潤', money(s.commission)) + cell('已轉帳', money((me.partner.money || {}).paid));   /* 10/26 Jeffery：第五格已轉帳＝累計轉給夥伴的錢，不跟區間切換 */
         document.querySelectorAll('.pt-tab').forEach(function (b) { var on = b.getAttribute('data-r') === range; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
       }
       function renderHome() {
