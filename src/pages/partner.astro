@@ -23,7 +23,7 @@ const FAQ = [
       <h1 class="pt-h1">找風問幸福 合作分潤計畫</h1>
       <p class="pt-lede">把找風問幸福分享給你的朋友和粉絲。有人透過你的專屬連結起卦、付款，每一筆你都拿得到分潤。</p>
       <div class="pt-hstats"><!-- 10/26 DS 改版：開頭三格數字，只在沒登入時出現 -->
-        <div class="pt-stat"><div class="pt-lbl">每一筆</div><div class="n">NT$30</div></div>
+        <div class="pt-stat"><div class="pt-lbl">每一筆</div><div class="n">NT$30</div><div class="pt-sub">IG 粉絲 5 萬以上的帳號，<span class="nw">每一筆 NT$50</span></div></div>
         <div class="pt-stat"><div class="pt-lbl">付款都算</div><div class="n">7 天內</div></div>
         <div class="pt-stat"><div class="pt-lbl">轉帳</div><div class="n">每月 10 號</div></div>
       </div>
@@ -125,15 +125,11 @@ const FAQ = [
         <div class="pt-card pt-rulecard">
           <ul class="pt-dots">
             <li>有人點了你的連結，<b>7 天內</b>付款拿到靈符解方，這一筆就算你的。</li>
-            <li>每一筆 <b>NT$30</b>；IG 粉絲 5 萬以上的帳號，每一筆 <b>NT$50</b>。</li>
             <li>只算付款的筆數，點擊和免費起卦不算錢，但都會顯示在你的成績裡。</li>
-            <li>同一位客人點過好幾位夥伴的連結，算最後點的那一位。</li>
-            <li>用自己的連結自己付款，不算分潤。</li>
           </ul>
           <h3 class="pt-h3">什麼時候拿到錢</h3>
           <ul class="pt-dots">
             <li><b>每月 10 號</b>，把上個月的分潤轉到你的銀行帳戶。</li>
-            <li>付款滿 <b>7 天</b>、沒有退款的才算數。</li>
             <li>累積滿 <b>NT$300</b> 才轉帳，沒滿的留到下個月一起算。</li>
           </ul>
         </div>
@@ -144,8 +140,8 @@ const FAQ = [
         <div class="pt-stats">
           <div class="pt-stat"><div class="pt-lbl">點進來</div><div class="n">0</div></div>
           <div class="pt-stat"><div class="pt-lbl">起卦</div><div class="n">0</div></div>
-          <div class="pt-stat"><div class="pt-lbl">付款</div><div class="n">0</div></div>
           <div class="pt-stat"><div class="pt-lbl">分潤</div><div class="n">NT$0</div></div>
+          <div class="pt-stat"><div class="pt-lbl">已付款</div><div class="n">0</div></div>
         </div>
       </section>
       <div class="pt-notice">
@@ -205,7 +201,7 @@ const FAQ = [
     .pt-step .h{display:flex;align-items:baseline;gap:8px;font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink-900);letter-spacing:.02em;}
     .pt-step .no{font-family:var(--font-sans);font-size:13px;font-weight:400;color:var(--rose-500);font-variant-numeric:tabular-nums;}
     .pt-step p{margin:0;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.75;color:var(--text-secondary);}
-    .pt-join{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:12px;}
+    .pt-join{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:36px;}
     .pt-join .pt-auth{margin-top:0;}
     .is-guest .pt-join-note{margin:0;font-family:var(--font-sans);font-size:13.5px;color:var(--text-muted);text-align:center;}
     .pt-main:not(.is-guest) .pt-join{align-items:stretch;margin-top:0;}
@@ -293,6 +289,8 @@ const FAQ = [
     .pt-tab.is-on{background:var(--surface-card);color:var(--ink-900);box-shadow:var(--shadow-xs);}
     .pt-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
     .pt-stat{padding:18px;border-radius:var(--radius-md);background:var(--surface-card);border:1px solid var(--border-soft);}
+    .pt-stat .pt-sub .nw{white-space:nowrap;}
+    .pt-stat .pt-sub{margin-top:6px;font-family:var(--font-sans);font-size:13px;line-height:1.5;color:var(--text-muted);}
     .pt-stat .n{margin-top:4px;font-family:var(--font-serif);font-size:28px;font-weight:500;color:var(--ink-900);font-variant-numeric:tabular-nums;white-space:nowrap;}
     .pt-money{padding:8px 24px;}
     .pt-money .pt-row:first-child{border-top:0;}
@@ -312,13 +310,14 @@ const FAQ = [
       .pt-hstats{grid-template-columns:1fr;}
       .pt-hstats .pt-stat{display:flex;flex-direction:row-reverse;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 16px;}
       .pt-hstats .pt-stat .n{margin-top:0;font-size:22px;}
+      .pt-hstats .pt-stat{flex-wrap:wrap;} .pt-hstats .pt-stat .pt-sub{flex-basis:100%;margin-top:0;}
       .pt-steps,.pt-share{grid-template-columns:1fr;gap:10px;}
       .pt-card.pt-step{flex-direction:row;padding:16px 18px;}
       .pt-step .zf-icon-disc{width:40px;height:40px;} .pt-step .zf-icon-disc i{font-size:18px;}
       .pt-step .h,.pt-sc .h{font-size:17px;}
       .pt-step p,.pt-sc .d{font-size:14.5px;}
       .pt-card.pt-sc{padding:16px 18px;}
-      .pt-join{margin-top:8px;}
+      .pt-join{margin-top:28px;}
       .pt-card.pt-rulecard{padding:8px 18px;}
       .pt-dots li{font-size:15.5px;} .pt-dots li::before{top:23px;}
       .pt-h3{font-size:17px;padding-top:18px;}
@@ -371,7 +370,7 @@ const FAQ = [
       function renderStats() {
         var s = (me.partner.stats || {})[range] || {};
         var cell = function (k, v) { return '<div class="pt-stat"><div class="pt-lbl">' + k + '</div><div class="n">' + esc(v) + '</div></div>'; };
-        $('ptStats').innerHTML = cell('點進來', Number(s.clicks) || 0) + cell('起卦', Number(s.casts) || 0) + cell('付款', Number(s.payments) || 0) + cell('分潤', money(s.commission));
+        $('ptStats').innerHTML = cell('點進來', Number(s.clicks) || 0) + cell('起卦', Number(s.casts) || 0) + cell('分潤', money(s.commission)) + cell('已付款', Number(s.payments) || 0);
         document.querySelectorAll('.pt-tab').forEach(function (b) { var on = b.getAttribute('data-r') === range; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
       }
       function renderHome() {
