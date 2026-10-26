@@ -73,7 +73,14 @@ const canonical = `https://winds.tw/lp/${slug}/`;
 const title = cfg.title;
 // 見面方式依老師實際有的地點講（只有台北實體的老師不提遠端）
 const hasPhysical = locations.some((l: any) => l.type !== 'online'), hasOnline = locations.some((l: any) => l.type === 'online');
-const eyebrowWhere = hasPhysical && hasOnline ? '台北大安 或 遠端通話' : hasOnline ? '遠端通話' : '台北大安';
+/* 2026-10-27 新增信義地點：區名、捷運站從地點地址讀（地址格式「台北市大安區…，捷運忠孝復興站附近。」），不再寫死大安 */
+const physLocs = locations.filter((l: any) => l.type !== 'online');
+const districtOf = (l: any) => (String(l.note || l.name).match(/台北市(\S{2})區/) || [])[1] || '';
+const stationOf = (l: any) => (String(l.note || '').match(/捷運(\S+?站)/) || [])[1] || '';
+const districts = physLocs.map(districtOf).filter(Boolean);
+const whereShort = districts.join('、');   /* 大安、信義 */
+const whereLong = districts.map((d) => d + '區').join('或');   /* 大安區或信義區 */
+const eyebrowWhere = hasPhysical && hasOnline ? `台北${whereShort} 或 遠端通話` : hasOnline ? '遠端通話' : `台北${whereShort}`;
 const balanceNote = hasPhysical && hasOnline ? '餘額當天現場結清；遠端依老師指示結清。' : hasOnline ? '餘額依老師指示結清。' : '餘額當天現場結清。';
 const faqBalance = hasPhysical && hasOnline ? '餘額當天現場結清，遠端依老師指示結清。' : balanceNote;   // 風易揚原文 FAQ 用逗號，照舊
 const description = cfg.metaDesc || (LP_LEDE.join('') + eyebrowWhere.replace(/ /g, '') + '一對一，線上付訂金保留時段。').slice(0, 155);
@@ -205,11 +212,11 @@ const jsonLd = prov ? [
           </div>
           <ol class="lp-steps">
             {hasPhysical && hasOnline ? (
-              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>選現場或遠端</b></div><p>台北可以到大安區現場；不方便過來，也可以透過官方 LINE 遠端通話。</p></li>
+              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>選現場或遠端</b></div><p>台北可以到{whereLong}現場；不方便過來，也可以透過官方 LINE 遠端通話。</p></li>
             ) : hasOnline ? (
               <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>遠端通話</b></div><p>透過官方 LINE 通話，不用出門。</p></li>
             ) : (
-              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>到台北大安區現場</b></div><p>老師在台北大安區見面，捷運忠孝復興站附近。</p></li>
+              <li><div class="lp-step-t"><span class="lp-step-n">1</span><b>到台北{whereLong}現場</b></div><p>{physLocs.length === 1 ? `老師在台北${whereLong}見面，捷運${stationOf(physLocs[0])}附近。` : `老師在台北${whereLong}見面，地址在下方。`}</p></li>
             )}
             <li><div class="lp-step-t"><span class="lp-step-n">2</span><b>選項目和時間</b></div><p>頁面會顯示老師未來四週可以預約的時間，挑一個你方便的就好。</p></li>
             <li><div class="lp-step-t"><span class="lp-step-n">3</span><b>付訂金</b></div><p>線上付訂金後，時段就會保留下來。{balanceNote}</p></li>

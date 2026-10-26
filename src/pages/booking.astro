@@ -9,7 +9,7 @@ import { PERSONAS } from '../data/booking-teachers';
 ---
 <BaseLayout
   title="預約老師｜通靈水鏡法、元辰宮代觀｜找風問幸福"
-  description="在找風問幸福，點選老師卡片後選項目與時間，線上付訂金就能保留時段。現場在台北市大安區、忠孝復興站附近；僅風易揚老師另可透過官方 LINE 遠端通話。"
+  description="在找風問幸福，點選老師卡片後選項目與時間，線上付訂金就能保留時段。現場在台北市大安區（捷運忠孝復興站）、信義區（捷運永春站）；僅風易揚老師另可透過官方 LINE 遠端通話。"
   ogType="website"
 >
   <div class="booking-root">
@@ -494,7 +494,7 @@ import { PERSONAS } from '../data/booking-teachers';
         }
       }
       function mdw(s){var p=s.split('-'),d=new Date(+p[0],+p[1]-1,+p[2]);return (d.getMonth()+1)+'/'+d.getDate()+'（週'+'日一二三四五六'.charAt(d.getDay())+'）';}
-      function locLabel(l){return l&&l.type==='online'?'遠端通話':'現場面談';}
+      function locLabel(l){if(l&&l.type==='online')return '遠端通話';var m=String((l&&(l.note||l.name))||'').match(/台北市(\S{2}區)/);var nPhys=(W.locOpts||[]).filter(function(x){return x.type!=='online';}).length;return nPhys>1&&m?'現場面談（'+m[1]+'）':'現場面談';}   /* 2026-10-27 兩個現場地點時標區名 */
       function row(k,v){return '<div class="bw-row"><span class="bw-k">'+esc(k)+'</span><span class="bw-v">'+esc(v)+'</span></div>';}
 
       grid.addEventListener('click',function(e){var b=e.target.closest('[data-book]');if(b)openWiz(b.dataset.book,SVC_Q);});
