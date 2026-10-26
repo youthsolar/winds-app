@@ -1746,7 +1746,7 @@ function ffGiftCheck(){
   var who=ffGiftWho();
   if(!who||STATE.giftAskedWho===who)return;
   STATE.giftAskedWho=who;
-  fetch(WORKER_API+"/partner/gift",{headers:authHeaders(),cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+  fetch(WORKER_API+"/partner/gift"+(document.body.dataset.tarot?"?kind=tarot":""),{headers:authHeaders(),cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
     if(!d||!d.available||ffGiftWho()!==who)return;
     STATE.giftAvail=true;STATE.giftWho=who;
     if(STATE.ordering){STATE.giftRepaint=true;return;}

@@ -84,7 +84,7 @@ const FAQ = [
         <div class="pt-stats" id="ptStats"></div>
       </div>
       <div class="pt-card pt-money" id="ptMoney"></div>
-      <div class="pt-card pt-gift" id="ptGift"></div>
+      <div class="pt-gifts" id="ptGift"></div>
       <div class="pt-center"><a class="pt-link" href="#rules" id="ptShowRules">看合作規則</a></div>
     </section>
 
@@ -109,7 +109,7 @@ const FAQ = [
         </a>
             <a class="zf-line-btn" href="/auth/line-start?return=/partner"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
           </div>
-          <p class="pt-p pt-join-note">申請通過，會先送你一次完整解讀，親自體驗過再分享。</p>
+          <p class="pt-p pt-join-note">申請通過，水鏡愛情和塔羅愛情各送你一次完整解讀，親自體驗過再分享。</p>
         </div>
       </section>
       <section>
@@ -193,7 +193,7 @@ const FAQ = [
     .pt-h2{margin:0 0 20px;font-family:var(--font-serif);font-weight:500;font-size:22px;line-height:1.4;letter-spacing:.02em;color:var(--ink-900);}
     .pt-rules{display:flex;flex-direction:column;gap:64px;}
     /* 10/26 DS 改版（ui_kits/partner/partner.jsx）：三格數字、三步驟、分享小卡、規則卡、注意提示框 */
-    .pt-hstats{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;text-align:left;}
+    .pt-hstats{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;text-align:left;align-items:start;}   /* 10/26 DS 回稿：三格靠上、不拉成一樣高 */
     .pt-main:not(.is-guest) .pt-hstats,.pt-main:not(.is-guest) .pt-auth{display:none;}
     .pt-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
     .pt-card.pt-step{padding:22px;display:flex;flex-direction:column;align-items:flex-start;gap:14px;}
@@ -297,6 +297,7 @@ const FAQ = [
     .pt-stat .n{margin-top:4px;font-family:var(--font-serif);font-size:28px;font-weight:500;color:var(--ink-900);font-variant-numeric:tabular-nums;white-space:nowrap;}
     .pt-money{padding:8px 24px;}
     .pt-money .pt-row:first-child{border-top:0;}
+    .pt-gifts{display:flex;flex-direction:column;gap:10px;}
     .pt-gift{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:22px 24px;}
     .pt-gift.is-used{opacity:.55;}
     .pt-gift .l{display:flex;align-items:center;gap:12px;font-family:var(--font-serif);font-size:17px;color:var(--ink-900);}
@@ -386,10 +387,13 @@ const FAQ = [
         renderStats();
         var row = function (k, v, strong) { return '<div class="pt-row"><span class="k">' + k + '</span><span class="v' + (strong ? ' strong' : '') + '">' + v + '</span></div>'; };
         $('ptMoney').innerHTML = row('待轉帳', money((m.pending || 0) + (m.available || 0)), true) + row('已轉帳', money(m.paid)) + row('下次轉帳日', '每月 10 號') + row('離 NT$300 還差', money(m.to_threshold));
-        var g = p.gift || {};
-        $('ptGift').className = 'pt-card pt-gift' + (g.used ? ' is-used' : '');
-        $('ptGift').innerHTML = '<div class="l"><span class="pt-disc"><i class="ph-thin ph-gift"></i></span><span>送你一次完整解讀</span></div>' +
-          (g.used ? '<span class="pt-used">已使用</span>' : (/^https:\/\/winds\.tw\//.test(String(g.url || '')) ? '<a class="pt-btn pt-btn-primary pt-btn-sm" href="' + esc(g.url) + '">去起一卦</a>' : ''));
+        /* 10/26 Jeffery「兩個各送一次」：水鏡、塔羅各一張贈送卡 */
+        var GIFT = { gua: ['ph-drop', '水鏡愛情', '去起一卦'], tarot: ['ph-cards', '塔羅愛情', '去抽牌'] };
+        $('ptGift').innerHTML = (p.gifts || (p.gift ? [Object.assign({ kind: 'gua' }, p.gift)] : [])).filter(function (g) { return GIFT[g.kind]; }).map(function (g) {
+          var t = GIFT[g.kind];
+          return '<div class="pt-card pt-gift' + (g.used ? ' is-used' : '') + '"><div class="l"><span class="pt-disc"><i class="ph-thin ' + t[0] + '"></i></span><span>送你一次' + t[1] + '完整解讀</span></div>' +
+            (g.used ? '<span class="pt-used">已使用</span>' : (/^https:\/\/winds\.tw\//.test(String(g.url || '')) ? '<a class="pt-btn pt-btn-primary pt-btn-sm" href="' + esc(g.url) + '">' + t[2] + '</a>' : '')) + '</div>';
+        }).join('');
         var bank = $('ptBank');
         var reached = ((Number(m.pending) || 0) + (Number(m.available) || 0)) > 0 && (Number(m.to_threshold) || 0) <= 0;   /* Astra #4：還沒滿 NT$300 不要求個資 */
         if ((me.needs_payout_info && reached) || me.just_sent_bank) {
