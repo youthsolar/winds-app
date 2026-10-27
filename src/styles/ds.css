@@ -135,11 +135,22 @@
 .zf-section-heading.center .zf-sh-lede{max-width:none;text-wrap:pretty}
 
 /* ===== Chip（DS components/chip；單一來源，取代 home/divination 各自手刻）===== */
-.zf-chip{cursor:pointer;white-space:nowrap;flex:none;font-family:var(--font-serif);font-size:16px;font-weight:var(--w-medium);letter-spacing:.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:11px 20px;box-shadow:none;transition:all var(--dur-fast) var(--ease-soft)}
-.zf-chip.sm{font-size:14.5px;padding:8px 16px}
+.zf-chip{cursor:pointer;white-space:nowrap;flex:none;font-family:var(--font-serif);font-size:16px;font-weight:var(--w-medium);letter-spacing:.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:40px;padding:0 20px;box-shadow:none;transition:all var(--dur-fast) var(--ease-soft)}
+.zf-chip.sm{font-size:14.5px;height:34px;padding:0 16px}
 .zf-chip.ghost{background:transparent}
 .zf-chip.selected,.zf-chip[aria-pressed=true]{color:var(--text-on-accent);background:var(--accent);border-color:transparent;box-shadow:var(--shadow-sm)}
-@media(max-width:760px){.zf-chip{font-size:15px;padding:10px 17px}}
+@media(max-width:760px){.zf-chip{font-size:15px;padding:0 17px}}
+
+/* ===== ThemeToggle 三段（DS site-shell ThemeToggle，2026.10.27-4）=====
+ * 自動／淺色／深色。電腦頁首只放圖示（28 高三格）；手機選單 .lb 帶字、撐滿一列。點擊與選中狀態在 theme-init.js。 */
+.zf-tt{display:inline-flex;padding:3px;gap:2px;border-radius:999px;background:var(--surface-sunken);border:1px solid var(--border-soft);box-sizing:border-box}
+.zf-tt button{all:unset;cursor:pointer;box-sizing:border-box;height:28px;min-width:28px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;color:var(--text-muted);font-family:var(--font-sans);font-size:13.5px;line-height:1}
+.zf-tt button[aria-checked="true"]{background:var(--surface-card);box-shadow:var(--shadow-xs);color:var(--text-primary)}
+.zf-tt button:focus-visible{box-shadow:0 0 0 4px var(--focus-ring)}
+.zf-tt i{font-size:15px;line-height:1}
+.zf-tt.lb{display:flex}
+.zf-tt.lb button{flex:1;height:34px;padding:0 14px}
+.zf-drawer .zf-tt{margin-top:14px}
 
 /* ===== LineButton（DS line-login v1，2026-10-16）=====
  * 第三方品牌例外：底色 #06C755 是 LINE 規範，不走 DS 色票；暗色模式也不變（LINE 沒有暗版）。

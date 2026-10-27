@@ -48,7 +48,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
   <!-- 2026-10-11（Astra #6）：主題同步腳本放在所有外部樣式表之前，跟 BaseLayout 一致 -->
-  <script is:inline src="/assets/theme-init.js"></script>
+  <script is:inline src="/assets/theme-init.js?v=1027"></script>
   <!-- 2026-10-11 Jeffery「重新整理樣式閃一下」：#root 裡的靜態版（給不跑 JavaScript 的抓取工具）會先畫一幀，render() 才換成真畫面。
        有 JavaScript 就先藏靜態版；腳本壞了 2 秒後自己現身（.ff-static 的 CSS）。 -->
   <script is:inline>document.documentElement.classList.add("ff-js");</script>
@@ -127,9 +127,9 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
 
 
     /* chips */
-    .chip{all:unset;cursor:pointer;white-space:nowrap;font-family:var(--font-serif);font-size:16px;font-weight:500;letter-spacing:.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:11px 20px;transition:all var(--dur-fast) var(--ease-soft)}
+    .chip{all:unset;cursor:pointer;white-space:nowrap;font-family:var(--font-serif);font-size:16px;font-weight:500;letter-spacing:.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:40px;padding:0 20px;transition:all var(--dur-fast) var(--ease-soft)}
     .chip.on{color:var(--text-on-accent);background:var(--accent);border-color:transparent;box-shadow:var(--shadow-sm)}
-    @media(max-width:760px){.chip{padding:10px 17px;font-size:15px}}
+    @media(max-width:760px){.chip{padding:0 17px;font-size:15px}}
 
     /* fields */
     .f-label{display:block;margin-bottom:8px;font-family:var(--font-sans);font-size:14px;font-weight:500;color:var(--ink-700);letter-spacing:.02em}
@@ -633,7 +633,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .paywall .veil .ns-line{font-family:var(--font-serif);font-weight:300;font-size:16px;line-height:1.8;color:var(--text-secondary);margin:0 0 10px;text-align:left}
     .paywall .veil .ns-line b{font-weight:500;color:var(--ink-900)}
     .hg-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px 0 6px}
-    .hg-chips .chip{font-size:16px;padding:11px 18px}
+    .hg-chips .chip{font-size:16px;padding:0 18px}
     /* ── 活動頁「家裡的符」落地（home 模式）── */
     .hg-cols{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:26px}
     .hg-card h3{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);margin:0 0 8px}
@@ -2246,7 +2246,7 @@ function siteHeader(){
     '<div class="zf-nav-links">'+
       '<a href="/">首頁</a><a href="/divination">問一件事</a><a href="/blog">案例專欄</a><a href="/teachers/">老師介紹</a><a href="/shop">法器選物</a>'+
       '<a href="/divination" class="zf-btn ghost sm">占卜</a><a href="/booking" class="zf-btn primary sm" data-wc-open>預約老師</a>'+
-      '<button class="zf-theme-btn" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:none;border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer"><i class="zf-theme-ico nav ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon-stars')+'" style="font-size:19px;line-height:1"></i></button>'+
+      (window.ZFTheme&&ZFTheme.tt?ZFTheme.tt(false):'')+
       '<div id="auth-button" class="zf-account"></div>'+
     '</div>'+
     '<button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>'+
@@ -2254,7 +2254,7 @@ function siteHeader(){
     '<div class="zf-drawer" id="zfDrawer" hidden>'+
       '<a href="/">首頁</a><a href="/divination">問一件事</a><a href="/blog">案例專欄</a><a href="/teachers/">老師介紹</a><a href="/shop">法器選物</a>'+
       '<a href="/divination" class="zf-btn primary md full">占卜</a><a href="/booking" class="zf-btn ghost md full" data-wc-open>預約老師</a>'+
-      '<button class="zf-theme-btn-m" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" style="display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;margin-top:12px;padding:12px 4px;box-sizing:border-box;border:none;border-bottom:1px solid var(--border-soft);border-radius:0;background:transparent;cursor:pointer;text-align:left;font-family:var(--font-serif);font-size:16px;font-weight:400;color:var(--ink-700)"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'" style="font-size:18px"></i><span class="zf-theme-lbl">'+(window.ZFTheme&&ZFTheme.isDark()?'淺色模式':'深色模式')+'</span></button>'+
+      (window.ZFTheme&&ZFTheme.tt?ZFTheme.tt(true):'')+
       '<div id="auth-button-m" class="zf-account-m"></div>'+
     '</div></nav>';
 }

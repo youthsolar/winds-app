@@ -13,7 +13,7 @@
       <a href="/shop">法器選物</a>
       <a href="/divination" class="zf-btn ghost sm">占卜</a>
       <a href="/booking" class="zf-btn primary sm" data-wc-open>預約老師</a>
-      <button class="zf-theme-btn" id="zfThemeBtn" aria-label="切換深淺色"><i class="ph-thin ph-moon-stars"></i></button>
+      <div class="zf-tt" role="radiogroup" aria-label="深淺色"><button type="button" role="radio" data-v="auto" aria-checked="false" aria-label="自動" title="自動"><i class="ph ph-circle-half"></i></button><button type="button" role="radio" data-v="light" aria-checked="false" aria-label="淺色" title="淺色"><i class="ph ph-sun"></i></button><button type="button" role="radio" data-v="dark" aria-checked="false" aria-label="深色" title="深色"><i class="ph ph-moon"></i></button></div>
       <div id="auth-button" class="zf-account"></div>
     </div>
     <button class="zf-burger" id="zfBurger" aria-label="選單"><i class="ph-thin ph-list"></i></button>
@@ -26,7 +26,7 @@
     <a href="/shop">法器選物</a>
     <a href="/divination" class="zf-btn primary md full">占卜</a>
     <a href="/booking" class="zf-btn ghost md full" data-wc-open>預約老師</a>
-    <button class="zf-theme-btn m" id="zfThemeBtnM" aria-label="切換深淺色"><i class="ph-thin ph-moon-stars"></i><span>深色模式</span></button>
+    <div class="zf-tt lb" role="radiogroup" aria-label="深淺色"><button type="button" role="radio" data-v="auto" aria-checked="false" aria-label="自動" title="自動"><i class="ph ph-circle-half"></i><span>自動</span></button><button type="button" role="radio" data-v="light" aria-checked="false" aria-label="淺色" title="淺色"><i class="ph ph-sun"></i><span>淺色</span></button><button type="button" role="radio" data-v="dark" aria-checked="false" aria-label="深色" title="深色"><i class="ph ph-moon"></i><span>深色</span></button></div>
     <div id="auth-button-m" class="zf-account-m"></div>
   </div>
 </nav>
@@ -40,21 +40,7 @@
       if (d.hasAttribute('hidden')) { d.removeAttribute('hidden'); if (icon) icon.className = 'ph-thin ph-x'; }
       else { d.setAttribute('hidden', ''); if (icon) icon.className = 'ph-thin ph-list'; }
     });
-    /* 深淺色切換鈕（theme-init.js 提供 ZFTheme） */
-    function paint() {
-      var dark = window.ZFTheme && ZFTheme.isDark();
-      ['zfThemeBtn', 'zfThemeBtnM'].forEach(function (id) {
-        var el = document.getElementById(id); if (!el) return;
-        var i = el.querySelector('i'); if (i) i.className = dark ? 'ph-thin ph-sun' : 'ph-thin ph-moon-stars';
-        var s = el.querySelector('span'); if (s) s.textContent = dark ? '淺色模式' : '深色模式';
-      });
-    }
-    ['zfThemeBtn', 'zfThemeBtnM'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.addEventListener('click', function () { if (window.ZFTheme) ZFTheme.toggle(); });
-    });
-    window.addEventListener('zf-theme-change', paint);
-    paint();
+    /* 深淺色三段（.zf-tt）：點擊與選中狀態由 theme-init.js 統一處理（2026-10-27） */
   })();
 </script>
 
@@ -68,13 +54,6 @@
   .zf-nav-links > a:not(.zf-btn){font-family:var(--font-sans);font-size:14px;color:var(--ink-700);letter-spacing:0.03em;text-decoration:none;}
   .zf-nav-links > a:not(.zf-btn):hover{color:var(--accent-press);text-decoration:none;}
   .zf-burger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:transparent;color:var(--ink-700);cursor:pointer;}
-  .zf-theme-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:44px;height:44px;border:none;border-radius:var(--radius-pill);background:transparent;color:var(--ink-700);cursor:pointer;padding:0;}
-  .zf-theme-btn i{display:inline-flex;align-items:center;justify-content:center;font-size:19px;line-height:1;}
-  .zf-theme-btn:not(.m) i{display:flex;width:100%;height:100%;}
-  /* 手機抽屜：DS ThemeToggle mobile＝一列文字（serif 16 ink-700、12px 4px、下底線、gap 10、圖示 18） */
-  .zf-theme-btn.m{display:flex;width:auto;height:auto;justify-content:flex-start;gap:10px;padding:12px 4px;border:none;border-bottom:1px solid var(--border-soft);border-radius:0;background:transparent;font-family:var(--font-serif);font-size:16px;font-weight:400;color:var(--ink-700);text-align:left;}
-  .zf-theme-btn.m i{font-size:18px;}
-  .zf-theme-btn.m span{white-space:nowrap;}
   .zf-burger i{font-size:24px;line-height:1;}
   .zf-drawer{display:none;border-top:1px solid var(--border-soft);background:var(--surface-page);padding:8px 20px 18px;}
   .zf-drawer > a:not(.zf-btn){font-family:var(--font-serif);font-size:17px;color:var(--ink-900);padding:12px 4px;border-bottom:1px solid var(--border-soft);text-decoration:none;}

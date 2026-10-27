@@ -26,6 +26,9 @@
      改成記住「目前套用的」，三者都看它；localStorage 只負責存起來給下次開頁用。 */
   var current = resolve();
   apply(current);
+  /* 2026-10-27（Astra）：客人選的是哪一段也記在記憶體——localStorage 寫不進去時，三段按鈕才不會跟畫面對不上。 */
+  var chosen = "auto";
+  try { var s0 = localStorage.getItem(KEY); if (s0 === "dark" || s0 === "light") chosen = s0; } catch (e) {}
 
   window.ZFTheme = {
     get: function () { return current; },
@@ -33,11 +36,49 @@
     set: function (mode) {
       try { localStorage.setItem(KEY, mode); } catch (e) {}
       current = mode;
+      chosen = mode;
       apply(mode);
       window.dispatchEvent(new CustomEvent("zf-theme-change", { detail: { mode: mode } }));
     },
     toggle: function () { this.set(current === "dark" ? "light" : "dark"); },
-    clear: function () { try { localStorage.removeItem(KEY); } catch (e) {} current = resolve(); apply(current); }
+    clear: function () { try { localStorage.removeItem(KEY); } catch (e) {} chosen = "auto"; current = byTime(); apply(current); },
+    /* 2026-10-27（DS 2026.10.27-4 ThemeToggle 三段，Jeffery 拍板）：客人選的是哪一段——auto／light／dark。
+       選「自動」＝刪掉 zf_theme（只存 light／dark，舊頁面才不會判斷錯），回到 19:00–07:00 深色。 */
+    choice: function () { return chosen; },
+    pick: function (v) {
+      if (v === "auto") { this.clear(); window.dispatchEvent(new CustomEvent("zf-theme-change", { detail: { mode: current } })); }
+      else this.set(v);
+    }
+  };
+
+  /* 三段按鈕（.zf-tt，頁首與手機選單共用）：點擊用事件委派，動態畫出來的頁首（漏斗頁）也吃得到；
+     切換後把每一組的選中狀態重畫一次。 */
+  function paintTT() {
+    var v = window.ZFTheme.choice();
+    var bs = document.querySelectorAll(".zf-tt button[data-v]");
+    for (var i = 0; i < bs.length; i++) bs[i].setAttribute("aria-checked", bs[i].getAttribute("data-v") === v ? "true" : "false");
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target && e.target.closest ? e.target.closest(".zf-tt button[data-v]") : null;
+    if (b) window.ZFTheme.pick(b.getAttribute("data-v"));
+  });
+  /* 方向鍵在三段之間移動並直接選取（radio 群組慣例，Astra 建議） */
+  document.addEventListener("keydown", function (e) {
+    var b = e.target && e.target.closest ? e.target.closest(".zf-tt button[data-v]") : null;
+    if (!b) return;
+    var d = (e.key === "ArrowRight" || e.key === "ArrowDown") ? 1 : (e.key === "ArrowLeft" || e.key === "ArrowUp") ? -1 : 0;
+    if (!d) return;
+    e.preventDefault();
+    var bs = b.parentNode.querySelectorAll("button[data-v]"), i = Array.prototype.indexOf.call(bs, b);
+    var n = bs[(i + d + bs.length) % bs.length];
+    n.focus(); window.ZFTheme.pick(n.getAttribute("data-v"));
+  });
+  window.addEventListener("zf-theme-change", paintTT);
+  document.addEventListener("DOMContentLoaded", paintTT);
+  window.ZFTheme.tt = function (labeled) {
+    var v = window.ZFTheme.choice(), o = [["auto", "circle-half", "自動"], ["light", "sun", "淺色"], ["dark", "moon", "深色"]], h = "";
+    for (var i = 0; i < o.length; i++) h += '<button type="button" role="radio" data-v="' + o[i][0] + '" aria-checked="' + (o[i][0] === v) + '" aria-label="' + o[i][2] + '" title="' + o[i][2] + '"><i class="ph ph-' + o[i][1] + '"></i>' + (labeled ? "<span>" + o[i][2] + "</span>" : "") + "</button>";
+    return '<div class="zf-tt' + (labeled ? " lb" : "") + '" role="radiogroup" aria-label="深淺色">' + h + "</div>";
   };
 })();
 
