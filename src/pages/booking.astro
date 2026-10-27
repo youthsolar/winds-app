@@ -61,6 +61,8 @@ import { PERSONAS } from '../data/booking-teachers';
     /* persona filter */
     .bk-filter{margin-bottom:28px;}
     .bk-chips{display:flex;flex-wrap:wrap;gap:10px;}
+    /* 2026-10-27 DS Chip 40（Jeffery 拍板分類膠囊統一 40 高；原本 33）：只改頁首分類，預約視窗裡的選項不動 */
+    .bk-chips .bk-chip{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:40px;padding:0 20px;font-size:16px;}
     .bk-chip{all:unset;cursor:pointer;white-space:nowrap;flex:none;font-family:var(--font-serif);font-size:14.5px;font-weight:500;letter-spacing:0.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:8px 16px;transition:all var(--dur-fast) var(--ease-soft);}
     .bk-chip.on{color:var(--text-on-accent);background:var(--accent);border-color:transparent;box-shadow:var(--shadow-sm);}
     .bk-persona-desc{font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.7;color:var(--text-secondary);margin:12px 0 0;}
@@ -183,6 +185,7 @@ import { PERSONAS } from '../data/booking-teachers';
       .bk-lede{font-size:15px;}
       .bk-filter{margin-bottom:22px;}
       .bk-chips{gap:8px;}
+      .bk-chips .bk-chip{font-size:15px;padding:0 17px;}
       .bk-persona-desc{font-size:14px;}
       .bk-rec{margin-bottom:26px;}
       .bk-rec-frame{padding:3px;}

@@ -132,7 +132,7 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
   .lw-hex-line{margin:16px 0 0;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.85;color:var(--text-secondary);}
   .lw-hex-line-desk{display:none;}
   .lw-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
-  .lw-chip{white-space:nowrap;font-family:var(--font-serif);font-size:15px;font-weight:500;letter-spacing:0.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);padding:10px 17px;}
+  .lw-chip{white-space:nowrap;font-family:var(--font-serif);font-size:15px;font-weight:500;letter-spacing:0.01em;line-height:1;color:var(--accent-press);background:var(--surface-card);border:1px solid var(--rose-200);border-radius:var(--radius-pill);display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:40px;padding:0 17px;}
   .lw-row{display:flex;align-items:center;gap:16px;padding:13px 0;border-top:1px solid var(--border-soft);}
   .lw-row:first-child{border-top:none;}
   .lw-rowtext{flex:1;min-width:0;}
@@ -163,7 +163,7 @@ const shareText = data ? `${data.h1}。${data.line}` : `${topic.shareTitle}，�
     .lw-disc-big{width:104px;height:104px;font-size:50px;}
     .lw-hex-line-desk{display:block;margin-top:10px;}
     .lw-hex-line-mobile{display:none;}
-    .lw-chip{font-size:16px;padding:11px 20px;}
+    .lw-chip{font-size:16px;padding:0 20px;}
     .lw-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 22px;}
     .lw-three .lw-row{flex-direction:column;align-items:flex-start;gap:12px;border-top:none;padding:14px 0 6px;}
     .lw-quote{font-size:17px;}
