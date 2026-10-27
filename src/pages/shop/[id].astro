@@ -139,6 +139,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
               <p class="lp-err" id="wooErr" hidden></p>
             </div>
             <div class="lp-total"><span>總計（{blessed ? '含開光，' : ''}運費 0）</span><b id="wooTotal">{ntd(variants[0]?.price ?? prod.price)}</b></div>
+            <p class="lp-custom"><i class="ph ph-info" aria-hidden="true"></i><span>依個案親製，不適用七天無理由退貨 <a class="zf-text-link" href="https://winds.tw/terms/#refund">退換貨說明</a></span></p>
             <button class="zf-btn primary lg full" type="submit">前往填資料與付款<i class="ph ph-arrow-right"></i></button>
             <p class="lp-paynote">下一頁填本人姓名、西元生日與時辰、取貨門市後付款。付款由綠界 ECPay 處理，支援信用卡、網路 ATM、台灣 Pay；本站不會保存你的卡號。</p>
           </form>
@@ -195,6 +196,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
               </div>
 
               <div class="lp-total"><span>總計（{blessed ? '含開光，' : ''}運費 0）</span><b id="totalTxt">{ntd(variants[0]?.price ?? prod.price)}</b></div>
+              <p class="lp-custom"><i class="ph ph-info" aria-hidden="true"></i><span>依個案親製，不適用七天無理由退貨 <a class="zf-text-link" href="https://winds.tw/terms/#refund">退換貨說明</a></span></p>
               <button class="zf-btn primary lg full" type="submit" id="payBtn">確認並付款<i class="ph ph-lock-key"></i></button>
               <p class="lp-paynote">付款由綠界 ECPay 處理，支援信用卡、Apple Pay、LINE Pay、台灣 Pay。本頁不會保存你的卡號。</p>
         </form>
@@ -300,6 +302,10 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     /* 2026-10-01（廣告前全站掃描）：手機上總計金額在千分位後折行，改成可換行、金額不斷行靠右（同 yuanchen-wealth） */
     .lp-total { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between; align-items: baseline; margin: 20px 0 14px; padding: 14px 16px; background: var(--surface-tint); border-radius: var(--radius-md); font-family: var(--font-serif); }
     .lp-total b { font-size: 24px; color: var(--accent-press); white-space: nowrap; margin-left: auto; }
+    /* 2026-10-27 DS 回稿（refund-notice-1024）：購買按鈕上方的客製不退提醒＝說明小字＋TextLink，總計→16→提醒→12→按鈕 */
+    .lp-custom { display: flex; gap: 6px; align-items: flex-start; margin: 16px 0 12px; font-family: var(--font-sans); font-size: 14px; line-height: 1.7; color: var(--text-secondary); text-align: left; }
+    .lp-custom i { flex: none; font-size: 16px; margin-top: 3px; color: var(--text-muted); }
+    .lp-custom .zf-text-link { display: inline; white-space: nowrap; }
     .lp-paynote { font-family: var(--font-sans); font-size: 12px; line-height: 1.7; color: var(--text-muted); text-align: left; margin: 12px 0 0; }
 
     .lp-faq { padding-bottom: 72px; }
@@ -321,8 +327,9 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       .lp-block { padding-top: 48px; }
     }
     .lp-thumbs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }   /* Woo 商品圖最多 19 張：手機要換行，不然整頁被撐寬（2026-10-24 切 Woo 當晚 Jeffery 截圖） */
-    .lp-thumbs button { all: unset; cursor: pointer; width: 64px; height: 64px; border-radius: var(--radius-md); overflow: hidden; border: 2px solid transparent; opacity: .75; }
-    .lp-thumbs button.on, .lp-thumbs button:hover { border-color: var(--rose-300); opacity: 1; }
+    .lp-thumbs button { all: unset; box-sizing: border-box; cursor: pointer; width: 64px; height: 64px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-soft); opacity: .75; }
+    .lp-thumbs button:hover { opacity: 1; }
+    .lp-thumbs button.on { border: 2px solid var(--accent); opacity: 1; }   /* 2026-10-27 DS：選中 2px --accent、沒選中 1px --border-soft */
     .lp-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .lp-body { max-width: 720px; }
     .lp-body :global(h3) { font-family: var(--font-serif); font-size: 21px; font-weight: var(--w-medium); color: var(--ink-900); margin: 36px 0 10px; }
