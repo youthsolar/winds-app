@@ -24,7 +24,7 @@ const FAQ = [
       <p class="pt-lede">把找風問幸福分享給你的朋友和粉絲。有人透過你的專屬連結起卦、付款，每一筆你都拿得到分潤。</p>
       <div class="pt-hstats"><!-- 10/26 DS 改版：開頭數字格，只在沒登入時出現；10/26 晚 Jeffery 拿掉「7 天內」那格 -->
         <div class="pt-stat"><div class="pt-lbl">每一筆</div><div class="n">NT$30</div><div class="pt-sub">IG 粉絲 5 萬以上的帳號，<span class="nw">每一筆 NT$50</span></div></div>
-        <div class="pt-stat"><div class="pt-lbl">轉帳</div><div class="n">每月 10 號</div></div>
+        <div class="pt-stat"><div class="pt-lbl">轉帳</div><div class="n">每月 10 號</div><div class="pt-sub">第一次轉帳前補上姓名、身分證字號和帳戶，<span class="nw">只用來轉帳報稅</span></div></div>
       </div>
     </header>
 
@@ -198,7 +198,7 @@ const FAQ = [
     .pt-h2{margin:0 0 20px;font-family:var(--font-serif);font-weight:500;font-size:22px;line-height:1.4;letter-spacing:.02em;color:var(--ink-900);}
     .pt-rules{display:flex;flex-direction:column;gap:64px;}
     /* 10/26 DS 改版（ui_kits/partner/partner.jsx）：三格數字、三步驟、分享小卡、規則卡、注意提示框 */
-    .pt-hstats{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;text-align:left;align-items:start;}   /* 10/26 DS 回稿：三格靠上、不拉成一樣高 */
+    .pt-hstats{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;text-align:left;align-items:stretch;}   /* 10/26 DS 回稿：三格靠上；10/28 Jeffery 改兩格都有小字、要同高 */
     .pt-main:not(.is-guest) .pt-hstats,.pt-main:not(.is-guest) .pt-auth{display:none;}
     .pt-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
     .pt-card.pt-step{padding:22px;display:flex;flex-direction:column;align-items:flex-start;gap:14px;}
