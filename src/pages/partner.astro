@@ -23,8 +23,8 @@ const FAQ = [
       <h1 class="pt-h1">找風問幸福 合作分潤計畫</h1>
       <p class="pt-lede">把找風問幸福分享給你的朋友和粉絲。有人透過你的專屬連結起卦、付款，每一筆你都拿得到分潤。</p>
       <div class="pt-hstats"><!-- 10/26 DS 改版：開頭數字格，只在沒登入時出現；10/26 晚 Jeffery 拿掉「7 天內」那格 -->
-        <div class="pt-stat"><div class="pt-lbl">每一筆</div><div class="n">NT$30</div><div class="pt-sub">IG 粉絲 5 萬以上的帳號，<span class="nw">每一筆 NT$50</span></div></div>
-        <div class="pt-stat"><div class="pt-lbl">轉帳</div><div class="n">每月 10 號</div><div class="pt-sub">第一次轉帳前補上姓名、身分證字號和帳戶，<span class="nw">只用來轉帳報稅</span></div></div>
+        <div class="pt-stat"><div class="pt-lbl">每一筆</div><div class="n">NT$30</div><div class="pt-sub">IG 粉絲 5 萬以上的帳號，每一筆 NT$50</div></div>
+        <div class="pt-stat"><div class="pt-lbl">轉帳</div><div class="n">每月 10 號</div><div class="pt-sub">第一次轉帳前補上姓名、身分證字號和帳戶，只用來轉帳報稅</div></div>
       </div>
     </header>
 
@@ -298,8 +298,7 @@ const FAQ = [
     .pt-stats .pt-stat{padding:16px;} .pt-stats .pt-stat .n{font-size:24px;white-space:normal;overflow-wrap:anywhere;}   /* 10/26 五格：Astra 抓長金額會擠出格子 */
     @media (max-width:1000px){ .pt-stats{grid-template-columns:repeat(3,minmax(0,1fr));} }
     .pt-stat{padding:18px;border-radius:var(--radius-md);background:var(--surface-card);border:1px solid var(--border-soft);}
-    .pt-stat .pt-sub .nw{white-space:nowrap;}
-    .pt-stat .pt-sub{margin-top:6px;font-family:var(--font-sans);font-size:13px;line-height:1.5;color:var(--text-muted);}
+    .pt-stat .pt-sub{margin-top:6px;font-family:var(--font-sans);font-size:13px;line-height:1.5;color:var(--text-muted);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;max-width:none;}   /* 10/28 DS 回稿：中文連續換行，不在逗號處斷 */
     .pt-stat .n{margin-top:4px;font-family:var(--font-serif);font-size:28px;font-weight:500;color:var(--ink-900);font-variant-numeric:tabular-nums;white-space:nowrap;}
     .pt-money{padding:8px 24px;}
     .pt-money .pt-row:first-child{border-top:0;}
