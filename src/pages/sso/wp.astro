@@ -58,7 +58,10 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
       function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
 
       /* ── 畫面（DS sso-common.jsx：SsoCard／Waiting／FailCard／TraceCode）── */
-      function paint(cls, html) { stopTimer(); card.className = 'zf-sso-card' + (cls ? ' ' + cls : ''); card.innerHTML = html; }
+      /* 卡片世代號（10/29 第四批）：每次換卡 +1；寄碼／驗碼的回應回來時卡片已經換了（例如連按、晚到）→ 丟掉不渲染 */
+      var gen = 0;
+      function live(g, fn) { return function (x) { if (g === gen) return fn(x); }; }
+      function paint(cls, html) { gen++; stopTimer(); card.className = 'zf-sso-card' + (cls ? ' ' + cls : ''); card.innerHTML = html; }
       function waiting() { paint('', '<div class="zf-sso-wait"><span class="zf-spinner"></span><span>正在幫你登入商城、預約、課程</span></div>'); }
       /* A1 拿不到交易：定稿句＋主鈕〔回到商城〕連 /winds-sso/start */
       function noTxn() {
@@ -233,13 +236,14 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
           var v = String(input.value || '').trim().toLowerCase();
           if (!v) { input.focus(); return; }
           btn.disabled = true;
-          post('/wp-sso/email/send', { email: v }, actor.headers).then(function (d) {
+          var g = gen;
+          post('/wp-sso/email/send', { email: v }, actor.headers).then(live(g, function (d) {
             if (d._status === 200 && d.ok) { em = { email: v, masked: d.email_masked || v }; codeStep({ wait: d.resend_after || 60 }); return; }
             if (d._status === 401) { actor = null; whoami(); return; }
             if (d._status === 503 && d.error === 'disabled') { maint(); return; }
             if (d.error === 'too_soon') { emailStep({ reason: o.reason, value: v, wait: d.retry_after || 60 }); return; }
             emailStep({ reason: o.reason, value: v, error: sendErr(d) });
-          }, function () { emailStep({ reason: o.reason, value: v, error: '信寄不出去，請再試一次' }); });
+          }), live(g, function () { emailStep({ reason: o.reason, value: v, error: '信寄不出去，請再試一次' }); }));
         }
         btn.onclick = go;
         input.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); if (!btn.disabled) go(); } };
@@ -255,20 +259,24 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         if (o.wait) countdown(o.wait, rb, '重寄驗證碼', function (n) { return n + ' 秒後可重寄'; });
         document.getElementById('swOther').onclick = function () { emailStep({ value: em.email }); };
         rb.onclick = function () {
+          if (rb.disabled) return;
           rb.disabled = true;
-          post('/wp-sso/email/send', { email: em.email }, actor.headers).then(function (d) {
+          var g = gen;
+          post('/wp-sso/email/send', { email: em.email }, actor.headers).then(live(g, function (d) {
             if (d._status === 200 && d.ok) { em.masked = d.email_masked || em.masked; em.unavail = false; codeStep({ wait: d.resend_after || 60 }); return; }
             if (d._status === 401) { actor = null; whoami(); return; }
             if (d._status === 503 && d.error === 'disabled') { maint(); return; }
             if (d.error === 'too_soon') { codeStep({ wait: d.retry_after || 60, value: input.value }); return; }
             codeStep({ error: sendErr(d), value: input.value });
-          }, function () { codeStep({ error: '信寄不出去，請再試一次', value: input.value }); });
+          }), live(g, function () { codeStep({ error: '信寄不出去，請再試一次', value: input.value }); }));
         };
         function verify() {
+          if (vb.disabled) return;   /* 10/29 第四批：Enter 連按／按鈕連點只送一次（重送會被扣次數，晚到的回應會把卡蓋回去） */
           var c = String(input.value || '').replace(/\D/g, '');
           if (c.length !== 6) { input.focus(); return; }
           vb.disabled = true;
-          post('/wp-sso/email/verify', { email: em.email, code: c }, actor.headers).then(function (d) {
+          var g = gen;
+          post('/wp-sso/email/verify', { email: em.email, code: c }, actor.headers).then(live(g, function (d) {
             if (d._status === 200 && d.ok) {
               tx.hint = d.email || em.email; tx.ne = null;
               if (!save()) { fail('retry'); return; }
@@ -292,10 +300,10 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
               : d.error === 'locked' ? '錯太多次了，請 30 分鐘後再試'
               : '系統忙碌中，請稍後再試。';
             codeStep({ error: msg, value: c });
-          }, function () { codeStep({ error: '系統忙碌中，請稍後再試。', value: c }); });
+          }), live(g, function () { codeStep({ error: '系統忙碌中，請稍後再試。', value: c }); }));
         }
         vb.onclick = verify;
-        input.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); verify(); } };
+        input.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); if (!vb.disabled) verify(); } };
         input.oninput = function () { var c = input.value.replace(/\D/g, '').slice(0, 6); if (c !== input.value) input.value = c; };
       }
 
