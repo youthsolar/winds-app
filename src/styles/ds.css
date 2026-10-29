@@ -189,3 +189,48 @@
 .zf-friend-d{margin-top:4px;font-family:var(--font-sans);font-size:13.5px;line-height:1.7;color:var(--text-secondary);word-break:normal;overflow-wrap:anywhere}
 .zf-friend-cta{flex:none}
 @media(max-width:760px){.zf-friend{flex-direction:column;align-items:stretch;gap:14px;padding:18px}.zf-friend .zf-line-btn.inline{display:flex;width:100%}.zf-friend .zf-line-btn.inline .tx{padding:0 22px 0 0}}
+/* DS Notice（d677a9a4 正本，SSO-介面字-1028 摘錄 components-and-tokens.md）：info／success／warning／error；error 用 role=alert、其餘 role=status */
+.zf-notice{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--radius-md);border:1px solid var(--border-accent);background:var(--surface-tint);color:var(--text-primary);text-align:left;box-sizing:border-box}
+.zf-notice>i{flex:none;font-size:18px;line-height:22px;color:var(--accent)}
+.zf-notice-body{flex:1 1 auto;min-width:0;font-family:var(--font-sans);font-size:14px;line-height:1.6;word-break:normal;overflow-wrap:anywhere}
+.zf-notice-act{margin-top:8px}
+.zf-notice-x{all:unset;flex:none;cursor:pointer;width:24px;height:24px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-muted)}
+.zf-notice-x i{font-size:14px}
+.zf-notice-x:focus-visible{box-shadow:var(--focus-ring)}
+.zf-notice.success{background:color-mix(in srgb,var(--positive) 11%,var(--surface-card));border-color:color-mix(in srgb,var(--positive) 35%,transparent)}
+.zf-notice.success>i{color:var(--positive)}
+.zf-notice.warning{background:color-mix(in srgb,var(--caution) 13%,var(--surface-card));border-color:color-mix(in srgb,var(--caution) 40%,transparent)}
+.zf-notice.warning>i{color:var(--caution)}
+.zf-notice.error{background:color-mix(in srgb,var(--critical) 10%,var(--surface-card));border-color:color-mix(in srgb,var(--critical) 35%,transparent)}
+.zf-notice.error>i{color:var(--critical)}
+.zf-notice[hidden]{display:none}
+/* SSO 卡（DS SSO-介面字-1028 sso-common.jsx：SsoCard＝LoginCard 外框、Waiting、FailCard、TraceCode、LINKED 列）。/sso/wp 與會員中心 need_link 卡共用 */
+.zf-sso-card{box-sizing:border-box;width:100%;max-width:420px;margin:0 auto;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:40px 40px 34px;text-align:center;color:var(--text-primary)}
+.zf-sso-card.left{text-align:left}
+.zf-sso-card [hidden]{display:none !important}
+.zf-sso-h1{margin:0;font-family:var(--font-serif);font-size:29px;font-weight:500;letter-spacing:.02em;color:var(--text-primary);word-break:normal;overflow-wrap:anywhere}
+.zf-sso-sub{margin:12px auto 0;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.8;color:var(--text-secondary);word-break:normal;overflow-wrap:anywhere;text-wrap:pretty}
+.zf-sso-body{margin-top:28px;display:flex;flex-direction:column;gap:14px;text-align:left}
+.zf-sso-col{display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center}
+.zf-sso-line{margin:0;font-family:var(--font-serif);font-size:15px;line-height:1.8;color:var(--text-primary);word-break:normal;overflow-wrap:anywhere}
+.zf-sso-line.muted{color:var(--text-secondary)}
+.zf-sso-line.lead{font-size:15.5px;color:var(--text-secondary)}
+.zf-sso-line.lead b{font-weight:500;color:var(--text-primary)}
+.zf-sso-fail{margin:0;font-family:var(--font-serif);font-size:17px;line-height:1.8;word-break:normal;overflow-wrap:anywhere}
+.zf-sso-icon{font-size:40px;line-height:1;color:var(--text-muted)}
+.zf-sso-wait{display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center;padding:24px 0}
+.zf-sso-wait .zf-spinner{width:32px;height:32px}
+.zf-sso-wait span{font-family:var(--font-serif);font-size:16px;color:var(--text-secondary)}
+.zf-sso-small{display:block;font-family:var(--font-sans);font-size:13px;line-height:1.6;color:var(--text-secondary)}
+.zf-sso-small.muted{color:var(--text-muted)}
+.zf-sso-trace{display:block;text-align:center;font-family:var(--font-sans);font-size:13px;line-height:1.6;color:var(--text-muted);user-select:all;-webkit-user-select:all;font-variant-numeric:tabular-nums;letter-spacing:.08em}
+.zf-sso-linked{display:flex;flex-direction:column;border:1px solid var(--border-soft);border-radius:var(--radius-md);overflow:hidden}
+.zf-sso-lrow{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface-card)}
+.zf-sso-lrow+.zf-sso-lrow{border-top:1px solid var(--border-soft)}
+.zf-sso-lrow>i{flex:none;font-size:20px;line-height:1;color:var(--text-secondary)}
+.zf-sso-lrow>svg{flex:none}
+.zf-sso-lrow>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.zf-sso-lname{font-family:var(--font-sans);font-size:14px;color:var(--text-primary);word-break:normal;overflow-wrap:anywhere}
+.zf-sso-lsub{font-family:var(--font-sans);font-size:13px;line-height:1.6;color:var(--text-muted);word-break:normal;overflow-wrap:anywhere}
+.zf-sso-card .zf-text-link{align-self:flex-start}
+@media(max-width:760px){.zf-sso-card{padding:30px 24px 28px}.zf-sso-h1{font-size:25px}.zf-sso-sub{font-size:15px}.zf-sso-body{margin-top:24px}}

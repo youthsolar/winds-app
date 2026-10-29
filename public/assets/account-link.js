@@ -226,5 +226,67 @@
     preview();
   }
 
-  window.WindsLink = { auth: auth, api: api, mountAccount: mountAccount, runLinkPage: runLinkPage, row: row, esc: esc, G: G, CLIENT_ID: CLIENT_ID };
+  /* ── need_link 卡（DS SSO-介面字-1028 A4／A6／A7；/sso/wp 與會員中心共用）──
+     Google 登入、這個 Gmail 之前只用信箱題驗過、還沒跟 Google 登入連在一起（worker basis via=gmail:）。
+     /link/self-preview（mode self_gmail）列出要連在一起的登入 → 按〔加進同一個帳號〕→ /link/self-commit → done()。
+     預覽或送出回 split_pending：按鈕不能按＋上方一句；wp_conflict：上方 Notice error＋〔聯絡老師〕、按鈕不能按（DS A6／A7）。 */
+  var OA_URL = 'https://lin.ee/tQHsgWB';
+  var MSG_SPLIT_MERGE = '上一次拆開還在等老師處理，處理完才能合併';
+  var MSG_WP_CONFLICT = '這兩個登入各自已經有商城／預約的帳號，請先聯絡老師處理，再合併';
+  var LMARK = '<img src="/assets/line-btn-base.png" alt="" width="20" height="20" style="flex:none;display:block;border-radius:5px">';
+  function g20() { return G.replace('width="18" height="18"', 'width="20" height="20"'); }
+  function linkedRows(items) {
+    return '<div class="zf-sso-linked">' + items.map(function (it) {
+      var ic, name, sub;
+      if (it.kind === 'gmail') { ic = '<i class="ph ph-envelope-simple"></i>'; name = it.email_masked || 'Gmail 信箱'; sub = '已用信箱驗證'; }
+      else if (it.kind === 'google') { ic = g20(); name = 'Google 登入'; sub = it.email_masked || ''; }
+      else if (it.kind === 'line') { ic = LMARK; name = 'LINE 登入'; sub = it.name || ''; }
+      else { ic = '<i class="ph ph-clock-counter-clockwise"></i>'; name = '舊帳號'; sub = '由管理員合併'; }
+      return '<div class="zf-sso-lrow">' + ic + '<div><span class="zf-sso-lname">' + esc(name) + '</span>' + (sub ? '<span class="zf-sso-lsub">' + esc(sub) + '</span>' : '') + '</div></div>';
+    }).join('') + '</div>';
+  }
+  function noticeHtml(tone, text, actHtml) {
+    var ic = { info: 'info', success: 'check-circle', warning: 'warning', error: 'warning-circle' }[tone];
+    return '<div class="zf-notice ' + tone + '" role="' + (tone === 'error' ? 'alert' : 'status') + '"><i class="ph ph-' + ic + '"></i><div class="zf-notice-body">' + esc(text) + (actHtml ? '<div class="zf-notice-act">' + actHtml + '</div>' : '') + '</div></div>';
+  }
+  /* el＝卡片外框（.zf-sso-card），a＝auth()，done＝合併成功後要做的事；fail(d)＝預覽拿不到（不是 self_gmail）時 */
+  function mountNeedLink(el, a, done, fail) {
+    var pv = null, busy = false, state = { err: '', blocked: null };
+    function paint() {
+      var b = state.blocked;
+      el.className = 'zf-sso-card left';
+      el.innerHTML = '<h1 class="zf-sso-h1">加進同一個帳號</h1><div class="zf-sso-body">' +
+        (b === 'wp_conflict' ? noticeHtml('error', MSG_WP_CONFLICT, '<a class="zf-text-link sm" href="' + OA_URL + '" target="_blank" rel="noopener">聯絡老師</a>') : '') +
+        '<p class="zf-sso-line muted">這個信箱已經連結到你的帳號。按一下，就把這個 Google 登入也加進同一個帳號。</p>' +
+        linkedRows((pv && pv.items) || []) +
+        (state.err ? noticeHtml('error', state.err) : '') +
+        (b === 'split_pending' ? '<span class="zf-sso-small">' + esc(MSG_SPLIT_MERGE) + '</span>' : '') +
+        '<button type="button" class="zf-btn primary lg full" id="nlGo"' + (busy || b ? ' disabled' : '') + '>' + (busy ? '加入中…' : '加進同一個帳號') + '</button></div>';
+      var go = el.querySelector('#nlGo'); if (go) go.onclick = commit;
+    }
+    function preview() {
+      return api('/link/self-preview', {}, a.headers).then(function (d) {
+        if (!d || !d.success || d.mode !== 'self_gmail') { pv = null; return false; }
+        pv = d; state.blocked = d.blocked_reason || null; return true;
+      }, function () { pv = null; return false; });
+    }
+    function commit() {
+      if (busy || state.blocked) return;
+      busy = true; state.err = ''; paint();
+      (pv ? Promise.resolve(true) : preview()).then(function (ok) {
+        if (!ok) throw 0;
+        return api('/link/self-commit', { preview_id: pv.preview_id }, a.headers);
+      }).then(function (r) {
+        busy = false;
+        if (r && r.success) { done(); return; }
+        pv = null;   /* 預覽用過或過期了，下次重拿 */
+        if (r && (r.error === 'split_pending' || r.error === 'wp_conflict')) state.blocked = r.error;
+        else state.err = '這次沒有加進去，請再試一次。';
+        paint();
+      }, function () { busy = false; pv = null; state.err = '這次沒有加進去，請再試一次。'; paint(); });
+    }
+    return preview().then(function (ok) { if (!ok) { if (fail) fail(); return false; } paint(); return true; });
+  }
+
+  window.WindsLink = { auth: auth, api: api, mountAccount: mountAccount, runLinkPage: runLinkPage, row: row, esc: esc, G: G, CLIENT_ID: CLIENT_ID, mountNeedLink: mountNeedLink, noticeHtml: noticeHtml, OA_URL: OA_URL };
 })();

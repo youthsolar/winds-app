@@ -1,0 +1,285 @@
+---
+/* 商城／預約／課程（wp.winds.tw）的登入入口（2026-10-29，登入一致性 SSO 規格 §3.2；介面＝DS SSO-介面字-1028 A1／A3／A4／A5／A8／A9）。
+   WP /winds-sso/start 302 到這裡：#s=<state>[&ne=deleted|reserved|released|stale][&via=google|line]。
+   流程：讀 hash → replaceState 清掉 → 存 localStorage winds_sso_s（10 分鐘）→ whoami 一次一種憑證（via 指定的先，否則 Google 先；401 清掉換下一種）
+        → 都不行去 /login?return=%2Fsso%2Fwp&sso=1 → /wp-sso/code 領碼 → 成功 location.replace(wp callback#c=) 並記 winds_wp_sso=1。
+   這頁：不載頁首頁尾、不載追蹤（GA／Pixel／風小編／utm 記點）、noindex、no-store（伺服器端每次產生，才帶得上 Cache-Control）。 */
+import '../../styles/phosphor-regular.css';
+import '../../styles/phosphor-thin.css';
+import '../../styles/global.css';
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+Astro.response.headers.set('Referrer-Policy', 'no-referrer');
+---
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script is:inline src="/assets/theme-init.js?v=1027"></script>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <title>登入 · 找風問幸福</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    html,body{margin:0;background:var(--surface-page);}
+    .sw-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:64px 32px;box-sizing:border-box;background:var(--surface-page);color:var(--text-primary);font-family:var(--font-serif);}
+    .sw-in{width:100%;max-width:420px;}
+    @media (max-width:760px){.sw-wrap{padding:40px 20px;}}
+  </style>
+</head>
+<body>
+  <main class="sw-wrap">
+    <div class="sw-in">
+      <div class="zf-sso-card" id="swCard" aria-live="polite">
+        <div class="zf-sso-wait"><span class="zf-spinner"></span><span>正在幫你登入商城、預約、課程</span></div>
+      </div>
+      <noscript><div class="zf-sso-card"><div class="zf-sso-col"><p class="zf-sso-line">請回到剛才的頁面重新按登入</p><a class="zf-btn primary lg full" href="https://wp.winds.tw/winds-sso/start">回到商城</a></div></div></noscript>
+    </div>
+  </main>
+  <script is:inline src="/assets/line-login.js"></script>
+  <script is:inline src="/assets/account-link.js"></script>
+  <script is:inline>
+    (function () {
+      var API = 'https://api.winds.tw', KEY = 'winds_sso_s', WP = 'https://wp.winds.tw';
+      var START = WP + '/winds-sso/start', CALLBACK = WP + '/winds-sso/callback#c=';
+      var OA = 'https://lin.ee/tQHsgWB', TTL = 10 * 60 * 1000;
+      var card = document.getElementById('swCard');
+      var tx = null, actor = null, trace = '', timer = null;
+
+      function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+      function save() { try { localStorage.setItem(KEY, JSON.stringify(tx)); return localStorage.getItem(KEY) !== null; } catch (e) { return false; } }
+      function drop() { try { localStorage.removeItem(KEY); } catch (e) {} }
+      function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+
+      /* ── 畫面（DS sso-common.jsx：SsoCard／Waiting／FailCard／TraceCode）── */
+      function paint(cls, html) { stopTimer(); card.className = 'zf-sso-card' + (cls ? ' ' + cls : ''); card.innerHTML = html; }
+      function waiting() { paint('', '<div class="zf-sso-wait"><span class="zf-spinner"></span><span>正在幫你登入商城、預約、課程</span></div>'); }
+      /* A1 拿不到交易：定稿句＋主鈕〔回到商城〕連 /winds-sso/start */
+      function noTxn() {
+        paint('', '<div class="zf-sso-col"><p class="zf-sso-line">請回到剛才的頁面重新按登入</p><a class="zf-btn primary lg full" href="' + START + '">回到商城</a></div>');
+      }
+      /* 回到剛才的頁面：這次是從 WP 直接跳來的（hash 那一次載入）→ 上一頁就是剛才那頁；否則回商城首頁 */
+      var cameFromWp = false;
+      function back() { if (cameFromWp && history.length > 1) history.back(); else location.href = WP + '/'; }
+      /* A8 失敗卡／A9 維護句 */
+      var FAIL = {
+        blocked: ['這個帳號目前無法登入，請聯絡老師。', 'oa'],
+        manual: ['這個登入需要人工處理，我們已收到通知，請聯絡老師。', 'oa'],
+        retry: ['請回到剛才的頁面重新按登入。'],
+        rate: ['試太多次了，請一分鐘後再試。'],
+        busy: ['系統忙碌中，請稍後再試。'],
+      };
+      function fail(kind) {
+        var f = FAIL[kind] || FAIL.busy;
+        paint('', '<div class="zf-sso-col"><i class="ph-thin ph-cloud-warning zf-sso-icon" aria-hidden="true"></i><p class="zf-sso-fail">' + esc(f[0]) + '</p>' +
+          (trace ? '<span class="zf-sso-trace">追查碼 ' + esc(trace) + '</span>' : '') +
+          (f[1] === 'oa' ? '<a class="zf-btn primary lg full" href="' + OA + '" target="_blank" rel="noopener">聯絡老師</a>' : '<button type="button" class="zf-btn primary lg full" id="swBack">回到剛才的頁面</button>') + '</div>');
+        var b = document.getElementById('swBack'); if (b) b.onclick = back;
+      }
+      function maint() {
+        paint('', '<div class="zf-sso-col"><i class="ph-thin ph-cloud-warning zf-sso-icon" aria-hidden="true"></i><p class="zf-sso-fail">登入功能維護中，請稍後再試。</p><button type="button" class="zf-btn primary lg full" id="swBack">回到剛才的頁面</button></div>');
+        document.getElementById('swBack').onclick = back;
+      }
+      /* A5 兩組衝突 */
+      function conflict() {
+        paint('', '<div class="zf-sso-col"><i class="ph-thin ph-link-break zf-sso-icon" aria-hidden="true"></i><p class="zf-sso-line">你的帳號連到兩組紀錄，先到會員中心合成一組，再回來登入。</p><a class="zf-btn primary lg full" href="/account">到會員中心</a></div>');
+      }
+
+      function post(path, body, headers) {
+        var h = Object.assign({ 'Content-Type': 'application/json' }, headers || {});
+        return fetch(API + path, { method: 'POST', headers: h, body: JSON.stringify(body || {}) }).then(function (r) {
+          return r.json().then(function (d) { d = d && typeof d === 'object' ? d : {}; d._status = r.status; return d; }, function () { return { _status: r.status }; });
+        });
+      }
+      /* 共通：503 disabled＝維護；其他 503／連不上＝系統忙碌 */
+      function common(d) {
+        if (d._status === 503) { if (d.error === 'disabled') maint(); else fail('busy'); return true; }
+        return false;
+      }
+
+      /* ── 1. 交易 ── */
+      var h = new URLSearchParams(location.hash.replace(/^#/, ''));
+      var hs = h.get('s');
+      if (location.hash) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+      if (hs && /^[A-Za-z0-9_=-]{16,256}$/.test(hs)) {
+        var ne = h.get('ne'), via = h.get('via');
+        tx = { s: hs, t: Date.now(), ne: ['deleted', 'reserved', 'released', 'stale'].indexOf(ne) >= 0 ? ne : null, via: via === 'google' || via === 'line' ? via : null };
+        cameFromWp = /^https:\/\/wp\.winds\.tw(\/|$)/.test(document.referrer || '') || !document.referrer;
+        if (!save()) tx = null;   /* 存不進去（無痕、擋網站資料）：登入後回來一定接不上，當作拿不到交易 */
+      } else {
+        try { tx = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { tx = null; }
+        if (!tx || typeof tx.s !== 'string' || !(Date.now() - tx.t >= 0 && Date.now() - tx.t <= TTL)) { drop(); tx = null; }
+      }
+      if (!tx) { noTxn(); return; }
+
+      /* 追查碼＝sha256(state) 前 8 碼大寫：跟 worker wp_sso_codes.state_hash、WP cookie A 的 sh 對得起來 */
+      try {
+        crypto.subtle.digest('SHA-256', new TextEncoder().encode(tx.s)).then(function (b) {
+          trace = Array.prototype.map.call(new Uint8Array(b).slice(0, 4), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('').toUpperCase();
+        }, function () {});
+      } catch (e) {}
+
+      /* ── 2. 認人：一次一種憑證 ── */
+      function candidates() {
+        var g = null, l = null;
+        try { g = localStorage.getItem('winds_google_token'); } catch (e) {}
+        try { l = localStorage.getItem('winds_line_token'); } catch (e) {}
+        var list = [];
+        if (g) list.push({ via: 'google', key: 'winds_google_token', headers: { 'X-Google-Id-Token': g } });
+        if (l) list.push({ via: 'line', key: 'winds_line_token', headers: { 'X-Line-Id-Token': l } });
+        if (tx.via === 'line') list.reverse();
+        return list;
+      }
+      function toLogin() {
+        tx.lg = (tx.lg || 0) + 1;
+        if (tx.lg > 2 || !save()) { fail('retry'); return; }   /* 登入頁跳回來還是認不得人：不再繞圈 */
+        location.replace('/login?return=%2Fsso%2Fwp&sso=1');
+      }
+      function whoami() {
+        var list = candidates();
+        (function next(i) {
+          if (i >= list.length) { toLogin(); return; }
+          post('/wp-sso/whoami', {}, list[i].headers).then(function (d) {
+            if (d._status === 200 && d.ok) { actor = list[i]; begin(); return; }
+            if (d._status === 401) { try { localStorage.removeItem(list[i].key); } catch (e) {} next(i + 1); return; }
+            if (!common(d)) fail(d._status === 429 ? 'rate' : 'busy');
+          }, function () { fail('busy'); });
+        })(0);
+      }
+
+      /* ── 3. 領碼 ── */
+      function begin() { if (tx.ne && !tx.hint) emailStep({ reason: tx.ne }); else code(); }
+      function code() {
+        waiting();
+        var body = { state: tx.s }; if (tx.hint) body.email_hint = tx.hint;
+        post('/wp-sso/code', body, actor.headers).then(function (d) {
+          if (d._status === 200 && d.code) {
+            try { localStorage.setItem('winds_wp_sso', '1'); } catch (e) {}
+            drop();
+            location.replace(CALLBACK + encodeURIComponent(d.code));
+            return;
+          }
+          if (common(d)) return;
+          var e = d.error;
+          if (d._status === 401) { actor = null; whoami(); return; }   /* 憑證剛好過期：重新認人（401 那顆會被清掉） */
+          if (e === 'need_email') return emailStep({});
+          if (e === 'need_link') return needLink();
+          if (e === 'group_conflict') return conflict();
+          if (e === 'blocked') return fail('blocked');
+          if (e === 'multi_user' || e === 'group_too_large') return fail('manual');
+          if (d._status === 429) return fail('rate');
+          fail(e === 'state_used' || d._status === 400 ? 'retry' : 'busy');
+        }, function () { fail('busy'); });
+      }
+
+      /* ── A4 need_link ── */
+      function needLink() {
+        if (!window.WindsLink) { fail('busy'); return; }
+        stopTimer();
+        WindsLink.mountNeedLink(card, { via: actor.via, headers: actor.headers }, function () { code(); }, function () { fail('busy'); });
+      }
+
+      /* ── A3 留信箱（同一張卡切兩段）── */
+      var LEAD = { deleted: '這個信箱的舊帳號已註銷，請留另一個信箱', reserved: '這個信箱已被管理帳號使用，請留另一個信箱', released: '請留另一個信箱', stale: '請再驗一次信箱' };
+      var em = { email: '', masked: '' };
+      function sendErr(d) {
+        var e = d.error;
+        if (e === 'email_rejected') return LEAD[d.reason] || LEAD.released;
+        if (e === 'bad_request') return '信箱格式不對';
+        if (e === 'rate_limited') return '這個信箱今天寄太多次了，請稍後再試';
+        if (e === 'send_failed') return '信寄不出去，請再試一次';
+        if (e === 'unavailable') return '現在寄不出去，請一分鐘後再試';
+        if (e === 'locked') return '錯太多次了，請 30 分鐘後再試';
+        return '信寄不出去，請再試一次';
+      }
+      function countdown(sec, btn, label, waitLabel) {
+        var left = Math.max(1, Math.ceil(Number(sec) || 60));
+        function tick() {
+          if (!btn.isConnected) { stopTimer(); return; }
+          if (left <= 0) { stopTimer(); btn.disabled = false; btn.textContent = label; return; }
+          btn.disabled = true; btn.textContent = waitLabel(left); left--;
+        }
+        stopTimer(); tick(); timer = setInterval(tick, 1000);
+      }
+      function field(id, label, attrs, err, val) {
+        return '<label class="zf-field' + (err ? ' invalid' : '') + '"><span class="zf-field-label">' + label + '</span>' +
+          '<input class="zf-input" id="' + id + '" ' + attrs + ' value="' + esc(val || '') + '"' + (err ? ' aria-invalid="true" aria-describedby="' + id + 'H"' : '') + '>' +
+          (err ? '<span class="zf-field-hint" id="' + id + 'H">' + esc(err) + '</span>' : '') + '</label>';
+      }
+      function emailStep(o) {
+        var lead = LEAD[o.reason] || '留一個信箱，商城的訂單通知會寄到這裡。';
+        paint('left', '<h1 class="zf-sso-h1">留一個信箱</h1><div class="zf-sso-body">' +
+          '<p class="zf-sso-line muted">' + esc(lead) + '</p>' +
+          field('swEmail', '信箱', 'type="email" inputmode="email" autocomplete="email" placeholder="you@gmail.com" autocapitalize="off" spellcheck="false"', o.error, o.value) +
+          '<button type="button" class="zf-btn primary lg full" id="swSend">寄驗證碼</button></div>');
+        var input = document.getElementById('swEmail'), btn = document.getElementById('swSend');
+        if (o.wait) countdown(o.wait, btn, '寄驗證碼', function (n) { return '請等 ' + n + ' 秒再寄'; });
+        function go() {
+          var v = String(input.value || '').trim().toLowerCase();
+          if (!v) { input.focus(); return; }
+          btn.disabled = true;
+          post('/wp-sso/email/send', { email: v }, actor.headers).then(function (d) {
+            if (d._status === 200 && d.ok) { em = { email: v, masked: d.email_masked || v }; codeStep({ wait: d.resend_after || 60 }); return; }
+            if (d._status === 401) { actor = null; whoami(); return; }
+            if (d._status === 503 && d.error === 'disabled') { maint(); return; }
+            if (d.error === 'too_soon') { emailStep({ reason: o.reason, value: v, wait: d.retry_after || 60 }); return; }
+            emailStep({ reason: o.reason, value: v, error: sendErr(d) });
+          }, function () { emailStep({ reason: o.reason, value: v, error: '信寄不出去，請再試一次' }); });
+        }
+        btn.onclick = go;
+        input.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); if (!btn.disabled) go(); } };
+      }
+      function codeStep(o) {
+        paint('left', '<h1 class="zf-sso-h1">留一個信箱</h1><div class="zf-sso-body">' +
+          '<p class="zf-sso-line lead">驗證碼已寄到 <b>' + esc(em.masked) + '</b></p>' +
+          field('swCode', '6 位數驗證碼', 'type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"', o.error, o.value) +
+          '<button type="button" class="zf-btn primary lg full" id="swVerify">送出</button>' +
+          '<button type="button" class="zf-btn ghost lg full" id="swResend">重寄驗證碼</button>' +
+          '<button type="button" class="zf-text-link sm muted" id="swOther">換一個信箱</button></div>');
+        var input = document.getElementById('swCode'), vb = document.getElementById('swVerify'), rb = document.getElementById('swResend');
+        if (o.wait) countdown(o.wait, rb, '重寄驗證碼', function (n) { return n + ' 秒後可重寄'; });
+        document.getElementById('swOther').onclick = function () { emailStep({ value: em.email }); };
+        rb.onclick = function () {
+          rb.disabled = true;
+          post('/wp-sso/email/send', { email: em.email }, actor.headers).then(function (d) {
+            if (d._status === 200 && d.ok) { em.masked = d.email_masked || em.masked; codeStep({ wait: d.resend_after || 60 }); return; }
+            if (d._status === 401) { actor = null; whoami(); return; }
+            if (d._status === 503 && d.error === 'disabled') { maint(); return; }
+            if (d.error === 'too_soon') { codeStep({ wait: d.retry_after || 60, value: input.value }); return; }
+            codeStep({ error: sendErr(d), value: input.value });
+          }, function () { codeStep({ error: '信寄不出去，請再試一次', value: input.value }); });
+        };
+        function verify() {
+          var c = String(input.value || '').replace(/\D/g, '');
+          if (c.length !== 6) { input.focus(); return; }
+          vb.disabled = true;
+          post('/wp-sso/email/verify', { email: em.email, code: c }, actor.headers).then(function (d) {
+            if (d._status === 200 && d.ok) {
+              tx.hint = d.email || em.email; tx.ne = null;
+              if (!save()) { fail('retry'); return; }
+              code(); return;
+            }
+            if (d._status === 401) { actor = null; whoami(); return; }
+            if (d._status === 503 && d.error === 'disabled') { maint(); return; }
+            var msg = d.error === 'wrong' ? '驗證碼不對，還可以試 ' + (Number(d.left) || 0) + ' 次'
+              : d.error === 'expired' ? '驗證碼已過期，請重寄'
+              : d.error === 'locked' ? '錯太多次了，請 30 分鐘後再試'
+              : '系統忙碌中，請稍後再試。';
+            codeStep({ error: msg, value: c });
+          }, function () { codeStep({ error: '系統忙碌中，請稍後再試。', value: c }); });
+        }
+        vb.onclick = verify;
+        input.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); verify(); } };
+        input.oninput = function () { var c = input.value.replace(/\D/g, '').slice(0, 6); if (c !== input.value) input.value = c; };
+      }
+
+      whoami();
+    })();
+  </script>
+</body>
+</html>
