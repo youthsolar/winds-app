@@ -1,7 +1,7 @@
 ---
 /* 商城／預約／課程（wp.winds.tw）的登入入口（2026-10-29，登入一致性 SSO 規格 §3.2；介面＝DS SSO-介面字-1028 A1／A3／A4／A5／A8／A9）。
    WP /winds-sso/start 302 到這裡：#s=<state>[&ne=deleted|reserved|released|stale][&via=google|line]。
-   流程：讀 hash → replaceState 清掉 → 存 localStorage winds_sso_s（10 分鐘）→ whoami 一次一種憑證（via 指定的先，否則 Google 先；401 清掉換下一種）
+   流程：讀 hash → replaceState 清掉 → 存 localStorage winds_sso_s（10 分鐘）→ whoami 一次一種憑證（帶 via 只用那一種，沒有或 401 就去登入頁讓他選；沒帶 via 才 Google 先、401 清掉換下一種）
         → 都不行去 /login?return=%2Fsso%2Fwp&sso=1 → /wp-sso/code 領碼 → 成功 location.replace(wp callback#c=) 並記 winds_wp_sso＝這次登進 WP 的身分（line:<sub>／google:<sub>）。
    這頁：不載頁首頁尾、不載追蹤（GA／Pixel／風小編／utm 記點）、noindex、no-store（伺服器端每次產生，才帶得上 Cache-Control）。 */
 import '../../styles/phosphor-regular.css';
@@ -124,19 +124,22 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         }, function () {});
       } catch (e) {}
 
-      /* ── 2. 認人：一次一種憑證 ── */
+      /* ── 2. 認人：一次一種憑證 ──
+         2026-10-29 審查必改 B：URL 帶 via（客人在 WP 按的是哪一顆）就只用那一種；那種憑證沒有或被 401 拒絕 → 去登入頁兩顆鈕讓他選，
+         不偷換成另一種（原本 via=line 但只有 Google 憑證時會直接用 Google 登，可能登進別人的帳號）。只有沒帶 via 才自動挑（Google 先）。 */
       function candidates() {
         var g = null, l = null;
         try { g = localStorage.getItem('winds_google_token'); } catch (e) {}
         try { l = localStorage.getItem('winds_line_token'); } catch (e) {}
         var list = [];
-        if (g) list.push({ via: 'google', key: 'winds_google_token', token: g, headers: { 'X-Google-Id-Token': g } });
-        if (l) list.push({ via: 'line', key: 'winds_line_token', token: l, headers: { 'X-Line-Id-Token': l } });
-        if (tx.via === 'line') list.reverse();
+        if (g && tx.via !== 'line') list.push({ via: 'google', key: 'winds_google_token', token: g, headers: { 'X-Google-Id-Token': g } });
+        if (l && tx.via !== 'google') list.push({ via: 'line', key: 'winds_line_token', token: l, headers: { 'X-Line-Id-Token': l } });
         return list;
       }
       function toLogin() {
         tx.lg = (tx.lg || 0) + 1;
+        /* 指定的那種用不了：登入頁上客人自己選的才算數 → 拿掉 via，並關掉登入頁的「認得人就自動跳回」（不然會用另一種憑證自動跳回＝偷換） */
+        if (tx.via) { tx.via = null; tx.lr = 1; }
         if (tx.lg > 2 || !save()) { fail('retry'); return; }   /* 登入頁跳回來還是認不得人：不再繞圈 */
         location.replace('/login?return=%2Fsso%2Fwp&sso=1');
       }
