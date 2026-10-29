@@ -132,25 +132,26 @@
 
   /* 進 WP 前先換人（2026-10-29 第三批，Opus 第 8 輪必改）：禮物頁、起卦頁 Google 登入不繞 WP（'stay'），WP 可能還是前一位。
      點任何指向 https://wp.winds.tw 的連結（含之後動態插入的，用 document 事件委派、capture 階段）時比：
-       旗標 winds_wp_sso 有值、網站目前有登入身分（Google 先、沒有再 LINE，憑證要沒過期）、兩者不同（舊格式 '1' 也算不同）
+       旗標 winds_wp_sso 有值、網站目前有登入身分（Google、LINE 各算一個，憑證要沒過期）、旗標不等於其中任何一個（舊格式 '1' 也算不同）
        → 不進 WP，改去 WP 登出頁（帶 Referer；繞完落 /?signed_out=1＝§11 拍板代價）。網站沒登入身分（憑證過期）→ 不攔。
      /winds-sso/ 底下不攔：logout 本身就是登出頁；start 會回 /sso/wp 用網站現在的身分領碼，WP finish 自己換人。
      開新分頁：Ctrl／⌘／Shift＋點、中鍵（auxclick）一樣攔下、改在這一頁繞（不開新分頁）；
      右鍵或長按選「在新分頁開啟」攔不到點擊 → contextmenu 時把該連結的 href 換成 WP 登出頁（之後恢復原網址時再比一次）。 */
-  function wpAlias() {
-    var t = '', p = null;
-    try { t = localStorage.getItem('winds_google_token') || ''; } catch (e) {}
-    p = t ? decode(t) : null;
-    if (p && p.sub) return 'google:' + p.sub;
-    try { t = localStorage.getItem('winds_line_token') || ''; } catch (e) { t = ''; }
-    p = t ? decode(t) : null;
-    return p && p.sub ? 'line:' + p.sub : null;
+  function wpAliases() {
+    var out = [], t, p;
+    [['google', 'winds_google_token'], ['line', 'winds_line_token']].forEach(function (k) {
+      t = ''; try { t = localStorage.getItem(k[1]) || ''; } catch (e) {}
+      p = t ? decode(t) : null;
+      if (p && p.sub) out.push(k[0] + ':' + p.sub);
+    });
+    return out;
   }
+  /* 旗標等於網站上任何一個有效身分就放行（兩種憑證並存時，WP 用哪一種登都不算換人） */
   function wpMismatch() {
     var f = null; try { f = localStorage.getItem('winds_wp_sso'); } catch (e) {}
     if (!f) return false;
-    var me = wpAlias();
-    return !!me && f !== me;
+    var me = wpAliases();
+    return me.length > 0 && me.indexOf(f) < 0;
   }
   function wpLink(el) {
     var a = el && el.closest ? el.closest('a[href]') : null;
