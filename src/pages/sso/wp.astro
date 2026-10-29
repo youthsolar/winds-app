@@ -49,7 +49,8 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
       var START = WP + '/winds-sso/start', CALLBACK = WP + '/winds-sso/callback#c=';
       var OA = 'https://lin.ee/tQHsgWB', TTL = 10 * 60 * 1000;
       var card = document.getElementById('swCard');
-      var tx = null, actor = null, trace = '', timer = null;
+      var tx = null, actor = null, trace = '', timer = null, code401 = 0;
+      function has(o, k) { return typeof k === 'string' && Object.prototype.hasOwnProperty.call(o, k); }   /* 伺服器給的字串查表：不讓 __proto__／constructor 之類撞到原型 */
 
       function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
       function save() { try { localStorage.setItem(KEY, JSON.stringify(tx)); return localStorage.getItem(KEY) !== null; } catch (e) { return false; } }
@@ -75,7 +76,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         busy: ['系統忙碌中，請稍後再試。'],
       };
       function fail(kind) {
-        var f = FAIL[kind] || FAIL.busy;
+        var f = has(FAIL, kind) ? FAIL[kind] : FAIL.busy;
         paint('', '<div class="zf-sso-col"><i class="ph-thin ph-cloud-warning zf-sso-icon" aria-hidden="true"></i><p class="zf-sso-fail">' + esc(f[0]) + '</p>' +
           (trace ? '<span class="zf-sso-trace">追查碼 ' + esc(trace) + '</span>' : '') +
           (f[1] === 'oa' ? '<a class="zf-btn primary lg full" href="' + OA + '" target="_blank" rel="noopener">聯絡老師</a>' : '<button type="button" class="zf-btn primary lg full" id="swBack">回到剛才的頁面</button>') + '</div>');
@@ -117,12 +118,15 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
       }
       if (!tx) { noTxn(); return; }
 
-      /* 追查碼＝sha256(state) 前 8 碼大寫：跟 worker wp_sso_codes.state_hash、WP cookie A 的 sh 對得起來 */
-      try {
-        crypto.subtle.digest('SHA-256', new TextEncoder().encode(tx.s)).then(function (b) {
-          trace = Array.prototype.map.call(new Uint8Array(b).slice(0, 4), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('').toUpperCase();
-        }, function () {});
-      } catch (e) {}
+      /* 追查碼＝sha256(state) 前 8 碼大寫：跟 worker wp_sso_codes.state_hash、WP cookie A 的 sh 對得起來。
+         2026-10-29 審查建議 1：先算好再開始認人（原本跟 whoami 同時跑，whoami 很快失敗時卡片會少追查碼） */
+      function traced() {
+        try {
+          return crypto.subtle.digest('SHA-256', new TextEncoder().encode(tx.s)).then(function (b) {
+            trace = Array.prototype.map.call(new Uint8Array(b).slice(0, 4), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('').toUpperCase();
+          }, function () {});
+        } catch (e) { return Promise.resolve(); }
+      }
 
       /* ── 2. 認人：一次一種憑證 ──
          2026-10-29 審查必改 B：URL 帶 via（客人在 WP 按的是哪一顆）就只用那一種；那種憑證沒有或被 401 拒絕 → 去登入頁兩顆鈕讓他選，
@@ -157,7 +161,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
 
       /* ── 3. 領碼 ── */
       function begin() { if (tx.ne && !tx.hint) emailStep({ reason: tx.ne }); else code(); }
-      function code() {
+      function code(opts) {
         waiting();
         var body = { state: tx.s }; if (tx.hint) body.email_hint = tx.hint;
         post('/wp-sso/code', body, actor.headers).then(function (d) {
@@ -171,8 +175,9 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
           }
           if (common(d)) return;
           var e = d.error;
-          if (d._status === 401) { actor = null; whoami(); return; }   /* 憑證剛好過期：重新認人（401 那顆會被清掉） */
-          if (e === 'need_email') return emailStep({});
+          /* 憑證剛好過期：重新認人一次（whoami 401 那顆會被清掉）；第二次還 401 就停（審查建議 2：原本沒上限，whoami 過、code 拒會一直繞） */
+          if (d._status === 401) { if (++code401 >= 2) { fail('retry'); return; } actor = null; whoami(); return; }
+          if (e === 'need_email') return opts && opts.onNeedEmail ? opts.onNeedEmail() : emailStep({});
           if (e === 'need_link') return needLink();
           if (e === 'group_conflict') return conflict();
           if (e === 'blocked') return fail('blocked');
@@ -194,7 +199,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
       var em = { email: '', masked: '' };
       function sendErr(d) {
         var e = d.error;
-        if (e === 'email_rejected') return LEAD[d.reason] || LEAD.released;
+        if (e === 'email_rejected') return has(LEAD, d.reason) ? LEAD[d.reason] : LEAD.released;
         if (e === 'bad_request') return '信箱格式不對';
         if (e === 'rate_limited') return '這個信箱今天寄太多次了，請稍後再試';
         if (e === 'send_failed') return '信寄不出去，請再試一次';
@@ -217,7 +222,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
           (err ? '<span class="zf-field-hint" id="' + id + 'H">' + esc(err) + '</span>' : '') + '</label>';
       }
       function emailStep(o) {
-        var lead = LEAD[o.reason] || '留一個信箱，商城的訂單通知會寄到這裡。';
+        var lead = has(LEAD, o.reason) ? LEAD[o.reason] : '留一個信箱，商城的訂單通知會寄到這裡。';
         paint('left', '<h1 class="zf-sso-h1">留一個信箱</h1><div class="zf-sso-body">' +
           '<p class="zf-sso-line muted">' + esc(lead) + '</p>' +
           field('swEmail', '信箱', 'type="email" inputmode="email" autocomplete="email" placeholder="you@gmail.com" autocapitalize="off" spellcheck="false"', o.error, o.value) +
@@ -252,7 +257,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         rb.onclick = function () {
           rb.disabled = true;
           post('/wp-sso/email/send', { email: em.email }, actor.headers).then(function (d) {
-            if (d._status === 200 && d.ok) { em.masked = d.email_masked || em.masked; codeStep({ wait: d.resend_after || 60 }); return; }
+            if (d._status === 200 && d.ok) { em.masked = d.email_masked || em.masked; em.unavail = false; codeStep({ wait: d.resend_after || 60 }); return; }
             if (d._status === 401) { actor = null; whoami(); return; }
             if (d._status === 503 && d.error === 'disabled') { maint(); return; }
             if (d.error === 'too_soon') { codeStep({ wait: d.retry_after || 60, value: input.value }); return; }
@@ -271,6 +276,17 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
             }
             if (d._status === 401) { actor = null; whoami(); return; }
             if (d._status === 503 && d.error === 'disabled') { maint(); return; }
+            if (d.error === 'unavailable') em.unavail = true;
+            /* 審查建議 3（契約：verify 回 unavailable＝不知道有沒有寫進去；寫進去了再驗會 expired，但信箱其實已驗過）
+               → 之前回過 unavailable、這次 expired：先帶 email_hint 領一次碼，領得到就續接；還是 need_email 才請他重寄 */
+            if (d.error === 'expired' && em.unavail) {
+              em.unavail = false;
+              var prevHint = tx.hint;
+              tx.hint = em.email;
+              if (!save()) { fail('retry'); return; }
+              code({ onNeedEmail: function () { tx.hint = prevHint; save(); codeStep({ error: '驗證碼已過期，請重寄', value: c }); } });
+              return;
+            }
             var msg = d.error === 'wrong' ? '驗證碼不對，還可以試 ' + (Number(d.left) || 0) + ' 次'
               : d.error === 'expired' ? '驗證碼已過期，請重寄'
               : d.error === 'locked' ? '錯太多次了，請 30 分鐘後再試'
@@ -283,7 +299,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         input.oninput = function () { var c = input.value.replace(/\D/g, '').slice(0, 6); if (c !== input.value) input.value = c; };
       }
 
-      whoami();
+      traced().then(whoami);
     })();
   </script>
 </body>
