@@ -137,7 +137,8 @@
          旗標空＝不繞；'1'（舊格式）或≠新身分＝換人要繞；＝新身分＝不繞。
          已接受的代價：已合併帳號的同一人換用另一種登入，會多繞一次 WP 登出。
        ・新憑證存好之後才繞；進行中 SSO 交易（回 /sso/wp）不繞，WP finish 自己會換人；旗標留著（WP 還是前一位，領碼成功才改寫）
-       ・決定繞時把旗標刪掉（WP 要登出了）；沒繞時旗標原樣放回（網站換人的清除會清到它，但 WP 那邊沒變）
+       ・旗標一律原樣放回（網站換人的清除會清到它）：決定繞時也不刪——10/29 第三批（Opus 第 8 輪建議）改成回到 /?signed_out=1
+         （WP 登出 POST 成功才會 303 到這裡）才由首頁清；WP 只出按鈕、客人沒按就離開，下次登入或點 WP 連結會再比、再繞
        ・第 4 個參數 mode：true＝SSO 交易中；'stay'＝呼叫的頁登入完要接著做事（領取禮物、起卦／看報告），離頁會打斷 → 不繞、旗標原樣留，
          WP 等下一次從 /login、LINE 登入或 WP 自己 finish 時再換人；網站換人也只清前一位的另一種憑證，不全清 winds_（10/29 gift／FunnelDocument 用） */
   var GTOKEN = 'winds_google_token';
@@ -170,9 +171,8 @@
     try { setRequired(mine, idToken); } catch (e) { if (hadWp) set(WP_SSO, hadWp); throw e; }
     var noBounce = mode === true || mode === 'stay' || isSsoReturn(ret);
     var wpOther = !!hadWp && hadWp !== alias;
-    if (wpOther && !noBounce) { del(WP_SSO); return WP_LOGOUT; }
     if (hadWp) set(WP_SSO, hadWp);
-    return ret;
+    return wpOther && !noBounce ? WP_LOGOUT : ret;
   }
 
   /* 給 /auth/line-callback 用：比對 state、換憑證、存起來，回傳要跳去的頁。

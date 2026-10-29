@@ -27,8 +27,10 @@
     return '<span style="width:' + size + 'px;height:' + size + 'px;border-radius:999px;flex:none;display:inline-flex;align-items:center;justify-content:center;background:var(--rose-100);color:var(--rose-600);font-family:var(--font-serif);font-size:' + Math.round(size * 0.44) + 'px;font-weight:500;' + ring + '">' + esc(initial) + '</span>';
   }
 
-  /* 真正登出（2026-10-29 SSO 規格 §11）：先把 winds_wp_sso 讀進變數 → 清本機（winds_wp_sso、winds_sso_s 也一起清，不保留）
+  /* 真正登出（2026-10-29 SSO 規格 §11）：先把 winds_wp_sso 讀進變數 → 清本機（winds_sso_s 也一起清，不保留）
      → 這台瀏覽器登入過商城／預約／課程才去 WP 登出頁（那頁送出後回 winds.tw/?signed_out=1）；沒有就回首頁。
+     10/29 第三批（Opus 第 8 輪建議）：要去 WP 登出頁時 winds_wp_sso 先留著，回到 /?signed_out=1（WP 登出 POST 成功才會 303 到這裡）由首頁清；
+     WP 只出按鈕、客人沒按就離開 → 旗標還在，下次登入或點 WP 連結會再比、再繞。網站本機憑證照清。
      opts.skipWp：WP 已經登出了（?signed_out=wp 的〔也登出網站〕）就不再繞。會員中心登出也呼叫這支。 */
   var WP_LOGOUT = 'https://wp.winds.tw/winds-sso/logout';
   function signOut(opts) {
@@ -38,7 +40,8 @@
        還會用 winds_ff_log／k 撈到前一個人的姓名、生日、信箱。跟會員中心登出同一套：清掉所有 winds_ 開頭的鍵。 */
     try {
       var kill = [];
-      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider') kill.push(k); }   // 老師後台的篩選偏好不是個資，留著；老師密碼照清
+      var goWp = !!hadWp && !(opts && opts.skipWp);
+      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && !(goWp && k === 'winds_wp_sso')) kill.push(k); }   // 老師後台的篩選偏好不是個資，留著；老師密碼照清
       kill.forEach(function (k) { localStorage.removeItem(k); });
     } catch (er) {}
     try { sessionStorage.removeItem('winds_pending_log_id'); } catch (er) {}
