@@ -87,11 +87,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           var tx = null; try { tx = JSON.parse(localStorage.getItem('winds_sso_s') || 'null'); } catch (e) {}
           if (!tx || !tx.s || !(Date.now() - tx.t <= 10 * 60 * 1000) || tx.lr) return;
           var cands = [];
-          try { var g = localStorage.getItem('winds_google_token'); if (g) cands.push({ 'X-Google-Id-Token': g }); } catch (e) {}
-          try { var l = localStorage.getItem('winds_line_token'); if (l) cands.push({ 'X-Line-Id-Token': l }); } catch (e) {}
+          /* 10/29 第四批：跟 /sso/wp 一樣的請求（POST、Content-Type JSON、body {}）；契約 whoami 輸入＝無、憑 header */
+          try { var g = localStorage.getItem('winds_google_token'); if (g) cands.push({ 'Content-Type': 'application/json', 'X-Google-Id-Token': g }); } catch (e) {}
+          try { var l = localStorage.getItem('winds_line_token'); if (l) cands.push({ 'Content-Type': 'application/json', 'X-Line-Id-Token': l }); } catch (e) {}
           (function next(i) {
             if (i >= cands.length) return;
-            fetch('https://api.winds.tw/wp-sso/whoami', { method: 'POST', headers: cands[i] }).then(function (r) {
+            fetch('https://api.winds.tw/wp-sso/whoami', { method: 'POST', headers: cands[i], body: '{}' }).then(function (r) {
               if (r.status !== 200) return next(i + 1);
               tx.lr = 1;
               try { localStorage.setItem('winds_sso_s', JSON.stringify(tx)); } catch (e) { return; }
