@@ -137,7 +137,9 @@
          旗標空＝不繞；'1'（舊格式）或≠新身分＝換人要繞；＝新身分＝不繞。
          已接受的代價：已合併帳號的同一人換用另一種登入，會多繞一次 WP 登出。
        ・新憑證存好之後才繞；進行中 SSO 交易（回 /sso/wp）不繞，WP finish 自己會換人；旗標留著（WP 還是前一位，領碼成功才改寫）
-       ・決定繞時把旗標刪掉（WP 要登出了）；沒繞時旗標原樣放回（網站換人的清除會清到它，但 WP 那邊沒變） */
+       ・決定繞時把旗標刪掉（WP 要登出了）；沒繞時旗標原樣放回（網站換人的清除會清到它，但 WP 那邊沒變）
+       ・第 4 個參數 mode：true＝SSO 交易中；'stay'＝呼叫的頁登入完要接著做事（領取禮物、起卦／看報告），離頁會打斷 → 不繞、旗標原樣留，
+         WP 等下一次從 /login、LINE 登入或 WP 自己 finish 時再換人；網站換人也只清前一位的另一種憑證，不全清 winds_（10/29 gift／FunnelDocument 用） */
   var GTOKEN = 'winds_google_token';
   function claims(t) {
     try { return JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))))); } catch (e) { return null; }
@@ -146,7 +148,7 @@
   function isSsoReturn(ret) {
     try { var u = new URL(String(ret || ''), location.origin); return u.pathname.replace(/\/+$/, '') === '/sso/wp' || u.searchParams.get('sso') === '1'; } catch (e) { return false; }
   }
-  function afterLogin(kind, idToken, ret, sso) {
+  function afterLogin(kind, idToken, ret, mode) {
     var hadWp = get(WP_SSO);
     var alias = aliasOf(kind, idToken);
     var mine = kind === 'line' ? TOKEN : GTOKEN, other = kind === 'line' ? GTOKEN : TOKEN;
@@ -154,16 +156,21 @@
     try {
       var old = localStorage.getItem(mine), op = old ? claims(old) : null, np = claims(idToken);
       switched = !!localStorage.getItem(other) || !!(old && (!op || !np || op.sub !== np.sub));
-      if (switched) {
+      if (switched && mode === 'stay') {
+        /* 'stay'：頁面流程進行中，本機還有這次的卦／分潤來源／信件憑證（winds_ff_*、winds_partner_pk、winds_edm_token…），全清會打斷 →
+           只拿掉前一位的另一種登入憑證（Q2：不然 WP〔用 LINE 登入〕會拿前一位的 LINE 憑證）；同種憑證下面直接蓋掉 */
+        localStorage.removeItem(other);
+        if (other === TOKEN) localStorage.removeItem(FRIEND);
+      } else if (switched) {
         var kill = [];
         for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k !== 'winds_first_touch' && k !== SSO_TXN && k.indexOf(TXN) !== 0) kill.push(k);   /* 第一次從哪來是這台瀏覽器的，不是前一位的（Astra 導流收單驗收 #2） */ }
         kill.forEach(function (k) { localStorage.removeItem(k); });
       }
     } catch (e) {}
     try { setRequired(mine, idToken); } catch (e) { if (hadWp) set(WP_SSO, hadWp); throw e; }
-    var inSso = sso === true || isSsoReturn(ret);
+    var noBounce = mode === true || mode === 'stay' || isSsoReturn(ret);
     var wpOther = !!hadWp && hadWp !== alias;
-    if (wpOther && !inSso) { del(WP_SSO); return WP_LOGOUT; }
+    if (wpOther && !noBounce) { del(WP_SSO); return WP_LOGOUT; }
     if (hadWp) set(WP_SSO, hadWp);
     return ret;
   }

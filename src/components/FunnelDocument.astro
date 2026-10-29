@@ -2852,7 +2852,11 @@ function handleGoogleCredential(resp){
   if(!resp||!resp.credential)return;
   var firstLogin=false;try{firstLogin=!localStorage.getItem("winds_google_token");}catch(e){}
   if(!adoptGoogleToken(resp.credential))return;
-  try{localStorage.setItem("winds_google_token",resp.credential);}catch(e){}
+  /* 2026-10-29 SSO：比照 /login 走 WindsLine.afterLogin（換人時清前一位，含前一位的 LINE 憑證）。這頁登入是在起卦／看報告／付款途中，
+     繞 WP 登出頁會打斷 → 'stay'：不繞、WP 旗標原樣留（草稿用 zf_ffdraft: 開頭，換人清除碰不到） */
+  var saved=false;
+  try{if(window.WindsLine&&WindsLine.afterLogin){WindsLine.afterLogin("google",resp.credential,location.pathname,"stay");saved=true;}}catch(e){}
+  if(!saved){try{localStorage.setItem("winds_google_token",resp.credential);}catch(e){}}
   /* 量測：Lead＝此瀏覽器第一次登入/綁定（重複登入不重送） */
   if(firstLogin){try{if(window.fbq)fbq('track','Lead');if(window.gtag)gtag('event','sign_up',{method:'google'});}catch(e){}}
   doPrefill();

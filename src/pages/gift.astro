@@ -167,6 +167,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 
   <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
+  <script is:inline src="/assets/line-login.js" defer></script>   <!-- 2026-10-29 SSO：Google 登入換人時清前一位（WindsLine.afterLogin）；只在按下 Google 登入後才用到，defer 不擋畫面 -->
   <script is:inline>
     (function () {
       var WORKER_API = 'https://api.winds.tw';
@@ -228,7 +229,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       function onCredential(resp) {
         if (!resp || !resp.credential) return;
-        try { localStorage.setItem('winds_google_token', resp.credential); } catch (e) {}
+        /* 2026-10-29 SSO：比照 /login 走 WindsLine.afterLogin（換人時清前一位，含前一位的 LINE 憑證）。
+           這頁登入完要接著領取、結果連結就顯示在這頁，繞 WP 登出頁會把領取打斷 → 'stay'：不繞、WP 旗標原樣留 */
+        var saved = false;
+        try { if (window.WindsLine && WindsLine.afterLogin) { WindsLine.afterLogin('google', resp.credential, location.pathname, 'stay'); saved = true; } } catch (e) {}
+        if (!saved) { try { localStorage.setItem('winds_google_token', resp.credential); } catch (e) {} }
         var eo = reLoginExistingOnly; reLoginExistingOnly = false;
         claim(resp.credential, eo);
       }
