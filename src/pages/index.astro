@@ -75,7 +75,8 @@ const homeJsonLd = {
 <BaseLayout title="找風問幸福｜先聽聽現在的自己" description={pageDesc} ogType="website" jsonLd={homeJsonLd}>
   <main class="home" data-scenarios={JSON.stringify(SCENARIOS)} data-default={DEFAULT}>
     <!-- DS SSO-介面字-1028 A10（2026-10-29）：從 WP 自己登出回來（?signed_out=wp）＝首頁內容上方一條 Notice info＋〔也登出網站〕＋關閉；
-         不自動清網站登入（規格 §11）；關掉就把參數拿掉、不再出現。?signed_out=1 不顯示任何東西。 -->
+         不自動清網站登入（規格 §11）；關掉就把參數拿掉、不再出現。?signed_out=1 不顯示任何東西。
+         DS 1029 第 6 點：?signed_out=switch（換人繞 WP 登出回來）＝清旗標＋一條 Notice info＋關閉、不放按鈕。 -->
     <div class="hm-so" id="hmSignedOut" hidden></div>
     <script is:inline>
       (function () {
@@ -86,16 +87,26 @@ const homeJsonLd = {
           q.delete('signed_out'); try { history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash); } catch (e) {}   /* 比照 wp 分支把參數拿掉 */
           return;
         }
+        var box = document.getElementById('hmSignedOut');
+        function clean() { q.delete('signed_out'); try { history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash); } catch (e) {} }
+        /* DS 1029 第 6 點（J35）：?signed_out=switch＝換人時繞 WP 登出（r=switch）成功回來 → 比照 =1 清旗標，另出一條 Notice info＋關閉、不放按鈕；
+           關掉才拿掉參數（重新整理前沒關會再出現一次，關了就不再出現） */
+        if (q.get('signed_out') === 'switch') {
+          try { localStorage.removeItem('winds_wp_sso'); } catch (e) {}
+          box.innerHTML = '<div class="zf-notice info" role="status"><i class="ph ph-info"></i><div class="zf-notice-body">商城剛才還登著前一位的帳號，已經幫你登出了。要繼續結帳，請回到商品頁重新選一次。</div>' +
+            '<button type="button" class="zf-notice-x" id="hmSoX" aria-label="關閉提示"><i class="ph ph-x"></i></button></div>';
+          box.hidden = false;
+          document.getElementById('hmSoX').onclick = function () { box.hidden = true; box.innerHTML = ''; clean(); };
+          return;
+        }
         if (q.get('signed_out') !== 'wp') return;
         try { localStorage.removeItem('winds_wp_sso'); } catch (e) {}   /* WP 已經登出：之後登出網站不必再繞 WP 登出頁 */
         function live(k) { try { var t = localStorage.getItem(k); if (!t) return false; var p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); return !!(p.exp && p.exp * 1000 > Date.now()); } catch (e) { return false; } }
         var signedIn = live('winds_google_token') || live('winds_line_token');
-        var box = document.getElementById('hmSignedOut');
         box.innerHTML = '<div class="zf-notice info" role="status"><i class="ph ph-info"></i><div class="zf-notice-body">商城、預約、課程已登出。' +
           (signedIn ? '<div class="zf-notice-act"><button type="button" class="zf-btn secondary sm" id="hmSoOut">也登出網站</button></div>' : '') +
           '</div><button type="button" class="zf-notice-x" id="hmSoX" aria-label="關閉提示"><i class="ph ph-x"></i></button></div>';
         box.hidden = false;
-        function clean() { q.delete('signed_out'); try { history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash); } catch (e) {} }
         document.getElementById('hmSoX').onclick = function () { box.hidden = true; box.innerHTML = ''; clean(); };
         var out = document.getElementById('hmSoOut');
         if (out) out.onclick = function () { clean(); if (window.WindsSignOut) WindsSignOut({ skipWp: true }); else location.reload(); };

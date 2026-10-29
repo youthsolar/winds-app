@@ -164,8 +164,11 @@
     if (!a) return null;
     return isWpUrl(a.getAttribute('data-wp-href') || a.href) ? a : null;
   }
+  /* 換人繞 WP 登出（連結點擊、右鍵、表單送出、WindsWpLogout）一律帶 ?r=switch → WP 登出完 303 到 /?signed_out=switch，首頁出提醒（DS 1029 第 6 點、J35）。
+     真正登出 signOut() 不走這支、維持回 /?signed_out=1 */
+  var WP_SWITCH = WP_LOGOUT + '?r=switch';
   function goWpLogout() {
-    var a = document.createElement('a'); a.href = WP_LOGOUT; a.referrerPolicy = 'strict-origin-when-cross-origin'; a.style.display = 'none';
+    var a = document.createElement('a'); a.href = WP_SWITCH; a.referrerPolicy = 'strict-origin-when-cross-origin'; a.style.display = 'none';
     document.body.appendChild(a); a.click();
   }
   /* 共用檢查（10/29 第四批）：要用 JS 導去某個網址前呼叫 WindsWpGuard(url)，回 true＝會進 WP 而且 WP 是別人 → 改呼叫 WindsWpLogout()。
@@ -200,7 +203,7 @@
     if (!wpMismatch()) return;
     a.setAttribute('data-wp-href', a.getAttribute('href'));
     a.setAttribute('data-wp-rp', a.getAttribute('referrerpolicy') || '');
-    a.setAttribute('href', WP_LOGOUT); a.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    a.setAttribute('href', WP_SWITCH); a.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
     swapped.push(a);
   }
   /* 表單送出（例：商品頁 #wooForm POST 到 wp.winds.tw/checkout/）：不經過連結點擊，另外攔 submit（capture，先於表單自己的檢查） */

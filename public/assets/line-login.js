@@ -246,10 +246,12 @@
   }
 
   /* 前往 WP 登出頁（規格 §11）：WP 只在「同站且 Referer 是 winds.tw」時自動送出。noTracking 頁（no-referrer）用 location 跳會沒有 Referer、
-     WP 只好出按鈕 → 一律用帶 referrerpolicy 的連結點過去 */
+     WP 只好出按鈕 → 一律用帶 referrerpolicy 的連結點過去。
+     這支只在「換人」時呼叫（afterLogin 回 WP_LOGOUT）→ 帶 ?r=switch，WP 登出完 303 到 /?signed_out=switch，首頁出提醒（DS 1029 第 6 點、J35）；
+     真正登出（nav-auth signOut、會員中心）不走這支、不帶 r */
   function goWpLogout() {
     var a = document.createElement('a');
-    a.href = WP_LOGOUT; a.referrerPolicy = 'strict-origin-when-cross-origin'; a.style.display = 'none';
+    a.href = WP_LOGOUT + '?r=switch'; a.referrerPolicy = 'strict-origin-when-cross-origin'; a.style.display = 'none';
     (document.body || document.documentElement).appendChild(a); a.click();
   }
 
