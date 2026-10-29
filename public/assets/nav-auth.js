@@ -136,7 +136,8 @@
        → 不進 WP，改去 WP 登出頁（帶 Referer；繞完落 /?signed_out=1＝§11 拍板代價）。網站沒登入身分（憑證過期）→ 不攔。
      /winds-sso/ 底下不攔：logout 本身就是登出頁；start 會回 /sso/wp 用網站現在的身分領碼，WP finish 自己換人。
      開新分頁：Ctrl／⌘／Shift＋點、中鍵（auxclick）一樣攔下、改在這一頁繞（不開新分頁）；
-     右鍵或長按選「在新分頁開啟」攔不到點擊 → contextmenu 時把該連結的 href 換成 WP 登出頁（之後恢復原網址時再比一次）。 */
+     右鍵或長按選「在新分頁開啟」攔不到點擊 → contextmenu 時把該連結的 href 換成 WP 登出頁（下一次 pointerdown／keydown 或點它時還原）。
+     表單送出到 WP 也攔（submit）。 */
   function wpAliases() {
     var out = [], t, p;
     [['google', 'winds_google_token'], ['line', 'winds_line_token']].forEach(function (k) {
@@ -153,42 +154,70 @@
     var me = wpAliases();
     return me.length > 0 && me.indexOf(f) < 0;
   }
+  /* 這個網址會不會進 WP（/winds-sso/ 底下不算） */
+  function isWpUrl(href) {
+    var u; try { u = new URL(String(href || ''), location.href); } catch (e) { return false; }
+    return u.protocol === 'https:' && u.hostname === 'wp.winds.tw' && u.pathname.indexOf('/winds-sso/') !== 0;
+  }
   function wpLink(el) {
     var a = el && el.closest ? el.closest('a[href]') : null;
     if (!a) return null;
-    var href = a.getAttribute('data-wp-href') || a.href, u;
-    try { u = new URL(href, location.href); } catch (e) { return null; }
-    if (u.protocol !== 'https:' || u.hostname !== 'wp.winds.tw' || u.pathname.indexOf('/winds-sso/') === 0) return null;
-    return a;
+    return isWpUrl(a.getAttribute('data-wp-href') || a.href) ? a : null;
   }
   function goWpLogout() {
     var a = document.createElement('a'); a.href = WP_LOGOUT; a.referrerPolicy = 'strict-origin-when-cross-origin'; a.style.display = 'none';
     document.body.appendChild(a); a.click();
   }
+  /* 共用檢查（10/29 第四批）：要用 JS 導去某個網址前呼叫 WindsWpGuard(url)，回 true＝會進 WP 而且 WP 是別人 → 改呼叫 WindsWpLogout()。
+     連結點擊、表單送出已由下面的 document 監聽統一處理。 */
+  function wpGuard(url) { return isWpUrl(url) && wpMismatch(); }
+  window.WindsWpGuard = wpGuard;
+  window.WindsWpLogout = goWpLogout;
+  /* 右鍵換過 href 的連結（10/29 第四批建議）：下一次 pointerdown／keydown 一律還原（含 referrerPolicy），縮短狀態列／複製連結拿到登出頁的時間 */
+  var swapped = [];
+  function restore(a) {
+    var orig = a.getAttribute('data-wp-href');
+    if (orig == null) return;
+    a.setAttribute('href', orig); a.removeAttribute('data-wp-href');
+    var rp = a.getAttribute('data-wp-rp');
+    if (rp) a.setAttribute('referrerpolicy', rp); else a.removeAttribute('referrerpolicy');
+    a.removeAttribute('data-wp-rp');
+  }
+  function restoreAll() { var l = swapped; swapped = []; l.forEach(restore); }
   function onWpClick(e) {
     if (e.type === 'auxclick' && e.button !== 1) return;
     var a = wpLink(e.target);
     if (!a) return;
-    if (!wpMismatch()) {   /* 先前右鍵時換成登出頁、現在已經不用繞：恢復原網址再讓它照常進 */
-      var orig = a.getAttribute('data-wp-href');
-      if (orig) { a.setAttribute('href', orig); a.removeAttribute('data-wp-href'); }
-      return;
-    }
+    restore(a);   /* 先前右鍵換成登出頁的：恢復原網址，再照現在的狀態判 */
+    if (!wpMismatch()) return;
     e.preventDefault(); e.stopPropagation();
     goWpLogout();
   }
   function onWpMenu(e) {
     var a = wpLink(e.target);
     if (!a) return;
-    var orig = a.getAttribute('data-wp-href');
-    if (wpMismatch()) {
-      if (!orig) a.setAttribute('data-wp-href', a.getAttribute('href'));
-      a.setAttribute('href', WP_LOGOUT); a.referrerPolicy = 'strict-origin-when-cross-origin';
-    } else if (orig) { a.setAttribute('href', orig); a.removeAttribute('data-wp-href'); }
+    restore(a);
+    if (!wpMismatch()) return;
+    a.setAttribute('data-wp-href', a.getAttribute('href'));
+    a.setAttribute('data-wp-rp', a.getAttribute('referrerpolicy') || '');
+    a.setAttribute('href', WP_LOGOUT); a.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    swapped.push(a);
+  }
+  /* 表單送出（例：商品頁 #wooForm POST 到 wp.winds.tw/checkout/）：不經過連結點擊，另外攔 submit（capture，先於表單自己的檢查） */
+  function onWpSubmit(e) {
+    var f = e.target;
+    if (!f || f.tagName !== 'FORM') return;
+    var action = (e.submitter && e.submitter.getAttribute('formaction')) || f.getAttribute('action') || location.href;
+    if (!wpGuard(action)) return;
+    e.preventDefault(); e.stopPropagation();
+    goWpLogout();
   }
   document.addEventListener('click', onWpClick, true);
   document.addEventListener('auxclick', onWpClick, true);
   document.addEventListener('contextmenu', onWpMenu, true);
+  document.addEventListener('submit', onWpSubmit, true);
+  document.addEventListener('pointerdown', restoreAll, true);
+  document.addEventListener('keydown', restoreAll, true);
 
   window.__refreshNavAuth = render;
   if (document.readyState === 'loading') {
