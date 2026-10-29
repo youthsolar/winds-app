@@ -237,6 +237,7 @@
 
 /* ===== Stepper＋流程頁首步驟帶（DS 2026.10.27-5 第 2 點＋2026.10.29-6 修正：components/stepper、ui_kits/booking/funnel-header）=====
  * 網站 ds.css 與 LINE site-chrome.css 同名同值，改一邊要複製到另一邊。markup 由頁面的 zfStepband() 畫（網站 FunnelDocument、LINE index.html／booking.html）。
+ * 步驟名 .lb：完成且可點回去的是 button，目前／未到／不給點的完成步驟是 span（不用 disabled，螢幕閱讀器才唸得到 aria-current）。
  * 電腦：左〔上一步〕quiet sm、中 labeled（max 640）、右〔離開〕quiet sm；手機（≤760）：左〔←〕、中 bar、右〔×〕44 圖示鈕。
  * 只有下框線（接在導覽列下時只留導覽列底線＋這條）。.solo＝沒有導覽列、步驟帶就是頁首（占卜流程）；.has-theme＝右欄〔離開〕左邊放深淺色單鈕（只放 .solo）。 */
 .zf-stepband{position:sticky;top:0;z-index:40;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft);padding:16px 32px}
@@ -258,12 +259,13 @@
 .zf-stepper li{display:flex;flex-direction:column;gap:8px;min-width:0;margin:0}
 .zf-stepper .seg{display:block;height:4px;border-radius:999px;background:var(--accent)}
 .zf-stepper li.todo .seg{background:var(--border-soft)}
-.zf-stepper button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;min-width:0;font-family:var(--font-sans);font-size:13px;line-height:1.4;white-space:nowrap;color:var(--text-muted);cursor:default}
-.zf-stepper button .t{overflow:hidden;text-overflow:ellipsis}
-.zf-stepper button .n{font-variant-numeric:tabular-nums}
-.zf-stepper button i{flex:none;font-size:13px;line-height:1;color:var(--accent)}
-.zf-stepper li.cur button{font-weight:500;color:var(--text-primary)}
-.zf-stepper li.done button{color:var(--text-secondary);cursor:pointer}
+.zf-stepper .lb{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;min-width:0;font-family:var(--font-sans);font-size:13px;line-height:1.4;white-space:nowrap;color:var(--text-muted);cursor:default}
+.zf-stepper .lb .t{overflow:hidden;text-overflow:ellipsis}
+.zf-stepper .lb .n{font-variant-numeric:tabular-nums}
+.zf-stepper .lb i{flex:none;font-size:13px;line-height:1;color:var(--accent)}
+.zf-stepper li.cur .lb{font-weight:500;color:var(--text-primary)}
+.zf-stepper li.done .lb{color:var(--text-secondary)}
+.zf-stepper button.lb{cursor:pointer}
 /* bar（手機） */
 .zf-stepbar{display:none;flex-direction:column;gap:8px;min-width:0}
 .zf-stepbar-row{display:flex;align-items:center;gap:12px}

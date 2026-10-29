@@ -1062,15 +1062,17 @@ function buildResult(d){
 /* ===== progress header ===== */
 /* DS 2026.10.27-5 第 2 點＋2026.10.29-6：Stepper（電腦 labeled／手機 bar）＋流程頁首步驟帶；樣式 .zf-stepband／.zf-stepper／.zf-stepbar 在 ds.css＝LINE site-chrome.css。
    這支函式網站 FunnelDocument 與 LINE index.html／booking.html 一模一樣，改一邊要複製到另兩邊。
-   o.back：上一步的 onclick（空＝第 1 步左欄留空）；o.jump：完成步驟點回去要呼叫的函式名（收步驟序號）；o.exit：離開的 onclick；o.label：ol 的 aria-label；
+   o.back：上一步的 onclick（空＝第 1 步左欄留空）；o.jump：完成步驟點回去要呼叫的函式名（收步驟序號；空＝完成的步驟也不給點）；o.exit：離開的 onclick；o.label：ol 的 aria-label；
    o.solo：沒有導覽列、步驟帶就是頁首（占卜流程）→ 半透明底＋〔離開〕左邊放深淺色單鈕（淺↔深，圖示＝按下去會變成的；存法走 ZFTheme.toggle＝theme-init.js） */
 function zfStepband(steps,idx,o){
   var n=steps.length,cur=steps[idx].l;
   var lab=steps.map(function(s,i){
     var st=i<idx?"done":(i===idx?"cur":"todo");
     var lead=i<idx?'<i class="ph ph-check" aria-hidden="true"></i>':'<span class="n">'+(i+1)+'</span>';
-    var btn=i<idx?'<button type="button" onclick="'+o.jump+'('+i+')">':'<button type="button" disabled'+(i===idx?' aria-current="step"':'')+'>';
-    return '<li class="'+st+'"><span class="seg"></span>'+btn+lead+'<span class="t">'+s.l+'</span></button></li>';
+    /* 只有完成的步驟、而且有 o.jump 才是可點的按鈕；目前／未到（與結果頁的完成步驟）是不可點的 span，鍵盤不停、螢幕閱讀器照唸 aria-current（審查 10/30） */
+    var click=i<idx&&o.jump;
+    var lb=click?'<button type="button" class="lb" onclick="'+o.jump+'('+i+')">':'<span class="lb"'+(i===idx?' aria-current="step"':'')+'>';
+    return '<li class="'+st+'"><span class="seg"></span>'+lb+lead+'<span class="t">'+s.l+'</span>'+(click?'</button>':'</span>')+'</li>';
   }).join("");
   var segs=steps.map(function(s,i){return '<span'+(i>idx?' class="todo"':'')+'></span>';}).join("");
   var dk=window.ZFTheme&&ZFTheme.isDark();
@@ -1094,7 +1096,7 @@ function header(){
   var idx=stepIdxOf(STATE.step);
   /* 上一步：back() 有去處才放（選題流程第 1 步沒有去處→留空；家裡的符／愛情的第 1 步「起卦」本來就回活動頁→保留） */
   var canBack=idx>0||HOME||LOVE;
-  var o={back:canBack?"back()":"",jump:"stepJump",exit:"exitFlow()",label:"占卜步驟",solo:true};   /* 占卜流程沒有導覽列：步驟帶就是頁首（DS 第 6 輪） */
+  var o={back:canBack?"back()":"",jump:STATE.step==="result"?"":"stepJump",exit:"exitFlow()",label:"占卜步驟",solo:true};   /* 結果頁：back() 一步回起點並清報告，完成的步驟不給點（審查 10/30） */   /* 占卜流程沒有導覽列：步驟帶就是頁首（DS 第 6 輪） */
   return '<header class="'+zfStepbandCls(o)+'">'+zfStepband(STEPS,idx,o)+'</header>';
 }
 /* 完成的步驟點回去＝連按上一步到那一步（沿用 back() 的路線與清理，不另開跳轉） */
