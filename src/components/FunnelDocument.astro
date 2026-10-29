@@ -571,9 +571,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-dial-y{font-size:42px;font-weight:600;line-height:1.1}
     .ff-dial-m{font-size:11px;letter-spacing:.12em;opacity:.75;font-family:var(--font-sans);margin-top:2px}
     /* 老師逐題問 */
-    .ff-prog{display:flex;gap:4px;margin:0 0 10px}
-.ff-prog i{flex:1;height:3px;border-radius:999px;background:var(--border-soft)}
-.ff-prog i.on{background:var(--accent)}
+    .ff-qn{margin:0 0 16px;font-family:var(--font-sans);font-size:12.5px;line-height:1.4;color:var(--text-muted);text-align:center}   /* DS 2026.10.29-6：「第 N 題，共 8 題」 */
     .ff-chat{display:grid;gap:12px}
     .ff-who{display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
     /* 老師開口泡泡＝分靈體對話同值（spirit.astro .sp-bubble／.sp-av／.sp-bubble-txt） */
@@ -1372,7 +1370,7 @@ function viewAsk(){
     '<div class="ff-hint" id="ffEmailHint">'+ffEmailBadText(d.email)+'</div>'+'<p class="ff-login-note">目前只收 Gmail 信箱</p>'+(STATE.retPhone?'':ffLoginBlock());}
   var canNext=!((k==="month"&&!d.month)||(k==="day"&&!d.day)||(k==="gender"&&!d.gender)||(k==="email"&&!validGmail(d.email))||(k==="phone"&&!phoneE164(d.phone)));
   return '<main class="shell narrow ff">'+
-    '<div class="ff-prog">'+ASK.map(function(_,i){return '<i class="'+(i<=STATE.ask?'on':'')+'"></i>'}).join("")+'</div>'+
+    '<p class="ff-qn">'+(STATE.retPhone?'第 1 題，共 1 題':'第 '+(STATE.ask+1)+' 題，共 '+ASK.length+' 題')+'</p>'+   /* DS 第 6 輪：8 段細進度換一行字；回訪只補問手機時只有這一題 */
     '<div class="ff-chat'+(still?' still':'')+'">'+ffWho()+bubbles+'<div class="ff-ctl">'+ctl+ffAfLine(k)+'</div>'+
     '<div class="ff-next">'+(STATE.ask>0?'<button class="zf-btn secondary sm" onclick="ffPrev()">上一題</button>':'')+
     '<button class="zf-btn primary sm" id="ffNext" '+(canNext?'':'disabled')+' onclick="ffNext()">'+(STATE.ask===ASK.length-1||STATE.retPhone?'排命盤':'下一題')+'</button></div></div></main>';
