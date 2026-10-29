@@ -141,10 +141,10 @@
 .zf-chip.selected,.zf-chip[aria-pressed=true]{color:var(--text-on-accent);background:var(--accent);border-color:transparent;box-shadow:var(--shadow-sm)}
 @media(max-width:760px){.zf-chip{font-size:15px;padding:0 17px}}
 
-/* ===== ThemeToggle 三段（DS site-shell ThemeToggle，2026.10.27-4）=====
+/* ===== ThemeToggle 三段（DS site-shell ThemeToggle，2026.10.27-4；沒選中改 --text-secondary＝DS 2026.10.27-5 第 1 點）=====
  * 自動／淺色／深色。電腦頁首只放圖示（28 高三格）；手機選單 .lb 帶字、撐滿一列。點擊與選中狀態在 theme-init.js。 */
 .zf-tt{display:inline-flex;padding:3px;gap:2px;border-radius:999px;background:var(--surface-sunken);border:1px solid var(--border-soft);box-sizing:border-box}
-.zf-tt button{all:unset;cursor:pointer;box-sizing:border-box;height:28px;min-width:28px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;color:var(--text-muted);font-family:var(--font-sans);font-size:13.5px;line-height:1}
+.zf-tt button{all:unset;cursor:pointer;box-sizing:border-box;height:28px;min-width:28px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;color:var(--text-secondary);font-family:var(--font-sans);font-size:13.5px;line-height:1}
 .zf-tt button[aria-checked="true"]{background:var(--surface-card);box-shadow:var(--shadow-xs);color:var(--text-primary)}
 .zf-tt button:focus-visible{box-shadow:0 0 0 4px var(--focus-ring)}
 .zf-tt i{font-size:15px;line-height:1}
