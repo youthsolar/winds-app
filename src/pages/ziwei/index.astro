@@ -189,6 +189,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
   <!-- 2026-09-30（廣告前全站掃描）：原本靠 BaseLayout 的 GIS script，但建置時沒有 PUBLIC_GOOGLE_CLIENT_ID、那段從未輸出，登入閘只剩空白卡片
        → 比照 gift／login 頁自帶 GIS script（client id 在下方 renderGoogleSignIn 補上） -->
   <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
+  <script is:inline src="/assets/line-login.js" defer></script>   <!-- 2026-10-29 SSO：Google 登入收尾（WindsLine.afterLogin）；只在按下 Google 登入後才用到，defer 不擋畫面 -->
 </BaseLayout>
 
 <script>
@@ -1078,7 +1079,13 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         g.initialize({
           client_id: clientId,
           callback: (resp: { credential: string }) => {
-            try { localStorage.setItem('winds_google_token', resp.credential); } catch {}
+            /* 2026-10-29 SSO：比照 /login 走 WindsLine.afterLogin。這頁登入閘在填表之前、登入完只是重新整理，沒有進行中的資料 →
+               WP 還是別人就照 /login 繞 WP 登出頁（繞完落首頁＝§11 拍板代價，再點紫微回來就是登入狀態） */
+            const WL = (window as any).WindsLine;
+            let dest = '';
+            try { if (WL && WL.afterLogin) dest = WL.afterLogin('google', resp.credential, location.pathname + location.search, false); } catch {}
+            if (!dest) { try { localStorage.setItem('winds_google_token', resp.credential); } catch {} }
+            if (WL && dest === WL.WP_LOGOUT) { WL.goWpLogout(); return; }
             location.reload();
           },
         });
