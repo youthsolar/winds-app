@@ -195,24 +195,6 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
       .zf-footer-brand .zf-logo img{height:42px;}
       .zf-footer-cols{gap:36px;}
     }
-    .ph-hdr{position:sticky;top:0;z-index:40;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft)}
-    .ph-hdr .row{max-width:var(--container);margin:0 auto;padding:0 28px;height:70px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-    .ph-back,.ph-exit{display:inline-flex;align-items:center;gap:6px;border:none;background:transparent;cursor:pointer;color:var(--ink-700);font-family:var(--font-sans);font-size:14px;padding:0}
-    .ph-exit{color:var(--ink-400)}
-    .ph-steps{display:flex;align-items:center;gap:8px}
-    .ph-step{display:inline-flex;align-items:center;gap:8px}
-    .ph-num{width:24px;height:24px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:12px;font-weight:600;border:1px solid var(--border-strong);color:var(--ink-300)}
-    .ph-step.cur .ph-num{background:var(--accent);color:var(--text-on-accent);border:none}
-    .ph-step.done .ph-num{background:var(--rose-100);color:var(--rose-600);border:none}
-    .ph-lbl{font-family:var(--font-serif);font-size:15px;color:var(--ink-400)}
-    .ph-step.cur .ph-lbl{color:var(--ink-900);font-weight:500}
-    .ph-step.done .ph-lbl{color:var(--ink-700)}
-    .ph-sep{width:26px;height:1px;background:var(--border-strong)}
-    .ph-bar{height:2px;background:var(--rice-200)}
-    .ph-bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--rose-300),var(--rose-500));transition:width var(--dur-slow) var(--ease-soft)}
-    .ph-mob{display:none;font-family:var(--font-serif);font-size:15px;color:var(--ink-900);font-weight:500}
-    .ph-mob b{color:var(--accent-press);font-weight:600}
-    @media(max-width:760px){.ph-hdr .row{padding:0 16px;height:60px}.ph-steps{display:none}.ph-mob{display:inline}.ph-back span{display:none}}
 
     /* topic */
     .dir-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
@@ -1080,24 +1062,38 @@ function buildResult(d){
 }
 
 /* ===== progress header ===== */
-function header(){
-  var sk={hex:"cast",ret:"ask",landing:"cast"}[STATE.step]||STATE.step;
-  var idx=Math.max(0,STEPS.findIndex(function(s){return s.k===sk}));
-  var pct=((idx+(STATE.step==="result"?1:0.5))/STEPS.length)*100;
-  var steps=STEPS.map(function(s,i){
-    var cls=i<idx?"done":(i===idx?"cur":"");
-    var num=i<idx?ic("check","bold"):(i+1);
-    return '<span class="ph-step '+cls+'"><span class="ph-num">'+num+'</span><span class="ph-lbl">'+s.l+'</span></span>'+(i<STEPS.length-1?'<span class="ph-sep"></span>':'');
+/* DS 2026.10.27-5 第 2 點：Stepper（電腦 labeled／手機 bar）＋流程頁首步驟帶；樣式 .zf-stepband／.zf-stepper／.zf-stepbar 在 ds.css＝LINE site-chrome.css。
+   這支函式網站 FunnelDocument 與 LINE index.html／booking.html 一模一樣，改一邊要複製到另兩邊。
+   o.back：上一步的 onclick（空＝第 1 步左欄留空）；o.jump：完成步驟點回去要呼叫的函式名（收步驟序號）；o.exit：離開的 onclick；o.label：ol 的 aria-label */
+function zfStepband(steps,idx,o){
+  var n=steps.length,cur=steps[idx].l;
+  var lab=steps.map(function(s,i){
+    var st=i<idx?"done":(i===idx?"cur":"todo");
+    var lead=i<idx?'<i class="ph ph-check" aria-hidden="true"></i>':'<span class="n">'+(i+1)+'</span>';
+    var btn=i<idx?'<button type="button" onclick="'+o.jump+'('+i+')">':'<button type="button" disabled'+(i===idx?' aria-current="step"':'')+'>';
+    return '<li class="'+st+'"><span class="seg"></span>'+btn+lead+'<span class="t">'+s.l+'</span></button></li>';
   }).join("");
-  return '<header class="ph-hdr"><div class="row">'+
-    /* 2026-10-01（廣告前全站掃描）：手機寬「上一步」字被 CSS 藏掉、X 鈕只有圖示，螢幕閱讀器只唸「按鈕」；補 aria-label */
-    '<button class="ph-back" onclick="back()" aria-label="上一步">'+ic("arrow-left")+'<span>上一步</span></button>'+
-    '<div class="ph-steps">'+steps+'</div>'+
-    '<span class="ph-mob"><b>'+(idx+1)+'</b> / '+STEPS.length+' · '+STEPS[idx].l+'</span>'+
-    '<div style="display:flex;align-items:center;gap:10px"><button class="ph-exit" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色"><i class="zf-theme-ico ph-thin ph-'+(window.ZFTheme&&ZFTheme.isDark()?'sun':'moon')+'"></i></button>'+
-    '<button class="ph-exit" onclick="exitFlow()" aria-label="離開">'+ic("x")+'</button></div>'+
-    '</div><div class="ph-bar"><span style="width:'+pct+'%"></span></div></header>';
+  var segs=steps.map(function(s,i){return '<span'+(i>idx?' class="todo"':'')+'></span>';}).join("");
+  return '<div class="zf-stepband-in">'+
+    '<div class="zf-stepband-l">'+(o.back?'<button type="button" class="zf-sb-btn" onclick="'+o.back+'"><i class="ph ph-arrow-left" aria-hidden="true"></i>上一步</button><button type="button" class="zf-sb-ic" onclick="'+o.back+'" aria-label="上一步"><i class="ph ph-arrow-left"></i></button>':'')+'</div>'+
+    '<div class="zf-stepband-c">'+
+      '<ol class="zf-stepper" aria-label="'+(o.label||"步驟")+'" style="grid-template-columns:repeat('+n+',minmax(0,1fr))">'+lab+'</ol>'+
+      '<div class="zf-stepbar" role="progressbar" aria-label="步驟" aria-valuemin="1" aria-valuemax="'+n+'" aria-valuenow="'+(idx+1)+'" aria-valuetext="第 '+(idx+1)+' 步，共 '+n+' 步：'+cur+'">'+
+        '<div class="zf-stepbar-row"><div class="zf-stepbar-segs">'+segs+'</div><span class="zf-stepbar-n">'+(idx+1)+' / '+n+'</span></div>'+
+        '<div class="zf-stepbar-name">'+cur+'</div></div>'+
+    '</div>'+
+    '<div class="zf-stepband-r"><button type="button" class="zf-sb-btn" onclick="'+o.exit+'"><i class="ph ph-x" aria-hidden="true"></i>離開</button><button type="button" class="zf-sb-ic" onclick="'+o.exit+'" aria-label="離開"><i class="ph ph-x"></i></button></div>'+
+  '</div>';
 }
+function stepIdxOf(step){var sk={hex:"cast",ret:"ask",landing:"cast"}[step]||step;return Math.max(0,STEPS.findIndex(function(s){return s.k===sk}));}
+function header(){
+  var idx=stepIdxOf(STATE.step);
+  /* 上一步：back() 有去處才放（選題流程第 1 步沒有去處→留空；家裡的符／愛情的第 1 步「起卦」本來就回活動頁→保留） */
+  var canBack=idx>0||HOME||LOVE;
+  return '<header class="zf-stepband">'+zfStepband(STEPS,idx,{back:canBack?"back()":"",jump:"stepJump",exit:"exitFlow()",label:"占卜步驟"})+'</header>';
+}
+/* 完成的步驟點回去＝連按上一步到那一步（沿用 back() 的路線與清理，不另開跳轉） */
+function stepJump(i){for(var g=0;g<4&&stepIdxOf(STATE.step)>i;g++){var was=STATE.step;back();if(STATE.step===was)return;}}
 
 /* ===== Step 1 topic ===== */
 function viewTopic(){
