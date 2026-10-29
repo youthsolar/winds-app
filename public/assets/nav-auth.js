@@ -130,6 +130,65 @@
     }
   }
 
+  /* 進 WP 前先換人（2026-10-29 第三批，Opus 第 8 輪必改）：禮物頁、起卦頁 Google 登入不繞 WP（'stay'），WP 可能還是前一位。
+     點任何指向 https://wp.winds.tw 的連結（含之後動態插入的，用 document 事件委派、capture 階段）時比：
+       旗標 winds_wp_sso 有值、網站目前有登入身分（Google 先、沒有再 LINE，憑證要沒過期）、兩者不同（舊格式 '1' 也算不同）
+       → 不進 WP，改去 WP 登出頁（帶 Referer；繞完落 /?signed_out=1＝§11 拍板代價）。網站沒登入身分（憑證過期）→ 不攔。
+     /winds-sso/ 底下不攔：logout 本身就是登出頁；start 會回 /sso/wp 用網站現在的身分領碼，WP finish 自己換人。
+     開新分頁：Ctrl／⌘／Shift＋點、中鍵（auxclick）一樣攔下、改在這一頁繞（不開新分頁）；
+     右鍵或長按選「在新分頁開啟」攔不到點擊 → contextmenu 時把該連結的 href 換成 WP 登出頁（之後恢復原網址時再比一次）。 */
+  function wpAlias() {
+    var t = '', p = null;
+    try { t = localStorage.getItem('winds_google_token') || ''; } catch (e) {}
+    p = t ? decode(t) : null;
+    if (p && p.sub) return 'google:' + p.sub;
+    try { t = localStorage.getItem('winds_line_token') || ''; } catch (e) { t = ''; }
+    p = t ? decode(t) : null;
+    return p && p.sub ? 'line:' + p.sub : null;
+  }
+  function wpMismatch() {
+    var f = null; try { f = localStorage.getItem('winds_wp_sso'); } catch (e) {}
+    if (!f) return false;
+    var me = wpAlias();
+    return !!me && f !== me;
+  }
+  function wpLink(el) {
+    var a = el && el.closest ? el.closest('a[href]') : null;
+    if (!a) return null;
+    var href = a.getAttribute('data-wp-href') || a.href, u;
+    try { u = new URL(href, location.href); } catch (e) { return null; }
+    if (u.protocol !== 'https:' || u.hostname !== 'wp.winds.tw' || u.pathname.indexOf('/winds-sso/') === 0) return null;
+    return a;
+  }
+  function goWpLogout() {
+    var a = document.createElement('a'); a.href = WP_LOGOUT; a.referrerPolicy = 'strict-origin-when-cross-origin'; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+  }
+  function onWpClick(e) {
+    if (e.type === 'auxclick' && e.button !== 1) return;
+    var a = wpLink(e.target);
+    if (!a) return;
+    if (!wpMismatch()) {   /* 先前右鍵時換成登出頁、現在已經不用繞：恢復原網址再讓它照常進 */
+      var orig = a.getAttribute('data-wp-href');
+      if (orig) { a.setAttribute('href', orig); a.removeAttribute('data-wp-href'); }
+      return;
+    }
+    e.preventDefault(); e.stopPropagation();
+    goWpLogout();
+  }
+  function onWpMenu(e) {
+    var a = wpLink(e.target);
+    if (!a) return;
+    var orig = a.getAttribute('data-wp-href');
+    if (wpMismatch()) {
+      if (!orig) a.setAttribute('data-wp-href', a.getAttribute('href'));
+      a.setAttribute('href', WP_LOGOUT); a.referrerPolicy = 'strict-origin-when-cross-origin';
+    } else if (orig) { a.setAttribute('href', orig); a.removeAttribute('data-wp-href'); }
+  }
+  document.addEventListener('click', onWpClick, true);
+  document.addEventListener('auxclick', onWpClick, true);
+  document.addEventListener('contextmenu', onWpMenu, true);
+
   window.__refreshNavAuth = render;
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', render);
