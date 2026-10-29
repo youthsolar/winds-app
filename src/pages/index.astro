@@ -81,7 +81,11 @@ const homeJsonLd = {
       (function () {
         var q = new URLSearchParams(location.search);
         /* 10/29 第三批：?signed_out=1＝WP 登出 POST 成功才會 303 到這裡 → 這時才清 WP 旗標（繞 WP 登出頁前都不先刪）；畫面不顯示任何東西 */
-        if (q.get('signed_out') === '1') { try { localStorage.removeItem('winds_wp_sso'); } catch (e) {} return; }
+        if (q.get('signed_out') === '1') {
+          try { localStorage.removeItem('winds_wp_sso'); } catch (e) {}
+          q.delete('signed_out'); try { history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash); } catch (e) {}   /* 比照 wp 分支把參數拿掉 */
+          return;
+        }
         if (q.get('signed_out') !== 'wp') return;
         try { localStorage.removeItem('winds_wp_sso'); } catch (e) {}   /* WP 已經登出：之後登出網站不必再繞 WP 登出頁 */
         function live(k) { try { var t = localStorage.getItem(k); if (!t) return false; var p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); return !!(p.exp && p.exp * 1000 > Date.now()); } catch (e) { return false; } }
