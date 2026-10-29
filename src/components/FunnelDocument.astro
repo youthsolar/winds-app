@@ -2870,7 +2870,7 @@ function handleGoogleCredential(resp){
 function initGoogleGIS(){
   if(typeof google==="undefined"||!google.accounts){setTimeout(initGoogleGIS,250);return;}
   google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:handleGoogleCredential,auto_select:true,context:"signin"});
-  if(!STATE.userId)google.accounts.id.prompt();
+  if(!loggedIn())google.accounts.id.prompt();   /* 10/29 第三批：只在網站完全沒登入（含 LINE 會話）才跳 One Tap，免得只用 LINE 的人被 auto_select 靜默換成 Google、LINE 憑證被清 */
   mountGisButton();
 }
 function mountGisButton(){
