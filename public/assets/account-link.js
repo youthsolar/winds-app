@@ -118,9 +118,10 @@
     var bg = document.createElement('div'); bg.className = 'am-sheet-bg';
     bg.innerHTML = '<div class="am-sheet" role="dialog" aria-modal="true" aria-labelledby="amSheetH"><div class="am-handle"></div>' +
       '<h2 class="am-h2" id="amSheetH">拆開這個帳號？</h2><div style="margin-top:12px">' + row(it) + '</div>' +
-      '<p class="am-body" style="margin-top:8px">拆開後，用它登入就看不到這裡的紀錄和預約。</p>' +
+      '<p class="am-body" style="margin-top:8px">拆開後，用它登入就看不到這裡的紀錄和預約。拆開後，這個登入在商城／預約／課程也會先鎖住，等老師處理</p>' +   /* 2026-10-29 SSO 規格 §14；DS SSO-介面字-1028 A12：定稿句接在原說明句之後 */
       (it.pair ? '<div class="am-check" role="checkbox" tabindex="0" aria-checked="true" id="amPair"><i class="ph-fill ph-check-square on"></i><span>同時拆開 ' + esc((it.email_masked || '這個 Gmail')) + '</span></div>' : '') +
       '<div id="amRemain"></div><p class="am-err" id="amErr" hidden></p>' +
+      '<p class="am-pending" id="amPending" hidden>上一次拆開還在等老師處理，處理完才能再拆</p>' +   /* DS A7：split_pending＝按鈕不能按＋上方一句（不放錯誤列） */
       '<div class="am-actions"><button type="button" class="zf-btn primary lg" id="amDo">拆開</button><button type="button" class="zf-btn secondary lg" id="amCancel">取消</button></div></div>';
     document.body.appendChild(bg);
     function close() { bg.remove(); }
@@ -149,6 +150,7 @@
     document.getElementById('amDo').onclick = function () {
       var btn = this; btn.disabled = true;
       api('/link/unlink', { items: ids() }, a.headers).then(function (d) {
+        if (d && d.error === 'split_pending') { document.getElementById('amErr').hidden = true; document.getElementById('amPending').hidden = false; btn.disabled = true; return; }
         if (!d || !d.success) { btn.disabled = false; var er = document.getElementById('amErr'); er.textContent = (d && d.message) || '現在連不上，請再試一次'; er.hidden = false; return; }
         close();
         note('check-circle', d.fully_unlinked ? '已拆開' : '已拆開這一項');
@@ -196,7 +198,7 @@
       ui.show('busy');
       api('/link/preview', { intent_id: b.intent_id }, headers()).then(function (d) {
         if (!d || !d.success) { del(BIND); ui.show(d && d._status === 410 ? 'expired' : 'fail'); return; }
-        ui.confirm(d.items || [], function () { return commit(d.preview_id); }, function () { del(BIND); location.href = '/account'; });
+        ui.confirm(d.items || [], function () { return commit(d.preview_id); }, function () { del(BIND); location.href = '/account'; }, d.blocked_reason);
       }, function () { ui.show('fail'); });
     }
     function commit(previewId, tries) {
@@ -204,6 +206,7 @@
       return api('/link/commit', { intent_id: b.intent_id, preview_id: previewId }, headers()).then(function (d) {
         if (d && d.success) { del(BIND); location.replace('/account?linked=1'); return true; }
         if (d && d.error === 'scope_changed') { ui.changed(preview); return false; }
+        if (d && (d.error === 'split_pending' || d.error === 'wp_conflict') && ui.blocked) { ui.blocked(d.error); return false; }   /* DS SSO-介面字-1028 A6／A7 */
         del(BIND); ui.show(d && d._status === 410 ? 'expired' : 'fail'); return false;
       }, function () {
         // 斷線：不知道後端有沒有寫入 → 用同一個 preview 重送一次 commit，後端會回第一次的結果（同一筆交易冪等；Astra 完整驗收複核三）
@@ -224,9 +227,10 @@
           return api('/link/self-commit', { preview_id: d.preview_id }, a.headers).then(function (r) {
             if (r && r.success) { location.replace('/account?linked=1'); return true; }
             if (r && r.error === 'scope_changed') { ui.changed(preview); return false; }
+            if (r && (r.error === 'split_pending' || r.error === 'wp_conflict') && ui.blocked) { ui.blocked(r.error); return false; }
             ui.show('fail'); return false;
           });
-        }, function () { location.href = '/account'; });
+        }, function () { location.href = '/account'; }, d.blocked_reason);
       });
     }
     preview();

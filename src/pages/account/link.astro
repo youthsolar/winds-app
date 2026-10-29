@@ -26,9 +26,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <div class="lk-top"><span class="zf-icon-disc lk-disc"><i class="ph-thin ph-link-simple"></i></span></div>
         <h1 class="lk-h1">把這些帳號合成一份？</h1>
         <div class="lk-stack">
+          <!-- DS SSO-介面字-1028 A6（2026-10-29）：兩個登入各自已有商城／預約帳號（wp_conflict）＝上方 Notice error＋〔聯絡老師〕，〔確定合併〕不能按 -->
+          <div class="zf-notice error" role="alert" id="lkWpConflict" hidden><i class="ph ph-warning-circle"></i><div class="zf-notice-body">這兩個登入各自已經有商城／預約的帳號，請先聯絡老師處理，再合併<div class="zf-notice-act"><a class="zf-text-link sm" href="https://lin.ee/tQHsgWB" target="_blank" rel="noopener">聯絡老師</a></div></div></div>
           <div class="am-note" id="lkChanged" hidden><i class="ph ph-arrows-clockwise"></i><span id="amNoteText">帳號剛剛有變動，請重新整理再試</span><button type="button" class="zf-text-link" id="lkRefresh">重新整理</button></div>
           <div class="lk-list" id="lkList"></div>
           <p class="lk-body">合在一起之後，用其中任何一個登入都看得到全部紀錄和預約。之後可以在會員中心拆開。</p>
+          <!-- DS A7：上一次拆開還沒處理完（split_pending）＝按鈕不能按＋按鈕上方一句 -->
+          <span class="lk-pending" id="lkPending" hidden>上一次拆開還在等老師處理，處理完才能合併</span>
           <button type="button" class="zf-btn primary lg full" id="lkYes">確定合併</button>
           <button type="button" class="zf-btn secondary lg full" id="lkNo">先不要</button>
         </div>
@@ -68,6 +72,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .lk-stack{margin-top:22px;display:flex;flex-direction:column;gap:14px;}
     .lk-list{text-align:left;padding:0 16px;border-radius:var(--radius-md);border:1px solid var(--border-soft);transition:opacity var(--dur-fast) var(--ease-soft);}
     .lk-list.dim{opacity:.5;}
+    .lk-pending{display:block;text-align:left;font-family:var(--font-sans);font-size:13px;line-height:1.6;color:var(--text-secondary);}
     .lk-body{margin:0;text-align:left;font-family:var(--font-serif);font-weight:300;font-size:14.5px;line-height:1.85;color:var(--text-secondary);}
     @media (max-width:760px){
       .lk-wrap{padding:28px 16px 40px;min-height:calc(100vh - 64px);}
@@ -120,7 +125,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             google.accounts.id.renderButton(m, { theme: (window.ZFTheme && ZFTheme.isDark()) ? 'filled_black' : 'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left', width: Math.min(380, m.clientWidth || 300), locale: 'zh-TW' });
           })();
         },
-        confirm: function (items, onYes, onNo) {
+        /* 2026-10-29 SSO：合併被擋（預覽的 blocked_reason 或送出回的 error）——split_pending／wp_conflict */
+        blocked: function (reason) {
+          document.getElementById('lkWpConflict').hidden = reason !== 'wp_conflict';
+          document.getElementById('lkPending').hidden = reason !== 'split_pending';
+          document.getElementById('lkYes').disabled = !!reason;
+        },
+        confirm: function (items, onYes, onNo, blocked) {
           var list = document.getElementById('lkList');
           list.className = 'lk-list';
           list.innerHTML = items.map(function (it) { return WindsLink.row(it, '<span class="lk-count">' + (Number(it.readings) || 0) + ' 筆紀錄</span>'); }).join('');
@@ -128,6 +139,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           var yes = document.getElementById('lkYes'); yes.disabled = false;
           yes.onclick = function () { yes.disabled = true; onYes().then(function (ok) { if (!ok) yes.disabled = true; }); };
           document.getElementById('lkNo').onclick = onNo;
+          this.blocked(blocked === 'split_pending' || blocked === 'wp_conflict' ? blocked : null);
           show('confirm');
         },
         changed: function (again) {
