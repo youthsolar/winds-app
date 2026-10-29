@@ -38,9 +38,16 @@ const entries = [
           </div>
           <div class="ac-via-line" id="acViaLine" hidden><img src="/assets/line-btn-base.png" alt="" width="18" height="18">用 LINE 登入</div>
         </div>
-        <button id="acLogout" class="ac-logout" type="button"><i class="ph-thin ph-sign-out"></i>登出</button>
+        <!-- DS SSO-介面字-1028 A11：〔登出〕維持次鈕；旁邊文字連結「登出商城、預約、課程」→ WP 登出頁（手機換到下一行置左） -->
+        <div class="ac-out">
+          <button id="acLogout" class="ac-logout" type="button"><i class="ph-thin ph-sign-out"></i>登出</button>
+          <span class="ac-wpout"><a id="acWpOut" class="zf-text-link sm muted" href="https://wp.winds.tw/winds-sso/logout">登出商城、預約、課程</a></span>
+        </div>
       </div>
     </div>
+
+    <!-- need_link 卡（DS SSO-介面字-1028 A4，2026-10-29）：Google 登入、這個 Gmail 之前只用信箱題驗過的人，跟 /sso/wp 同一張 -->
+    <div class="ac-needlink" id="amNeedLink" hidden><div id="amNeedLinkCard"></div></div>
 
     <!-- 已連結的帳號（DS account-merge v1 ①，2026-10-17）：連在一起的帳號，占卜紀錄和預約合在一起看 -->
     <div class="ac-card ac-linked" id="amCard" hidden>
@@ -103,6 +110,7 @@ const entries = [
     /* DS Btn secondary sm */
     .ac-logout{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:var(--t-body-sm);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;white-space:nowrap;cursor:pointer;background:var(--surface-card);color:var(--ink-900);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
     .ac-logout:hover{background:var(--rice-100);}
+    .ac-out{flex:none;display:flex;align-items:center;gap:20px;}
     .ac-logout i{font-size:15px;line-height:1;}
 
     .ac-entries{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:18px;}
@@ -127,7 +135,9 @@ const entries = [
       .ac-h1{font-size:25px;}
       .ac-h1.sz2{font-size:23px;}
       .ac-h1.sz3{font-size:21px;}
-      .ac-meta{margin-top:16px;padding-top:14px;}
+      .ac-meta{margin-top:16px;padding-top:14px;flex-wrap:wrap;row-gap:14px;}
+      .ac-out{display:contents;}
+      .ac-wpout{flex:1 1 100%;}
       .ac-entries{grid-template-columns:1fr;gap:14px;margin-top:22px;}
       .ac-friend{margin-top:16px;}
 
@@ -140,7 +150,9 @@ const entries = [
   <style is:global>
     /* DS account-merge v1（2026-10-17）：已連結的帳號、拆開確認、提示框——只組現有元件，數值照 DS 稿 */
     .ac-linked{margin-top:20px;padding:28px 32px;box-shadow:var(--shadow-sm);}
-    .ac-linked[hidden],.am-note[hidden]{display:none;}
+    .ac-linked[hidden],.am-note[hidden],.ac-needlink[hidden]{display:none;}
+    .ac-needlink{margin-top:20px;}
+    .ac-needlink .zf-sso-card{max-width:none;}
     .am-h2{margin:0;font-family:var(--font-serif);font-size:19px;font-weight:500;line-height:1.4;color:var(--text-primary);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
     .am-body{margin:6px 0 0;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.85;color:var(--text-secondary);word-break:normal;overflow-wrap:anywhere;text-wrap:auto;}
     .am-rows{margin-top:8px;}
@@ -182,6 +194,8 @@ const entries = [
     .am-remain-h{font-family:var(--font-sans);font-size:13.5px;line-height:1.6;color:var(--ink-700);}
     .am-actions{margin-top:22px;display:flex;flex-direction:row-reverse;gap:10px;}
     .am-err{margin:12px 0 0;font-family:var(--font-sans);font-size:13.5px;color:var(--critical);}
+    .am-pending{margin:12px 0 0;font-family:var(--font-sans);font-size:13px;line-height:1.6;color:var(--text-secondary);}   /* DS A7：Small、text-secondary */
+    .am-pending[hidden],.am-err[hidden]{display:none;}
     @media (max-width:760px){
       .ac-linked{margin-top:16px;padding:22px 20px;}
       .am-add{max-width:none;}
@@ -247,15 +261,19 @@ const entries = [
              ・winds_ff_log / winds_ff_k ＝ 占卜漏斗開機會拿這兩個去撈「上次的資料」，
                於是下一個人會看到前一個人的生日、姓名、信箱被端出來讓他「沿用上次的資料」
            登出就是要把痕跡清掉，所以一律清掉 winds_ 開頭的本機資料（含日後新增的鍵）。 */
+        /* 2026-10-29 SSO（規格 §11）：先讀 winds_wp_sso 再清；登入過商城／預約／課程就繞 WP 登出頁 */
+        var hadWp = null;
+        try { hadWp = localStorage.getItem('winds_wp_sso'); } catch (e) {}
         try {
           var kill = [];
           for (var i = 0; i < localStorage.length; i++) {
             var k = localStorage.key(i);
-            if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider') kill.push(k);   // 老師後台的篩選偏好不是個資，留著；老師密碼照清
+            if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider') kill.push(k);   // 老師後台的篩選偏好不是個資，留著；老師密碼照清（winds_wp_sso、winds_sso_s 也清，不保留）
           }
           kill.forEach(function (k) { localStorage.removeItem(k); });
         } catch (e) {}
         try { sessionStorage.removeItem('winds_pending_log_id'); } catch (e) {}
+        if (hadWp) { document.getElementById('acWpOut').click(); return; }
         location.href = '/';
       });
     })();

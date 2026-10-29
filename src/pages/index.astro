@@ -74,6 +74,27 @@ const homeJsonLd = {
 ---
 <BaseLayout title="找風問幸福｜先聽聽現在的自己" description={pageDesc} ogType="website" jsonLd={homeJsonLd}>
   <main class="home" data-scenarios={JSON.stringify(SCENARIOS)} data-default={DEFAULT}>
+    <!-- DS SSO-介面字-1028 A10（2026-10-29）：從 WP 自己登出回來（?signed_out=wp）＝首頁內容上方一條 Notice info＋〔也登出網站〕＋關閉；
+         不自動清網站登入（規格 §11）；關掉就把參數拿掉、不再出現。?signed_out=1 不顯示任何東西。 -->
+    <div class="hm-so" id="hmSignedOut" hidden></div>
+    <script is:inline>
+      (function () {
+        var q = new URLSearchParams(location.search);
+        if (q.get('signed_out') !== 'wp') return;
+        try { localStorage.removeItem('winds_wp_sso'); } catch (e) {}   /* WP 已經登出：之後登出網站不必再繞 WP 登出頁 */
+        function live(k) { try { var t = localStorage.getItem(k); if (!t) return false; var p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); return !!(p.exp && p.exp * 1000 > Date.now()); } catch (e) { return false; } }
+        var signedIn = live('winds_google_token') || live('winds_line_token');
+        var box = document.getElementById('hmSignedOut');
+        box.innerHTML = '<div class="zf-notice info" role="status"><i class="ph ph-info"></i><div class="zf-notice-body">商城、預約、課程已登出。' +
+          (signedIn ? '<div class="zf-notice-act"><button type="button" class="zf-btn secondary sm" id="hmSoOut">也登出網站</button></div>' : '') +
+          '</div><button type="button" class="zf-notice-x" id="hmSoX" aria-label="關閉提示"><i class="ph ph-x"></i></button></div>';
+        box.hidden = false;
+        function clean() { q.delete('signed_out'); try { history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash); } catch (e) {} }
+        document.getElementById('hmSoX').onclick = function () { box.hidden = true; box.innerHTML = ''; clean(); };
+        var out = document.getElementById('hmSoOut');
+        if (out) out.onclick = function () { clean(); if (window.WindsSignOut) WindsSignOut({ skipWp: true }); else location.reload(); };
+      })();
+    </script>
     <!-- Hero＋起卦（2026-10-02 DS 回稿 contribution-to-ds/ui_kits/free-flow/home-cast.jsx：hero 與起卦合成一屏、單一 1120 容器；
          桌機兩欄＝左 hero＋① 選項＋社群證明、右 ② 水鏡卡 sticky；手機單欄＝hero → ① → ② → 社群證明 → 每日一句） -->
     <header class="hc">
@@ -413,6 +434,8 @@ const homeJsonLd = {
   /* Hero＋起卦（2026-10-02 DS 回稿 home-cast.jsx 逐值；DS 斷點 900＝手機 ≤899）。水鏡本體與 ff-clock／ff-err 在共用 styles/cast-landing.css；
      選項、序號圓、水鏡卡、引導塊照 DS 值在這裡寫（首頁手機選項 2×2、padding 13/14，與活動頁 love-cast 不同，故不共用 .lc-*） */
   .hc { max-width: var(--container); margin: 0 auto; padding: 72px 32px 64px; box-sizing: border-box; }
+  .hm-so { max-width: var(--container); margin: 0 auto; padding: 24px 32px 0; box-sizing: border-box; }
+  .hm-so[hidden] { display: none; }
   .hc-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 72px; align-items: start; }
   .hc-left { display: flex; flex-direction: column; gap: 40px; padding-top: 8px; }
   .hc-side { position: sticky; top: 96px; }
@@ -479,6 +502,7 @@ const homeJsonLd = {
   /* 手機（DS useMedia(900)）：單欄 hero → ① → ② → 社群證明（.hc-left 拆開用 order 排） */
   @media (max-width: 899px) {
     .hc { padding: 28px 20px 40px; }
+    .hm-so { padding: 20px 20px 0; }
     .hc-grid { display: flex; flex-direction: column; gap: 24px; align-items: stretch; }
     .hc-left { display: contents; }
     .hc-hero { order: 1; gap: 12px; }

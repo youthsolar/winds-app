@@ -87,6 +87,12 @@
     card.hidden = false;
     if (d.conflict) note('git-merge', '你的帳號連到兩組紀錄，要合成一組嗎？', '<button type="button" class="zf-btn secondary sm" id="amSelf">看看</button>');
     var self = document.getElementById('amSelf'); if (self) self.onclick = function () { location.href = '/account/link?self=1'; };
+    /* 2026-10-29 SSO（規格 §3.2）：會員中心對 via=gmail 的人也放 need_link 卡。/link/status 沒有直接標 via，
+       只有 Google 登入、有組、沒有衝突時才試 self-preview；回 mode self_gmail 才出卡（其他情形 worker 回 400 no_conflict、不寫入） */
+    var nl = document.getElementById('amNeedLink');
+    if (nl && nl.hidden && a.via === 'google' && d.group && !d.conflict) {
+      mountNeedLink(document.getElementById('amNeedLinkCard'), a, function () { location.replace('/account?linked=1'); }).then(function (ok) { nl.hidden = !ok; });
+    }
     var al = add.querySelector('.am-add-line'); if (al) al.onclick = function () { beginBind('line', a, al); };
     var ag = add.querySelector('.am-add-google'); if (ag) ag.onclick = function () { beginBind('google', a, ag); };
     Array.prototype.forEach.call(document.querySelectorAll('.am-unlink'), function (b) {
