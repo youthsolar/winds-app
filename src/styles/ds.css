@@ -235,20 +235,24 @@
 .zf-sso-card .zf-text-link{align-self:flex-start}
 @media(max-width:760px){.zf-sso-card{padding:30px 24px 28px}.zf-sso-h1{font-size:25px}.zf-sso-sub{font-size:15px}.zf-sso-body{margin-top:24px}}
 
-/* ===== Stepper＋流程頁首步驟帶（DS 2026.10.27-5 第 2 點：components/stepper、ui_kits/booking/funnel-header）=====
+/* ===== Stepper＋流程頁首步驟帶（DS 2026.10.27-5 第 2 點＋2026.10.29-6 修正：components/stepper、ui_kits/booking/funnel-header）=====
  * 網站 ds.css 與 LINE site-chrome.css 同名同值，改一邊要複製到另一邊。markup 由頁面的 zfStepband() 畫（網站 FunnelDocument、LINE index.html／booking.html）。
- * 電腦：左〔上一步〕ghost sm、中 labeled（max 640）、右〔離開〕ghost sm；手機（≤760）：左〔←〕、中 bar、右〔×〕44 圖示鈕。 */
-.zf-stepband{position:sticky;top:0;z-index:40;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);padding:16px 32px}
-.zf-stepband-in{max-width:var(--container);margin:0 auto;display:grid;grid-template-columns:140px minmax(0,1fr) 140px;align-items:center;gap:24px}
+ * 電腦：左〔上一步〕quiet sm、中 labeled（max 640）、右〔離開〕quiet sm；手機（≤760）：左〔←〕、中 bar、右〔×〕44 圖示鈕。
+ * 只有下框線（接在導覽列下時只留導覽列底線＋這條）。.solo＝沒有導覽列、步驟帶就是頁首（占卜流程）；.has-theme＝右欄〔離開〕左邊放深淺色單鈕（只放 .solo）。 */
+.zf-stepband{position:sticky;top:0;z-index:40;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft);padding:16px 32px}
+.zf-stepband.solo{background:color-mix(in oklab,var(--surface-page) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.zf-stepband-in{max-width:var(--container);margin:0 auto;display:grid;grid-template-columns:180px minmax(0,1fr) 180px;align-items:center;gap:24px}
 .zf-stepband-l{display:flex;justify-content:flex-start;min-width:0}
-.zf-stepband-r{display:flex;justify-content:flex-end;min-width:0}
+.zf-stepband-r{display:flex;align-items:center;justify-content:flex-end;gap:4px;min-width:0}
 .zf-stepband-c{min-width:0}
 .zf-stepband .zf-stepper{max-width:640px;margin:0 auto}
-.zf-sb-btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:14px;font-weight:500;letter-spacing:.04em;line-height:1;white-space:nowrap;border-radius:var(--radius-pill);background:transparent;color:var(--accent-press);border:1px solid var(--border-accent);transition:background var(--dur-fast) var(--ease-soft)}
+.zf-sb-btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:14px;font-weight:500;letter-spacing:.04em;line-height:1;white-space:nowrap;border-radius:var(--radius-pill);background:transparent;color:var(--accent-press);border:1px solid transparent;transition:background var(--dur-fast) var(--ease-soft)}
 .zf-sb-btn:hover{background:var(--accent-quiet)}
 .zf-sb-ic{all:unset;box-sizing:border-box;cursor:pointer;width:44px;height:44px;border-radius:999px;display:none;align-items:center;justify-content:center;color:var(--text-secondary)}
 .zf-sb-ic i{font-size:18px;line-height:1}
-.zf-sb-btn:focus-visible,.zf-sb-ic:focus-visible,.zf-stepper button:focus-visible{box-shadow:0 0 0 4px var(--focus-ring)}
+.zf-sb-theme{all:unset;box-sizing:border-box;cursor:pointer;flex:none;width:44px;height:44px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+.zf-sb-theme i{font-size:20px;line-height:1}
+.zf-sb-btn:focus-visible,.zf-sb-ic:focus-visible,.zf-sb-theme:focus-visible,.zf-stepper button:focus-visible{box-shadow:0 0 0 4px var(--focus-ring)}
 /* labeled（電腦） */
 .zf-stepper{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .zf-stepper li{display:flex;flex-direction:column;gap:8px;min-width:0;margin:0}
@@ -271,6 +275,7 @@
 @media(max-width:760px){
   .zf-stepband{padding:8px}
   .zf-stepband-in{grid-template-columns:44px minmax(0,1fr) 44px;gap:8px}
+  .zf-stepband.has-theme .zf-stepband-in{grid-template-columns:44px minmax(0,1fr) 92px}
   .zf-sb-btn,.zf-stepband .zf-stepper{display:none}
   .zf-sb-ic{display:inline-flex}
   .zf-stepbar{display:flex}

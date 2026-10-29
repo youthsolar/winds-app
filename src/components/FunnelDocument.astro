@@ -572,8 +572,8 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
     .ff-dial-m{font-size:11px;letter-spacing:.12em;opacity:.75;font-family:var(--font-sans);margin-top:2px}
     /* 老師逐題問 */
     .ff-prog{display:flex;gap:4px;margin:0 0 10px}
-    .ff-prog i{flex:1;height:3px;border-radius:999px;background:var(--border-soft)}
-    .ff-prog i.on{background:var(--accent)}
+.ff-prog i{flex:1;height:3px;border-radius:999px;background:var(--border-soft)}
+.ff-prog i.on{background:var(--accent)}
     .ff-chat{display:grid;gap:12px}
     .ff-who{display:flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted)}
     /* 老師開口泡泡＝分靈體對話同值（spirit.astro .sp-bubble／.sp-av／.sp-bubble-txt） */
@@ -1062,9 +1062,10 @@ function buildResult(d){
 }
 
 /* ===== progress header ===== */
-/* DS 2026.10.27-5 第 2 點：Stepper（電腦 labeled／手機 bar）＋流程頁首步驟帶；樣式 .zf-stepband／.zf-stepper／.zf-stepbar 在 ds.css＝LINE site-chrome.css。
+/* DS 2026.10.27-5 第 2 點＋2026.10.29-6：Stepper（電腦 labeled／手機 bar）＋流程頁首步驟帶；樣式 .zf-stepband／.zf-stepper／.zf-stepbar 在 ds.css＝LINE site-chrome.css。
    這支函式網站 FunnelDocument 與 LINE index.html／booking.html 一模一樣，改一邊要複製到另兩邊。
-   o.back：上一步的 onclick（空＝第 1 步左欄留空）；o.jump：完成步驟點回去要呼叫的函式名（收步驟序號）；o.exit：離開的 onclick；o.label：ol 的 aria-label */
+   o.back：上一步的 onclick（空＝第 1 步左欄留空）；o.jump：完成步驟點回去要呼叫的函式名（收步驟序號）；o.exit：離開的 onclick；o.label：ol 的 aria-label；
+   o.solo：沒有導覽列、步驟帶就是頁首（占卜流程）→ 半透明底＋〔離開〕左邊放深淺色單鈕（淺↔深，圖示＝按下去會變成的；存法走 ZFTheme.toggle＝theme-init.js） */
 function zfStepband(steps,idx,o){
   var n=steps.length,cur=steps[idx].l;
   var lab=steps.map(function(s,i){
@@ -1074,6 +1075,7 @@ function zfStepband(steps,idx,o){
     return '<li class="'+st+'"><span class="seg"></span>'+btn+lead+'<span class="t">'+s.l+'</span></button></li>';
   }).join("");
   var segs=steps.map(function(s,i){return '<span'+(i>idx?' class="todo"':'')+'></span>';}).join("");
+  var dk=window.ZFTheme&&ZFTheme.isDark();
   return '<div class="zf-stepband-in">'+
     '<div class="zf-stepband-l">'+(o.back?'<button type="button" class="zf-sb-btn" onclick="'+o.back+'"><i class="ph ph-arrow-left" aria-hidden="true"></i>上一步</button><button type="button" class="zf-sb-ic" onclick="'+o.back+'" aria-label="上一步"><i class="ph ph-arrow-left"></i></button>':'')+'</div>'+
     '<div class="zf-stepband-c">'+
@@ -1082,15 +1084,20 @@ function zfStepband(steps,idx,o){
         '<div class="zf-stepbar-row"><div class="zf-stepbar-segs">'+segs+'</div><span class="zf-stepbar-n">'+(idx+1)+' / '+n+'</span></div>'+
         '<div class="zf-stepbar-name">'+cur+'</div></div>'+
     '</div>'+
-    '<div class="zf-stepband-r"><button type="button" class="zf-sb-btn" onclick="'+o.exit+'"><i class="ph ph-x" aria-hidden="true"></i>離開</button><button type="button" class="zf-sb-ic" onclick="'+o.exit+'" aria-label="離開"><i class="ph ph-x"></i></button></div>'+
+    '<div class="zf-stepband-r">'+(o.solo?'<button type="button" class="zf-sb-theme" onclick="window.ZFTheme&&ZFTheme.toggle()" aria-label="切換深淺色" title="切換深淺色"><i class="ph ph-'+(dk?'sun':'moon')+'"></i></button>':'')+
+      '<button type="button" class="zf-sb-btn" onclick="'+o.exit+'"><i class="ph ph-x" aria-hidden="true"></i>離開</button><button type="button" class="zf-sb-ic" onclick="'+o.exit+'" aria-label="離開"><i class="ph ph-x"></i></button></div>'+
   '</div>';
 }
+function zfStepbandCls(o){return 'zf-stepband'+(o&&o.solo?' solo has-theme':'');}
+/* 深淺色換了（這顆、導覽列三段或別的分頁）→ 單鈕圖示跟著換 */
+window.addEventListener("zf-theme-change",function(){var dk=window.ZFTheme&&ZFTheme.isDark();var a=document.querySelectorAll(".zf-sb-theme i");for(var i=0;i<a.length;i++)a[i].className="ph ph-"+(dk?"sun":"moon");});
 function stepIdxOf(step){var sk={hex:"cast",ret:"ask",landing:"cast"}[step]||step;return Math.max(0,STEPS.findIndex(function(s){return s.k===sk}));}
 function header(){
   var idx=stepIdxOf(STATE.step);
   /* 上一步：back() 有去處才放（選題流程第 1 步沒有去處→留空；家裡的符／愛情的第 1 步「起卦」本來就回活動頁→保留） */
   var canBack=idx>0||HOME||LOVE;
-  return '<header class="zf-stepband">'+zfStepband(STEPS,idx,{back:canBack?"back()":"",jump:"stepJump",exit:"exitFlow()",label:"占卜步驟"})+'</header>';
+  var o={back:canBack?"back()":"",jump:"stepJump",exit:"exitFlow()",label:"占卜步驟",solo:true};   /* 占卜流程沒有導覽列：步驟帶就是頁首（DS 第 6 輪） */
+  return '<header class="'+zfStepbandCls(o)+'">'+zfStepband(STEPS,idx,o)+'</header>';
 }
 /* 完成的步驟點回去＝連按上一步到那一步（沿用 back() 的路線與清理，不另開跳轉） */
 function stepJump(i){for(var g=0;g<4&&stepIdxOf(STATE.step)>i;g++){var was=STATE.step;back();if(STATE.step===was)return;}}
