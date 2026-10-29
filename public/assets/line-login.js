@@ -17,7 +17,9 @@
   var REDIRECT_URI = 'https://winds.tw/auth/line-callback';
   var API = 'https://api.winds.tw';
   var TXN = 'winds_line_txn', TOKEN = 'winds_line_token', AT = 'winds_line_at', FRIEND = 'winds_line_friend';
-  var RETURNS = ['/history', '/bookings', '/account', '/account/link', '/partner'];   // 2026-10-23 合作分潤頁
+  var RETURNS = ['/history', '/bookings', '/account', '/account/link', '/partner', '/sso/wp'];   // 2026-10-23 合作分潤頁；2026-10-29 SSO：商城／預約／課程登入回 /sso/wp 續接（規格 §3.2）
+  var WP_SSO = 'winds_wp_sso', SSO_TXN = 'winds_sso_s';   // SSO：這台瀏覽器有登入過 WP 的旗標／進行中的 SSO 交易（/sso/wp 管）
+  var WP_LOGOUT = 'https://wp.winds.tw/winds-sso/logout';
   var BIND = 'winds_bind';   // 2026-10-17 帳號合併：綁定交易（account-link.js 管），LINE 綁定模式回來把憑證放這裡
 
   function rand(n) {
@@ -125,14 +127,25 @@
 
   function saveFriend(v) { if (v === true) set(FRIEND, '1'); else if (v === false) set(FRIEND, '0'); else del(FRIEND); }
 
-  /* LINE 登入成功、換到別人時：清掉前一位的 Google 登入與本機痕跡（同登出的清法），再存新的 */
-  function switchIdentity() {
+  /* LINE 登入成功、換到別人時：清掉前一位的 Google 登入與本機痕跡（同登出的清法），再存新的
+     2026-10-29 SSO（規格 §11、§17.65／72）：
+       ・第一行先讀 winds_wp_sso（下面的清除會把它清掉），所有出口都回傳 { hadWp, switched }
+       ・換人判定＝舊的是 Google，或舊 LINE 憑證的 sub ≠ 新的 sub（舊憑證過期也照 sub 比）
+       ・保留清單多一個 winds_sso_s：正在進行的 SSO 交易要撐過換人，回 /sso/wp 續接 */
+  function claims(t) {
+    try { return JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))))); } catch (e) { return null; }
+  }
+  function switchIdentity(newToken) {
+    var hadWp = get(WP_SSO), switched = false;
     try {
-      if (!localStorage.getItem('winds_google_token')) return;
+      var oldLine = localStorage.getItem(TOKEN), op = oldLine ? claims(oldLine) : null, np = claims(newToken);
+      switched = !!localStorage.getItem('winds_google_token') || !!(op && np && op.sub !== np.sub);
+      if (!switched) return { hadWp: hadWp, switched: false };
       var kill = [];
-      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k !== 'winds_first_touch' && k.indexOf(TXN) !== 0) kill.push(k);   /* 第一次從哪來是這台瀏覽器的，不是前一位的（Astra 導流收單驗收 #2） */ }
+      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k !== 'winds_first_touch' && k !== SSO_TXN && k.indexOf(TXN) !== 0) kill.push(k);   /* 第一次從哪來是這台瀏覽器的，不是前一位的（Astra 導流收單驗收 #2） */ }
       kill.forEach(function (k) { localStorage.removeItem(k); });
     } catch (e) {}
+    return { hadWp: hadWp, switched: switched };
   }
 
   /* 給 /auth/line-callback 用：比對 state、換憑證、存起來，回傳要跳去的頁。
@@ -163,11 +176,14 @@
           try { setRequired(BIND, JSON.stringify(b)); } catch (e) { throw { kind: 'storage', ret: '/account' }; }
           return '/account/link';
         }
-        switchIdentity();
+        var sw = switchIdentity(d.id_token);
         try {
           setRequired(TOKEN, d.id_token);
         } catch (e) { del(TOKEN); throw { kind: 'storage', ret: ret }; }
         saveFriend(typeof d.friend === 'boolean' ? d.friend : null);
+        /* 2026-10-29 SSO（規格 §11）：換了人、而這台瀏覽器的 WP 還是前一位 → 新憑證存好之後（LINE code 已用掉，不能先離頁）先繞 WP 登出頁，
+           繞完落首頁是拍板代價（WP 登出頁不收 ret）。正在進行 SSO 交易（回 /sso/wp）不繞：WP 那邊 finish 自己會換人。 */
+        if (sw.switched && sw.hadWp && ret !== '/sso/wp') return WP_LOGOUT;
         return ret;
       }, function () { throw { kind: 'exchange', ret: ret }; });
   }
@@ -205,5 +221,13 @@
     });
   }
 
-  window.WindsLine = { start: start, startBind: startBind, session: session, friend: friend, finish: finish, safeReturn: safeReturn, mountFriend: mountFriend };
+  /* 前往 WP 登出頁（規格 §11）：WP 只在「同站且 Referer 是 winds.tw」時自動送出。noTracking 頁（no-referrer）用 location 跳會沒有 Referer、
+     WP 只好出按鈕 → 一律用帶 referrerpolicy 的連結點過去 */
+  function goWpLogout() {
+    var a = document.createElement('a');
+    a.href = WP_LOGOUT; a.referrerPolicy = 'strict-origin-when-cross-origin'; a.style.display = 'none';
+    (document.body || document.documentElement).appendChild(a); a.click();
+  }
+
+  window.WindsLine = { start: start, startBind: startBind, session: session, friend: friend, finish: finish, safeReturn: safeReturn, mountFriend: mountFriend, switchIdentity: switchIdentity, goWpLogout: goWpLogout, WP_LOGOUT: WP_LOGOUT };
 })();

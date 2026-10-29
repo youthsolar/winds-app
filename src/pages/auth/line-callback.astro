@@ -2,9 +2,10 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import LineAuthCard from '../../components/LineAuthCard.astro';
 /* LINE 登入回來的過場頁（2026-10-16）。客人在 LINE 按完同意會先回到這裡，換好憑證就跳回原本那頁。
-   版面＝DS line-login v1 ③ 過場卡（LineAuthCard）：處理中／取消／失敗／存不了資料／程式沒載到。 */
+   版面＝DS line-login v1 ③ 過場卡（LineAuthCard）：處理中／取消／失敗／存不了資料／程式沒載到。
+   2026-10-29 SSO（規格 §3.2、§13）：noTracking——這頁網址帶 LINE 的 code，不載 GA／Pixel、不送 Referer。 */
 ---
-<BaseLayout title="LINE 登入 · 找風問幸福" description="用 LINE 登入找風問幸福。" noindex={true}>
+<BaseLayout title="LINE 登入 · 找風問幸福" description="用 LINE 登入找風問幸福。" noindex={true} noTracking={true}>
   <LineAuthCard busyTitle="正在用 LINE 登入…" busyBody="用電腦登入的話，請到手機 LINE 按一下確認。" />
   <script is:inline src="/assets/line-login.js"></script>
   <script is:inline>
@@ -14,7 +15,7 @@ import LineAuthCard from '../../components/LineAuthCard.astro';
       var params = new URLSearchParams(location.search);
       /* code 不要留在網址列與瀏覽紀錄裡 */
       try { history.replaceState(null, '', location.pathname); } catch (e) {}
-      WindsLine.finish(params).then(function (ret) { location.replace(ret); }, function (e) {
+      WindsLine.finish(params).then(function (ret) { if (ret === WindsLine.WP_LOGOUT) WindsLine.goWpLogout(); else location.replace(ret); }, function (e) {   /* 2026-10-29 SSO：換人時先繞 WP 登出頁（規格 §11） */
         var kind = e && e.kind;
         lcShow(kind === 'cancel' ? 'cancel' : kind === 'storage' ? 'storage' : 'fail', e && e.ret);
       });
