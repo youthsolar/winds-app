@@ -133,7 +133,7 @@
   /* 進 WP 前先換人（2026-10-29 第三批，Opus 第 8 輪必改）：禮物頁、起卦頁 Google 登入不繞 WP（'stay'），WP 可能還是前一位。
      點任何指向 https://wp.winds.tw 的連結（含之後動態插入的，用 document 事件委派、capture 階段）時比：
        旗標 winds_wp_sso 有值、網站目前有登入身分（Google、LINE 各算一個，憑證要沒過期）、旗標不等於其中任何一個（舊格式 '1' 也算不同）
-       → 不進 WP，改去 WP 登出頁（帶 Referer；繞完落 /?signed_out=1＝§11 拍板代價）。網站沒登入身分（憑證過期）→ 不攔。
+       → 不進 WP，改去 WP 登出頁（帶 Referer；帶 ?r=switch，繞完落 /?signed_out=switch 出換人提醒；§11 拍板代價）。網站沒登入身分（憑證過期）→ 不攔。
      /winds-sso/ 底下不攔：logout 本身就是登出頁；start 會回 /sso/wp 用網站現在的身分領碼，WP finish 自己換人。
      開新分頁：Ctrl／⌘／Shift＋點、中鍵（auxclick）一樣攔下、改在這一頁繞（不開新分頁）；
      右鍵或長按選「在新分頁開啟」攔不到點擊 → contextmenu 時把該連結的 href 換成 WP 登出頁（下一次 pointerdown／keydown 或點它時還原）。
