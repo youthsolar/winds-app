@@ -93,7 +93,11 @@ const homeJsonLd = {
            關掉才拿掉參數（重新整理前沒關會再出現一次，關了就不再出現） */
         if (q.get('signed_out') === 'switch') {
           try { localStorage.removeItem('winds_wp_sso'); } catch (e) {}
-          box.innerHTML = '<div class="zf-notice info" role="status"><i class="ph ph-info"></i><div class="zf-notice-body">商城剛才還登著前一位的帳號，已經幫你登出了。要繼續結帳，請回到商品頁重新選一次。</div>' +
+          /* 斷行（協調者 10/29：390 斷成「已經幫你／登出了」不行）：全站是瀏覽器原本換行（cjk-wrap NATIVE），不用 keep-all（WebKit 標點會錯位）；
+             照既有「逐項 nowrap」做法（feedback_cjk_wrap_nocjk）把詞組各包一層 nowrap、標點包在前一組裡 → 只在詞組之間斷、標點不落行首 */
+          var SW = ['商城', '剛才', '還登著', '前一位的帳號，', '已經幫你登出了。', '要繼續結帳，', '請回到', '商品頁', '重新選一次。'];
+          box.innerHTML = '<div class="zf-notice info" role="status"><i class="ph ph-info"></i><div class="zf-notice-body" data-nocjk>' +
+            SW.map(function (w) { return '<span style="white-space:nowrap">' + w + '</span>'; }).join('') + '</div>' +
             '<button type="button" class="zf-notice-x" id="hmSoX" aria-label="關閉提示"><i class="ph ph-x"></i></button></div>';
           box.hidden = false;
           document.getElementById('hmSoX').onclick = function () { box.hidden = true; box.innerHTML = ''; clean(); };
