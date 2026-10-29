@@ -138,13 +138,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       })();
       function onCredential(resp) {
         if (!resp || !resp.credential) return;
-        var ok = false;
-        try { localStorage.setItem('winds_google_token', resp.credential); ok = localStorage.getItem('winds_google_token') === resp.credential; } catch (e) {}
+        /* 2026-10-29 SSO（審查必改 A）：跟 LINE 登入走同一個收尾（WindsLine.afterLogin）——換人時清前一位（含前一位的 LINE 憑證，
+           不然 WP〔用 LINE 登入〕會拿前一位的 LINE 憑證登進他的商城）；WP 旗標記的不是這個 Google 身分就先繞 WP 登出頁（SSO 交易中不繞） */
+        var ok = false, dest = ret();
+        try {
+          if (window.WindsLine && WindsLine.afterLogin) dest = WindsLine.afterLogin('google', resp.credential, dest, SSO);
+          else localStorage.setItem('winds_google_token', resp.credential);
+          ok = localStorage.getItem('winds_google_token') === resp.credential;
+        } catch (e) {}
         var hint = document.getElementById('lgHint');
         /* 2026-10-18（發片前走查 Astra 必改 #3）：這個瀏覽器存不了登入資料（無痕、擋網站資料），跳回去還是沒登入、又被帶回來，一直繞圈 → 存不進就停在這裡講清楚 */
         if (!ok) { if (hint) { hint.textContent = '這個瀏覽器存不了登入資料。請改用 Safari 或 Chrome 打開，或用領取信裡的連結回到你的卦。'; hint.hidden = false; } return; }
         if (hint) hint.hidden = false;
-        location.replace(ret());
+        if (window.WindsLine && dest === WindsLine.WP_LOGOUT) WindsLine.goWpLogout(); else location.replace(dest);
       }
       /* 2026-09-27：原本 init() 每 150ms 無限重試，3.5 秒後就算已經換成外開引導也不會停；
          Google SDK 若很晚才載入（或永遠被擋），init() 會把引導清掉、換回一顆在這個瀏覽器按不動的

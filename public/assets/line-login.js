@@ -127,25 +127,45 @@
 
   function saveFriend(v) { if (v === true) set(FRIEND, '1'); else if (v === false) set(FRIEND, '0'); else del(FRIEND); }
 
-  /* LINE 登入成功、換到別人時：清掉前一位的 Google 登入與本機痕跡（同登出的清法），再存新的
-     2026-10-29 SSO（規格 §11、§17.65／72）：
-       ・第一行先讀 winds_wp_sso（下面的清除會把它清掉），所有出口都回傳 { hadWp, switched }
-       ・換人判定＝舊的是 Google，或舊 LINE 憑證的 sub ≠ 新的 sub（舊憑證過期也照 sub 比）
-       ・保留清單多一個 winds_sso_s：正在進行的 SSO 交易要撐過換人，回 /sso/wp 續接 */
+  /* 登入成功後共用收尾（LINE：finish；Google：/login onCredential）。回傳要去的頁（ret 或 WP_LOGOUT）；憑證存不進去就丟 Error('storage_unavailable')。
+     2026-10-29 SSO（規格 §11、§17.65／72）＋審查必改 A：
+       ・第一行先讀 winds_wp_sso（下面的清除會把它清掉）
+       ・網站換人（清前一位 winds_ 鍵）＝另一種登入的憑證還在，或同一種憑證的 sub 不同；LINE 與 Google 對稱（LINE 登入清 Google、Google 登入清 LINE）
+         保留清單照舊：winds_teacher_provider、winds_first_touch、交易前綴、winds_sso_s（進行中的 SSO 交易要撐過換人，回 /sso/wp 續接）
+       ・要不要繞 WP 登出頁只看旗標：/sso/wp 領碼成功時寫進「這次登進 WP 的身分」line:<sub>／google:<sub>。
+         原本比對舊憑證的 sub，可是 session() 跟別頁會把過期憑證刪掉（憑證約 1 小時就過期），常常比不到 → 換人沒繞、WP 停在前一位最長 14 天。
+         旗標空＝不繞；'1'（舊格式）或≠新身分＝換人要繞；＝新身分＝不繞。
+         已接受的代價：已合併帳號的同一人換用另一種登入，會多繞一次 WP 登出。
+       ・新憑證存好之後才繞；進行中 SSO 交易（回 /sso/wp）不繞，WP finish 自己會換人；旗標留著（WP 還是前一位，領碼成功才改寫）
+       ・決定繞時把旗標刪掉（WP 要登出了）；沒繞時旗標原樣放回（網站換人的清除會清到它，但 WP 那邊沒變） */
+  var GTOKEN = 'winds_google_token';
   function claims(t) {
     try { return JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))))); } catch (e) { return null; }
   }
-  function switchIdentity(newToken) {
-    var hadWp = get(WP_SSO), switched = false;
+  function aliasOf(kind, token) { var p = token ? claims(token) : null; return p && p.sub ? kind + ':' + p.sub : null; }
+  function isSsoReturn(ret) {
+    try { var u = new URL(String(ret || ''), location.origin); return u.pathname.replace(/\/+$/, '') === '/sso/wp' || u.searchParams.get('sso') === '1'; } catch (e) { return false; }
+  }
+  function afterLogin(kind, idToken, ret, sso) {
+    var hadWp = get(WP_SSO);
+    var alias = aliasOf(kind, idToken);
+    var mine = kind === 'line' ? TOKEN : GTOKEN, other = kind === 'line' ? GTOKEN : TOKEN;
+    var switched = false;
     try {
-      var oldLine = localStorage.getItem(TOKEN), op = oldLine ? claims(oldLine) : null, np = claims(newToken);
-      switched = !!localStorage.getItem('winds_google_token') || !!(op && np && op.sub !== np.sub);
-      if (!switched) return { hadWp: hadWp, switched: false };
-      var kill = [];
-      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k !== 'winds_first_touch' && k !== SSO_TXN && k.indexOf(TXN) !== 0) kill.push(k);   /* 第一次從哪來是這台瀏覽器的，不是前一位的（Astra 導流收單驗收 #2） */ }
-      kill.forEach(function (k) { localStorage.removeItem(k); });
+      var old = localStorage.getItem(mine), op = old ? claims(old) : null, np = claims(idToken);
+      switched = !!localStorage.getItem(other) || !!(old && (!op || !np || op.sub !== np.sub));
+      if (switched) {
+        var kill = [];
+        for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k !== 'winds_first_touch' && k !== SSO_TXN && k.indexOf(TXN) !== 0) kill.push(k);   /* 第一次從哪來是這台瀏覽器的，不是前一位的（Astra 導流收單驗收 #2） */ }
+        kill.forEach(function (k) { localStorage.removeItem(k); });
+      }
     } catch (e) {}
-    return { hadWp: hadWp, switched: switched };
+    try { setRequired(mine, idToken); } catch (e) { if (hadWp) set(WP_SSO, hadWp); throw e; }
+    var inSso = sso === true || isSsoReturn(ret);
+    var wpOther = !!hadWp && hadWp !== alias;
+    if (wpOther && !inSso) { del(WP_SSO); return WP_LOGOUT; }
+    if (hadWp) set(WP_SSO, hadWp);
+    return ret;
   }
 
   /* 給 /auth/line-callback 用：比對 state、換憑證、存起來，回傳要跳去的頁。
@@ -176,15 +196,12 @@
           try { setRequired(BIND, JSON.stringify(b)); } catch (e) { throw { kind: 'storage', ret: '/account' }; }
           return '/account/link';
         }
-        var sw = switchIdentity(d.id_token);
-        try {
-          setRequired(TOKEN, d.id_token);
-        } catch (e) { del(TOKEN); throw { kind: 'storage', ret: ret }; }
-        saveFriend(typeof d.friend === 'boolean' ? d.friend : null);
-        /* 2026-10-29 SSO（規格 §11）：換了人、而這台瀏覽器的 WP 還是前一位 → 新憑證存好之後（LINE code 已用掉，不能先離頁）先繞 WP 登出頁，
+        /* 2026-10-29 SSO（規格 §11）：WP 還是別人 → 新憑證存好之後（LINE code 已用掉，不能先離頁）先繞 WP 登出頁，
            繞完落首頁是拍板代價（WP 登出頁不收 ret）。正在進行 SSO 交易（回 /sso/wp）不繞：WP 那邊 finish 自己會換人。 */
-        if (sw.switched && sw.hadWp && ret !== '/sso/wp') return WP_LOGOUT;
-        return ret;
+        var dest;
+        try { dest = afterLogin('line', d.id_token, ret); } catch (e) { del(TOKEN); throw { kind: 'storage', ret: ret }; }
+        saveFriend(typeof d.friend === 'boolean' ? d.friend : null);
+        return dest;
       }, function () { throw { kind: 'exchange', ret: ret }; });
   }
 
@@ -229,5 +246,5 @@
     (document.body || document.documentElement).appendChild(a); a.click();
   }
 
-  window.WindsLine = { start: start, startBind: startBind, session: session, friend: friend, finish: finish, safeReturn: safeReturn, mountFriend: mountFriend, switchIdentity: switchIdentity, goWpLogout: goWpLogout, WP_LOGOUT: WP_LOGOUT };
+  window.WindsLine = { start: start, startBind: startBind, session: session, friend: friend, finish: finish, safeReturn: safeReturn, mountFriend: mountFriend, afterLogin: afterLogin, aliasOf: aliasOf, goWpLogout: goWpLogout, WP_LOGOUT: WP_LOGOUT };
 })();

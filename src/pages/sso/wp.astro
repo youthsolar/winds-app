@@ -2,7 +2,7 @@
 /* 商城／預約／課程（wp.winds.tw）的登入入口（2026-10-29，登入一致性 SSO 規格 §3.2；介面＝DS SSO-介面字-1028 A1／A3／A4／A5／A8／A9）。
    WP /winds-sso/start 302 到這裡：#s=<state>[&ne=deleted|reserved|released|stale][&via=google|line]。
    流程：讀 hash → replaceState 清掉 → 存 localStorage winds_sso_s（10 分鐘）→ whoami 一次一種憑證（via 指定的先，否則 Google 先；401 清掉換下一種）
-        → 都不行去 /login?return=%2Fsso%2Fwp&sso=1 → /wp-sso/code 領碼 → 成功 location.replace(wp callback#c=) 並記 winds_wp_sso=1。
+        → 都不行去 /login?return=%2Fsso%2Fwp&sso=1 → /wp-sso/code 領碼 → 成功 location.replace(wp callback#c=) 並記 winds_wp_sso＝這次登進 WP 的身分（line:<sub>／google:<sub>）。
    這頁：不載頁首頁尾、不載追蹤（GA／Pixel／風小編／utm 記點）、noindex、no-store（伺服器端每次產生，才帶得上 Cache-Control）。 */
 import '../../styles/phosphor-regular.css';
 import '../../styles/phosphor-thin.css';
@@ -130,8 +130,8 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         try { g = localStorage.getItem('winds_google_token'); } catch (e) {}
         try { l = localStorage.getItem('winds_line_token'); } catch (e) {}
         var list = [];
-        if (g) list.push({ via: 'google', key: 'winds_google_token', headers: { 'X-Google-Id-Token': g } });
-        if (l) list.push({ via: 'line', key: 'winds_line_token', headers: { 'X-Line-Id-Token': l } });
+        if (g) list.push({ via: 'google', key: 'winds_google_token', token: g, headers: { 'X-Google-Id-Token': g } });
+        if (l) list.push({ via: 'line', key: 'winds_line_token', token: l, headers: { 'X-Line-Id-Token': l } });
         if (tx.via === 'line') list.reverse();
         return list;
       }
@@ -159,7 +159,9 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         var body = { state: tx.s }; if (tx.hint) body.email_hint = tx.hint;
         post('/wp-sso/code', body, actor.headers).then(function (d) {
           if (d._status === 200 && d.code) {
-            try { localStorage.setItem('winds_wp_sso', '1'); } catch (e) {}
+            /* 2026-10-29 審查必改 A：旗標記「這次登進 WP 的是誰」（line:<sub>／google:<sub>，跟 worker alias 同名），之後換人看它決定要不要繞 WP 登出頁 */
+            var who = window.WindsLine && WindsLine.aliasOf ? WindsLine.aliasOf(actor.via, actor.token) : null;
+            try { localStorage.setItem('winds_wp_sso', who || '1'); } catch (e) {}
             drop();
             location.replace(CALLBACK + encodeURIComponent(d.code));
             return;
