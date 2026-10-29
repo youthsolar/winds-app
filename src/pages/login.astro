@@ -33,6 +33,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .lg-btns{margin-top:28px;display:flex;flex-direction:column;gap:12px;}
     .lg-gmount{display:flex;justify-content:center;min-height:44px;}
     .lg-open{margin:20px 0 0;display:flex;justify-content:center;}
+    .lg-open[hidden]{display:none;}
     .lg-open .zf-text-link i{font-size:15px;}
     .lg-hint{display:inline-flex;align-items:center;gap:8px;margin:16px 0 0;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);}
     .lg-gbtn{width:100%;margin-top:32px;display:flex;align-items:center;justify-content:center;gap:12px;white-space:nowrap;padding:14px 20px;min-height:54px;cursor:pointer;font-family:var(--font-serif);font-size:17px;font-weight:500;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
@@ -75,6 +76,30 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           return u.href;   // 回傳驗證過的完整網址——只取 pathname 的話 https://winds.tw//evil.com 會變成 //evil.com 跳到外站（gpt-6-astra 複核）
         } catch (e) { return '/'; }
       }
+      /* 2026-10-29 SSO（規格 §3.2；DS SSO-介面字-1028 A2）：/login?return=%2Fsso%2Fwp&sso=1＝從商城／預約／課程來的登入。
+         副標換成回到原頁、藏「用 LINE 打開占卜」（點了會離開這次登入）；不靠 exp 判斷已登入——只有後端 whoami 回 200 才跳回，
+         而且同一筆交易最多自動跳回 1 次（不然憑證被後端拒絕時會在兩頁之間繞圈） */
+      var SSO = new URLSearchParams(location.search).get('sso') === '1';
+      if (SSO) {
+        var sub = document.querySelector('.lg-sub'); if (sub) sub.textContent = '登入後會回到剛才的頁面。';
+        var lo = document.querySelector('.lg-open'); if (lo) lo.hidden = true;
+        (function () {
+          var tx = null; try { tx = JSON.parse(localStorage.getItem('winds_sso_s') || 'null'); } catch (e) {}
+          if (!tx || !tx.s || !(Date.now() - tx.t <= 10 * 60 * 1000) || tx.lr) return;
+          var cands = [];
+          try { var g = localStorage.getItem('winds_google_token'); if (g) cands.push({ 'X-Google-Id-Token': g }); } catch (e) {}
+          try { var l = localStorage.getItem('winds_line_token'); if (l) cands.push({ 'X-Line-Id-Token': l }); } catch (e) {}
+          (function next(i) {
+            if (i >= cands.length) return;
+            fetch('https://api.winds.tw/wp-sso/whoami', { method: 'POST', headers: cands[i] }).then(function (r) {
+              if (r.status !== 200) return next(i + 1);
+              tx.lr = 1;
+              try { localStorage.setItem('winds_sso_s', JSON.stringify(tx)); } catch (e) { return; }
+              location.replace(ret());
+            }, function () {});
+          })(0);
+        })();
+      } else {
       // 已登入直接回轉址目標
       try {
         var t = localStorage.getItem('winds_google_token');
@@ -84,6 +109,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         }
       } catch (e) {}
       if (window.WindsLine && WindsLine.session()) { location.replace(ret()); return; }
+      }
       /* 2026-10-18（Astra 導流收單驗收 #1）：「到 LINE 裡打開」帶上這次從哪來（utm 兩欄），LINE 小幫手起卦時才對得到來源 */
       /* Astra 第二輪：本頁的來源是頁尾才記的，這裡先讀會拿到舊的 → 改成按下去那一刻（以及整頁載完）才讀 */
       (function () {

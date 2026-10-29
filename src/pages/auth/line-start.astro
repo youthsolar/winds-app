@@ -3,9 +3,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import LineAuthCard from '../../components/LineAuthCard.astro';
 /* 前往 LINE 登入（2026-10-16）：/auth/line-start?return=/history → 產生 state／nonce／PKCE 後跳 LINE。
    「用 LINE 登入」按鈕都連到這裡。回去頁只收白名單（line-login.js safeReturn）。
-   版面＝DS line-login v1 ③ 過場卡（LineAuthCard）。 */
+   版面＝DS line-login v1 ③ 過場卡（LineAuthCard）。
+   2026-10-29 SSO（規格 §3.2、§13）：noTracking。 */
 ---
-<BaseLayout title="LINE 登入 · 找風問幸福" description="用 LINE 登入找風問幸福。" noindex={true}>
+<BaseLayout title="LINE 登入 · 找風問幸福" description="用 LINE 登入找風問幸福。" noindex={true} noTracking={true}>
   <LineAuthCard busyTitle="正在前往 LINE…" busyBody="馬上就好。" />
   <script is:inline src="/assets/line-login.js"></script>
   <script is:inline>

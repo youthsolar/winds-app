@@ -83,7 +83,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
   <script is:inline>
     /* 2026-10-09（Astra 最終驗收 #2）：網址帶這一卦的看結果憑證（領取信、提醒信、付款回跳的 ?log_id=&k=）時整頁不載 GA／Pixel——
        兩邊預設都會把完整網址（含 k）送出去，拿到 k 就能免登入讀那一卦。其他頁照舊。 */
-    window.__windsNoTrack = /[?&](k|token)=|k%3D/i.test(location.search);   // k%3D：登入頁 ?return= 裡夾帶的 k
+    window.__windsNoTrack = /[?&](k|token)=|k%3D|[?&]sso=1(&|$)/i.test(location.search);   // k%3D：登入頁 ?return= 裡夾帶的 k；sso=1：商城／預約／課程登入的登入頁（2026-10-29 SSO 規格 §3.2、§13）
     if (!window.__windsNoTrack) {
       var _g = document.createElement('script'); _g.async = true; _g.src = 'https://www.googletagmanager.com/gtag/js?id=G-2E65WJ8M93';
       document.head.appendChild(_g);
