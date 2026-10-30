@@ -259,7 +259,7 @@
 .zf-stepper li{display:flex;flex-direction:column;gap:8px;min-width:0;margin:0}
 .zf-stepper .seg{display:block;height:4px;border-radius:999px;background:var(--accent)}
 .zf-stepper li.todo .seg{background:var(--border-soft)}
-.zf-stepper .lb{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;min-width:0;font-family:var(--font-sans);font-size:13px;line-height:1.4;white-space:nowrap;color:var(--text-muted);cursor:default}
+.zf-stepper .lb{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;min-width:0;font-family:var(--font-sans);font-size:13px;line-height:1.4;white-space:nowrap;color:var(--text-secondary);cursor:default}
 .zf-stepper .lb .t{overflow:hidden;text-overflow:ellipsis}
 .zf-stepper .lb .n{font-variant-numeric:tabular-nums}
 .zf-stepper .lb i{flex:none;font-size:13px;line-height:1;color:var(--accent)}
@@ -272,7 +272,7 @@
 .zf-stepbar-segs{flex:1;display:flex;gap:6px}
 .zf-stepbar-segs span{flex:1;height:4px;border-radius:999px;background:var(--accent)}
 .zf-stepbar-segs span.todo{background:var(--border-soft)}
-.zf-stepbar-n{font-family:var(--font-sans);font-size:13px;line-height:1;color:var(--text-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.zf-stepbar-n{font-family:var(--font-sans);font-size:13px;line-height:1;color:var(--text-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}
 .zf-stepbar-name{font-family:var(--font-serif);font-size:15px;line-height:1.4;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:760px){
   .zf-stepband{padding:8px}
