@@ -141,10 +141,10 @@
 .zf-chip.selected,.zf-chip[aria-pressed=true]{color:var(--text-on-accent);background:var(--accent);border-color:transparent;box-shadow:var(--shadow-sm)}
 @media(max-width:760px){.zf-chip{font-size:15px;padding:0 17px}}
 
-/* ===== ThemeToggle 三段（DS site-shell ThemeToggle，2026.10.27-4）=====
+/* ===== ThemeToggle 三段（DS site-shell ThemeToggle，2026.10.27-4；沒選中改 --text-secondary＝DS 2026.10.27-5 第 1 點）=====
  * 自動／淺色／深色。電腦頁首只放圖示（28 高三格）；手機選單 .lb 帶字、撐滿一列。點擊與選中狀態在 theme-init.js。 */
 .zf-tt{display:inline-flex;padding:3px;gap:2px;border-radius:999px;background:var(--surface-sunken);border:1px solid var(--border-soft);box-sizing:border-box}
-.zf-tt button{all:unset;cursor:pointer;box-sizing:border-box;height:28px;min-width:28px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;color:var(--text-muted);font-family:var(--font-sans);font-size:13.5px;line-height:1}
+.zf-tt button{all:unset;cursor:pointer;box-sizing:border-box;height:28px;min-width:28px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;color:var(--text-secondary);font-family:var(--font-sans);font-size:13.5px;line-height:1}
 .zf-tt button[aria-checked="true"]{background:var(--surface-card);box-shadow:var(--shadow-xs);color:var(--text-primary)}
 .zf-tt button:focus-visible{box-shadow:0 0 0 4px var(--focus-ring)}
 .zf-tt i{font-size:15px;line-height:1}
@@ -234,3 +234,51 @@
 .zf-sso-lsub{font-family:var(--font-sans);font-size:13px;line-height:1.6;color:var(--text-muted);word-break:normal;overflow-wrap:anywhere}
 .zf-sso-card .zf-text-link{align-self:flex-start}
 @media(max-width:760px){.zf-sso-card{padding:30px 24px 28px}.zf-sso-h1{font-size:25px}.zf-sso-sub{font-size:15px}.zf-sso-body{margin-top:24px}}
+
+/* ===== Stepper＋流程頁首步驟帶（DS 2026.10.27-5 第 2 點＋2026.10.29-6 修正：components/stepper、ui_kits/booking/funnel-header）=====
+ * 網站 ds.css 與 LINE site-chrome.css 同名同值，改一邊要複製到另一邊。markup 由頁面的 zfStepband() 畫（網站 FunnelDocument、LINE index.html／booking.html）。
+ * 步驟名 .lb：完成且可點回去的是 button，目前／未到／不給點的完成步驟是 span（不用 disabled，螢幕閱讀器才唸得到 aria-current）。
+ * 電腦：左〔上一步〕quiet sm、中 labeled（max 640）、右〔離開〕quiet sm；手機（≤760）：左〔←〕、中 bar、右〔×〕44 圖示鈕。
+ * 只有下框線（接在導覽列下時只留導覽列底線＋這條）。.solo＝沒有導覽列、步驟帶就是頁首（占卜流程）；.has-theme＝右欄〔離開〕左邊放深淺色單鈕（只放 .solo）。 */
+.zf-stepband{position:sticky;top:0;z-index:40;background:var(--bar-translucent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft);padding:16px 32px}
+.zf-stepband.solo{background:color-mix(in oklab,var(--surface-page) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.zf-stepband-in{max-width:var(--container);margin:0 auto;display:grid;grid-template-columns:180px minmax(0,1fr) 180px;align-items:center;gap:24px}
+.zf-stepband-l{display:flex;justify-content:flex-start;min-width:0}
+.zf-stepband-r{display:flex;align-items:center;justify-content:flex-end;gap:4px;min-width:0}
+.zf-stepband-c{min-width:0}
+.zf-stepband .zf-stepper{max-width:640px;margin:0 auto}
+.zf-sb-btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:14px;font-weight:500;letter-spacing:.04em;line-height:1;white-space:nowrap;border-radius:var(--radius-pill);background:transparent;color:var(--accent-press);border:1px solid transparent;transition:background var(--dur-fast) var(--ease-soft)}
+.zf-sb-btn:hover{background:var(--accent-quiet)}
+.zf-sb-ic{all:unset;box-sizing:border-box;cursor:pointer;width:44px;height:44px;border-radius:999px;display:none;align-items:center;justify-content:center;color:var(--text-secondary)}
+.zf-sb-ic i{font-size:18px;line-height:1}
+.zf-sb-theme{all:unset;box-sizing:border-box;cursor:pointer;flex:none;width:44px;height:44px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+.zf-sb-theme i{font-size:20px;line-height:1}
+.zf-sb-btn:focus-visible,.zf-sb-ic:focus-visible,.zf-sb-theme:focus-visible,.zf-stepper button:focus-visible{box-shadow:0 0 0 4px var(--focus-ring)}
+/* labeled（電腦） */
+.zf-stepper{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.zf-stepper li{display:flex;flex-direction:column;gap:8px;min-width:0;margin:0}
+.zf-stepper .seg{display:block;height:4px;border-radius:999px;background:var(--accent)}
+.zf-stepper li.todo .seg{background:var(--border-soft)}
+.zf-stepper .lb{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;min-width:0;font-family:var(--font-sans);font-size:13px;line-height:1.4;white-space:nowrap;color:var(--text-secondary);cursor:default}
+.zf-stepper .lb .t{overflow:hidden;text-overflow:ellipsis}
+.zf-stepper .lb .n{font-variant-numeric:tabular-nums}
+.zf-stepper .lb i{flex:none;font-size:13px;line-height:1;color:var(--accent)}
+.zf-stepper li.cur .lb{font-weight:500;color:var(--text-primary)}
+.zf-stepper li.done .lb{color:var(--text-secondary)}
+.zf-stepper button.lb{cursor:pointer}
+/* bar（手機） */
+.zf-stepbar{display:none;flex-direction:column;gap:8px;min-width:0}
+.zf-stepbar-row{display:flex;align-items:center;gap:12px}
+.zf-stepbar-segs{flex:1;display:flex;gap:6px}
+.zf-stepbar-segs span{flex:1;height:4px;border-radius:999px;background:var(--accent)}
+.zf-stepbar-segs span.todo{background:var(--border-soft)}
+.zf-stepbar-n{font-family:var(--font-sans);font-size:13px;line-height:1;color:var(--text-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}
+.zf-stepbar-name{font-family:var(--font-serif);font-size:15px;line-height:1.4;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:760px){
+  .zf-stepband{padding:8px}
+  .zf-stepband-in{grid-template-columns:44px minmax(0,1fr) 44px;gap:8px}
+  .zf-stepband.has-theme .zf-stepband-in{grid-template-columns:44px minmax(0,1fr) 92px}
+  .zf-sb-btn,.zf-stepband .zf-stepper{display:none}
+  .zf-sb-ic{display:inline-flex}
+  .zf-stepbar{display:flex}
+}
