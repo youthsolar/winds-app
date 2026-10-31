@@ -52,8 +52,8 @@ Each site takes a real-life question plus the asker's birth data and returns a w
 - Website: https://winds.tw
 - Sister sites: love / home / food / wine / beauty / 2pr .winds.tw, and oc.com.tw
 - LINE: https://liff.winds.tw
-- Booking: https://booking.winds.tw
-- Shop: https://shop.winds.tw
+- Booking: https://winds.tw/booking/
+- Shop: https://winds.tw/shop/
 
 ## Currency
 All prices in New Taiwan Dollar (TWD/NT$).

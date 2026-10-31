@@ -377,7 +377,7 @@ import SiteNav from '../components/SiteNav.astro';
     // embed=1 桌機 iframe：header 在外層 concierge.js 面板 → 通話鈕在外層，postMessage 傳令進來開話
     // origin 白名單：只認自家頁面，防外站嵌 iframe 白嫖語音分鐘數
     window.addEventListener('message',function(e){
-      if(['https://booking.winds.tw','https://winds.tw','https://www.winds.tw'].indexOf(e.origin)<0) return;
+      if(['https://winds.tw','https://www.winds.tw'].indexOf(e.origin)<0) return;
       if(e.data&&e.data.type==='winds-voice-start') startVoice();
     });
     vHang.addEventListener('click',function(){ if(V.call) V.call.stop('user'); else { var pc=V.pending; V.pending=null; if(pc) pc.stop('user'); voiceUi('idle'); } });
