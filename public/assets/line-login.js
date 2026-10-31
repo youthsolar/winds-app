@@ -149,6 +149,18 @@
   function isSsoReturn(ret) {
     try { var u = new URL(String(ret || ''), location.origin); return u.pathname.replace(/\/+$/, '') === '/sso/wp' || u.searchParams.get('sso') === '1'; } catch (e) { return false; }
   }
+  /* 雲端全站審查 10/31：'stay' 不能跳走（起卦頁流程要留著），前一位的 WP 登入原本一直留到過期，新的人直接打商城網址就看得到前一位的訂單 →
+     用隱藏框走同一條 WP 登出（登出頁只放行 winds.tw 內嵌、看 referrer 自動送出）；回到 /?signed_out=switch 時首頁清旗標。
+     失敗（瀏覽器擋、斷線）就維持原狀：旗標還在，之後站內連結照樣被攔去登出 */
+  function silentWpLogout() {
+    try {
+      var f = document.createElement('iframe');
+      f.src = WP_LOGOUT + '?r=switch'; f.referrerPolicy = 'strict-origin-when-cross-origin';
+      f.style.display = 'none'; f.setAttribute('aria-hidden', 'true'); f.tabIndex = -1;
+      document.body.appendChild(f);
+      setTimeout(function () { f.remove(); }, 15000);
+    } catch (e) {}
+  }
   function afterLogin(kind, idToken, ret, mode) {
     var hadWp = get(WP_SSO);
     var alias = aliasOf(kind, idToken);
@@ -172,6 +184,7 @@
     var noBounce = mode === true || mode === 'stay' || isSsoReturn(ret);
     var wpOther = !!hadWp && hadWp !== alias;
     if (hadWp) set(WP_SSO, hadWp);
+    if (wpOther && mode === 'stay') silentWpLogout();
     return wpOther && !noBounce ? WP_LOGOUT : ret;
   }
 
