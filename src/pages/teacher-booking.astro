@@ -315,9 +315,10 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
     if (hadWp && w.WindsSignOut) { w.WindsSignOut(); return; }   // 登過商城要繞 WP 登出，回首頁
     try {   // 同 nav-auth signOut 清的範圍；留在這頁讓老師直接換帳號
       const kill: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider') kill.push(k); }
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && !(hadWp && k === 'winds_wp_sso')) kill.push(k); }
       kill.forEach((k) => localStorage.removeItem(k));
     } catch {}
+    w.__refreshNavAuth?.();
     boot();
   });
   ($('pwd-form') as HTMLFormElement).addEventListener('submit', async (e) => {
