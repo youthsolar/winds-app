@@ -211,9 +211,24 @@
     var f = e.target;
     if (!f || f.tagName !== 'FORM') return;
     var action = (e.submitter && e.submitter.getAttribute('formaction')) || f.getAttribute('action') || location.href;
-    if (!wpGuard(action)) return;
+    if (!wpGuard(action)) { markConnect(f, action); return; }
     e.preventDefault(); e.stopPropagation();
     goWpLogout();
+  }
+  /* J56（2026-10-31）：網站已登入（憑證至少還有 60 秒）又沒有換人衝突時，商品頁送到 WP 的表單多帶 winds_connect=1：
+     WP 放完車、要轉回結帳頁那一下，訪客就接著走登入，客人不用再按一次〔登入〕。只有「這一次按購買」有效，不留任何 cookie。 */
+  function markConnect(f, action) {
+    var old = f.querySelector('input[name="winds_connect"]');
+    if (old) old.remove();
+    if (!isWpUrl(action)) return;
+    var ok = ['winds_google_token', 'winds_line_token'].some(function (k) {
+      var t = ''; try { t = localStorage.getItem(k) || ''; } catch (e) {}
+      var p = t ? decode(t) : null;
+      return !!(p && p.sub && p.exp && p.exp * 1000 - Date.now() > 60000);
+    });
+    if (!ok) return;
+    var i = document.createElement('input'); i.type = 'hidden'; i.name = 'winds_connect'; i.value = '1';
+    f.appendChild(i);
   }
   document.addEventListener('click', onWpClick, true);
   document.addEventListener('auxclick', onWpClick, true);
