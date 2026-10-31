@@ -120,7 +120,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         var ne = h.get('ne'), via = h.get('via');
         tx = { s: hs, t: Date.now(), ne: ['deleted', 'reserved', 'released', 'stale'].indexOf(ne) >= 0 ? ne : null, via: via === 'google' || via === 'line' ? via : null, c: h.get('c') === '1' };
         cameFromWp = /^https:\/\/wp\.winds\.tw(\/|$)/.test(document.referrer || '') || !document.referrer;
-        if (!save()) tx = null;   /* 存不進去（無痕、擋網站資料）：登入後回來一定接不上，當作拿不到交易 */
+        if (!save()) { if (tx.c) { location.replace(WP + '/checkout/'); return; } tx = null; }   /* J56 同：接不上回結帳頁。存不進去（無痕、擋網站資料）：登入後回來一定接不上，當作拿不到交易 */
       } else {
         try { tx = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { tx = null; }
         if (!tx || typeof tx.s !== 'string' || !(Date.now() - tx.t >= 0 && Date.now() - tx.t <= TTL)) { drop(); tx = null; }
