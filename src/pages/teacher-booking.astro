@@ -1,6 +1,6 @@
 ---
 // 老師預約後台（內部）— 2026-09-10 SB 停付當晚第一版；之後照老師回饋改。
-// 入口：/teacher-booking；密碼閘＝老師共用密碼（localStorage winds_teacher_secret，同老師排盤工具，請求帶 X-Teacher-Secret）
+// 入口：/teacher-booking；先認網站帳號（綁定老師的 Google／LINE，只看自己的預約），認不到才走共用密碼閘（過渡，localStorage winds_teacher_secret，同老師排盤工具）
 // 資料：api.winds.tw/teacher/catalog（老師／項目／地點）／bookings（預約＋擋時間＋班表）／blocks／workday／bookings/{id}
 // 視覺：殼照 crm.astro（page-header／auth-gate），元件用 ds.css zf-*；列表列為本頁專屬，值走 DS token。
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -17,8 +17,10 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
 
     <section class="auth-gate" id="auth-gate" hidden>
       <div class="auth-card">
-        <h2>請輸入老師密碼</h2>
-        <p class="auth-desc">與老師排盤工具同一組密碼。密碼由負責人提供，請勿外流。</p>
+        <h2>老師登入</h2>
+        <p class="auth-desc">用你綁定的 Google 或 LINE 登入預約後台。</p>
+        <a class="zf-btn secondary md full" href="/login/?return=%2Fteacher-booking">用 Google 或 LINE 登入</a>
+        <p class="auth-desc" style="margin-top:16px">還沒綁定的老師，請先用共用密碼。</p>
         <form id="pwd-form" style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
           <input class="zf-input" type="password" id="pwd-input" autocomplete="off" placeholder="老師密碼" style="text-align:center" />
           <button type="submit" class="zf-btn primary md full">進入後台</button>
@@ -88,11 +90,21 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   function getSecret() { try { return localStorage.getItem('winds_teacher_secret') || ''; } catch { return ''; } }
   function setSecret(s: string) { try { localStorage.setItem('winds_teacher_secret', s); } catch {} }
   function clearSecret() { try { localStorage.removeItem('winds_teacher_secret'); } catch {} }
-  function headers(extra: Record<string, string> = {}) { return { 'X-Teacher-Secret': getSecret(), ...extra }; }
+  let acct: Record<string, string> | null = null;   // 網站帳號認得的老師：帶登入憑證，不帶密碼
+  function acctCandidates() {
+    const out: Record<string, string>[] = [];
+    try {
+      const g = localStorage.getItem('winds_google_token'), l = localStorage.getItem('winds_line_token');
+      if (g) out.push({ 'X-Google-Id-Token': g });
+      if (l) out.push({ 'X-Line-Id-Token': l });
+    } catch {}
+    return out;
+  }
+  function headers(extra: Record<string, string> = {}) { return { ...(acct || { 'X-Teacher-Secret': getSecret() }), ...extra }; }
   function hideAll() { authGate.hidden = loading.hidden = section.hidden = errorSection.hidden = true; }
   async function api(path: string, init: RequestInit = {}) {
     const r = await fetch(WORKER_API + path, { ...init, headers: headers({ ...(init.body ? { 'Content-Type': 'application/json' } : {}), ...((init.headers as any) || {}) }) });
-    if (r.status === 401) { clearSecret(); hideAll(); authGate.hidden = false; throw new Error('unauthorized'); }
+    if (r.status === 401) { if (acct) acct = null; else clearSecret(); hideAll(); authGate.hidden = false; throw new Error('unauthorized'); }
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.message || j.error || ('HTTP ' + r.status));
     return j;
@@ -238,11 +250,16 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   // ── 開機：有密碼就讀目錄（探 401），沒有就出密碼閘 ──
   async function boot() {
     hideAll(); loading.hidden = false;
-    if (!getSecret()) { hideAll(); authGate.hidden = false; return; }
+    acct = null;
+    for (const h of acctCandidates()) {
+      const r = await fetch(WORKER_API + '/teacher/catalog', { headers: h }).catch(() => null);
+      if (r && r.ok) { acct = h; break; }
+    }
+    if (!acct && !getSecret()) { hideAll(); authGate.hidden = false; return; }
     try {
       catalog = await api('/teacher/catalog');
       const opts = catalog.providers.map((p: any) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
-      $('prov-select').innerHTML = '<option value="">全部老師</option>' + opts;
+      $('prov-select').innerHTML = (catalog.scoped ? '<option value="">全部</option>' : '<option value="">全部老師</option>') + opts;
       $('bf-prov').innerHTML = opts;
       try { provider = localStorage.getItem('winds_teacher_provider') || ''; } catch {}
       if (provider && !catalog.providers.some((p: any) => String(p.id) === provider)) provider = '';

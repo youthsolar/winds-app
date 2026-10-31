@@ -17,7 +17,7 @@
   var REDIRECT_URI = 'https://winds.tw/auth/line-callback';
   var API = 'https://api.winds.tw';
   var TXN = 'winds_line_txn', TOKEN = 'winds_line_token', AT = 'winds_line_at', FRIEND = 'winds_line_friend';
-  var RETURNS = ['/history', '/bookings', '/account', '/account/link', '/partner', '/sso/wp'];   // 2026-10-23 合作分潤頁；2026-10-29 SSO：商城／預約／課程登入回 /sso/wp 續接（規格 §3.2）
+  var RETURNS = ['/history', '/bookings', '/account', '/account/link', '/partner', '/sso/wp', '/teacher-booking'];   // 2026-10-23 合作分潤頁；2026-10-29 SSO：商城／預約／課程登入回 /sso/wp 續接（規格 §3.2）
   var WP_SSO = 'winds_wp_sso', SSO_TXN = 'winds_sso_s';   // SSO：這台瀏覽器有登入過 WP 的旗標／進行中的 SSO 交易（/sso/wp 管）
   var WP_LOGOUT = 'https://wp.winds.tw/winds-sso/logout';
   var BIND = 'winds_bind';   // 2026-10-17 帳號合併：綁定交易（account-link.js 管），LINE 綁定模式回來把憑證放這裡
