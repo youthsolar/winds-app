@@ -221,7 +221,7 @@
     var old = f.querySelector('input[name="winds_connect"]');
     if (old) old.remove();
     if (!isWpUrl(action)) return;
-    try { if (localStorage.getItem('winds_teacher_secret')) return; } catch (e) { return; }   /* 看登出會清掉的 secret，不看永遠留著的 provider（雲端審查 10/31：不然這台之後的客人都接不上）。老師自動接上會變老師帳號、結帳被擋；訪客才買得成，維持要按登入 */
+    try { if (localStorage.getItem('winds_teacher_secret') || localStorage.getItem('winds_teacher_acct')) return; } catch (e) { return; }   /* 看登出會清掉的 secret，不看永遠留著的 provider（雲端審查 10/31：不然這台之後的客人都接不上）。老師自動接上會變老師帳號、結帳被擋；訪客才買得成，維持要按登入 */
     var ok = ['winds_google_token', 'winds_line_token'].some(function (k) {
       var t = ''; try { t = localStorage.getItem(k) || ''; } catch (e) {}
       var p = t ? decode(t) : null;

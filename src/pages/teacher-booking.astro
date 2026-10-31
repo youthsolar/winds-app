@@ -90,6 +90,7 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   function getSecret() { try { return localStorage.getItem('winds_teacher_secret') || ''; } catch { return ''; } }
   function setSecret(s: string) { try { localStorage.setItem('winds_teacher_secret', s); } catch {} }
   function clearSecret() { try { localStorage.removeItem('winds_teacher_secret'); } catch {} }
+  let pwChosen = false;   // 這次是自己在關卡輸入密碼
   let acct: Record<string, string> | null = null;   // 網站帳號認得的老師：帶登入憑證，不帶密碼
   function acctCandidates() {
     const out: Record<string, string>[] = [];
@@ -255,7 +256,10 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
       const r = await fetch(WORKER_API + '/teacher/catalog', { headers: h }).catch(() => null);
       if (r && r.ok) { acct = h; break; }
     }
-    if (!acct && !getSecret()) { hideAll(); authGate.hidden = false; return; }
+    /* winds_teacher_acct：用帳號進來過的老師（winds_ 開頭＝登出會清）。憑證過期要回登入，不靜默退回共用密碼，不然畫面會從只看自己變成看全部 */
+    try { if (acct) localStorage.setItem('winds_teacher_acct', '1'); } catch {}
+    let wasAcct = false; try { wasAcct = !!localStorage.getItem('winds_teacher_acct'); } catch {}
+    if (!acct && (!getSecret() || (wasAcct && !pwChosen))) { hideAll(); authGate.hidden = false; return; }
     try {
       catalog = await api('/teacher/catalog');
       const opts = catalog.providers.map((p: any) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
@@ -273,7 +277,7 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
     $('pwd-error').hidden = true;
     const r = await fetch(WORKER_API + '/teacher/catalog', { headers: { 'X-Teacher-Secret': val } }).catch(() => null);
     if (!r || r.status === 401) { $('pwd-error').hidden = false; return; }
-    setSecret(val); boot();
+    setSecret(val); pwChosen = true; boot();
   });
   boot();
 </script>
