@@ -178,7 +178,8 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
           if (d._status === 200 && d.code) {
             /* 2026-10-29 審查必改 A：旗標記「這次登進 WP 的是誰」（line:<sub>／google:<sub>，跟 worker alias 同名），之後換人看它決定要不要繞 WP 登出頁 */
             var who = window.WindsLine && WindsLine.aliasOf ? WindsLine.aliasOf(actor.via, actor.token) : null;
-            try { localStorage.setItem('winds_wp_sso', who || '1'); } catch (e) {}
+            /* 雲端審查 10/31：領碼成功不等於 WP 已換人（第一次要認領信箱、放棄或 stale 時 WP 還是前一位）→ 已有別人的旗標就留著，之後連結照樣被攔去登出，寧可多繞一次 */
+            try { var had = localStorage.getItem('winds_wp_sso'); if (!had || had === '1' || had === who) localStorage.setItem('winds_wp_sso', who || '1'); } catch (e) {}
             drop();
             location.replace(CALLBACK + encodeURIComponent(d.code));
             return;
