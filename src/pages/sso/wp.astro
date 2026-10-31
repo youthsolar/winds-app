@@ -170,7 +170,15 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
       }
 
       /* ── 3. 領碼 ── */
-      function begin() { if (tx.ne && !tx.hint) emailStep({ reason: tx.ne }); else code(); }
+      /* 自動接上（c=1）只給客人：老師接上會變老師帳號，結帳被擋（11/1 Jeffery 手機買法器撞到）→ 認得是老師就當訪客回結帳頁。
+         問不到（斷線、500）一樣當訪客，買東西不卡；老師自己按登入不走這條 */
+      function begin() {
+        if (!buying()) { beginCode(); return; }
+        fetch('https://api.winds.tw/teacher/catalog', { headers: actor.headers }).then(function (r) {
+          if (r.status === 401) beginCode(); else toCheckout();
+        }, function () { toCheckout(); });
+      }
+      function beginCode() { if (tx.ne && !tx.hint) emailStep({ reason: tx.ne }); else code(); }
       function code(opts) {
         waiting();
         var body = { state: tx.s }; if (tx.hint) body.email_hint = tx.hint;
