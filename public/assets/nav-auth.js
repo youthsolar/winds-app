@@ -221,6 +221,7 @@
     var old = f.querySelector('input[name="winds_connect"]');
     if (old) old.remove();
     if (!isWpUrl(action)) return;
+    try { if (localStorage.getItem('winds_teacher_provider')) return; } catch (e) { return; }   /* 老師自動接上會變老師帳號、結帳被擋；訪客才買得成，維持要按登入 */
     var ok = ['winds_google_token', 'winds_line_token'].some(function (k) {
       var t = ''; try { t = localStorage.getItem(k) || ''; } catch (e) {}
       var p = t ? decode(t) : null;
