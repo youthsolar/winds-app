@@ -78,7 +78,11 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         rate: ['試太多次了，請一分鐘後再試。'],
         busy: ['系統忙碌中，請稍後再試。'],
       };
+      /* J56：這次是網站已登入按購買才走到這裡（c=1）→ 接不上就回結帳頁當訪客（車在 WP），不出卡；目的地寫死 */
+      function toCheckout() { drop(); location.replace(WP + '/checkout/'); }
+      function buying() { return !!(tx && tx.c); }
       function fail(kind) {
+        if (buying()) return toCheckout();
         var f = has(FAIL, kind) ? FAIL[kind] : FAIL.busy;
         paint('', '<div class="zf-sso-col"><i class="ph-thin ph-cloud-warning zf-sso-icon" aria-hidden="true"></i><p class="zf-sso-fail">' + esc(f[0]) + '</p>' +
           (trace ? '<span class="zf-sso-trace">追查碼 ' + esc(trace) + '</span>' : '') +
@@ -86,11 +90,13 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         var b = document.getElementById('swBack'); if (b) b.onclick = back;
       }
       function maint() {
+        if (buying()) return toCheckout();
         paint('', '<div class="zf-sso-col"><i class="ph-thin ph-cloud-warning zf-sso-icon" aria-hidden="true"></i><p class="zf-sso-fail">登入功能維護中，請稍後再試。</p><button type="button" class="zf-btn primary lg full" id="swBack">回到剛才的頁面</button></div>');
         document.getElementById('swBack').onclick = back;
       }
       /* A5 兩組衝突 */
       function conflict() {
+        if (buying()) return toCheckout();
         paint('', '<div class="zf-sso-col"><i class="ph-thin ph-link-break zf-sso-icon" aria-hidden="true"></i><p class="zf-sso-line">你的帳號連到兩組紀錄，先到會員中心合成一組，再回來登入。</p><a class="zf-btn primary lg full" href="/account">到會員中心</a></div>');
       }
 
@@ -112,7 +118,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
       if (location.hash) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
       if (hs && /^[A-Za-z0-9_=-]{16,256}$/.test(hs)) {
         var ne = h.get('ne'), via = h.get('via');
-        tx = { s: hs, t: Date.now(), ne: ['deleted', 'reserved', 'released', 'stale'].indexOf(ne) >= 0 ? ne : null, via: via === 'google' || via === 'line' ? via : null };
+        tx = { s: hs, t: Date.now(), ne: ['deleted', 'reserved', 'released', 'stale'].indexOf(ne) >= 0 ? ne : null, via: via === 'google' || via === 'line' ? via : null, c: h.get('c') === '1' };
         cameFromWp = /^https:\/\/wp\.winds\.tw(\/|$)/.test(document.referrer || '') || !document.referrer;
         if (!save()) tx = null;   /* 存不進去（無痕、擋網站資料）：登入後回來一定接不上，當作拿不到交易 */
       } else {
@@ -144,6 +150,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
         return list;
       }
       function toLogin() {
+        if (buying()) return toCheckout();
         tx.lg = (tx.lg || 0) + 1;
         /* 指定的那種用不了：登入頁上客人自己選的才算數 → 拿掉 via，並關掉登入頁的「認得人就自動跳回」（不然會用另一種憑證自動跳回＝偷換） */
         if (tx.via) { tx.via = null; tx.lr = 1; }
@@ -192,6 +199,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
 
       /* ── A4 need_link ── */
       function needLink() {
+        if (buying()) return toCheckout();
         if (!window.WindsLink) { fail('busy'); return; }
         stopTimer();
         WindsLink.mountNeedLink(card, { via: actor.via, headers: actor.headers }, function () { code(); }, function () { fail('busy'); });
@@ -225,6 +233,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
           (err ? '<span class="zf-field-hint" id="' + id + 'H">' + esc(err) + '</span>' : '') + '</label>';
       }
       function emailStep(o) {
+        if (buying()) return toCheckout();
         var lead = has(LEAD, o.reason) ? LEAD[o.reason] : '留一個信箱，商城的訂單通知會寄到這裡。';
         paint('left', '<h1 class="zf-sso-h1">留一個信箱</h1><div class="zf-sso-body">' +
           '<p class="zf-sso-line muted">' + esc(lead) + '</p>' +
