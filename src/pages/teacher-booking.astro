@@ -18,9 +18,19 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
     <section class="auth-gate" id="auth-gate" hidden>
       <div class="auth-card">
         <h2>老師登入</h2>
-        <p class="auth-desc">用你綁定的 Google 或 LINE 登入預約後台。</p>
-        <a class="zf-btn secondary md full" href="/login/?return=%2Fteacher-booking">用 Google 或 LINE 登入</a>
-        <p class="auth-desc" style="margin-top:16px">還沒綁定的老師，請先用共用密碼。</p>
+        <div id="gate-notice"></div>
+        <p class="auth-desc" id="gate-sub">用你綁定的 Google 或 LINE 登入預約後台。</p>
+        <!-- DS teacher-entry-1031：Google 上、LINE 下；已登入但不是老師時換成登出（按了登入只會跳回來） -->
+        <div class="gate-acts" id="gate-social">
+          <a class="zf-btn secondary md full" href="/login/?return=%2Fteacher-booking"><i class="ph ph-google-logo"></i>使用 Google 帳戶登入</a>
+          <a class="zf-line-btn md" href="/auth/line-start?return=/teacher-booking"><span class="ic"><img src="/assets/line-btn-base.png" alt="" width="32" height="32"></span><span class="tx">用 LINE 登入</span></a>
+        </div>
+        <div class="gate-acts" id="gate-switch" hidden>
+          <button class="zf-btn primary md full" type="button" id="gate-logout">登出，換一個帳號</button>
+          <a class="zf-text-link sm muted" href="/account/">回到會員中心</a>
+        </div>
+        <div class="gate-line"></div>
+        <p class="auth-desc">還沒綁定的老師，請先用共用密碼。</p>
         <form id="pwd-form" style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
           <input class="zf-input" type="password" id="pwd-input" autocomplete="off" placeholder="老師密碼" style="text-align:center" />
           <button type="submit" class="zf-btn primary md full">進入後台</button>
@@ -92,6 +102,28 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   function clearSecret() { try { localStorage.removeItem('winds_teacher_secret'); } catch {} }
   let pwChosen = false;   // 這次是自己在關卡輸入密碼
   let acct: Record<string, string> | null = null;   // 網站帳號認得的老師：帶登入憑證，不帶密碼
+  function claimsOf(t: string): any { try { return JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))))); } catch { return null; } }
+  function maskEmail(e: string) { const [u, d] = String(e || '').split('@'); return d ? `${u.slice(0, 2)}***@${d}` : ''; }
+  function liveClaims() {   // 還沒到期的登入身分
+    return acctCandidates().map((h) => claimsOf(Object.values(h)[0])).filter((c) => c && c.exp * 1000 > Date.now());
+  }
+  /* DS teacher-entry-1031 三種狀態：第一次進來／已登入但不是老師／登入到期回來 */
+  function showGate(state: 'none' | 'notTeacher' | 'expired') {
+    hideAll(); authGate.hidden = false;
+    const box = $('gate-notice'); box.textContent = '';
+    const note = (tone: string, text: string) => {
+      const d = document.createElement('div'); d.className = `zf-notice ${tone}`; d.setAttribute('role', 'status');
+      const b = document.createElement('div'); b.className = 'zf-notice-body'; b.textContent = text; d.append(b); box.append(d);
+    };
+    const not = state === 'notTeacher';
+    $('gate-social').hidden = not; $('gate-switch').hidden = !not;
+    $('gate-sub').textContent = not ? '請換成你綁定的 Google 或 LINE 登入。' : '用你綁定的 Google 或 LINE 登入預約後台。';
+    if (not) {
+      const c = liveClaims()[0] || {}, mail = maskEmail(c.email);
+      note('warning', `你現在登入的是 ${c.name || '這個帳號'}${mail ? `（${mail}）` : ''}，這個帳號不是老師帳號。`);
+    }
+    if (state === 'expired') note('info', '登入已經過了一段時間，請再登入一次。');
+  }
   function acctCandidates() {
     const out: Record<string, string>[] = [];
     try {
@@ -105,7 +137,7 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   function hideAll() { authGate.hidden = loading.hidden = section.hidden = errorSection.hidden = true; }
   async function api(path: string, init: RequestInit = {}) {
     const r = await fetch(WORKER_API + path, { ...init, headers: headers({ ...(init.body ? { 'Content-Type': 'application/json' } : {}), ...((init.headers as any) || {}) }) });
-    if (r.status === 401) { if (acct) acct = null; else clearSecret(); hideAll(); authGate.hidden = false; throw new Error('unauthorized'); }
+    if (r.status === 401) { if (acct) { acct = null; showGate('expired'); } else { clearSecret(); showGate('none'); } throw new Error('unauthorized'); }
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.message || j.error || ('HTTP ' + r.status));
     return j;
@@ -252,14 +284,20 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   async function boot() {
     hideAll(); loading.hidden = false;
     acct = null;
+    let failed = false;
     for (const h of acctCandidates()) {
       const r = await fetch(WORKER_API + '/teacher/catalog', { headers: h }).catch(() => null);
       if (r && r.ok) { acct = h; break; }
+      if (!r || r.status !== 401) failed = true;
     }
+    if (!acct && failed) { hideAll(); errorSection.hidden = false; $('error-text').textContent = '暫時連不上，請再試一次。'; return; }
     /* winds_teacher_acct：用帳號進來過的老師（winds_ 開頭＝登出會清）。憑證過期要回登入，不靜默退回共用密碼，不然畫面會從只看自己變成看全部 */
     try { if (acct) localStorage.setItem('winds_teacher_acct', '1'); } catch {}
     let wasAcct = false; try { wasAcct = !!localStorage.getItem('winds_teacher_acct'); } catch {}
-    if (!acct && (!getSecret() || (wasAcct && !pwChosen))) { hideAll(); authGate.hidden = false; return; }
+    if (!acct && (!getSecret() || (wasAcct && !pwChosen))) {
+      showGate(liveClaims().length ? 'notTeacher' : wasAcct ? 'expired' : 'none');
+      return;
+    }
     try {
       catalog = await api('/teacher/catalog');
       const opts = catalog.providers.map((p: any) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
@@ -271,6 +309,17 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
       await load();
     } catch (e: any) { if (e.message !== 'unauthorized') { hideAll(); errorSection.hidden = false; $('error-text').textContent = '讀不到資料：' + e.message; } }
   }
+  $('gate-logout').addEventListener('click', () => {
+    let hadWp = false; try { hadWp = !!localStorage.getItem('winds_wp_sso'); } catch {}
+    const w = window as any;
+    if (hadWp && w.WindsSignOut) { w.WindsSignOut(); return; }   // 登過商城要繞 WP 登出，回首頁
+    try {   // 同 nav-auth signOut 清的範圍；留在這頁讓老師直接換帳號
+      const kill: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider') kill.push(k); }
+      kill.forEach((k) => localStorage.removeItem(k));
+    } catch {}
+    boot();
+  });
   ($('pwd-form') as HTMLFormElement).addEventListener('submit', async (e) => {
     e.preventDefault();
     const val = ($('pwd-input') as HTMLInputElement).value.trim(); if (!val) return;
@@ -290,6 +339,11 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
   .page-header h1 { font-family: var(--font-serif); font-size: 38px; font-weight: 500; color: var(--ink-900); margin: 12px 0 0; letter-spacing: 0.01em; line-height: 1.3; }
   .page-header .lede { font-family: var(--font-serif); font-weight: 300; color: var(--text-secondary); font-size: 18px; line-height: 1.8; max-width: none; margin: 12px 0 0; }
   .auth-gate { max-width: 480px; margin: 40px auto; }
+  .gate-acts { display: flex; flex-direction: column; align-items: stretch; gap: 12px; margin-top: 16px; }
+  .gate-acts[hidden] { display: none; }
+  .gate-acts .zf-text-link { align-self: center; }
+  .gate-line { border-top: 1px solid var(--border-soft); margin: 20px 0 12px; }
+  #gate-notice .zf-notice { margin: 12px 0 0; text-align: left; }
   .auth-card { background: var(--surface-card); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 32px 28px; text-align: center; box-shadow: var(--shadow-sm); }
   .auth-card h2 { font-family: var(--font-serif); font-weight: 500; color: var(--ink-900); margin: 0 0 12px; font-size: 22px; }
   .auth-desc { font-family: var(--font-serif); color: var(--ink-700); font-size: 14px; line-height: 1.7; margin: 0 0 24px; }

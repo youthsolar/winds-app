@@ -46,6 +46,16 @@ const entries = [
       </div>
     </div>
 
+    <!-- DS teacher-entry-1031：只有綁定老師看得到；名稱不綁版本，換 Amelia 後改連結就好 -->
+    <div class="ac-card ac-teacher" id="acTeacher" hidden>
+      <span class="ac-entry-icon"><i class="ph-thin ph-chalkboard-teacher"></i></span>
+      <div class="ac-teacher-body">
+        <div class="ac-entry-title">老師工作區</div>
+        <div class="ac-entry-line">看你的預約和客人資料。</div>
+      </div>
+      <a class="zf-btn secondary sm" href="/teacher-booking/">進入老師工作區<i class="ph ph-arrow-right"></i></a>
+    </div>
+
     <!-- need_link 卡（DS SSO-介面字-1028 A4，2026-10-29）：Google 登入、這個 Gmail 之前只用信箱題驗過的人，跟 /sso/wp 同一張 -->
     <div class="ac-needlink" id="amNeedLink" hidden><div id="amNeedLinkCard"></div></div>
 
@@ -106,6 +116,11 @@ const entries = [
     .ac-via-line[hidden]{display:none;}
     .ac-via-line img{flex:none;display:block;width:18px;height:18px;border-radius:5px;}
     .ac-friend{margin-top:20px;}
+    .ac-teacher{margin-top:20px;display:flex;align-items:center;gap:20px;padding:20px 24px;background:var(--surface-tint);}
+    .ac-teacher[hidden]{display:none;}
+    .ac-teacher-body{flex:1;min-width:0;}
+    .ac-teacher .zf-btn{flex:none;white-space:nowrap;}
+    @media (max-width:760px){.ac-teacher{flex-wrap:wrap;gap:14px;padding:18px;}.ac-teacher-body{flex:1 1 60%;}.ac-teacher .zf-btn{flex:1 1 100%;justify-content:center;}}
 
     /* DS Btn secondary sm */
     .ac-logout{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:var(--t-body-sm);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;white-space:nowrap;cursor:pointer;background:var(--surface-card);color:var(--ink-900);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
@@ -208,6 +223,21 @@ const entries = [
   </style>
   <script is:inline src="/assets/line-login.js"></script>
   <script is:inline src="/assets/account-link.js"></script>
+  <script is:inline>
+    /* 老師工作區入口：用登入身分問一次預約後台，認得才顯示（客人回 401，整張卡不出現） */
+    (async function () {
+      var hs = [];
+      try {
+        var g = localStorage.getItem('winds_google_token'), l = localStorage.getItem('winds_line_token');
+        if (g) hs.push({ 'X-Google-Id-Token': g });
+        if (l) hs.push({ 'X-Line-Id-Token': l });
+      } catch (e) {}
+      for (var i = 0; i < hs.length; i++) {
+        var r = await fetch('https://api.winds.tw/teacher/catalog', { headers: hs[i] }).catch(function () { return null; });
+        if (r && r.ok) { document.getElementById('acTeacher').hidden = false; return; }
+      }
+    })();
+  </script>
   <script is:inline>
     (function () {
       var token = '';
