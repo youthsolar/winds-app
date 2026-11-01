@@ -327,7 +327,9 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
     $('pwd-error').hidden = true;
     const r = await fetch(WORKER_API + '/teacher/catalog', { headers: { 'X-Teacher-Secret': val } }).catch(() => null);
     if (!r || r.status === 401) { $('pwd-error').hidden = false; return; }
-    setSecret(val); pwChosen = true; boot();
+    setSecret(val); pwChosen = true;
+    try { localStorage.removeItem('winds_teacher_acct'); } catch {}   // 自己選了密碼就不算靜默退回，重新整理不再攔
+    boot();
   });
   boot();
 </script>

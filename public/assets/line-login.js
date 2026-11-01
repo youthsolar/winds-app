@@ -174,6 +174,7 @@
            只拿掉前一位的另一種登入憑證（Q2：不然 WP〔用 LINE 登入〕會拿前一位的 LINE 憑證）；同種憑證下面直接蓋掉 */
         localStorage.removeItem(other);
         if (other === TOKEN) localStorage.removeItem(FRIEND);
+        localStorage.removeItem('winds_teacher_secret'); localStorage.removeItem('winds_teacher_acct');   // 共用電腦：前一位老師的記號不留給下一位
       } else if (switched) {
         var kill = [];
         for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k !== 'winds_first_touch' && k !== SSO_TXN && k.indexOf(TXN) !== 0) kill.push(k);   /* 第一次從哪來是這台瀏覽器的，不是前一位的（Astra 導流收單驗收 #2） */ }
