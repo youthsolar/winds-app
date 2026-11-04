@@ -189,6 +189,7 @@
         for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k !== 'winds_first_touch' && k !== SSO_TXN && k.indexOf(TXN) !== 0) kill.push(k);   /* 第一次從哪來是這台瀏覽器的，不是前一位的（Astra 導流收單驗收 #2） */ }
         kill.forEach(function (k) { localStorage.removeItem(k); });
       }
+      if (switched) { try { if (window.ZFEmailVerify && window.ZFEmailVerify.clearAll) window.ZFEmailVerify.clearAll(); } catch (e2) {} }   // 頁面記憶體裡前一位的信箱驗證（Fable 11/04 建議）
       if (switched) {   // 2026-11-04 雲端審查必改 3：分頁裡前一位的商品頁／預約確認頁／分靈體對話草稿也清；付款中的記號 winds_pending_*（付完回這頁接回去）不動
         var sk = [];
         for (var j = 0; j < sessionStorage.length; j++) { var s = sessionStorage.key(j); if (s && /^(shop-order-draft-|shop-order-owner-|winds-req-|winds_bc_draft|winds_spirit_draft_)/.test(s)) sk.push(s); }

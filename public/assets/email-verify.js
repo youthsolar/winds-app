@@ -31,6 +31,9 @@
     mem[e] = { t: t, x: x || '' };
     var m = load(); m[e] = mem[e]; store(m);
   }
+  /* 2026-11-04（雲端 Fable 審查建議）：共用電腦換人時，line-login.js 清掉 localStorage 的 winds_ev 之後也清這一頁記的，
+     不然同一頁的下一位填前一位的信箱就不用收碼 */
+  function clearAll() { mem = {}; }
   function clear(email) {
     var e = norm(email); mem[e] = { t: '' };
     var m = load(); if (m[e]) { delete m[e]; store(m); }
@@ -246,5 +249,5 @@
     return open;
   }
 
-  window.ZFEmailVerify = { token: token, clear: clear, ensure: ensure, fromGoogle: fromGoogle, waitGoogle: waitGoogle, googlePending: function () { return !!googlePending; } };
+  window.ZFEmailVerify = { token: token, clear: clear, clearAll: clearAll, ensure: ensure, fromGoogle: fromGoogle, waitGoogle: waitGoogle, googlePending: function () { return !!googlePending; } };
 })();
