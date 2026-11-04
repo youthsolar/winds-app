@@ -44,7 +44,7 @@
       for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && !(goWp && k === 'winds_wp_sso')) kill.push(k); }   // 老師後台的篩選偏好不是個資，留著；老師密碼照清
       kill.forEach(function (k) { localStorage.removeItem(k); });
     } catch (er) {}
-    try { sessionStorage.removeItem('winds_pending_log_id'); } catch (er) {}
+    try { var sk = []; for (var j = 0; j < sessionStorage.length; j++) { var s = sessionStorage.key(j); if (s && /^(shop-order-draft-|shop-order-owner-|winds-req-|winds_pending_|winds_bc_draft|winds_spirit_draft_)/.test(s)) sk.push(s); } sk.forEach(function (s) { sessionStorage.removeItem(s); }); } catch (er) {}   // 2026-11-04 雲端審查：商品頁、預約確認頁的草稿（姓名、手機、生日、門市）在這個分頁的 sessionStorage，登出也要清，不然下一位同一分頁打開會被填回
     if (hadWp && !(opts && opts.skipWp)) {
       /* WP 只在 Referer 是 winds.tw 時自動送出；noTracking 頁（no-referrer）用連結帶 referrerpolicy 過去 */
       var a = document.createElement('a'); a.href = WP_LOGOUT; a.referrerPolicy = 'strict-origin-when-cross-origin'; a.style.display = 'none';

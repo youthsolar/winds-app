@@ -2546,7 +2546,7 @@ function submitFree(){
      if(STATE.ret&&STATE.retInfo&&payload.phone)STATE.retInfo.has_phone=true;STATE.retPhone=false;
      if(STATE.retInfo&&!STATE.ret){var _at=String(payload.email||"").indexOf("@");
        STATE.retInfo={last_name:payload.last_name,first_name:payload.first_name,date_of_birth:payload.date_of_birth,gender:payload.gender,phone:payload.phone||"",email:payload.email,email_masked:_at>0?payload.email.slice(0,Math.min(2,_at))+"***"+payload.email.slice(_at):""};}
-     if(data.k){STATE.k=data.k;STATE.logId=String(data.log_id||"");var lsOk=false;try{localStorage.setItem("winds_ff_log",STATE.logId);localStorage.setItem("winds_ff_k",STATE.k);lsOk=true;}catch(e){}rememberK(STATE.logId,STATE.k);markUrl(STATE.logId,lsOk?"":STATE.k);}
+     if(data.k){STATE.k=data.k;STATE.logId=String(data.log_id||"");STATE.castHere=true;var lsOk=false;try{localStorage.setItem("winds_ff_log",STATE.logId);localStorage.setItem("winds_ff_k",STATE.k);lsOk=true;}catch(e){}rememberK(STATE.logId,STATE.k);markUrl(STATE.logId,lsOk?"":STATE.k);}
      if(data.pending){if(data.warm_urls&&data.warm_urls.length){warmCards(data.warm_urls.slice());}pollStatus(data.log_id||"",true);return;}
      finishResult(data);
    })
@@ -2860,6 +2860,9 @@ function handleGoogleCredential(resp){
   var saved=false;
   try{if(window.WindsLine&&WindsLine.afterLogin){WindsLine.afterLogin("google",resp.credential,location.pathname,"stay");saved=true;}}catch(e){}
   if(!saved){try{localStorage.setItem("winds_google_token",resp.credential);}catch(e){}}
+  /* 2026-11-04（Opus 審查建議 2、3）：換人時 afterLogin 會清掉上一卦與信箱驗證憑證（可能是前一位的）→ 這一頁自己起的卦寫回去（castHere；看報告模式可能是前一位的卦，不寫）、Gmail 驗證憑證重換一張 */
+  if(STATE.castHere&&STATE.logId&&STATE.k){try{localStorage.setItem("winds_ff_log",STATE.logId);localStorage.setItem("winds_ff_k",STATE.k);}catch(e){}rememberK(STATE.logId,STATE.k);}
+  if(window.ZFEmailVerify)ZFEmailVerify.fromGoogle(resp.credential);
   /* 量測：Lead＝此瀏覽器第一次登入/綁定（重複登入不重送） */
   if(firstLogin){try{if(window.fbq)fbq('track','Lead');if(window.gtag)gtag('event','sign_up',{method:'google'});}catch(e){}}
   doPrefill();

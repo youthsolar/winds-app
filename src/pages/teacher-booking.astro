@@ -318,6 +318,11 @@ const pageTitle = '老師預約後台｜找風問幸福（內部）';
       for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && !(hadWp && k === 'winds_wp_sso')) kill.push(k); }
       kill.forEach((k) => localStorage.removeItem(k));
     } catch {}
+    try {   // 2026-11-04 雲端審查：分頁裡的表單草稿也清（同 nav-auth signOut）
+      const sk: string[] = [];
+      for (let j = 0; j < sessionStorage.length; j++) { const s = sessionStorage.key(j); if (s && /^(shop-order-draft-|shop-order-owner-|winds-req-|winds_pending_|winds_bc_draft|winds_spirit_draft_)/.test(s)) sk.push(s); }
+      sk.forEach((s) => sessionStorage.removeItem(s));
+    } catch {}
     w.__refreshNavAuth?.();
     boot();
   });

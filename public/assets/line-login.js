@@ -161,6 +161,10 @@
       setTimeout(function () { f.remove(); }, 15000);
     } catch (e) {}
   }
+  /* 2026-11-04（Opus 審查建議 1）：上一位是誰另外記一份（kind:sub，憑證過期也不刪）。原本只比對還在的憑證，
+     可是前一位的 Google 憑證約 1 小時就過期、很多頁一開就刪掉 → 共用電腦隔一陣子換人時認不出換人、前一位的資料全留著。
+     已合併帳號的同一人換用另一種登入會被當成換人（跟 WP 旗標同一個已接受的代價）。登出會清掉所有 winds_，下一位就沒有比對對象、也不用清 */
+  var WHO = 'winds_last_who';
   function afterLogin(kind, idToken, ret, mode) {
     var hadWp = get(WP_SSO);
     var alias = aliasOf(kind, idToken);
@@ -168,20 +172,31 @@
     var switched = false;
     try {
       var old = localStorage.getItem(mine), op = old ? claims(old) : null, np = claims(idToken);
-      switched = !!localStorage.getItem(other) || !!(old && (!op || !np || op.sub !== np.sub));
+      var last = localStorage.getItem(WHO);
+      switched = !!localStorage.getItem(other) || !!(old && (!op || !np || op.sub !== np.sub)) || !!(last && alias && last !== alias);
       if (switched && mode === 'stay') {
         /* 'stay'：頁面流程進行中，本機還有這次的卦／分潤來源／信件憑證（winds_ff_*、winds_partner_pk、winds_edm_token…），全清會打斷 →
            只拿掉前一位的另一種登入憑證（Q2：不然 WP〔用 LINE 登入〕會拿前一位的 LINE 憑證）；同種憑證下面直接蓋掉 */
         localStorage.removeItem(other);
         if (other === TOKEN) localStorage.removeItem(FRIEND);
         localStorage.removeItem('winds_teacher_secret'); localStorage.removeItem('winds_teacher_acct');   // 共用電腦：前一位老師的記號不留給下一位
+        /* 2026-11-04 雲端審查必改 2：前一位填過的聯絡資料（winds_contact）、信箱驗證憑證（winds_ev）、上一卦（winds_ff_*）也要清，
+           不然新的人打開預約表單會被帶入前一位的姓名、手機、生日。起卦頁這一卦在頁面記憶體裡，起卦頁登入完自己寫回去（Opus 審查建議 2） */
+        localStorage.removeItem('winds_contact'); localStorage.removeItem('winds_ev');
+        localStorage.removeItem('winds_ff_log'); localStorage.removeItem('winds_ff_k'); localStorage.removeItem('winds_ff_ks');
       } else if (switched) {
         var kill = [];
         for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('winds_') === 0 && k !== 'winds_teacher_provider' && k !== 'winds_first_touch' && k !== SSO_TXN && k.indexOf(TXN) !== 0) kill.push(k);   /* 第一次從哪來是這台瀏覽器的，不是前一位的（Astra 導流收單驗收 #2） */ }
         kill.forEach(function (k) { localStorage.removeItem(k); });
       }
+      if (switched) {   // 2026-11-04 雲端審查必改 3：分頁裡前一位的商品頁／預約確認頁／分靈體對話草稿也清；付款中的記號 winds_pending_*（付完回這頁接回去）不動
+        var sk = [];
+        for (var j = 0; j < sessionStorage.length; j++) { var s = sessionStorage.key(j); if (s && /^(shop-order-draft-|shop-order-owner-|winds-req-|winds_bc_draft|winds_spirit_draft_)/.test(s)) sk.push(s); }
+        sk.forEach(function (s) { sessionStorage.removeItem(s); });
+      }
     } catch (e) {}
     try { setRequired(mine, idToken); } catch (e) { if (hadWp) set(WP_SSO, hadWp); throw e; }
+    if (alias) set(WHO, alias);
     var noBounce = mode === true || mode === 'stay' || isSsoReturn(ret);
     var wpOther = !!hadWp && hadWp !== alias;
     if (hadWp) set(WP_SSO, hadWp);
