@@ -10,7 +10,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "generate-types": "wrangler types"
+    "generate-types": "wrangler types",
+    "typecheck": "astro check",
+    "lint": "biome lint"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^13.1.8",
@@ -23,5 +25,8 @@
   },
   "overrides": {
     "vite": "^7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.2"
   }
 }
