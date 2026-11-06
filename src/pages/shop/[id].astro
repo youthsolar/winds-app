@@ -141,7 +141,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
             <div class="lp-total"><span>總計（{blessed ? '含開光，' : ''}運費 0）</span><b id="wooTotal">{ntd(variants[0]?.price ?? prod.price)}</b></div>
             <p class="lp-custom"><i class="ph ph-info" aria-hidden="true"></i><span>依個案親製，不適用七天無理由退貨 <a class="zf-text-link" href="https://winds.tw/terms/#refund">退換貨說明</a></span></p>
             <button class="zf-btn primary lg full" type="submit">前往填資料與付款<i class="ph ph-arrow-right"></i></button>
-            <p class="lp-paynote">下一頁填本人姓名、西元生日與時辰、取貨門市後付款。付款由綠界 ECPay 處理，支援信用卡、網路 ATM、台灣 Pay；本站不會保存你的卡號。</p>
+            <p class="lp-paynote">下一頁填本人姓名、西元生日與時辰、取貨門市，再付款。付款由綠界處理，可用信用卡、網路 ATM、台灣 Pay；本站不會保存你的卡號。</p>
           </form>
         )}
         {!fromWp && (
@@ -198,7 +198,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
               <div class="lp-total"><span>總計（{blessed ? '含開光，' : ''}運費 0）</span><b id="totalTxt">{ntd(variants[0]?.price ?? prod.price)}</b></div>
               <p class="lp-custom"><i class="ph ph-info" aria-hidden="true"></i><span>依個案親製，不適用七天無理由退貨 <a class="zf-text-link" href="https://winds.tw/terms/#refund">退換貨說明</a></span></p>
               <button class="zf-btn primary lg full" type="submit" id="payBtn">確認並付款<i class="ph ph-lock-key"></i></button>
-              <p class="lp-paynote">付款由綠界 ECPay 處理，支援信用卡、網路 ATM、台灣 Pay。本頁不會保存你的卡號。</p>
+              <p class="lp-paynote">付款由綠界處理，可用信用卡、網路 ATM、台灣 Pay；本站不會保存你的卡號。</p>
         </form>
         )}
       </div>
