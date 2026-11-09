@@ -2800,28 +2800,8 @@ function createOrder(shown,gsSnap){
 /* ===== 分享（Web Share API / 剪貼簿）===== */
 function shareResult(btn){
   /* 2026-10-09（Jeffery 拍板止血，Astra V116 #2）：share?uid=<Google sub> 分享網址退役（網址就帶身分碼，後端 /share-profile 同日停用）。
-     一律改用這一卦自己的收卡頁連結（shareCard，唯讀、零登入可開）。下面舊流程留著不再執行 */
+     一律改用這一卦自己的收卡頁連結（shareCard，唯讀、零登入可開）。舊流程 11/09 刪除（Fable 審查建議，留在 git 歷史） */
   if(STATE.shareUrl){shareCard(btn);}else{alert("這一卦還在準備分享卡，稍等一下再按一次。");}return;
-  if(!STATE.userId){if(STATE.shareUrl){shareCard(btn);}else{alert("登入 Google 後才能產生分享頁。");}return;}
-  var orig=btn?btn.innerHTML:"";
-  if(btn){btn.disabled=true;btn.innerHTML=ic("circle-notch")+'生成分享圖中…';}
-  var done=function(){if(btn){btn.disabled=false;btn.innerHTML=orig;}};
-  fetch(WORKER_API+"/generate-og-image",{method:"POST",headers:authHeaders({"Content-Type":"application/json"}),   /* 2026-10-01（廣告前全站掃描）：後端改成驗身分，要帶登入憑證 */
-    body:JSON.stringify({google_sub:STATE.userId})}).catch(function(){}).then(function(){
-    done();
-    var shareUrl="https://winds.tw/share?uid="+encodeURIComponent(STATE.userId)+"&t="+Date.now();
-    var R=STATE.result||{};
-    var snippet=(R.summary||"").replace(/[#*`>]/g,"").replace(/\s+/g," ").trim().slice(0,100);
-    var shareText="🌀 找風問幸福 — 我的占卜結果\n\n"+(snippet?snippet+"…\n\n":"")+"你也來試試 ✨\n👉 "+shareUrl;
-    if(navigator.share){
-      navigator.share({title:"🌀 找風問幸福 — 我的占卜結果",text:shareText,url:shareUrl})
-       .catch(function(){if(navigator.clipboard)navigator.clipboard.writeText(shareText).then(function(){alert("已複製分享內容 👍");});});
-    }else if(navigator.clipboard){
-      navigator.clipboard.writeText(shareText).then(function(){alert("已複製分享連結 👍\n可以貼到 LINE、Facebook、Threads 分享");});
-    }else{
-      prompt("請複製以下連結分享：",shareUrl);
-    }
-  });
 }
 
 /* ===== 預填（回訪）===== */
