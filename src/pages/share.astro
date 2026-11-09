@@ -141,12 +141,10 @@ import '../styles/global.css';
     }
 
     (function boot(){
-      var uid=new URLSearchParams(location.search).get("uid")||"";
-      if(!uid){renderEmpty();return}
-      fetch(WORKER_API+"/share-profile?uid="+encodeURIComponent(uid))
-        .then(function(r){return r.json()}).then(function(d){
-          if(d&&d.success){render(d)}else{renderEmpty()}
-        }).catch(function(){renderEmpty()});
+      /* 11/09（Fable 審查建議）：share?uid=<身分碼> 10/09 已退役（/share-profile 回 410）。不再把 uid 送去後端，網址上的 uid 也拿掉，一律顯示連結已失效。
+         render()、版面與 WORKER_API 留著：之後若改用唯讀分享碼重開這頁可直接接回 */
+      if(/[?&]uid=/.test(location.search)){var q=new URLSearchParams(location.search);q.delete("uid");history.replaceState(null,"",location.pathname+(q.toString()?"?"+q:"")+location.hash);}
+      renderEmpty();
     })();
   </script>
 </body>
