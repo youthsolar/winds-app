@@ -52,6 +52,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <p class="hr-sub" id="hrSub"></p>
         </div>
       </div>
+      <!-- 11/09 DS my-bookings-partial-1109：Amelia（11/01 起的新預約）讀不到時，舊預約照列、上方 Notice（info、無 ✕，第 2 版字） -->
+      <div class="zf-notice hr-partial" role="status" id="hrPartial" hidden><i class="ph ph-info" aria-hidden="true"></i><div class="zf-notice-body"><div class="hr-partial-t">你的預約都還在</div><div class="hr-partial-p">11/01 之後約的預約暫時讀不到，不是被取消了。稍等一下重新整理，就會一起出現。</div><div class="zf-notice-act"><a class="zf-btn secondary sm" href="/bookings/"><i class="ph ph-arrow-clockwise"></i>重新整理</a></div></div></div>
       <div class="hr-friend" id="hrFriend" hidden></div>
       <div class="hr-cards" id="hrCards"></div>
       <div class="hr-more" id="hrMore"></div>
@@ -95,6 +97,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .hr-expired[hidden]{display:none;}
     .hr-expired i{flex:none;margin-top:3px;font-size:16px;color:var(--accent-press);}
     .hr-friend{margin-top:28px;}
+    .hr-partial{margin-top:24px;}
+    .hr-partial:not([hidden]) + .hr-friend[hidden] + .hr-cards{margin-top:32px;}
+    .hr-partial .hr-partial-t{font-weight:500;margin-bottom:2px;}
+    .hr-partial .hr-partial-p{color:var(--text-secondary);}
+    .hr-partial .zf-btn{white-space:nowrap;}
+    .hr-pempty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:28px 16px;margin-top:16px;}
+    .hr-pempty-ic{width:48px;height:48px;border-radius:999px;background:var(--accent-quiet);color:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:4px;font-size:24px;}
+    .hr-pempty-t{font-family:var(--font-serif);font-size:17px;font-weight:500;line-height:1.5;color:var(--text-primary);}
+    .hr-pempty-p{margin:0;max-width:26em;font-family:var(--font-sans);font-size:14px;line-height:1.7;color:var(--text-muted);}
     .hr-gg{flex:none;display:block;}
     .hr-loading{gap:18px;min-height:50vh;}
     .hr-spin{display:inline-block;flex:none;width:40px;height:40px;border-radius:999px;border:3px solid var(--rose-100);border-top-color:var(--rose-400);animation:hrSpin 1.1s linear infinite;box-sizing:border-box;}
@@ -159,6 +170,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (max-width:760px){
       .hr-auth-btns{margin-top:24px;}
       .hr-friend{margin-top:22px;}
+      .hr-partial{margin-top:20px;}
+      .hr-partial:not([hidden]) + .hr-friend[hidden] + .hr-cards{margin-top:28px;}
+      .hr-pempty{margin-top:0;}
       .hr-center{padding:48px 20px;}
       .hr-unauth-card{padding:34px 24px 30px;}
       .hr-cta-h1{font-size:23px;}
@@ -288,8 +302,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             clientName = d.client_name || clientName;
             records = more ? records.concat(d.bookings || []) : (d.bookings || []);
             nextBefore = d.next_before || null;
-            if (!records.length) { show('hrEmpty'); return; }
-            renderHeader(); renderList(); show('hrList');
+            var partial = !more && !!d.amelia_unavailable;   /* 11/09：Amelia 讀不到（後端照樣回舊預約）；「看更早的」不重設提示 */
+            if (!more) $('hrPartial').hidden = !partial;
+            if (!records.length && !partial) { show('hrEmpty'); return; }
+            renderHeader();
+            if (partial) { $('hrSub').textContent = (clientName || '你') + ' 的預約'; $('hrPartial').querySelector('a').setAttribute('href', location.pathname); }   /* 筆數只算舊單，跟「都還在」打架（Opus 建議） */
+            if (records.length) renderList();
+            else { $('hrCards').innerHTML = '<div class="hr-pempty"><span class="hr-pempty-ic" aria-hidden="true"><i class="ph-thin ph-calendar-blank"></i></span><div class="hr-pempty-t">11/01 之前沒有預約紀錄</div><p class="hr-pempty-p">新的預約讀到之後，會出現在這裡。</p></div>'; renderMore(false); }
+            show('hrList');
             if (viaLine && window.WindsLine) WindsLine.mountFriend($('hrFriend'));
           })
           .catch(function () { showLoadError(); });
