@@ -2027,9 +2027,10 @@ function loadFullContent(retry){
   if(crossVt())return loadFullCross(retry);
   var m=(R.deliveryUrl||"").match(/[?&]token=([A-Za-z0-9]+)/);
   if(!m)return;
-  STATE.fullLoading=true;STATE.fullError=false;STATE.fullNeedLogin=false;STATE.fullGenerating=false;STATE.fullToken=m[1];
+  var wasGen=!!(retry&&STATE.fullGenerating),profBefore=(STATE.result||{}).profile;   /* 2026-11-14：等解讀輪詢時畫面沒變就不整頁重畫（每 6 秒重畫會讓左上角圖示閃） */
+  STATE.fullLoading=true;STATE.fullError=false;STATE.fullNeedLogin=false;STATE.fullGenerating=wasGen;STATE.fullToken=m[1];   /* 輪詢中保留「正在寫」，途中別處重畫才不會變成「載入中」 */
   fetch(WORKER_API+"/delivery-content?token="+m[1]+kParam(),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){srvSkew(d);
-    STATE.fullLoading=false;
+    STATE.fullLoading=false;STATE.fullGenerating=false;
     /* 2026-09-28（Codex 複核）：分靈體側寫生成途中重新整理，只會顯示「還在整理」卻不再輪詢、好了也不會出現。
        跟全文寫好沒寫好無關：有側寫就直接用，還在生成就接回輪詢。 */
     if(d&&d.ok&&!d.summary_mode&&STATE.result){
@@ -2045,17 +2046,19 @@ function loadFullContent(retry){
     }
     else{STATE.fullError=true;STATE.fullNeedLogin=!!(d&&d.ok&&d.summary_mode);}
     /* 背景載入／每 6 秒輪詢後的重畫：原地換內容，不把正在往下看的人拉回最上面（2026-10-06） */
+    if(wasGen&&STATE.fullGenerating&&(STATE.result||{}).profile===profBefore)return;
     if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}
-  }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}});
+  }).catch(function(){STATE.fullLoading=false;STATE.fullGenerating=false;STATE.fullError=true;if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}});
 }
 /* 2026-10-17 帳號合併 §8：另一個帳號的卦——全文、五符都用短效票讀；票過期（15 分鐘）就重讀結果頁拿新票。
    拒讀（舊全文、或全文裡有卦主人帳號的資料）只顯示一次、不再輪詢（DS account-merge v1 ⑦） */
 function loadFullCross(retry){
   var myLog=String(STATE.logId||STATE.reportLogId),myGen=STATE.flowGen;
-  STATE.fullLoading=true;STATE.fullError=false;STATE.fullNeedLogin=false;STATE.fullGenerating=false;STATE.fullDenied=false;
+  var wasGen=!!(retry&&STATE.fullGenerating);   /* 2026-11-14：同 loadFullContent，輪詢中畫面沒變不重畫 */
+  STATE.fullLoading=true;STATE.fullError=false;STATE.fullNeedLogin=false;STATE.fullGenerating=wasGen;STATE.fullDenied=false;
   fetch(WORKER_API+"/delivery-content?vt="+encodeURIComponent(crossVt()),{headers:authHeaders()}).then(function(r){return r.json();}).then(function(d){srvSkew(d);
     if(myGen!==STATE.flowGen||myLog!==String(STATE.logId||STATE.reportLogId))return;   /* 換卦後晚到：丟掉 */
-    STATE.fullLoading=false;
+    STATE.fullLoading=false;STATE.fullGenerating=false;
     if(d&&d.reason==="vt_invalid"){if(!retry){refreshCross(function(){loadFullContent(true);});return;}STATE.fullError=true;}
     else if(d&&d.ok){
       STATE.fullCardBase=d.card_image_base||"";
@@ -2063,8 +2066,9 @@ function loadFullCross(retry){
       else if(d.hexagram_content){STATE.full=d;}
       else{STATE.fullPolls=(STATE.fullPolls||0)+1;if(STATE.fullPolls<=20){STATE.fullGenerating=true;setTimeout(function(){STATE.fullLoading=false;loadFullContent(true);},6000);}else STATE.fullError=true;}
     }else STATE.fullError=true;
+    if(wasGen&&STATE.fullGenerating)return;
     if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}
-  }).catch(function(){STATE.fullLoading=false;STATE.fullError=true;if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}});
+  }).catch(function(){STATE.fullLoading=false;STATE.fullGenerating=false;STATE.fullError=true;if(STATE.step==="result"){RENDER_KEEP={y:window.scrollY};render();}});
 }
 /* 重讀這一卦拿新的短效票：票、卦符卡、模糊五符、塔羅符卡、五符大圖的網址全部換新（Astra 完整驗收 #3）；
    換卦後晚到的回應丟掉。結果頁開著時每 10 分鐘自動換一次（票 15 分鐘） */
