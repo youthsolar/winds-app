@@ -1885,10 +1885,12 @@ function pollSpirit(tok,n){
   },10000);
 }
 /* 2026-10-06 Jeffery：按「生成我的分靈體」畫面被拉回最上面 → 分靈體這塊包一層錨點，重畫後停回這裡 */
-function spiritCard(paid){return '<div id="spiritAnchor" style="scroll-margin-top:96px">'+((STATE.result&&STATE.result.cross&&paid)?amMuted("分靈體請用起這一卦的帳號看"):spiritCardInner(paid))+'</div>';}
+/* 2026-11-14 Jeffery 拍板：同組且可信（後端 cross.kind='group'、trusted）＝同一個人，已有分靈體就照常顯示；沒有分靈體或不可信才擋（不能替另一列生分靈體） */
+function crossSelf(){var R=STATE.result||{},c=R.cross;return !!(c&&c.kind==="group"&&c.trusted);}
+function spiritCard(paid){var R=STATE.result||{};return '<div id="spiritAnchor" style="scroll-margin-top:96px">'+((R.cross&&paid&&!(crossSelf()&&R.profile&&R.profile.trim()))?amMuted("分靈體請用起這一卦的帳號看"):spiritCardInner(paid))+'</div>';}
 /* 2026-10-17 帳號合併（DS account-merge v1 ⑦）：另一個帳號起的卦，分享鈕、分靈體鈕的位置改成一行說明（不做成按鈕的樣子） */
 function amMuted(t){return '<div class="am-muted">'+ic("user-switch","thin")+'<span>'+t+'</span></div>';}
-function shareBtnHtml(){return (STATE.result&&STATE.result.cross)?amMuted("請使用取得這份解讀的帳號分享"):'<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'分享這次的解讀</button>';}
+function shareBtnHtml(){return (STATE.result&&STATE.result.cross&&!(crossSelf()&&STATE.shareUrl))?amMuted("請使用取得這份解讀的帳號分享"):'<button class="zf-btn secondary md" id="shareBtn" onclick="shareResult(this)">'+ic("share-network","thin")+'分享這次的解讀</button>';}
 function spiritCardInner(paid){
   var R=STATE.result||{};
   /* 2026-09-11：側寫付款後才生成——未付款一律顯示鎖定說明 */
@@ -1917,7 +1919,7 @@ function spiritCardInner(paid){
     '<div class="sp-av-col"><span class="sp-av">'+esc((sName||'').slice(0,1))+'</span><span class="sp-name">'+esc(sName)+'</span></div>'+
     '<div class="sp-body"><div class="sp-traits">'+sTraits.map(function(t){return '<span class="zf-tag rose" style="font-size:12.5px">'+esc(t)+'</span>'}).join("")+'</div>'+
     '<p class="sp-p">'+md(body)+'</p>'+
-    '<div style="margin-top:18px"><a class="zf-btn primary sm" href="/spirit" style="text-decoration:none">和祂聊聊 '+ic("chat-circle","thin")+'</a></div>'+
+    (R.cross?'':'<div style="margin-top:18px"><a class="zf-btn primary sm" href="/spirit" style="text-decoration:none">和祂聊聊 '+ic("chat-circle","thin")+'</a></div>')+   /* 11/14：跨帳號看時聊天頁會是登入那一列的分靈體，不是卡上這一隻 → 不給入口 */
     '</div></div></div>';
   return h;
 }
