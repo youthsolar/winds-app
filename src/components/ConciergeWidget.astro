@@ -109,6 +109,27 @@
   .wc-pay-amt small{font-family:var(--font-sans);font-size:12px;font-weight:400;color:var(--text-muted)}
   .wc-pay-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:500;letter-spacing:.04em;line-height:1;color:var(--text-on-accent);background:var(--accent);border-radius:var(--radius-pill);text-decoration:none;box-shadow:var(--shadow-sm);transition:background var(--dur-fast) var(--ease-soft)}
   .wc-pay-btn:hover{background:var(--accent-hover)}
+  /* 2026-11-18 老師班表確認卡（DS ConciergeCards.ScheduleCard，DS 2026.11.18-1） */
+  .wc-sc{margin:2px 0 14px 40px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:18px;display:flex;flex-direction:column;gap:12px}
+  .wc-sc.void{background:var(--surface-sunken);border-color:var(--border-soft);gap:6px}
+  .wc-sc-lbl{font-family:var(--font-sans);font-size:12px;font-weight:500;letter-spacing:.08em;color:var(--accent-press)}
+  .wc-sc.void .wc-sc-lbl{color:var(--text-secondary)}
+  .wc-sc-when{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink-900);line-height:1.35;white-space:pre-line}
+  .wc-sc.void .wc-sc-when{font-size:18px;color:var(--text-secondary);text-decoration:line-through}
+  .wc-sc-sub{font-family:var(--font-sans);font-size:13px;color:var(--text-secondary);margin-top:4px}
+  .wc-sc-note{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--radius-md);font-family:var(--font-sans);font-size:14px;line-height:1.6;color:var(--text-primary)}
+  .wc-sc-note i{flex:none;font-size:18px;line-height:22px}
+  .wc-sc-note.warning{background:color-mix(in srgb,var(--caution) 13%,var(--surface-card));border:1px solid color-mix(in srgb,var(--caution) 40%,transparent)}.wc-sc-note.warning i{color:var(--caution)}
+  .wc-sc-note.success{background:color-mix(in srgb,var(--positive) 11%,var(--surface-card));border:1px solid color-mix(in srgb,var(--positive) 35%,transparent)}.wc-sc-note.success i{color:var(--positive)}
+  .wc-sc-note.info{background:var(--surface-tint);border:1px solid var(--border-accent)}.wc-sc-note.info i{color:var(--accent)}
+  .wc-sc-note.critical{background:color-mix(in srgb,var(--critical) 10%,var(--surface-card));border:1px solid color-mix(in srgb,var(--critical) 35%,transparent)}.wc-sc-note.critical i{color:var(--critical)}
+  .wc-sc-go{display:flex;align-items:center;justify-content:center;width:100%;box-sizing:border-box;min-height:48px;padding:13px;font-family:var(--font-serif);font-size:16px;font-weight:500;letter-spacing:.04em;line-height:1;color:var(--text-on-accent);background:var(--accent);border:none;border-radius:var(--radius-pill);box-shadow:var(--shadow-sm);cursor:pointer;text-decoration:none;transition:background var(--dur-fast) var(--ease-soft)}
+  .wc-sc-go:hover{background:var(--accent-hover)}
+  .wc-sc-go:disabled{opacity:.45;cursor:not-allowed;background:var(--accent)}
+  .wc-sc-re{display:flex;align-items:center;justify-content:center;width:100%;box-sizing:border-box;min-height:44px;padding:11px;font-family:var(--font-serif);font-size:15px;font-weight:500;letter-spacing:.04em;line-height:1;color:var(--accent-press);background:transparent;border:1px solid transparent;border-radius:var(--radius-pill);cursor:pointer}
+  .wc-sc-re:hover{background:var(--accent-quiet)}
+  .wc-sc-re:disabled{opacity:.45;cursor:not-allowed}
+  .wc-sc-exp{font-family:var(--font-sans);font-size:12px;color:var(--text-secondary);text-align:center}
   .wc-pay-note{font-family:var(--font-sans);font-size:11.5px;color:var(--text-muted);text-align:center;margin-top:10px}
   /* 繞圈→占卜出口卡（DS tint 卡 + DS Button primary：components/buttons/Button.jsx 真值）*/
   .wc-action{margin:2px 0 14px 40px;background:var(--surface-tint);border:1px solid var(--rose-100);border-radius:var(--radius-xl);padding:16px}
@@ -151,10 +172,16 @@
     if(!root||!fab||!panel) return;
 
     function getAuth(){
-      var t=""; try{ t=localStorage.getItem('winds_google_token')||""; }catch(e){}
-      if(!t) return null;
-      try{ var p=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); return {token:t,sub:p.sub}; }catch(e){ return null; }
+      // 2026-11-18：網站用 LINE 登入的人（例如綁 LINE 的老師）也帶身分；Google 優先，同後端
+      // 過期的跳過（同 nav-auth）：Google 過期就改看 LINE；兩個都過期才回最後那個，讓後端回「登入過期」
+      var expired=null;
+      function rd(k,line){ var t=""; try{ t=localStorage.getItem(k)||""; }catch(e){} if(!t) return null;
+        try{ var p=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))); var a={token:t,sub:p.sub,line:line};
+          if(p.exp && p.exp*1000<Date.now()){ expired=expired||a; return null; } return a; }catch(e){ return null; } }
+      return rd('winds_google_token',false)||rd('winds_line_token',true)||expired;
     }
+    function authHeaders(auth,h){ h=h||{}; if(auth&&auth.token) h[auth.line?'X-Line-Id-Token':'X-Google-Id-Token']=auth.token; return h; }
+    function authBody(auth,b){ if(auth&&auth.sub){ if(auth.line) b.line_user_id=auth.sub; else b.google_sub=auth.sub; } return b; }
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }   // 2026-09-28（gpt-6-astra 體檢）：補引號——linkify 把網址放進 href="…"，網址帶 " 可跳出屬性塞 onclick
     // 網址 char class 排除結尾雜訊（中文括號/標點），避免把 …blog-192） 的 ）吃進連結→404
     function linkify(s){ return esc(s).replace(/(https?:\/\/(?:(?!&quot;|&#39;)[^\s)）」』，。、！？!?；;])+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
@@ -172,24 +199,27 @@
       d.innerHTML='<span class="wc-b-av">風</span><div class="d"><span></span><span></span><span></span></div>';
       msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
     }
-    function greet(){ bubble('bot','你好，我是風小編。最近有什麼事放在心上？先說給我聽，我再幫你找老師、約時間。'); }
+    function greet(){ bubble('bot', S.teacherName ? S.teacherName+'老師好，要請假或加開時段直接跟我說。' : '你好，我是風小編。最近有什麼事放在心上？先說給我聽，我再幫你找老師、約時間。'); }
     // 開啟時若有存過的 token → 從 D1 撈回整段對話 rehydrate（修「點連結離頁→回來對話消失」）；無則開場白
     function rehydrateOrGreet(){
       var auth=getAuth();
       // 無本機 token：訪客→直接開場白；已登入→仍查 history（跨裝置接回最近一段對話）
       if(!S.sessionId && !(auth&&auth.sub)){ greet(); return; }
-      var qs=[]; if(S.sessionId) qs.push('sessionId='+encodeURIComponent(S.sessionId)); if(auth&&auth.sub) qs.push('google_sub='+encodeURIComponent(auth.sub));
+      var qs=[]; if(S.sessionId) qs.push('sessionId='+encodeURIComponent(S.sessionId)); if(auth&&auth.sub) qs.push((auth.line?'line_user_id=':'google_sub=')+encodeURIComponent(auth.sub));
+      qs.push('caps=schedule');
       var url=HISTORY+'?'+qs.join('&');
-      var h={}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
+      var h=authHeaders(auth);
       typing(true); S.hydrating=true;   // 2026-09-28（gpt-6-astra 體檢）：撈歷史期間不准送，否則晚到的歷史會把新 session 換回舊的
       setTimeout(function(){if(S.hydrating){S.hydrating=false;typing(false);greet();}},15000);   // 撈太久就放行：收掉等待指示、給開場白
       fetch(url,{headers:h}).then(function(r){return r.json()}).then(function(d){
         if(!S.hydrating) return; S.hydrating=false; typing(false);   // 逾時後晚到的回應不能碰畫面（會把新訊息的等待指示收掉）
         // 跨裝置接回：後端回了最近對話的 token → 認領存本機，之後續聊接同一段
         if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} }
+        if(d&&d.teacher&&d.teacher.name) S.teacherName=d.teacher.name;
         var ms=(d&&d.messages)||[];
         if(ms.length){ ms.forEach(function(m){ bubble(m.role==='user'?'user':'bot', m.content); }); }
         else { greet(); }
+        ((d&&d.drafts)||[]).forEach(function(c){ renderUi(Object.assign({kind:'schedule'},c)); });
       }).catch(function(){ if(!S.hydrating) return; S.hydrating=false; typing(false); greet(); });
     }
     function open(){
@@ -289,6 +319,8 @@
         var btn=document.createElement('a'); btn.className='wc-action-btn'; btn.href=ui.url;
         btn.textContent=(ui.label||'到首頁免費起卦')+' →';
         a.appendChild(btn); msgs.appendChild(a); msgs.scrollTop=msgs.scrollHeight;
+      } else if(ui.kind==='schedule'){
+        msgs.appendChild(scheduleCard(ui)); msgs.scrollTop=msgs.scrollHeight;
       } else if(ui.kind==='handoff' && ui.url){
         // 真人 handoff（網頁版）：加入官方 LINE @uneedwind 好友 → 老師在 OA 後台接
         var ha=document.createElement('div'); ha.className='wc-action';
@@ -297,16 +329,43 @@
         ha.appendChild(hbtn); msgs.appendChild(ha); msgs.scrollTop=msgs.scrollHeight;
       }
     }
+    // 老師班表確認卡：卡上的字全是伺服器組的，這裡只跳脫後放進去；按鈕打確認／取消端點，回來的卡直接取代
+    var SC_TITLE={leave:'請假確認',open:'加開確認',undoLeave:'收回請假',undoOpen:'收回加開'};
+    var SC_ICON={warning:'warning',success:'check-circle',info:'info',critical:'warning-circle'};
+    function scheduleCard(c){
+      var el=document.createElement('div'); el.className='wc-sc'+(c.state==='void'?' void':'');
+      var undo=c.kind==='undoLeave'||c.kind==='undoOpen';
+      var h='<div class="wc-sc-lbl">'+esc(SC_TITLE[c.kind]||'班表確認')+'</div><div><div class="wc-sc-when">'+esc(c.when||'')+'</div>'+
+        (c.state==='void'?'</div><div class="wc-sc-sub">這張沒有生效。請再跟我說一次日期和時間。</div>':(c.sub?'<div class="wc-sc-sub">'+esc(c.sub)+'</div>':'')+'</div>');
+      if(c.state!=='void'&&c.state!=='expired'&&c.notice){ var tone=SC_ICON[c.noticeTone]?c.noticeTone:'warning'; h+='<div class="wc-sc-note '+tone+'" role="'+(tone==='critical'?'alert':'status')+'"><i class="ph ph-'+SC_ICON[tone]+'" aria-hidden="true"></i><div>'+esc(c.notice)+'</div></div>'; }
+      if(c.state==='expired') h+='<div class="wc-sc-note info" role="status"><i class="ph ph-info" aria-hidden="true"></i><div>登入過期了，還沒改。請重新登入後再按一次。</div></div><a class="wc-sc-go" href="/login?return='+encodeURIComponent(location.pathname)+'">重新登入</a>';
+      if(c.state==='confirm'||c.state==='recount') h+='<button type="button" class="wc-sc-go" data-sc="go">'+(undo?'確定收回':'確定修改')+'</button><button type="button" class="wc-sc-re" data-sc="re">不對，重講</button><div class="wc-sc-exp">這張確認卡 30 分鐘內有效</div>';
+      if(c.state==='failed'&&c.draftId) h+='<button type="button" class="wc-sc-go" data-sc="go">再試一次</button>';
+      el.innerHTML=h;
+      var go=el.querySelector('[data-sc="go"]'), re=el.querySelector('[data-sc="re"]');
+      function lock(t){ if(go){ go.disabled=true; if(t) go.textContent=t; } if(re) re.disabled=true; }
+      function swap(card){ var n=scheduleCard(Object.assign({kind:c.kind,when:c.when,sub:c.sub},card||{state:'void'})); el.replaceWith(n); msgs.scrollTop=msgs.scrollHeight; }
+      function post(path){
+        var auth=getAuth();
+        return fetch(API+'/teacher-schedule/'+path,{method:'POST',headers:authHeaders(auth,{'Content-Type':'application/json'}),body:JSON.stringify(authBody(auth,{draft_id:c.draftId}))})
+          .then(function(r){ if(r.status>=500) return null; return r.json().catch(function(){ return null; }); });
+      }
+      if(go) go.addEventListener('click',function(){ lock(undo?'收回中…':'修改中…');
+        post('confirm').then(function(d){ swap(d&&d.card?d.card:(d&&d.error==='rate_limited'?{state:'failed',draftId:c.draftId,notice:'按太快了，班表維持原樣。等一分鐘再按一次。',noticeTone:'warning'}:(d&&d.error?{state:'done',notice:'沒有修改：這張已經不能用了，請重新跟我說一次。',noticeTone:'info'}:{state:'uncertain',notice:'系統回得太慢，我不確定有沒有改到。已通知風易揚老師確認，請先不要再按。',noticeTone:'warning'}))); })
+          .catch(function(){ swap({state:'uncertain',notice:'連線斷了，我不確定有沒有改到。已通知風易揚老師確認，請先不要再按。',noticeTone:'warning'}); });
+      });
+      if(re) re.addEventListener('click',function(){ lock(); post('cancel').then(function(d){ swap(d&&d.card?d.card:{state:'void'}); }).catch(function(){ swap({state:'void'}); }); });
+      return el;
+    }
     function sendText(msg){
       if(!msg||S.sending||S.hydrating) return;
       S.sending=true; sendBtn.disabled=true;
       bubble('user',msg); typing(true);
-      var auth=getAuth(); var body={message:msg,channel:'web',sessionId:S.sessionId};
-      if(auth&&auth.sub) body.google_sub=auth.sub;
-      var h={'Content-Type':'application/json'}; if(auth&&auth.token) h['X-Google-Id-Token']=auth.token;
+      var auth=getAuth(); var body=authBody(auth,{message:msg,channel:'web',sessionId:S.sessionId,caps:['schedule']});
+      var h=authHeaders(auth,{'Content-Type':'application/json'});
       fetch(API,{method:'POST',headers:h,body:JSON.stringify(body)})
         .then(function(r){return r.json()})
-        .then(function(d){ typing(false); if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} } bubble('bot',(d&&d.reply)||'抱歉，剛才沒能順利回覆，請再傳一次訊息。'); if(d&&d.ui) renderUi(d.ui); })
+        .then(function(d){ typing(false); if(d&&d.session_id){ S.sessionId=d.session_id; try{localStorage.setItem(SESS_KEY,d.session_id)}catch(e){} } bubble('bot',(d&&d.reply)||'抱歉，剛才沒能順利回覆，請再傳一次訊息。'); if(d&&d.auth_expired&&S.teacherName&&!S.expiredShown){ S.expiredShown=true; bubble('bot','你的登入過期了，要用帳號相關的功能請重新登入。'); } if(d&&d.ui) renderUi(d.ui); })
         .catch(function(){ typing(false); bubble('bot','連線暫時不順，請稍後再試。'); })
         .finally(function(){ S.sending=false; sendBtn.disabled=false; ta.focus(); });
     }

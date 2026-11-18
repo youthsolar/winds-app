@@ -54,6 +54,8 @@ const entries: { icon: string; title: string; line: string; href: string; ext?: 
         <div class="ac-entry-line">看你的預約和客人資料。</div>
       </div>
       <a class="zf-btn secondary sm" href="https://wp.winds.tw/winds-sso/start?to=%2Fteacher%2F">進入老師工作區<i class="ph ph-arrow-right"></i></a>
+      <!-- 2026-11-18 風小編改班表：DS ConciergeCards.ScheduleCard 設計稿 ⑤，Button ghost；data-wc-open 打開右下角風小編 -->
+      <a class="zf-btn ghost sm" href="/booking-chat/" data-wc-open>跟風小編請假</a>
     </div>
 
     <!-- need_link 卡（DS SSO-介面字-1028 A4，2026-10-29）：Google 登入、這個 Gmail 之前只用信箱題驗過的人，跟 /sso/wp 同一張 -->
@@ -120,7 +122,7 @@ const entries: { icon: string; title: string; line: string; href: string; ext?: 
     .ac-teacher[hidden]{display:none;}
     .ac-teacher-body{flex:1;min-width:0;}
     .ac-teacher .zf-btn{flex:none;white-space:nowrap;}
-    @media (max-width:760px){.ac-teacher{flex-wrap:wrap;gap:14px;padding:18px;}.ac-teacher-body{flex:1 1 60%;}.ac-teacher .zf-btn{flex:1 1 100%;justify-content:center;}}
+    @media (max-width:760px){.ac-teacher{flex-wrap:wrap;gap:14px;padding:18px;}.ac-teacher-body{flex:1 1 60%;}.ac-teacher .zf-btn{flex:1 1 100%;justify-content:center;min-height:44px;}}
 
     /* DS Btn secondary sm */
     .ac-logout{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;min-height:36px;font-family:var(--font-serif);font-size:var(--t-body-sm);font-weight:var(--w-medium);letter-spacing:0.04em;line-height:1;white-space:nowrap;cursor:pointer;background:var(--surface-card);color:var(--ink-900);border:1px solid var(--border-strong);border-radius:var(--radius-pill);box-shadow:var(--shadow-xs);transition:background var(--dur-fast) var(--ease-soft);}
