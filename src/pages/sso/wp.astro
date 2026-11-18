@@ -24,10 +24,12 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  {/* 2026-11-19：登入中繼頁宋體載好才顯示（跟 wp.winds.tw 那幾頁同一組），換頁時「正在幫你登入」不會先用手機字再跳 */}
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&display=block" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     html,body{margin:0;background:var(--surface-page);}
-    .sw-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:64px 32px;box-sizing:border-box;background:var(--surface-page);color:var(--text-primary);font-family:var(--font-serif);}
+    .sw-wrap{min-height:100vh;min-height:100svh;display:flex;align-items:center;justify-content:center;padding:64px 32px;box-sizing:border-box;background:var(--surface-page);color:var(--text-primary);font-family:var(--font-serif);}
     .sw-in{width:100%;max-width:420px;}
     @media (max-width:760px){.sw-wrap{padding:40px 20px;}}
   </style>
@@ -46,7 +48,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
   <script is:inline>
     (function () {
       var API = 'https://api.winds.tw', KEY = 'winds_sso_s', WP = 'https://wp.winds.tw';
-      var START = WP + '/winds-sso/start', CALLBACK = WP + '/winds-sso/callback#c=';
+      var START = WP + '/winds-sso/start', CALLBACK = WP + '/winds-sso/callback?v=1119#c=';   /* ?v=：11/19 換字型與高度，GoDaddy 把 callback 頁快取 31 天，換網址讓手機拿新版 */
       var OA = 'https://lin.ee/tQHsgWB', TTL = 10 * 60 * 1000;
       var card = document.getElementById('swCard');
       var tx = null, actor = null, trace = '', timer = null, code401 = 0;
