@@ -16,6 +16,7 @@ interface Props {
   noindex?: boolean;
   noTracking?: boolean;   // 2026-10-09：網址帶個資憑證的頁（預約小幫手確認頁）不載 GA／Pixel、不送 Referer
   publishedTime?: string;   // ogType="article" 時輸出 article:published_time
+  headingFontBlock?: boolean;   // 2026-11-19：登入類頁面標題宋體粗字載好才顯示（Jeffery 拍板只限登入頁）
 }
 
 const {
@@ -27,6 +28,7 @@ const {
   noindex = false,
   noTracking = false,
   publishedTime,
+  headingFontBlock = false,
 } = Astro.props;
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
@@ -113,8 +115,13 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
   <!-- Brand Font（占卜站設計：Serif 標題/內文含 weight 300、Sans UI/數字/標籤）-->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&display=block" rel="stylesheet" /><!-- 2026-11-19：標題用的宋體粗字載好才顯示，不再先用手機字型再跳成宋體（Jeffery 拍板）；內文細字照舊先顯示 -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  {headingFontBlock ? (<>
+    {/* 2026-11-19：登入頁「登入」大字不再先用手機字型再跳成宋體——宋體粗字載好才顯示，細字與黑體照舊先顯示。只限登入類頁面，別頁的按鈕與文章粗體不跟著等。 */}
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&display=block" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </>) : (
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  )}
 
   <!-- Phosphor icons（DS 元件用）-->
 
