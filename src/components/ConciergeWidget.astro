@@ -219,7 +219,7 @@
         var ms=(d&&d.messages)||[];
         if(ms.length){ ms.forEach(function(m){ bubble(m.role==='user'?'user':'bot', m.content); }); }
         else { greet(); }
-        ((d&&d.drafts)||[]).forEach(function(c){ renderUi(Object.assign({kind:'schedule'},c)); });
+        ((d&&d.drafts)||[]).forEach(function(c){ renderUi({kind:'schedule',card:c}); });
       }).catch(function(){ if(!S.hydrating) return; S.hydrating=false; typing(false); greet(); });
     }
     function open(){
@@ -320,7 +320,7 @@
         btn.textContent=(ui.label||'到首頁免費起卦')+' →';
         a.appendChild(btn); msgs.appendChild(a); msgs.scrollTop=msgs.scrollHeight;
       } else if(ui.kind==='schedule'){
-        msgs.appendChild(scheduleCard(ui)); msgs.scrollTop=msgs.scrollHeight;
+        msgs.appendChild(scheduleCard(ui.card||ui)); msgs.scrollTop=msgs.scrollHeight;
       } else if(ui.kind==='handoff' && ui.url){
         // 真人 handoff（網頁版）：加入官方 LINE @uneedwind 好友 → 老師在 OA 後台接
         var ha=document.createElement('div'); ha.className='wc-action';
