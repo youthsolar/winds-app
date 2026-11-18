@@ -32,6 +32,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .lg-sub{margin:14px auto 0;max-width:22em;font-family:var(--font-serif);font-weight:300;font-size:15px;line-height:1.7;color:var(--text-secondary);}
     .lg-btns{margin-top:28px;display:flex;flex-direction:column;gap:12px;}
     .lg-gmount{display:flex;justify-content:center;min-height:44px;}
+    .lg-gmount:not([data-fb]){height:44px;overflow:hidden;align-items:center;}   /* 2026-11-19：Google 剛畫按鈕時框會先撐高再縮回，登入框跟著一大一小 → 放真按鈕時固定 44 高 */
     .lg-open{margin:20px 0 0;display:flex;justify-content:center;}
     .lg-open[hidden]{display:none;}
     .lg-open .zf-text-link i{font-size:15px;}

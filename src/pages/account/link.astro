@@ -69,6 +69,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .lk-sub{margin:12px auto 0;max-width:24em;font-family:var(--font-serif);font-weight:300;font-size:15.5px;line-height:1.85;color:var(--text-secondary);text-wrap:pretty;}
     .lk-actions{margin-top:28px;display:flex;flex-direction:column;gap:12px;align-items:stretch;}
     .lk-gmount{display:flex;justify-content:center;min-height:44px;}
+    .lk-gmount:not([data-fb]){height:44px;overflow:hidden;align-items:center;}   /* 2026-11-19：同 login，Google 按鈕剛畫時不讓框跳 */
     .lk-stack{margin-top:22px;display:flex;flex-direction:column;gap:14px;}
     .lk-list{text-align:left;padding:0 16px;border-radius:var(--radius-md);border:1px solid var(--border-soft);transition:opacity var(--dur-fast) var(--ease-soft);}
     .lk-list.dim{opacity:.5;}
