@@ -4,6 +4,7 @@ import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
+import { readFileSync } from 'node:fs';
 
 // 2026-09-28：/services/[slug]、/shop/、/shop/[id] 改成每次請求即時讀（prerender=false），sitemap 外掛不會自動收它 →
 // build 時抓一次目錄補進 customPages。抓不到就讓 build 失敗（跟原本 getStaticPaths 抓不到一樣顯性），不發一份少了項目頁的 sitemap。
@@ -201,10 +202,24 @@ export default defineConfig({
         '/love-gua/',
         // 2026-10-23 付費版範例頁（noindex）
         '/demo/',
+        // 2026-11-22 部落格體檢：登入中繼頁、預約完成頁不該被搜到
+        '/sso/', '/booking-confirm/',
       ].some((x) => page.includes(x))
         // 2026-10-18 Jeffery 拍板：社群當期一卦三頁（/love 空、財運／運勢停在 9/6，含舊篇）先不讓 Google 收錄，頁面同步掛 noindex；
         // 用路徑開頭比對，免得誤排 /blog/love/ 這類文章
         && !['/love/', '/wealth-gua/', '/fortune-gua/'].some((root) => new URL(page).pathname.startsWith(root)),
+      // 2026-11-22 部落格體檢：文章加更新日（wp-blog-loader 建站時寫 .astro/blog-lastmod.json，網站地圖在建站最後才產，讀得到）
+      serialize(item) {
+        const m = new URL(item.url).pathname.match(/^\/blog\/([^/]+)\/$/);
+        if (m) {
+          try {
+            globalThis.__blogLastmod ??= JSON.parse(readFileSync('.astro/blog-lastmod.json', 'utf8'));
+            const v = globalThis.__blogLastmod[decodeURIComponent(m[1])];
+            if (v) item.lastmod = new Date(v).toISOString();
+          } catch {}
+        }
+        return item;
+      },
     }),
   ],
 });

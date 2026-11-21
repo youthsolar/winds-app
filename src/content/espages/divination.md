@@ -36,7 +36,7 @@ esSource: "/pages/divination"
 
 【天授通靈塔羅】顧名思義就是老天授予通靈者能力並結合了靈通力與塔羅卡牌的解讀！
 
-[暸解更多](/blog/psychictarot/)
+[暸解更多](/services/sb-52/)
 
 [我要預約](/services/)
 

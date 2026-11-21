@@ -5,9 +5,11 @@
 import type { Loader, LoaderContext } from 'astro/loaders';
 import { glob } from 'astro/loaders';
 import GithubSlugger from 'github-slugger';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { BLOG_REDIRECTS, TEACHER_LP } from './data/blog-redirects';
+import MD_IMAGES from './data/blog-md-images.json';
 
 const SITE = 'https://winds.tw';
 
@@ -76,8 +78,44 @@ function tidyWpHtml(html: string, postIdBySlug: Map<string, string>): string {
   }
   h = h.replace(/<p(?:\s[^>]*)?>([^<]*)<\/p>/g, (all, inner) => {   // WP 的段落是 <p class="wp-block-paragraph">
     const text = decode(inner);
-    if (!isTagsText(text)) return all;
-    return `<p class="post-tags" data-nocjk="true">${text.split(/\s+/).filter(Boolean).map((t) => `<span>${t}</span>`).join(' ')}</p>`;
+    // 2026-11-22 部落格體檢（Jeffery 拍板）：文末 #標籤段不上站——不能點、擠在文末按鈕前面，給搜尋／AI 看也只是一串關鍵字
+    return isTagsText(text) ? '' : all;
+  });
+  h = h.replace(/\s*<p class="post-tags"[^>]*>[\s\S]*?<\/p>/g, '');   // WP 裡已經包好的 #標籤段（匯入的 407 篇都是這種）
+  return enrichHtml(h);
+}
+
+/* 2026-11-22 部落格體檢（Jeffery 拍板）：建站時才加，不寫進 WP——之後把文章換成別的老師，連結會跟著內文走。
+   ① 連到「已下架轉項目頁」文章的連結，直接改連目的地（對照表 src/data/blog-redirects.ts）
+   ② 內文「預約／找○○老師」的老師名字連到該老師預約頁；每位老師每篇只連第一次，已在連結裡的不動
+   ③ 內文圖有 900 寬縮小版的，加 srcset 讓手機讀小圖（縮小版清單 src/data/blog-md-images.json，沒在清單上的照舊） */
+const MD = new Set<string>(MD_IMAGES as string[]);
+const TEACHER_RE = new RegExp(`(預約|找)(${Object.keys(TEACHER_LP).join('|')})老師`, 'g');
+function enrichHtml(html: string): string {
+  let h = html.replace(/\bhref="(?:https?:\/\/(?:www\.)?winds\.tw)?\/blog\/([^/"?#]+)\/?"/g, (all, slug) => {
+    let key = slug; try { key = decodeURIComponent(slug); } catch {}
+    const to = BLOG_REDIRECTS[key];
+    return to ? `href="${to}"` : all;
+  });
+  const linked = new Set<string>();
+  let inA = 0, inH = 0, inS = 0;
+  h = h.split(/(<[^>]+>)/).map((part) => {
+    if (part.startsWith('<')) {
+      if (/^<a[\s>]/i.test(part)) inA++; else if (/^<\/a>/i.test(part)) inA = Math.max(0, inA - 1);
+      else if (/^<h[1-6][\s>]/i.test(part)) inH++; else if (/^<\/h[1-6]>/i.test(part)) inH = Math.max(0, inH - 1);
+      else if (/^<(script|style)[\s>]/i.test(part)) inS++; else if (/^<\/(script|style)>/i.test(part)) inS = Math.max(0, inS - 1);
+      return part;
+    }
+    if (inA || inH || inS) return part;
+    return part.replace(TEACHER_RE, (all, verb, name) => {
+      if (linked.has(name)) return all;
+      linked.add(name);
+      return `${verb}<a href="/lp/${TEACHER_LP[name]}/">${name}老師</a>`;
+    });
+  }).join('');
+  h = h.replace(/<img\b([^>]*?)\ssrc="https:\/\/cdn\.winds\.tw\/blog-v2\/([^"/]+)\.jpg"([^>]*)>/g, (all, pre, name, post) => {
+    if (!MD.has(name) || /\bsrcset=/.test(pre + post)) return all;
+    return `<img${pre} src="https://cdn.winds.tw/blog-v2/${name}.jpg" srcset="https://cdn.winds.tw/blog-v2/${name}-md.jpg 900w, https://cdn.winds.tw/blog-v2/${name}.jpg 1536w" sizes="(max-width: 760px) 100vw, 720px"${post}>`;
   });
   return h;
 }
@@ -100,12 +138,13 @@ async function loadFromWp({ store, parseData, logger }: LoaderContext) {
   };
   const cats = new Map((await all('/wp/v2/categories?_fields=id,name')).map((c: any) => [c.id, decode(c.name)]));
   // content.rendered：WP 把區塊、嵌入（YouTube）、短代碼都轉成成品 HTML 再給；匯入的文章 rendered 與原文逐字相同（Code Snippets #7 關掉了 WP 的自動加工）
-  const posts = await all('/wp/v2/posts?context=edit&status=publish,draft&_fields=id,slug,status,date_gmt,title,excerpt,content,categories,meta');
+  const posts = await all('/wp/v2/posts?context=edit&status=publish,draft&_fields=id,slug,status,date_gmt,modified_gmt,title,excerpt,content,categories,meta');
   // 照原本檔名順序放進資料庫（glob 讀檔的順序）：推薦文章在分數相同時依序挑選，順序不同會挑到別篇
   const idOf = (p: any) => (p.meta?.winds_source_slug || decodeURIComponent(p.slug)) as string;
   posts.sort((a: any, b: any) => (idOf(a) < idOf(b) ? -1 : idOf(a) > idOf(b) ? 1 : 0));
   const postIdBySlug = new Map(posts.map((p: any) => [decodeURIComponent(p.slug), idOf(p)]));
   store.clear();
+  const lastmod: Record<string, string> = {};
   for (const p of posts) {
     const m = p.meta || {};
     const id = idOf(p);
@@ -121,7 +160,8 @@ async function loadFromWp({ store, parseData, logger }: LoaderContext) {
         title: decode(p.title.raw),
         description: decode(p.excerpt.raw),
         pubDate: new Date(p.date_gmt + 'Z'),
-        updatedDate: opt(m.winds_updated_date),
+        // 沒手填更新日就用 WP 的最後修改時間（11/22：換圖、格式重整都沒反映到「更新日」，Google 不知道文章改過）
+        updatedDate: opt(m.winds_updated_date) || (p.modified_gmt ? new Date(p.modified_gmt + 'Z') : undefined),
         heroImage: opt(m.winds_hero_image),
         tags: json(m.winds_tags_json, []),
         author: m.winds_author || '找風問幸福',
@@ -131,12 +171,15 @@ async function loadFromWp({ store, parseData, logger }: LoaderContext) {
         category: wpCategory || opt(m.winds_category),
         relatedServices: json(m.winds_related_services_json, []),
         faq: json(m.winds_faq_json, []),
-        draft: p.status !== 'publish',
+        draft: p.status !== 'publish' || id in BLOG_REDIRECTS,   // 對照表上的已轉項目頁（11/22）
         esSource: opt(m.winds_es_source),
       },
     });
     store.set({ id, data, body: html, rendered: { html, metadata: { headings: headingsOf(html) } } });
+    if (p.status === 'publish' && !(id in BLOG_REDIRECTS)) lastmod[id] = (p.modified_gmt || p.date_gmt) + 'Z';
   }
+  // 網站地圖的更新日（astro.config.mjs 的 sitemap serialize 讀這份；建站最後才產網站地圖，讀得到）
+  try { mkdirSync('.astro', { recursive: true }); writeFileSync('.astro/blog-lastmod.json', JSON.stringify(lastmod)); } catch {}
   logger.info(`WP 部落格 ${posts.length} 篇`);
 }
 

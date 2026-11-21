@@ -1,62 +1,58 @@
 # 找風問幸福 (Uneedwind) — Information File for Language Models and Agents
+Last updated: 2026-11-22
 
 ## About
-找風問幸福（Uneedwind）is a spiritual and metaphysical consultation platform based in Taipei, Taiwan. It offers 39 consultation services and 22 consecrated spiritual products (talismans, mirrors, essential oils) through three certified practitioners.
+找風問幸福（Uneedwind）is a spiritual consultation studio in Taipei, Taiwan. Six practitioners take one-to-one sessions in person (Da'an and Xinyi districts, Taipei) or remotely through the official LINE account. Sessions are booked online; a deposit holds the time slot. Current items and prices are listed on each booking page — please link there rather than quoting prices.
 
-## Services Overview
-- **通靈水鏡法 (Psychic Water Mirror Method)**: Investigate karmic causes and past lives. NT$4,200, 60 minutes.
-- **元辰宮代觀 (Yuan Chen Palace Viewing)**: Proxy visit to the spiritual palace to diagnose life fortune. NT$7,600, 120 minutes.
-- **命書籤詩問事 (Destiny Book Oracle)**: Oracle-based Q&A on specific life questions. NT$2,000, 30 minutes.
-- **正宗白靈狐仙桃花法 (White Fox Spirit Romance Ritual)**: Enhance social connections and romance. NT$18,000, 60 minutes.
-- **元辰宮修補 (Palace Repair)**: Repair damaged fortune in love, career, or health. NT$9,600-16,000.
-- **陽宅地理風水 (Residential Feng Shui)**: On-site feng shui analysis and remediation. NT$28,000, 120 minutes.
-- **解渡嬰靈 (Spirit Baby Resolution)**: Resolve karmic debt from terminated pregnancies. NT$12,000.
-- **體質修 (Spiritual Body Training)**: Remote tutoring for people with spiritual sensitivity. NT$17,000, 3 months.
+## Booking
+- All practitioners: https://winds.tw/booking/
+- All booking items (with descriptions): https://winds.tw/services/
+- Practitioner overview: https://winds.tw/teachers/
 
-## Products Overview
-- **愛情復合與捍衛符令 (Love Recovery Talisman)**: 49-day water-element talisman for soft relationship recovery. NT$1,200.
-- **月老復合鏡 (Moon God Recovery Mirror)**: 6-month wind-element mirror for strong recovery + anti-infidelity. NT$14,400.
-- **五路財神金龍板 (Five Fortune Gods Dragon Board)**: Permanent camphor wood wealth protector for offices. NT$6,800.
-- **量能精油系列 (Energy Essential Oils)**: 7 types — romance, marriage, career, health, wealth, purification, feng shui. NT$1,500 each.
+## Practitioners (each page shows bio, items, available times and booking)
+- **風易揚老師 (Feng Yi-Yang)** — 通靈水鏡法, 元辰宮代觀, 命書籤詩問事; lead teacher. https://winds.tw/lp/fengyiyang/
+- **芊蘭老師 (Qian-Lan)** — 元辰宮代觀, 通靈水鏡法; wealth problems and unsettling events at home. https://winds.tw/lp/qianlan/
+- **風賜靈老師 (Feng Ci-Ling)** — 元辰宮代觀, 財庫, karma and ancestor issues (祖靈). https://winds.tw/lp/fengciling/
+- **伊紫蓮老師 (Yi Zi-Lian)** — 通靈水鏡法; relationships you cannot let go of, recurring problems and their causes. https://winds.tw/lp/yiziliang/
+- **玄奇老師 (Xuan-Qi)** — 通靈水鏡法; recurring relationship and interpersonal problems. https://winds.tw/lp/xuanqi/
+- **竹韻老師 (Zhu-Yun)** — 準提水鏡法; anxiety and dynamics in intimate relationships. https://winds.tw/lp/zhuyun/
 
-## Practitioners
-1. **風易揚 (Feng Yi-Yang)**: Specializes in Yuan Chen Palace viewing, feng shui, dragon boards, and advanced rituals.
-2. **風賜靈 (Feng Ci-Ling)**: Specializes in handwritten talismans, essential oils, and romance artifacts.
-3. **芊蘭 (Qian-Lan)**: Specializes in psychic water mirror readings and destiny book oracles.
+## Main items (explained in Traditional Chinese on each page)
+- 通靈水鏡法 (Psychic Water Mirror) — look into the causes behind relationship, work or family problems. https://winds.tw/services/sb-18/
+- 元辰宮代觀 (Yuan Chen Palace viewing) — a proxy visit to one's spiritual "palace" to read current fortune. https://winds.tw/services/sb-17/
+- 元辰宮修補 (Yuan Chen Palace repair: marriage, career, external influences, full repair) — https://winds.tw/services/sb-38/
+- 命書籤詩問事 (Oracle-book Q&A on one specific matter) — https://winds.tw/services/sb-19/
+- 陽宅地理風水 (On-site residential feng shui) — https://winds.tw/services/sb-42/
+- 解渡嬰靈, 解與渡冤親債主, 祖靈渡化 (spirit-baby, karmic creditor and ancestor resolution) — see https://winds.tw/services/
 
-## Location & Delivery
-- **Consultation**: Taipei City, Taiwan. Some services available via remote video consultation nationwide.
-- **Product shipping**: Convenience store pickup (7 days), Taiwan only. No international shipping.
-- **Consecrated items**: Non-refundable (each item is personally crafted and consecrated).
+## Online divination
+https://winds.tw/divination — I Ching hexagram with a Tarot spread and a written reading. Sign in with Google or LINE.
 
-## Online Divination
-Free online divination experience at https://winds.tw — combines I Ching hexagrams with a Tarot five-card spread and a written reading in the teacher's voice, plus personalized recommendations. Sign in with Google account.
+## Blog (about 380 articles, Traditional Chinese)
+https://winds.tw/blog/ — real consultation cases and explanations, grouped by topic:
+- Relationships: 感情挽回 (getting back together), 兩性關係, 斬桃花 (ending a third-party relationship), 感情和合 — https://winds.tw/blog/category/感情挽回/
+- Astrology and personality: 星座運勢 — e.g. 處女座男性愛情心理 https://winds.tw/blog/blog-280/
+- Yuan Chen Palace: https://winds.tw/blog/blog-256/ , https://winds.tw/blog/blog-055/
+- Spirits and protection: 陰纏 https://winds.tw/blog/negationghost/ , 冤親債主、入陰與入魔的差別 https://winds.tw/blog/differencewhat/
+- Talismans: 紅文與黑文符令的用法 https://winds.tw/blog/symbol/ , 法器與符令使用說明 https://winds.tw/blog/userguide/
+- Five elements: https://winds.tw/blog/fiveelements/
+Each case article names the practitioner who handled it and links to that practitioner's booking page.
+Full list: https://winds.tw/sitemap-index.xml
 
-## Blog (346+ articles, Traditional Chinese)
-Metaphysical knowledge base at https://winds.tw/blog — relationship recovery (感情挽回), romance luck (桃花運), wealth rituals (補財庫), Yuan Chen Palace (元辰宮), feng shui, and I Ching wisdom. Popular reader questions: 斷崖式分手如何復合、處女男曖昧訊號、考運不好怎麼辦.
-Full article list: https://winds.tw/sitemap-index.xml
+## Shop
+Consecrated talismans and items: https://winds.tw/shop/ — Taiwan shipping only; consecrated items are personally made and non-refundable.
 
-
-## Sister Sites (decision-support verticals, launched 2026-08)
-Each site takes a real-life question plus the asker's birth data and returns a written verdict with one reason. The verdict card is free on every site; a full reading is NT$360. Sessions with 風易揚老師 in person or by video are quoted separately.
-
-- **找風問好愛 (Love)** — https://love.winds.tw — Whether to stay, whether to reconcile: what the charts say about a specific relationship, and what happened afterwards. Also does two-person chart matching (合盤) using the other person's birth data.
-- **找風問好窩 (Home)** — https://home.winds.tw — Rental listings screened by orientation and layout against the asker's chart. Paste in shortlisted units; narrows ~50 candidates to ~5.
-- **找風問好食 (Food)** — https://food.winds.tw — What to eat today, from the five-element day-master against the current solar term: first choice, second choice, and what to avoid.
-- **找風問好酒 (Wine)** — https://wine.winds.tw — Which bottle suits the asker's chart, and roughly where to stop.
-- **找風問好美 (Beauty)** — https://beauty.winds.tw — Seasonal five-element colour palette to bring to a stylist before changing your look.
-- **超頻者天堂 OC (since 1996)** — https://oc.com.tw — Benchmark database for AI workstations: real tokens/s for a given budget and model. Hardware is judged on measurements, not charts.
-- **2PR.ai** — https://2pr.winds.tw — Press outreach for small brands: drafting, journalist selection, and follow-up after sending. From NT$1,990.
+## Sister sites
+- 找風問好愛 (relationships) https://love.winds.tw
+- 找風問好窩 (homes and rentals) https://home.winds.tw
+- 找風問好食 (food) https://food.winds.tw
+- 找風問好酒 (wine) https://wine.winds.tw
+- 找風問好美 (beauty and colour) https://beauty.winds.tw
+- 2PR.ai (press releases for small brands) https://2pr.winds.tw
 
 ## Contact
 - Website: https://winds.tw
-- Sister sites: love / home / food / wine / beauty / 2pr .winds.tw, and oc.com.tw
-- LINE: https://liff.winds.tw
-- Booking: https://winds.tw/booking/
-- Shop: https://winds.tw/shop/
-
-## Currency
-All prices in New Taiwan Dollar (TWD/NT$).
+- Official LINE: https://liff.winds.tw
 
 ## Language
-Primary language: Traditional Chinese (zh-TW).
+Primary language: Traditional Chinese (zh-TW). Currency: New Taiwan Dollar (NT$).

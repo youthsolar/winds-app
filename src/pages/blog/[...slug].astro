@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { pickRecs } from '../../data/recommend';
+import { TEACHER_LP } from '../../data/blog-redirects';
 
 export async function getStaticPaths() {
   const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
@@ -47,6 +48,18 @@ const related = allPosts
   .slice(0, 3)
   .map((x: any) => x.p);
 
+// 2026-11-22 部落格體檢：文末預約區依這篇的主角老師（內文出現最多次的老師）換成該老師的預約頁；沒有主角老師才連預約總頁
+const teacherSlug = currentTeacher ? TEACHER_LP[currentTeacher] : null;
+const pageUrl = `https://winds.tw/blog/${post.id}/`;
+const imageUrl = post.data.ogImage ? new URL(post.data.ogImage, 'https://winds.tw').toString() : 'https://winds.tw/og-default.jpg';
+// 作者是六位老師之一時輸出真人作者（風易揚老師沿用 /about/，其他老師連各自的預約頁）；署名「找風問幸福」照舊是組織
+const authorName = String(post.data.author || '').replace(/老師$/, '');
+const authorLd = post.data.author === '風易揚老師'
+  ? { "@type": "Person", "name": "風易揚老師", "url": "https://winds.tw/about/" }
+  : TEACHER_LP[authorName]
+    ? { "@type": "Person", "name": post.data.author, "url": `https://winds.tw/lp/${TEACHER_LP[authorName]}/` }
+    : { "@type": "Organization", "name": "找風問幸福", "url": "https://winds.tw" };
+
 const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
 
 const articleLd = {
@@ -57,20 +70,32 @@ const articleLd = {
   "datePublished": post.data.pubDate.toISOString(),
   "dateModified": (post.data.updatedDate || post.data.pubDate).toISOString(),
   // 署名為真人時輸出 Person（作者權威訊號）；沿用舊組織署名的文章維持 Organization
-  "author": post.data.author === "風易揚老師"
-    ? { "@type": "Person", "name": "風易揚老師", "url": "https://winds.tw/about/" }
-    : { "@type": "Organization", "name": "找風問幸福", "url": "https://winds.tw" },
+  "author": authorLd,
   "publisher": {
     "@type": "Organization", "name": "找風問幸福", "url": "https://winds.tw",
     "logo": { "@type": "ImageObject", "url": "https://winds.tw/assets/logo.png" }
   },
-  "inLanguage": "zh-TW"
+  "inLanguage": "zh-TW",
+  "image": imageUrl,
+  "mainEntityOfPage": { "@type": "WebPage", "@id": pageUrl },
+  "url": pageUrl
+};
+
+const breadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "首頁", "item": "https://winds.tw/" },
+    { "@type": "ListItem", "position": 2, "name": "案例", "item": "https://winds.tw/blog/" },
+    ...(post.data.category ? [{ "@type": "ListItem", "position": 3, "name": post.data.category, "item": `https://winds.tw/blog/category/${encodeURIComponent(post.data.category)}/` }] : []),
+    { "@type": "ListItem", "position": post.data.category ? 4 : 3, "name": post.data.title, "item": pageUrl }
+  ]
 };
 
 // GEO/AEO：FAQPage schema（僅在 frontmatter 有 faq 時輸出，內容與頁面可見 FAQ 區塊一致）
 const faqs = post.data.faq || [];
 const jsonLd = faqs.length > 0
-  ? [articleLd, {
+  ? [articleLd, breadcrumbLd, {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": faqs.map((f: any) => ({
@@ -80,7 +105,7 @@ const jsonLd = faqs.length > 0
       })),
       "inLanguage": "zh-TW"
     }]
-  : articleLd;
+  : [articleLd, breadcrumbLd];
 ---
 
 <BaseLayout
@@ -112,7 +137,7 @@ const jsonLd = faqs.length > 0
       {post.data.tags.length > 0 && (
         <div class="tags">
           {post.data.tags.map((tag: string) => (
-            <a class="zf-tag rose tag" href={`/blog/category/${post.data.category || '其他'}/`}>#{tag}</a>
+            <span class="zf-tag rose tag">#{tag}</span>
           ))}
         </div>
       )}
@@ -147,12 +172,21 @@ const jsonLd = faqs.length > 0
 
     <div class="end-cta">
       <section class="reading-cta">
-        <p class="rc-line cjk-title">想更深入了解你的狀況？先抽一張牌</p>
-        <p class="rc-sub">不用先決定什麼。抽一張牌，看看現在的自己；或由老師一對一，親自為你解惑。</p>
-        <div class="rc-btns">
-          <a class="zf-btn primary lg rc-btn" href="/">立即占卜</a>
-          <a class="zf-btn secondary lg rc-btn" href="/services/"><i class="ph-thin ph-phone" style="font-size:16px"></i>預約諮詢</a>
-        </div>
+        {teacherSlug ? (<>
+          <p class="rc-line cjk-title">想跟{currentTeacher}老師聊聊你的狀況？</p>
+          <p class="rc-sub">可以先看看{currentTeacher}老師的介紹再預約；或先抽一張牌，看看現在的自己。</p>
+          <div class="rc-btns">
+            <a class="zf-btn primary lg rc-btn" href={`/lp/${teacherSlug}/`}><i class="ph-thin ph-phone" style="font-size:16px"></i>預約{currentTeacher}老師</a>
+            <a class="zf-btn secondary lg rc-btn" href="/divination/">立即占卜</a>
+          </div>
+        </>) : (<>
+          <p class="rc-line cjk-title">想更深入了解你的狀況？先抽一張牌</p>
+          <p class="rc-sub">不用先決定什麼。抽一張牌，看看現在的自己；或由老師一對一，親自為你解惑。</p>
+          <div class="rc-btns">
+            <a class="zf-btn primary lg rc-btn" href="/divination/">立即占卜</a>
+            <a class="zf-btn secondary lg rc-btn" href="/booking/"><i class="ph-thin ph-phone" style="font-size:16px"></i>預約老師</a>
+          </div>
+        </>)}
       </section>
     </div>
 
@@ -192,7 +226,7 @@ const jsonLd = faqs.length > 0
     <div class="bottom-cta">
       <section class="reading-cta">
         <p class="rc-line cjk-title">想知道你現在的量能狀態？</p>
-        <div class="rc-btns"><a class="zf-btn primary lg rc-btn" href="/">立即占卜</a></div>
+        <div class="rc-btns"><a class="zf-btn primary lg rc-btn" href="/divination/">立即占卜</a></div>
       </section>
     </div>
   </main>
@@ -222,7 +256,6 @@ const jsonLd = faqs.length > 0
   .byline time { font-family: var(--font-sans); font-size: 13.5px; color: var(--text-muted); white-space: nowrap; }
   .tags { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
   .tag { font-size: 12.5px; text-decoration: none; }
-  .tag:hover { background: var(--rose-100); }
 
   /* TOC */
   .toc { margin-top: 28px; background: var(--surface-sunken); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 18px 22px; }
