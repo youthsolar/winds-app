@@ -5,7 +5,9 @@
 import type { CollectionEntry } from 'astro:content';
 interface Props { post: CollectionEntry<'blog'>; variant: 'feat' | 'small'; eager?: boolean; }
 const { post, variant, eager = false } = Astro.props;
-const img = post.data.heroImage;
+const hero = post.data.heroImage;
+// 小卡用 600 寬縮小版（11/22 起 cdn.winds.tw/blog-v2/ 的封面都有對應 -sm.jpg）
+const img = hero && variant === 'small' && hero.includes('cdn.winds.tw/blog-v2/') ? hero.replace(/\.jpg$/, '-sm.jpg') : hero;
 const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'short', day: 'numeric' });
 ---
 <a class={`bpc ${variant}`} href={`/blog/${post.id}/`}>
