@@ -236,7 +236,25 @@ const jsonLd = faqs.length > 0
   /* article body（語意 prose；欄寬 measure-prose 置中） */
   .article-body { max-width: var(--measure-prose); margin: 40px auto 0; }
   /* 文章內表格（2026-09-26）：手機欄位太窄會把詞硬切（「主要徵／狀」）→ 表格自己橫向捲動、格內詞組不硬切 */
-  .article-body :global(table) { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .article-body :global(table) { display: block; width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-collapse: separate; border-spacing: 0; margin: 0 0 1.8em; border: 1px solid var(--border-soft); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: 15px; line-height: 1.75; color: var(--ink-700); }
+  /* 文章內表格樣式（2026-11-22 DS 樣稿）：框線＋圓角、類型名稱當表頭、兩欄表左欄淡底小字；兩欄表撐滿不捲動，三欄以上維持橫向捲動 */
+  .article-body :global(table th), .article-body :global(table td) { padding: 12px 16px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border-soft); }
+  .article-body :global(table tr:last-child td) { border-bottom: 0; }
+  .article-body :global(table caption) { caption-side: top; text-align: left; font-family: var(--font-serif); font-size: 19px; font-weight: 500; color: var(--ink-900); padding: 12px 16px; background: var(--surface-sunken); border-bottom: 1px solid var(--border-soft); }
+  .article-body :global(table thead th) { font-family: var(--font-serif); font-size: 19px; font-weight: 500; color: var(--ink-900); background: var(--surface-sunken); letter-spacing: 0.02em; }
+  .article-body :global(table tbody td:first-child) { width: 9em; min-width: 7em; color: var(--text-muted); font-weight: 500; background: var(--surface-tint); }
+  .article-body :global(table td img) { display: block; width: 100%; height: auto; border-radius: var(--radius-sm, 6px); margin: 2px 0 6px; }
+  .article-body :global(table:not(:has(tr > :nth-child(3)))) { display: table; table-layout: auto; }
+  .article-body :global(table:not(:has(tr > :nth-child(3))) td), .article-body :global(table:not(:has(tr > :nth-child(3))) td *) { overflow-wrap: anywhere !important; word-break: normal; }
+  .article-body :global(table:has(tr > :nth-child(3)) thead th) { font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: var(--text-muted); }
+  .article-body :global(table:has(tr > :nth-child(3)) tbody td:first-child) { color: var(--ink-900); background: transparent; min-width: 9em; }
+  .article-body :global(table:has(tr > :nth-child(3))) { width: max-content; min-width: 100%; }
+  .article-body :global(table:has(tr > :nth-child(3)) td) { min-width: 12em; }
+  @media (max-width: 760px) {
+    .article-body :global(table) { font-size: 14.5px; }
+    .article-body :global(table th), .article-body :global(table td) { padding: 10px 12px; }
+    .article-body :global(table:not(:has(tr > :nth-child(3))) tbody td:first-child) { width: 7em; min-width: 5.5em; }
+  }
   .article-body :global(td.cjk), .article-body :global(th.cjk), .article-body :global(td .cjk), .article-body :global(th .cjk) { overflow-wrap: normal !important; }
   @media (max-width: 760px) { .article-body { max-width: none; margin-top: 28px; } }
   .article-body :global(h2) { font-family: var(--font-serif); font-size: 24px; font-weight: 500; line-height: 1.5; letter-spacing: 0.01em; color: var(--ink-900); margin: 1.8em 0 0.7em; scroll-margin-top: 80px; }
