@@ -30,7 +30,7 @@ const allCats = Object.keys(byCat)
     return rank(a.name) - rank(b.name) || b.count - a.count || a.name.localeCompare(b.name, 'zh-Hant');
   });
 
-const pageTitle = `${cat}｜找風問幸福靈炁案例專欄`;
+const pageTitle = `${cat}｜找風問幸福靈炁案例`;
 const pageDesc = `找風問幸福部落格「${cat}」分類共 ${all.length} 篇文章，由六位老師分享真實個案與靈性智慧。`;
 ---
 <BaseLayout title={pageTitle} description={pageDesc} ogType="website">

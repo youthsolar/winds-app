@@ -4,9 +4,9 @@ import streams from '../../data/course-streams.json';
 
 // 課程清單／價格／堂數＝即時 worker /sb-courses（SB 同步）；敘述性框架＝course-streams.json（依 stream 繼承）。
 // 整頁 client 渲染：無 ?c= → 列表；?c={id} → 詳情。課程異動免重建。
-const pageTitle = '靈修課程｜找風問幸福 靈修・通靈・法術三條路';
+const pageTitle = '通靈課程｜找風問幸福 靈修・通靈・法術三條路';
 const pageDesc =
-  '找風問幸福的實體靈修課程，分為靈修、通靈、法術。先看每堂課在學什麼，再挑適合自己的。';
+  '找風問幸福的通靈課程，分為靈修、通靈、法術。先看每堂課在學什麼，再挑適合自己的。';
 
 const STREAM = JSON.stringify(streams);
 ---
@@ -288,9 +288,9 @@ const STREAM = JSON.stringify(streams);
         }).join('');
 
         shell.innerHTML =
-          '<nav class="breadcrumb" aria-label="麵包屑"><a href="/">首頁</a><i class="ph ph-caret-right"></i><span class="current">靈修課程</span></nav>' +
-          '<header class="zf-page-header"><span class="zf-ph-eyebrow">靈修課程</span>' +
-            '<h1 class="zf-ph-title cjk-title">慢慢學，把自己照顧好。</h1>' +
+          '<nav class="breadcrumb" aria-label="麵包屑"><a href="/">首頁</a><i class="ph ph-caret-right"></i><span class="current">通靈課程</span></nav>' +
+          '<header class="zf-page-header"><span class="zf-ph-eyebrow">通靈課程</span>' +
+            '<h1 class="zf-ph-title cjk-title">安全學通靈</h1>' +
             '<p class="zf-ph-lede">課程分為靈修、通靈、法術。先看內容，再從適合自己的那一堂開始。</p></header>' +
           INTRO_HTML +
           '<nav class="chip-row" aria-label="課程分類">' + chips + '</nav>' +
@@ -371,7 +371,7 @@ const STREAM = JSON.stringify(streams);
 
         shell.innerHTML =
           '<nav class="breadcrumb" aria-label="麵包屑"><a href="/">首頁</a><i class="ph ph-caret-right"></i>' +
-            '<a href="/course">靈修課程</a><i class="ph ph-caret-right"></i>' +
+            '<a href="/course">通靈課程</a><i class="ph ph-caret-right"></i>' +
             '<span class="current cjk-title">' + esc(c.name) + '</span></nav>' +
           '<div class="layout"><article class="main">' +
             '<header class="dt-head"><div class="dt-tags">' +
@@ -407,7 +407,7 @@ const STREAM = JSON.stringify(streams);
         if (skel) skel.hidden = true;
         if (cid) {
           var c = courses.find(function (x) { return String(x.id) === String(cid); });
-          if (c) { document.title = c.name + '｜找風問幸福 靈修課程'; loadTeacher().then(function (t) { renderDetail(c, courses, t); }); return; }
+          if (c) { document.title = c.name + '｜找風問幸福 通靈課程'; loadTeacher().then(function (t) { renderDetail(c, courses, t); }); return; }
         }
         renderList(courses);
       }

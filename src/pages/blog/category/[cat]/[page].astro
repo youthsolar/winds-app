@@ -35,7 +35,7 @@ export async function getStaticPaths() {
 }
 
 const { cat, posts, allCats, page, totalPages, totalCount } = Astro.props;
-const pageTitle = `${cat}（第 ${page} 頁）｜找風問幸福靈炁案例專欄`;
+const pageTitle = `${cat}（第 ${page} 頁）｜找風問幸福靈炁案例`;
 const pageDesc = `找風問幸福部落格「${cat}」分類共 ${totalCount} 篇文章，第 ${page} 頁。`;
 ---
 <BaseLayout title={pageTitle} description={pageDesc} ogType="website">
