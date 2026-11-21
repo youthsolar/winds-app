@@ -232,6 +232,21 @@ const STREAM = JSON.stringify(streams);
       function fail() { skel && (skel.hidden = true); shell.innerHTML = ''; fallback.hidden = false; }
 
       /* ── 列表 view ── */
+      // 2026-11-21 Jeffery 拍板：課程頁最上面放免費線上課「靈修導論」入口（課程站 Tutor 課 1538），不受分類篩選影響。
+      var INTRO_HTML =
+        '<a class="featured zf-card interactive" href="https://wp.winds.tw/courses/%e9%9d%88%e4%bf%ae%e5%b0%8e%e8%ab%96/" data-intro>' +
+          '<span class="ft-glyph zf-glyph-disc">導</span>' +
+          '<div class="ft-body"><div class="ft-tags">' +
+            '<span class="zf-badge rose"><span class="zf-badge-dot"></span>免費先看</span>' +
+            '<span class="zf-tag sage outline format-tag"><i class="ph ph-play-circle"></i>線上</span>' +
+          '</div>' +
+          '<h2 class="ft-name cjk-title">靈修導論：上集、中集、下集</h2>' +
+          '<p class="ft-excerpt">風易揚老師用最簡單的方式，帶你看懂整個課程：三大段各修什麼，還有通靈為什麼不用怕。</p></div>' +
+          '<div class="ft-aside"><span class="ft-price">免費</span>' +
+          '<span class="ft-sessions">3 集 · 約 30 分鐘</span>' +
+          '<span class="zf-btn primary md">免費觀看<i class="ph ph-arrow-right"></i></span></div>' +
+        '</a>';
+
       function renderList(courses) {
         var featured = courses.find(function (c) { return c.stream === 'bundle'; });
         var wall = courses.filter(function (c) { return c.stream !== 'bundle'; });
@@ -277,6 +292,7 @@ const STREAM = JSON.stringify(streams);
           '<header class="zf-page-header"><span class="zf-ph-eyebrow">靈修課程</span>' +
             '<h1 class="zf-ph-title cjk-title">慢慢學，把自己照顧好。</h1>' +
             '<p class="zf-ph-lede">課程分為靈修、通靈、法術。先看內容，再從適合自己的那一堂開始。</p></header>' +
+          INTRO_HTML +
           '<nav class="chip-row" aria-label="課程分類">' + chips + '</nav>' +
           featuredHtml +
           '<ul class="card-wall">' + cells + '</ul>' +
