@@ -48,7 +48,7 @@ const pageDesc = "找風問幸福部落格：感情挽回、桃花運、補財�
     </nav>
 
     <div class="groups">
-      {sortedCats.map(cat => (
+      {sortedCats.map((cat, ci) => (
         <section class="cat-section">
           <div class="group-head">
             <h2 class="cjk-title">{cat}</h2>
@@ -56,7 +56,7 @@ const pageDesc = "找風問幸福部落格：感情挽回、桃花運、補財�
               <a class="group-more" href={`/blog/category/${cat}/`}>看完整 {categorized[cat].length} 篇 →</a>
             )}
           </div>
-          {categorized[cat][0] && <BlogPostCard post={categorized[cat][0]} variant="feat" />}
+          {categorized[cat][0] && <BlogPostCard post={categorized[cat][0]} variant="feat" eager={ci === 0} />}
           {categorized[cat].length > 1 && (
             <ul class="post-grid">
               {categorized[cat].slice(1, 4).map(post => (

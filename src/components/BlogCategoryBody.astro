@@ -57,11 +57,13 @@ const items = pageItems(page, totalPages);
   </nav>
 
   {page === 1 && posts[0] && <div class="feat-wrap"><BlogPostCard post={posts[0]} variant="feat" eager /></div>}
-  <ul class="post-grid">
-    {(page === 1 ? posts.slice(1) : posts).map(post => (
-      <li><BlogPostCard post={post} variant="small" /></li>
-    ))}
-  </ul>
+  {(page === 1 ? posts.slice(1) : posts).length > 0 && (
+    <ul class={`post-grid${page === 1 ? ' after-feat' : ''}`}>
+      {(page === 1 ? posts.slice(1) : posts).map(post => (
+        <li><BlogPostCard post={post} variant="small" /></li>
+      ))}
+    </ul>
+  )}
 
   {totalPages > 1 && (
     <nav class="pager" aria-label="分頁">
@@ -117,9 +119,10 @@ const items = pageItems(page, totalPages);
   /* article cards（同首頁） */
   .feat-wrap { margin: 44px 0 0; }
   @media (max-width: 760px) { .feat-wrap { margin-top: 32px; } }
-  .post-grid { list-style: none; padding: 0; margin: 22px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; align-items: stretch; }
+  .post-grid { list-style: none; padding: 0; margin: 44px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; align-items: stretch; }
+  .post-grid.after-feat { margin-top: 22px; }
   @media (max-width: 899px) { .post-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 760px) { .post-grid { grid-template-columns: 1fr; gap: 12px; margin-top: 12px; } }
+  @media (max-width: 760px) { .post-grid { grid-template-columns: 1fr; gap: 12px; margin-top: 32px; } .post-grid.after-feat { margin-top: 12px; } }
 
   /* pagination */
   .pager { margin-top: 48px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }   /* 2026-09-28（gpt-6-astra 體檢）：頁數多時 375px 手機會超出畫面 → 允許換行 */

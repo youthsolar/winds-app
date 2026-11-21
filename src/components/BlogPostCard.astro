@@ -16,7 +16,7 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', mo
   </div>
   <div class="bpc-body">
     <h3 class="bpc-title cjk-title">{post.data.title}</h3>
-    {variant === 'feat' && <p class="bpc-desc">{post.data.description}</p>}
+    {variant === 'feat' && post.data.description?.trim() && <p class="bpc-desc">{post.data.description}</p>}
     <div class="bpc-meta">
       <time>{fmtDate(post.data.pubDate)}</time>
       {post.data.tags.slice(0, variant === 'feat' ? 3 : 1).map((tag: string) => (<span class="tag">#{tag}</span>))}
