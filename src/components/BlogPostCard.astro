@@ -1,7 +1,7 @@
 ---
 // 部落格列表卡片（11/22 Jeffery 選 DS 樣稿 C：每類第一篇大圖、其餘小圖）
 // 樣稿：https://claude.ai/artifact/CZieAbo9ggn7NRREHCGsSC
-// 圖比例照 DS 文章封面 3:2；沒圖用 DS 缺圖樣式（surface-sunken 底＋細線蓮花，不放字）
+// 圖比例照 DS 文章封面 3:2；沒圖用 DS 缺圖樣式（surface-sunken 底＋Phosphor thin flower-lotus，跟 DS CoverFallback 同一個圖示，不放字）
 import type { CollectionEntry } from 'astro:content';
 interface Props { post: CollectionEntry<'blog'>; variant: 'feat' | 'small'; eager?: boolean; }
 const { post, variant, eager = false } = Astro.props;
@@ -14,7 +14,7 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', mo
   <div class="bpc-media">
     {img
       ? <img src={img} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" width="1536" height="1024" />
-      : <span class="bpc-fallback" aria-hidden="true"><svg viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M128 208c-36 0-88-16-104-64 24-8 52-4 72 8"/><path d="M128 208c36 0 88-16 104-64-24-8-52-4-72 8"/><path d="M128 208c-24-16-40-44-40-76 0-28 16-56 40-80 24 24 40 52 40 80 0 32-16 60-40 76z"/></svg></span>}
+      : <span class="bpc-fallback" aria-hidden="true"><i class="ph-thin ph-flower-lotus"></i></span>}
   </div>
   <div class="bpc-body">
     <h3 class="bpc-title cjk-title">{post.data.title}</h3>
@@ -32,7 +32,8 @@ const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', mo
   .bpc-media { flex: none; aspect-ratio: 3 / 2; background: var(--surface-sunken); }
   .bpc-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .bpc-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--border-accent); }
-  .bpc-fallback svg { width: 22%; max-width: 48px; }
+  .bpc-fallback i { font-size: 44px; line-height: 1; }
+  @media (max-width: 760px) { .small .bpc-fallback i { font-size: 28px; } }
   .bpc-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
   .bpc-title { font-family: var(--font-serif); font-weight: 500; line-height: 1.45; color: var(--ink-900); margin: 0; }
   .bpc:hover .bpc-title { color: var(--accent-press); }
