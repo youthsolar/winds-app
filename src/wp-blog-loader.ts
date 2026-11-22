@@ -85,6 +85,19 @@ function tidyWpHtml(html: string, postIdBySlug: Map<string, string>): string {
   return enrichHtml(h);
 }
 
+/* 2026-11-22 部落格第三批（Jeffery 拍板「文章主角是哪位就寫哪位」）：署名「找風問幸福」或「風易揚老師」的文章，
+   署名改成內文出現最多次的老師（跟 [...slug].astro 文末「預約○○老師」同一套算法），一位都沒提到的寫風易揚老師。
+   建站時才算、不寫進 WP：之後把文章內文換成別的老師，署名、文末預約、老師頁列出的文章會一起跟著換。
+   WP 裡手動署名成其他老師（芊蘭、風賜靈…）的照舊。 */
+function authorOf(wpAuthor: string | undefined, html: string): string {
+  if (wpAuthor && wpAuthor !== '找風問幸福' && wpAuthor !== '風易揚老師') return wpAuthor;
+  let best = '', bestCount = 0;
+  for (const t of Object.keys(TEACHER_LP)) {
+    const count = html.split(t).length - 1;
+    if (count > bestCount) { bestCount = count; best = t; }
+  }
+  return best ? `${best}老師` : '風易揚老師';
+}
 /* 2026-11-22 部落格體檢（Jeffery 拍板）：建站時才加，不寫進 WP——之後把文章換成別的老師，連結會跟著內文走。
    ① 連到「已下架轉項目頁」文章的連結，直接改連目的地（對照表 src/data/blog-redirects.ts）
    ② 內文「預約／找○○老師」的老師名字連到該老師預約頁；每位老師每篇只連第一次，已在連結裡的不動
@@ -164,7 +177,7 @@ async function loadFromWp({ store, parseData, logger }: LoaderContext) {
         updatedDate: opt(m.winds_updated_date) || (p.modified_gmt ? new Date(p.modified_gmt + 'Z') : undefined),
         heroImage: opt(m.winds_hero_image),
         tags: json(m.winds_tags_json, []),
-        author: m.winds_author || '找風問幸福',
+        author: authorOf(m.winds_author, html),
         seoTitle: opt(m.winds_seo_title),
         ogImage: opt(m.winds_og_image),
         llmDescription: opt(m.winds_llm_description),

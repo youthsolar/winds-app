@@ -23,6 +23,12 @@
 # 2026-11-22 部落格體檢：薄的項目介紹文下架、轉到預約項目頁（對照表 src/data/blog-redirects.ts，兩邊一起改）
 /blog/hello-world    /blog/    301
 /blog/hello-world/    /blog/    301
+/blog/blog-261    /blog/category/%E6%98%9F%E5%BA%A7%E9%81%8B%E5%8B%A2/    301
+/blog/blog-261/    /blog/category/%E6%98%9F%E5%BA%A7%E9%81%8B%E5%8B%A2/    301
+/blog/blog-248    /blog/category/%E6%98%9F%E5%BA%A7%E9%81%8B%E5%8B%A2/    301
+/blog/blog-248/    /blog/category/%E6%98%9F%E5%BA%A7%E9%81%8B%E5%8B%A2/    301
+/blog/blog-331    /blog/category/%E6%98%9F%E5%BA%A7%E9%81%8B%E5%8B%A2/    301
+/blog/blog-331/    /blog/category/%E6%98%9F%E5%BA%A7%E9%81%8B%E5%8B%A2/    301
 /blog/heavengivesmoney    /services/sb-31/    301
 /blog/heavengivesmoney/    /services/sb-31/    301
 /blog/palacedefense    /services/sb-39/    301

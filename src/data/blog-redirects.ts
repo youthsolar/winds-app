@@ -33,6 +33,10 @@ export const BLOG_REDIRECTS: Record<string, string> = {
   foxfairyspell: '/services/sb-23/',
   marrypalace: '/services/sb-25/',
   psychictarot: '/services/sb-52/',
+  // 2026-11-22 第三批：標題寫著過期年份的運勢文（整篇講那一年），Jeffery 拍板下架轉星座運勢分類頁
+  'blog-261': '/blog/category/星座運勢/',
+  'blog-248': '/blog/category/星座運勢/',
+  'blog-331': '/blog/category/星座運勢/',
 };
 
 // 六位老師的預約頁（/lp/<代稱>/）。文末預約區、內文「預約／找○○老師」的連結都照這張表。
