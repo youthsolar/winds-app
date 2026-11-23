@@ -266,7 +266,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
           }), live(g, function () { emailStep({ reason: o.reason, value: v, error: '信寄不出去，請再試一次' }); }));
         }
         btn.onclick = go;
-        input.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); if (!btn.disabled) go(); } };
+        input.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); if (e.isComposing || e.keyCode === 229) return; if (!btn.disabled) go(); } };
       }
       function codeStep(o) {
         paint('left', '<h1 class="zf-sso-h1">留一個信箱</h1><div class="zf-sso-body">' +
@@ -323,7 +323,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
           }), live(g, function () { codeStep({ error: '系統忙碌中，請稍後再試。', value: c }); }));
         }
         vb.onclick = verify;
-        input.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); if (!vb.disabled) verify(); } };
+        input.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); if (e.isComposing || e.keyCode === 229) return; if (!vb.disabled) verify(); } };
         input.oninput = function () { var c = input.value.replace(/\D/g, '').slice(0, 6); if (c !== input.value) input.value = c; };
       }
 
