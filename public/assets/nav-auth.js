@@ -90,6 +90,8 @@
                 '<div style="font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--ink-900)">' + esc(p.name || '') + '</div>' +
                 '<div style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.email || '') + '</div>' +
               '</div>' +
+              /* 2026-11-25 Jeffery：帳號選單加「我的課程」（課程控制台），跟課程站頁首一樣 */
+              '<a href="https://wp.winds.tw/%e6%8e%a7%e5%88%b6%e5%8f%b0/" style="display:flex;align-items:center;gap:8px;padding:9px 12px;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700);border-radius:var(--radius-sm);text-decoration:none">我的課程</a>' +
               '<a href="/account" style="display:flex;align-items:center;gap:8px;padding:9px 12px;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700);border-radius:var(--radius-sm);text-decoration:none">會員中心</a>' +
               '<button type="button" class="nav-logout" style="all:unset;cursor:pointer;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:9px 12px;font-family:var(--font-serif);font-size:14.5px;color:var(--text-muted);border-radius:var(--radius-sm)">登出</button>' +
             '</div>' +
@@ -121,6 +123,7 @@
               '<div style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.email || '') + '</div>' +
             '</div>' +
           '</div>' +
+          '<a href="https://wp.winds.tw/%e6%8e%a7%e5%88%b6%e5%8f%b0/" style="display:block;font-family:var(--font-serif);font-size:16px;color:var(--ink-700);padding:10px 4px;text-decoration:none">我的課程</a>' +
           '<a href="/account" style="display:block;font-family:var(--font-serif);font-size:16px;color:var(--ink-700);padding:10px 4px;text-decoration:none">會員中心</a>' +
           '<button type="button" class="nav-logout" style="all:unset;cursor:pointer;display:block;font-family:var(--font-serif);font-size:16px;color:var(--text-muted);padding:10px 4px">登出</button>';
       } else {
