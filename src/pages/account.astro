@@ -3,17 +3,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 // 入口卡 → winds-app 真路由。我的訂單：shop.winds.tw 9/3 起已 301，9/30 先連站內商店；WP 商城上線後換成訂單查詢頁。
 const entries: { icon: string; title: string; line: string; href: string; ext?: boolean; wide?: boolean }[] = [
-  { icon: 'cards',          title: '我的占卜紀錄', line: '回看你問過的事與當時的牌。', href: '/history' },
-  { icon: 'calendar-heart', title: '我的預約',     line: '和老師約好的時間都在這。',   href: '/bookings' },
+  { icon: 'cards',          title: '占卜紀錄', line: '回看你問過的事與當時的牌。', href: '/history' },
+  { icon: 'calendar-heart', title: '預約', line: '和老師約好的時間都在這。',   href: '/bookings' },
+  // 2026-11-25 選單重整：拿掉「我的」、購買紀錄改「訂單」（頁面標題已是會員中心）
   // 2026-11-25 Jeffery 拍板「會員中心整合」：加我的課程；我的訂單改名我的購買紀錄，連商城訂單（課程也在商城結帳）
-  { icon: 'book-open-text', title: '我的課程',     line: '上課進度和測驗紀錄都在這。', href: 'https://wp.winds.tw/%e6%8e%a7%e5%88%b6%e5%8f%b0/' },
-  { icon: 'receipt',        title: '我的購買紀錄', line: '法器和課程的訂單、出貨狀態。', href: 'https://wp.winds.tw/my-account/orders/' },
-  { icon: 'sparkle',        title: '我的紫微命盤', line: '排好的本命盤，隨時回來看。', href: '/ziwei', wide: true },
+  { icon: 'book-open-text', title: '課程', line: '上課進度和測驗紀錄都在這。', href: 'https://wp.winds.tw/%e6%8e%a7%e5%88%b6%e5%8f%b0/' },
+  { icon: 'receipt',        title: '訂單', line: '法器和課程的付款、出貨狀態。', href: 'https://wp.winds.tw/my-account/orders/' },
+  { icon: 'sparkle',        title: '紫微命盤', line: '排好的本命盤，隨時回來看。', href: '/ziwei', wide: true },
 ];
 ---
 <BaseLayout
   title="會員中心 · 找風問幸福"
-  description="你的占卜紀錄、預約、課程、購買紀錄與紫微命盤，都在這裡。"
+  description="你的占卜紀錄、預約、課程、訂單與紫微命盤，都在這裡。"
   noindex={true}
 >
   <main class="ac-main" id="acMain" hidden>

@@ -8,6 +8,49 @@
   var LOGOUT_URL = '/';
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
+  /* 2026-11-25 Jeffery 拍板「選單重整」（樣張 claude.ai/artifact/K58jaKvs974FsUvXTHnCZs，課程站 #70 同一套）：
+     名字連會員中心＋占卜紀錄／預約／課程／訂單；手機選單蓋滿畫面，外觀與登出收到最底下一列。
+     圖示內嵌 SVG（Phosphor light 路徑，同樣張），不靠圖示字型。 */
+  var IC = {"占卜紀錄": "M184,76H40A12,12,0,0,0,28,88V200a12,12,0,0,0,12,12H184a12,12,0,0,0,12-12V88A12,12,0,0,0,184,76Zm4,124a4,4,0,0,1-4,4H40a4,4,0,0,1-4-4V88a4,4,0,0,1,4-4H184a4,4,0,0,1,4,4ZM228,56V176a4,4,0,0,1-8,0V56a4,4,0,0,0-4-4H64a4,4,0,0,1,0-8H216A12,12,0,0,1,228,56Z", "預約": "M208,36H180V24a4,4,0,0,0-8,0V36H84V24a4,4,0,0,0-8,0V36H48A12,12,0,0,0,36,48V208a12,12,0,0,0,12,12H208a12,12,0,0,0,12-12V48A12,12,0,0,0,208,36Zm4,172a4,4,0,0,1-4,4H48a4,4,0,0,1-4-4V48a4,4,0,0,1,4-4H76V56a4,4,0,0,0,8,0V44h88V56a4,4,0,0,0,8,0V44h28a4,4,0,0,1,4,4ZM152,92a28,28,0,0,0-24,13.59A28,28,0,0,0,76,120c0,14.51,8.56,29,25.44,43.07a143.52,143.52,0,0,0,24.77,16.51,4,4,0,0,0,3.58,0,143.52,143.52,0,0,0,24.77-16.51C171.44,149,180,134.51,180,120A28,28,0,0,0,152,92Zm-24,79.47c-8.46-4.64-44-25.67-44-51.47a20,20,0,0,1,40,0,4,4,0,0,0,8,0,20,20,0,0,1,40,0C172,145.8,136.46,166.83,128,171.47Z", "課程": "M232,52H160a36,36,0,0,0-32,19.54A36,36,0,0,0,96,52H24a4,4,0,0,0-4,4V200a4,4,0,0,0,4,4H96a28,28,0,0,1,28,28,4,4,0,0,0,8,0,28,28,0,0,1,28-28h72a4,4,0,0,0,4-4V56A4,4,0,0,0,232,52ZM96,196H28V60H96a28,28,0,0,1,28,28V209.4A35.94,35.94,0,0,0,96,196Zm132,0H160a35.94,35.94,0,0,0-28,13.41V88a28,28,0,0,1,28-28h68ZM160,92h40a4,4,0,0,1,0,8H160a4,4,0,0,1,0-8Zm44,36a4,4,0,0,1-4,4H160a4,4,0,0,1,0-8h40A4,4,0,0,1,204,128Zm0,32a4,4,0,0,1-4,4H160a4,4,0,0,1,0-8h40A4,4,0,0,1,204,160Z", "訂單": "M180,104a4,4,0,0,1-4,4H80a4,4,0,0,1,0-8h96A4,4,0,0,1,180,104Zm-4,28H80a4,4,0,0,0,0,8h96a4,4,0,0,0,0-8Zm52-76V208a4,4,0,0,1-4,4,4.05,4.05,0,0,1-1.79-.42L192,196.47l-30.21,15.11a4,4,0,0,1-3.58,0L128,196.47,97.79,211.58a4,4,0,0,1-3.58,0L64,196.47,33.79,211.58A4,4,0,0,1,28,208V56A12,12,0,0,1,40,44H216A12,12,0,0,1,228,56Zm-8,0a4,4,0,0,0-4-4H40a4,4,0,0,0-4,4V201.53l26.21-13.11a4,4,0,0,1,3.58,0L96,203.53l30.21-15.11a4,4,0,0,1,3.58,0L160,203.53l30.21-15.11a4,4,0,0,1,3.58,0L220,201.53Z", "登出": "M116,216a4,4,0,0,1-4,4H48a4,4,0,0,1-4-4V40a4,4,0,0,1,4-4h64a4,4,0,0,1,0,8H52V212h60A4,4,0,0,1,116,216Zm110.83-90.83-40-40a4,4,0,0,0-5.66,5.66L214.34,124H112a4,4,0,0,0,0,8H214.34l-33.17,33.17a4,4,0,0,0,5.66,5.66l40-40A4,4,0,0,0,226.83,125.17Z", "右": "M178.83,130.83l-80,80a4,4,0,0,1-5.66-5.66L170.34,128,93.17,50.83a4,4,0,0,1,5.66-5.66l80,80A4,4,0,0,1,178.83,130.83Z"};
+  function svg(k, cls) { return '<svg class="' + cls + '" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="' + IC[k] + '"/></svg>'; }
+  var WP_DASH = 'https://wp.winds.tw/%e6%8e%a7%e5%88%b6%e5%8f%b0/';
+  var ITEMS = [['占卜紀錄', '/history'], ['預約', '/bookings'], ['課程', WP_DASH], ['訂單', 'https://wp.winds.tw/my-account/orders/']];
+  function injectCss() {
+    if (document.getElementById('nav-auth-css')) return;
+    var st = document.createElement('style'); st.id = 'nav-auth-css';
+    st.textContent =
+      '.na-menu a,.na-menu .nav-logout{display:flex!important;align-items:center;gap:10px;padding:9px 12px;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700);border-radius:var(--radius-sm);text-decoration:none}' +
+      '.na-menu a:hover,.na-menu .nav-logout:hover{background:var(--surface-sunken);color:var(--ink-900)}' +
+      '.na-menu .na-ic{width:16px;height:16px;flex:none;color:var(--text-muted)}' +
+      '.na-menu .na-hd{flex-direction:column;align-items:flex-start!important;gap:0!important;padding:8px 12px 10px!important;border-bottom:1px solid var(--border-soft);border-radius:0!important;margin-bottom:6px}' +
+      '.na-menu .na-hd:hover{background:transparent!important}' +
+      '.na-menu .na-hd b{font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--ink-900)}' +
+      '.na-menu .na-hd small{font-family:var(--font-sans);font-size:12px;color:var(--accent-press)}' +
+      '.na-menu .nav-logout{color:var(--text-muted);width:100%;box-sizing:border-box;border:0;background:none;cursor:pointer;text-align:left;line-height:inherit}' +
+      '#auth-button-m.zf-account-m{margin-top:14px;padding-top:0;border-top:none}' +
+      '#auth-button-m .na-me{background:var(--surface-card);border:1px solid var(--border-soft);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}' +
+      '#auth-button-m .na-me a{padding:0}' +
+      '#auth-button-m a.na-me-hd{display:flex;align-items:center;gap:10px;color:var(--ink-900)}' +
+      '.na-me-nm{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}' +
+      '.na-me-nm b{font-family:var(--font-serif);font-weight:500;font-size:16px;overflow-wrap:anywhere}' +
+      '.na-me-nm small{font-family:var(--font-sans);font-size:12px;color:var(--accent-press)}' +
+      '.na-car{width:16px;height:16px;color:var(--text-muted);flex:none}' +
+      '.na-g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}' +
+      '#auth-button-m .na-g a{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;border-radius:12px;background:var(--surface-sunken);font-family:var(--font-sans);font-size:12.5px;color:var(--ink-900)}' +
+      '.na-g .na-ti{width:22px;height:22px;color:var(--accent)}' +
+      '.zf-drawer .na-foot{margin-top:auto;padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--border-soft)}' +
+      '.zf-drawer .na-foot .zf-tt{margin-top:0!important;flex:0 1 auto}' +
+      '.zf-drawer .na-foot .zf-tt.lb button{height:30px;padding:0 9px;font-size:12px}' +
+      '.zf-drawer .na-foot .nav-logout{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:var(--font-sans);font-size:13px;color:var(--text-muted);white-space:nowrap}' +
+      '.na-foot .na-ic{width:16px;height:16px}' +
+      '@media (max-width:980px){' +
+        '.zf-drawer:not([hidden]){height:calc(100dvh - 64px);overflow-y:auto;box-sizing:border-box}' +
+        'body:has(.zf-drawer:not([hidden])){overflow:hidden}' +
+        'body:has(.zf-drawer:not([hidden])) .wc-root{display:none!important}' +
+      '}';
+    document.head.appendChild(st);
+  }
+
   function decode(token) {
     try {
       var p = JSON.parse(decodeURIComponent(escape(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))));   // UTF-8：中文姓名才不會變亂碼
@@ -67,6 +110,7 @@
   }
 
   function render() {
+    injectCss();
     var token = '';
     try { token = localStorage.getItem('winds_google_token') || ''; } catch (e) {}
     var p = token ? decode(token) : null;
@@ -85,15 +129,10 @@
               '<i class="ph-bold ph-caret-down" style="font-size:12px;color:var(--ink-500)"></i>' +
             '</button>' +
             '<div class="nav-acct-overlay" hidden style="position:fixed;inset:0;z-index:40"></div>' +
-            '<div class="nav-acct-menu" hidden style="position:absolute;top:calc(100% + 10px);right:0;z-index:41;min-width:200px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);box-shadow:var(--shadow-md);padding:8px">' +
-              '<div style="padding:8px 12px 10px;border-bottom:1px solid var(--border-soft);margin-bottom:6px">' +
-                '<div style="font-family:var(--font-serif);font-size:15px;font-weight:500;color:var(--ink-900)">' + esc(p.name || '') + '</div>' +
-                '<div style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.email || '') + '</div>' +
-              '</div>' +
-              /* 2026-11-25 Jeffery：帳號選單加「我的課程」（課程控制台），跟課程站頁首一樣 */
-              '<a href="https://wp.winds.tw/%e6%8e%a7%e5%88%b6%e5%8f%b0/" style="display:flex;align-items:center;gap:8px;padding:9px 12px;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700);border-radius:var(--radius-sm);text-decoration:none">我的課程</a>' +
-              '<a href="/account" style="display:flex;align-items:center;gap:8px;padding:9px 12px;font-family:var(--font-serif);font-size:14.5px;color:var(--ink-700);border-radius:var(--radius-sm);text-decoration:none">會員中心</a>' +
-              '<button type="button" class="nav-logout" style="all:unset;cursor:pointer;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:9px 12px;font-family:var(--font-serif);font-size:14.5px;color:var(--text-muted);border-radius:var(--radius-sm)">登出</button>' +
+            '<div class="nav-acct-menu na-menu" hidden style="position:absolute;top:calc(100% + 10px);right:0;z-index:41;min-width:200px;background:var(--surface-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);box-shadow:var(--shadow-md);padding:8px">' +
+              '<a class="na-hd" href="/account"><b>' + esc(p.name || '') + '</b><small>會員中心</small></a>' +
+              ITEMS.map(function (it) { return '<a href="' + it[1] + '">' + svg(it[0], 'na-ic') + it[0] + '</a>'; }).join('') +
+              '<button type="button" class="nav-logout">' + svg('登出', 'na-ic') + '登出</button>' +
             '</div>' +
           '</div>';
         var wrap = d.querySelector('.nav-acct'),
@@ -117,17 +156,21 @@
     if (m) {
       if (p) {
         m.innerHTML =
-          '<div style="display:flex;align-items:center;gap:10px;padding:8px 4px">' + avatarHTML(p, 36) +
-            '<div style="min-width:0">' +
-              '<div style="font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900)">' + esc(p.name || '') + '</div>' +
-              '<div style="font-family:var(--font-sans);font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(p.email || '') + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<a href="https://wp.winds.tw/%e6%8e%a7%e5%88%b6%e5%8f%b0/" style="display:block;font-family:var(--font-serif);font-size:16px;color:var(--ink-700);padding:10px 4px;text-decoration:none">我的課程</a>' +
-          '<a href="/account" style="display:block;font-family:var(--font-serif);font-size:16px;color:var(--ink-700);padding:10px 4px;text-decoration:none">會員中心</a>' +
-          '<button type="button" class="nav-logout" style="all:unset;cursor:pointer;display:block;font-family:var(--font-serif);font-size:16px;color:var(--text-muted);padding:10px 4px">登出</button>';
+          '<div class="na-me"><a class="na-me-hd" href="/account">' + avatarHTML(p, 36) +
+            '<span class="na-me-nm"><b>' + esc(p.name || '') + '</b><small>會員中心</small></span>' + svg('右', 'na-car') + '</a>' +
+            '<div class="na-g">' + ITEMS.map(function (it) { return '<a href="' + it[1] + '">' + svg(it[0], 'na-ti') + '<span>' + it[0] + '</span></a>'; }).join('') + '</div>' +
+          '</div>';
       } else {
         m.innerHTML = '<a href="/login" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;min-height:44px;padding:0 22px;box-sizing:border-box;white-space:nowrap;font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--ink-900);background:var(--surface-card);border:1px solid var(--border-strong);border-radius:var(--radius-pill);text-decoration:none"><i class="ph-thin ph-user-circle" style="font-size:20px"></i>登入</a>';   // 10/17：登入頁有 LINE 和 Google 兩種，這裡不寫 Google
+      }
+      /* 底列：外觀（縮小）＋登出（已登入才有），放在選單最底下 */
+      var dr = m.closest('.zf-drawer');
+      if (dr) {
+        var ft = dr.querySelector('.na-foot');
+        if (!ft) { ft = document.createElement('div'); ft.className = 'na-foot'; dr.appendChild(ft); }
+        var tt = dr.querySelector('.zf-tt.lb'); if (tt && tt.parentNode !== ft) ft.insertBefore(tt, ft.firstChild);
+        var ob = ft.querySelector('.nav-logout'); if (ob) ob.remove();
+        if (p) { ob = document.createElement('button'); ob.type = 'button'; ob.className = 'nav-logout'; ob.innerHTML = svg('登出', 'na-ic') + '登出'; ft.appendChild(ob); wireLogout(ft); }
       }
       wireLogout(m);
     }
