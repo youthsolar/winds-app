@@ -65,6 +65,7 @@ const STREAM = JSON.stringify(streams);
     /* featured highlight card */
     .course-root .featured { display: grid; grid-template-columns: auto 1fr auto; gap: 28px; align-items: center; margin-top: 38px; padding: 32px 36px; text-decoration: none; color: inherit; }
     @media (max-width: 760px) { .course-root .featured { grid-template-columns: 1fr; gap: 18px; margin-top: 28px; padding: 24px 22px; } }
+    .course-root .featured[data-rumen] { margin-top: 22px; }
     .course-root .ft-glyph { width: 76px; height: 76px; font-size: 40px; background: var(--paper); border-color: var(--rose-200); }
     @media (max-width: 760px) { .course-root .ft-glyph { width: 60px; height: 60px; font-size: 32px; } }
     .course-root .ft-body { min-width: 0; }
@@ -246,6 +247,20 @@ const STREAM = JSON.stringify(streams);
           '<span class="ft-sessions">3 集 · 約 30 分鐘</span>' +
           '<span class="zf-btn primary md">免費觀看<i class="ph ph-arrow-right"></i></span></div>' +
         '</a>';
+      // 2026-11-24 Jeffery：導論下面接付費線上課「靈修入門班」（課程站 Tutor 課 2053，NT$3,600），版型照導論入口卡。
+      var RUMEN_HTML =
+        '<a class="featured zf-card interactive" href="https://wp.winds.tw/courses/%e9%9d%88%e4%bf%ae%e5%85%a5%e9%96%80%e7%8f%ad/" data-rumen>' +
+          '<span class="ft-glyph zf-glyph-disc">入</span>' +
+          '<div class="ft-body"><div class="ft-tags">' +
+            '<span class="zf-badge rose"><span class="zf-badge-dot"></span>全修班第一段</span>' +
+            '<span class="zf-tag sage outline format-tag"><i class="ph ph-play-circle"></i>線上</span>' +
+          '</div>' +
+          '<h2 class="ft-name cjk-title">靈修入門班</h2>' +
+          '<p class="ft-excerpt">8 堂線上課，買一次永久觀看。第 1 堂〈太極炁與大宇宙〉已上架，其餘各堂陸續上架。</p></div>' +
+          '<div class="ft-aside"><span class="ft-price">NT$ 3,600</span>' +
+          '<span class="ft-sessions">8 堂 · 已上架 1 堂</span>' +
+          '<span class="zf-btn primary md">看課程<i class="ph ph-arrow-right"></i></span></div>' +
+        '</a>';
 
       function renderList(courses) {
         var featured = courses.find(function (c) { return c.stream === 'bundle'; });
@@ -292,7 +307,7 @@ const STREAM = JSON.stringify(streams);
           '<header class="zf-page-header"><span class="zf-ph-eyebrow">通靈課程</span>' +
             '<h1 class="zf-ph-title cjk-title">安全學通靈</h1>' +
             '<p class="zf-ph-lede">課程分為靈修、通靈、法術。先看內容，再從適合自己的那一堂開始。</p></header>' +
-          INTRO_HTML +
+          INTRO_HTML + RUMEN_HTML +
           '<nav class="chip-row" aria-label="課程分類">' + chips + '</nav>' +
           featuredHtml +
           '<ul class="card-wall">' + cells + '</ul>' +
