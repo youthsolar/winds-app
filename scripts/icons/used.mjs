@@ -1,6 +1,7 @@
 // 找出全站用到的 Phosphor 圖示名稱（subset.py 與 check.mjs 共用這份規則）。
 // 規則（寧多勿漏）：class 裡的 ph-名稱，加上全站任何加引號的字串只要剛好是 Phosphor 圖示名稱就保留
 // （涵蓋 ic("名稱")、三元式、陣列、JSON 的 "icon": "名稱"…）。多收幾個沒用到的字只多幾 KB。
+// ⚠️ 圖示名要整個包在一對引號裡，不要拆開拼（例如 'lock-' + 'simple' 會抓不到）。
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
