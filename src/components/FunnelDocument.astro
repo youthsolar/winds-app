@@ -20,6 +20,7 @@ import ConciergeWidget from './ConciergeWidget.astro';
 /* demo：2026-10-23 付費版範例頁（/demo/gua、/demo/tarot）：不跑 boot、不打後端，由 public/assets/demo/paid-demo.js 用固定範例資料畫付費後結果頁；不帶就跟原本一模一樣 */
 interface Props { mode?: 'divination' | 'home' | 'love'; title: string; description: string; canonical: string; ogImage?: string; noindex?: boolean; tarot?: boolean; demo?: 'gua' | 'tarot'; }
 const { mode = 'divination', title, description, canonical, ogImage = 'https://winds.tw/og-default.jpg', noindex = true, tarot = false, demo } = Astro.props;
+const FONT_VER = '5.3.1';   /* 自架字型版本；換 @fontsource 版本要一起改，scripts/fonts/build.mjs 會檢查 */
 ---
 
 <!DOCTYPE html>
@@ -52,9 +53,7 @@ const { mode = 'divination', title, description, canonical, ogImage = 'https://w
   <!-- 2026-10-11 Jeffery「重新整理樣式閃一下」：#root 裡的靜態版（給不跑 JavaScript 的抓取工具）會先畫一幀，render() 才換成真畫面。
        有 JavaScript 就先藏靜態版；腳本壞了 2 秒後自己現身（.ff-static 的 CSS）。 -->
   <script is:inline>document.documentElement.classList.add("ff-js");</script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href={`/fonts/${FONT_VER}/all.css`} rel="stylesheet" />   <!-- 2026-11-25 自架字型測試（同 BaseLayout） -->
   {tarot && <link rel="stylesheet" href="/assets/tarot/tarot.css?v=2" />}
   {demo && <link rel="stylesheet" href="/assets/demo/paid-demo.css?v=1" />}
   <script is:inline src="/assets/cjk-wrap.js" defer></script>

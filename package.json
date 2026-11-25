@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/icons/check.mjs && astro build",
+    "build": "node scripts/icons/check.mjs && node scripts/fonts/build.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "generate-types": "wrangler types",
@@ -17,6 +17,8 @@
   "dependencies": {
     "@astrojs/cloudflare": "^13.1.8",
     "@astrojs/sitemap": "^3.7.2",
+    "@fontsource/noto-sans-tc": "^5.3.1",
+    "@fontsource/noto-serif-tc": "^5.3.1",
     "@tailwindcss/vite": "^4.2.2",
     "astro": "^6.1.5",
     "github-slugger": "^2.0.0",

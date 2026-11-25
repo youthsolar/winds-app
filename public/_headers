@@ -11,3 +11,8 @@
 # 不然每次重新整理都要回伺服器問一次（原本 max-age=0, must-revalidate）。
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+# 2026-11-25 自架字型：路徑帶 @fontsource 版本號（/fonts/5.3.1/…），換版本就換路徑 → 可以長快取
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *

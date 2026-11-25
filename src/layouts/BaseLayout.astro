@@ -36,6 +36,7 @@ const fullOgImage = new URL(ogImage, Astro.site).toString();
 
 // Google OAuth Client ID (placeholder until Jeffery provides it)
 const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
+const FONT_VER = '5.3.1';   /* 自架字型版本；換 @fontsource 版本要一起改，scripts/fonts/build.mjs 會檢查 */
 ---
 
 <!DOCTYPE html>
@@ -113,15 +114,8 @@ const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID || '';
   </Fragment>}
 
   <!-- Brand Font（占卜站設計：Serif 標題/內文含 weight 300、Sans UI/數字/標籤）-->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  {headingFontBlock ? (<>
-    {/* 2026-11-19：登入頁「登入」大字不再先用手機字型再跳成宋體——宋體粗字載好才顯示，細字與黑體照舊先顯示。只限登入類頁面，別頁的按鈕與文章粗體不跟著等。 */}
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;700&display=block" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  </>) : (
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  )}
+  <!-- 2026-11-25 自架字型測試：Noto Serif TC／Sans TC 改從本站 fonts 資料夾載（scripts/fonts/build.mjs 從 fontsource 產），切片跟 Google 一樣 -->
+  <link href={headingFontBlock ? '/fonts/' + FONT_VER + '/heading-block.css' : '/fonts/' + FONT_VER + '/all.css'} rel="stylesheet" />
 
   <!-- Phosphor icons（DS 元件用）-->
 
