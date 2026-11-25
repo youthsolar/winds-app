@@ -30,9 +30,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           <div class="zf-notice error" role="alert" id="lkWpConflict" hidden><i class="ph ph-warning-circle"></i><div class="zf-notice-body">這兩個登入各自已經有商城／預約的帳號，請先聯絡老師處理，再合併<div class="zf-notice-act"><a class="zf-text-link sm" href="https://lin.ee/tQHsgWB" target="_blank" rel="noopener">聯絡老師</a></div></div></div>
           <div class="am-note" id="lkChanged" hidden><i class="ph ph-arrows-clockwise"></i><span id="amNoteText">帳號剛剛有變動，請重新整理再試</span><button type="button" class="zf-text-link" id="lkRefresh">重新整理</button></div>
           <div class="lk-list" id="lkList"></div>
-          <p class="lk-body">合在一起之後，用其中任何一個登入都看得到全部紀錄和預約。之後可以在會員中心拆開。</p>
+          <p class="lk-body">合在一起之後，用其中任何一個登入都看得到全部紀錄和預約。之後可以在會員中心取消連結。</p>
           <!-- DS A7：上一次拆開還沒處理完（split_pending）＝按鈕不能按＋按鈕上方一句 -->
-          <span class="lk-pending" id="lkPending" hidden>上一次拆開還在等老師處理，處理完才能合併</span>
+          <span class="lk-pending" id="lkPending" hidden>上一次取消連結還在等老師處理，處理完才能合併</span>
           <button type="button" class="zf-btn primary lg full" id="lkYes">確定合併</button>
           <button type="button" class="zf-btn secondary lg full" id="lkNo">先不要</button>
         </div>
@@ -102,7 +102,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   </style>
 
   <script is:inline src="/assets/line-login.js"></script>
-  <script is:inline src="/assets/account-link.js?v=1125"></script>
+  <script is:inline src="/assets/account-link.js?v=1125b"></script>
   <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
   <script is:inline>
     (function () {

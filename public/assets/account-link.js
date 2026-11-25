@@ -73,7 +73,7 @@
     var card = document.getElementById('amCard'); if (!card) return;
     var items = d.items || [];
     document.getElementById('amRows').innerHTML = items.map(function (it) {
-      return row(it, it.current ? '<span class="zf-badge neutral" style="white-space:nowrap">目前登入</span>' : '<button type="button" class="am-unlink" data-id="' + esc(it.id) + '">拆開</button>');
+      return row(it, it.current ? '<span class="zf-badge neutral" style="white-space:nowrap">目前登入</span>' : '<button type="button" class="am-unlink" data-id="' + esc(it.id) + '">取消連結</button>');
     }).join('');
     var others = items.filter(function (it) { return !it.current; });
     document.getElementById('amSolo').hidden = others.length > 0;
@@ -117,12 +117,12 @@
     var pairOn = !!it.pair;
     var bg = document.createElement('div'); bg.className = 'am-sheet-bg';
     bg.innerHTML = '<div class="am-sheet" role="dialog" aria-modal="true" aria-labelledby="amSheetH"><div class="am-handle"></div>' +
-      '<h2 class="am-h2" id="amSheetH">拆開這個帳號？</h2><div style="margin-top:12px">' + row(it) + '</div>' +
-      '<p class="am-body" style="margin-top:8px">拆開後，用它登入就看不到這裡的紀錄和預約。拆開後，這個登入在商城／預約／課程也會先鎖住，等老師處理</p>' +   /* 2026-10-29 SSO 規格 §14；DS SSO-介面字-1028 A12：定稿句接在原說明句之後 */
-      (it.pair ? '<div class="am-check" role="checkbox" tabindex="0" aria-checked="true" id="amPair"><i class="ph-fill ph-check-square on"></i><span>同時拆開 ' + esc((it.email_masked || '這個 Gmail')) + '</span></div>' : '') +
+      '<h2 class="am-h2" id="amSheetH">取消連結這個帳號？</h2><div style="margin-top:12px">' + row(it) + '</div>' +
+      '<p class="am-body" style="margin-top:8px">取消連結後，用它登入就看不到這裡的紀錄和預約，這個登入在商城／預約／課程也會先鎖住，等老師處理</p>' +   /* 2026-10-29 SSO 規格 §14；DS SSO-介面字-1028 A12：定稿句接在原說明句之後 */
+      (it.pair ? '<div class="am-check" role="checkbox" tabindex="0" aria-checked="true" id="amPair"><i class="ph-fill ph-check-square on"></i><span>同時取消連結 ' + esc((it.email_masked || '這個 Gmail')) + '</span></div>' : '') +
       '<div id="amRemain"></div><p class="am-err" id="amErr" hidden></p>' +
-      '<p class="am-pending" id="amPending" hidden>上一次拆開還在等老師處理，處理完才能再拆</p>' +   /* DS A7：split_pending＝按鈕不能按＋上方一句（不放錯誤列） */
-      '<div class="am-actions"><button type="button" class="zf-btn primary lg" id="amDo">拆開</button><button type="button" class="zf-btn secondary lg" id="amCancel">取消</button></div></div>';
+      '<p class="am-pending" id="amPending" hidden>上一次取消連結還在等老師處理，處理完才能再取消</p>' +   /* DS A7：split_pending＝按鈕不能按＋上方一句（不放錯誤列） */
+      '<div class="am-actions"><button type="button" class="zf-btn primary lg" id="amDo">取消連結</button><button type="button" class="zf-btn secondary lg" id="amCancel">先不要</button></div></div>';
     document.body.appendChild(bg);
     function close() { bg.remove(); }
     bg.addEventListener('click', function (e) { if (e.target === bg) close(); });
@@ -132,7 +132,7 @@
       api('/link/unlink', { items: ids(), dry_run: true }, a.headers).then(function (d) {
         var box = document.getElementById('amRemain'); if (!box) return;
         var r = (d && d.remaining) || [];
-        box.innerHTML = r.length ? '<div class="am-remain"><div class="am-remain-h">拆完之後，你目前的登入還會因為下面這些連著：</div>' + r.map(function (x) { return row(x); }).join('') + '</div>' : '';
+        box.innerHTML = r.length ? '<div class="am-remain"><div class="am-remain-h">取消之後，你目前的登入還會因為下面這些連著：</div>' + r.map(function (x) { return row(x); }).join('') + '</div>' : '';
       });
     }
     var pc = document.getElementById('amPair');
@@ -153,7 +153,7 @@
         if (d && d.error === 'split_pending') { document.getElementById('amErr').hidden = true; document.getElementById('amPending').hidden = false; btn.disabled = true; return; }
         if (!d || !d.success) { btn.disabled = false; var er = document.getElementById('amErr'); er.textContent = (d && d.message) || '現在連不上，請再試一次'; er.hidden = false; return; }
         close();
-        note('check-circle', d.fully_unlinked ? '已拆開' : '已拆開這一項');
+        note('check-circle', d.fully_unlinked ? '已取消連結' : '已取消這一項的連結');
         api('/link/status', undefined, a.headers).then(function (s) { if (s && s.success) render(s, a); });
       }, function () { btn.disabled = false; });
     };
@@ -241,7 +241,7 @@
      /link/self-preview（mode self_gmail）列出要連在一起的登入 → 按〔加進同一個帳號〕→ /link/self-commit → done()。
      預覽或送出回 split_pending：按鈕不能按＋上方一句；wp_conflict：上方 Notice error＋〔聯絡老師〕、按鈕不能按（DS A6／A7）。 */
   var OA_URL = 'https://lin.ee/tQHsgWB';
-  var MSG_SPLIT_MERGE = '上一次拆開還在等老師處理，處理完才能合併';
+  var MSG_SPLIT_MERGE = '上一次取消連結還在等老師處理，處理完才能合併';
   var MSG_WP_CONFLICT = '這兩個登入各自已經有商城／預約的帳號，請先聯絡老師處理，再合併';
   var LMARK = '<img src="/assets/line-btn-base.png" alt="" width="20" height="20" style="flex:none;display:block;border-radius:5px">';
   function g20() { return G.replace('width="18" height="18"', 'width="20" height="20"'); }
