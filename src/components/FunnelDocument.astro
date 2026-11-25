@@ -1686,7 +1686,7 @@ function viewResult(){
   /* 姓名學：等真分析回來才現身（PH_NAME 只是示意稿，直接亮會把別人名字掛在用戶頭上） */
   h+='<div id="nameSection"'+(R.name?'':' style="display:none"')+'>'+block("姓名學分析","",'<div id="nameMount">'+(R.name?nameCard(STATE.paid||R.purchased):'')+'</div>')+'</div>';
   h+=block("你的分靈體側寫","",spiritCard(paid));
-  h+='<div class="banner tall"><div class="bimg" style="background-image:url(/assets/talk-space-banner.jpg),linear-gradient(135deg,var(--clay-200),var(--rose-100))"></div><div class="cap"><span>要不要改變，你決定。</span></div></div>';
+  h+='<div class="banner tall"><div class="bimg" style="background-image:url(/assets/talk-space-banner.webp),linear-gradient(135deg,var(--clay-200),var(--rose-100))"></div><div class="cap"><span>要不要改變，你決定。</span></div></div>';
   /* 2026-09-24 收版面（Jeffery 拍板）：免費頁不再顯示五張牌、籤詩與神數，兩者只活在解讀文字裡；付費報告照舊 */
   /* 2026-09-24 分流（Jeffery 拍板）：LLM 判斷這件事該先讓老師看 → 預約排前面，NT$360 仍在下面照常顯示 */
   h+=teacherFirstBlock();
@@ -2251,7 +2251,7 @@ function fmtWhen(iso){try{var d=new Date(iso);if(isNaN(d.getTime()))return iso;r
 /* ===== 完整報告模式：站台 Nav/Footer（DS report-page；只在 log_id 回訪時取代 funnel header）===== */
 function siteHeader(){
   return '<nav class="zf-nav"><div class="zf-nav-row">'+
-    '<a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福"></a>'+
+    '<a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo-nav.webp" width="162" height="162" alt="找風問幸福"></a>'+
     '<div class="zf-nav-links">'+
       '<a href="/">首頁</a><a href="/divination">問事</a><a href="/blog">案例</a><a href="/teachers/">老師介紹</a><a href="/course">通靈課程</a><a href="/shop">法器選物</a>'+
       '<a href="/divination" class="zf-btn ghost sm">占卜</a><a href="/booking" class="zf-btn primary sm" data-wc-open>預約老師</a>'+
@@ -2271,7 +2271,7 @@ function siteFooter(legal){
   /* legal：落地頁（/home-gua、/love）在版權列加「使用條款・隱私權政策」（2026-10-10 Jeffery） */
   return '<footer class="zf-footer"><div class="zf-footer-in">'+
     '<div class="zf-footer-top">'+
-      '<div class="zf-footer-brand"><a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo.png" alt="找風問幸福"></a><p>選擇比努力更重要，命理是對自己的溫柔。</p></div>'+
+      '<div class="zf-footer-brand"><a href="/" aria-label="找風問幸福 · 回首頁" class="zf-logo"><img src="/assets/logo-nav.webp" width="162" height="162" alt="找風問幸福"></a><p>選擇比努力更重要，命理是對自己的溫柔。</p></div>'+
       '<div class="zf-footer-cols">'+
         '<div class="zf-fcol"><div class="zf-fh">命理項目</div><a href="/divination">易經</a><a href="/divination">塔羅</a><a href="/ziwei">紫微</a><a href="/spirit">分靈體</a></div>'+
         '<div class="zf-fcol"><div class="zf-fh">探索</div><a href="/blog">案例</a><a href="/services">預約項目</a><a href="/teachers/">老師介紹</a><a href="/shop">法器選物</a><a href="/course">通靈課程</a></div>'+
