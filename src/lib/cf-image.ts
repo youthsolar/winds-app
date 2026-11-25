@@ -11,5 +11,5 @@ export function cfImg(url: string | undefined | null, width: number): string {
 /** 放在 <img onerror> 的字串：縮圖失敗就換回原圖（只換一次）。 */
 export function cfImgFallback(url: string | undefined | null): string | undefined {
   if (!url || !OWN.test(url)) return undefined;
-  return `this.onerror=null;this.src=${JSON.stringify(url).replace(/"/g, "'")}`;
+  return `this.onerror=null;this.src=${JSON.stringify(url.replace(/'/g, '%27')).replace(/"/g, "'")}`;
 }

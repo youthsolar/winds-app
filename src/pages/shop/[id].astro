@@ -80,7 +80,7 @@ import { cfImg, cfImgFallback } from '../../lib/cf-image';   // 2026-11-25 商�
         <figure class="lp-hero-img">
           <img id="heroImg" src={cfImg(images[0], 1080)} onerror={cfImgFallback(images[0])} alt={name} width="640" height="640" loading="eager" />
           {images.length > 1 && (
-            <div class="lp-thumbs">{images.map((u, i) => <button type="button" data-thumb={cfImg(u, 1080)} class={i === 0 ? 'on' : ''}><img src={cfImg(u, 200)} onerror={cfImgFallback(u)} alt="" loading="lazy" /></button>)}</div>
+            <div class="lp-thumbs">{images.map((u, i) => <button type="button" data-thumb={cfImg(u, 1080)} data-orig={u} class={i === 0 ? 'on' : ''}><img src={cfImg(u, 200)} onerror={cfImgFallback(u)} alt="" loading="lazy" /></button>)}</div>
           )}
         </figure>
         <div class="lp-hero-text">
@@ -226,7 +226,7 @@ import { cfImg, cfImgFallback } from '../../lib/cf-image';   // 2026-11-25 商�
     });
     // 縮圖換大圖：兩種結帳模式都要能用（原本放在自家表單那段，Woo 模式沒有 orderForm 就提早結束，點縮圖沒反應——2026-10-24 Jeffery 手機抓到）
     document.querySelectorAll('[data-thumb]').forEach(function (t) {
-      t.addEventListener('click', function () { document.getElementById('heroImg').src = t.dataset.thumb; document.querySelectorAll('[data-thumb]').forEach(function (x) { x.classList.toggle('on', x === t); }); });
+      t.addEventListener('click', function () { var h = document.getElementById('heroImg'); h.onerror = function () { h.onerror = null; h.src = t.dataset.orig; }; h.src = t.dataset.thumb;   /* 2026-11-25：縮圖失敗退回這張的原圖，不是第一張 */ document.querySelectorAll('[data-thumb]').forEach(function (x) { x.classList.toggle('on', x === t); }); });
     });
     (function () {
       var wf = document.getElementById('wooForm'); if (!wf) return;
