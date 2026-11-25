@@ -190,8 +190,6 @@ export default defineConfig({
         '/divination/', '/spirit/', '/teacher-ziwei/',
         // 內部 CRM（2026-09-03），密碼閘＋noindex，絕不進 sitemap
         '/crm/',
-        // 2026-10-01（廣告前全站掃描）：老師預約後台（內部、密碼閘＋noindex）原本漏排，被公開列在 sitemap 上
-        '/teacher-booking/',
         // 元辰宮招財商品落地頁（noindex）；六位老師預約頁 2026-10-15 起開放收錄
         '/lp/yuanchen-wealth/',
         // 訂單狀態頁（2026-09-28）：個人訂單查詢，noindex
