@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 // 入口卡 → winds-app 真路由。我的訂單：shop.winds.tw 9/3 起已 301，9/30 先連站內商店；WP 商城上線後換成訂單查詢頁。
 const entries: { icon: string; title: string; line: string; href: string; ext?: boolean; wide?: boolean }[] = [
-  { icon: 'cards',          title: '占卜紀錄', line: '回看你問過的事與當時的牌。', href: '/history' },
+  { icon: 'cards',          title: '占卜紀錄', line: '回看你問過的事情。', href: '/history' },
   { icon: 'calendar-heart', title: '預約', line: '和老師約好的時間都在這。',   href: '/bookings' },
   // 2026-11-25 選單重整：拿掉「我的」、購買紀錄改「訂單」（頁面標題已是會員中心）
   // 2026-11-25 Jeffery 拍板「會員中心整合」：加我的課程；我的訂單改名我的購買紀錄，連商城訂單（課程也在商城結帳）
@@ -44,9 +44,25 @@ const entries: { icon: string; title: string; line: string; href: string; ext?: 
         <!-- DS SSO-介面字-1028 A11：〔登出〕維持次鈕；旁邊文字連結「登出商城、預約、課程」→ WP 登出頁（手機換到下一行置左） -->
         <div class="ac-out">
           <button id="acLogout" class="ac-logout" type="button"><i class="ph-thin ph-sign-out"></i>登出</button>
-          <span class="ac-wpout"><a id="acWpOut" class="zf-text-link sm muted" href="https://wp.winds.tw/winds-sso/logout" referrerpolicy="strict-origin-when-cross-origin">登出商城、預約、課程</a></span>
+          <span class="ac-wpout" hidden><a id="acWpOut" class="zf-text-link sm muted" href="https://wp.winds.tw/winds-sso/logout" referrerpolicy="strict-origin-when-cross-origin">登出商城、預約、課程</a></span>
         </div>
       </div>
+    </div>
+
+    <!-- 我的內容入口（2026-11-25 Jeffery 拍板：常用入口移到個人卡正下方，老師工作區、已連結的帳號放後面） -->
+    <div class="ac-entries">
+      {entries.map((e) => (
+        <a href={e.href} class={e.wide ? "ac-entry-link ac-wide" : "ac-entry-link"} target={e.ext ? '_blank' : undefined} rel={e.ext ? 'noopener' : undefined}>
+          <div class="ac-card ac-entry">
+            <span class="ac-entry-icon"><i class={`ph-thin ph-${e.icon}`}></i></span>
+            <div class="ac-entry-body">
+              <div class="ac-entry-title">{e.title}</div>
+              <div class="ac-entry-line">{e.line}</div>
+            </div>
+            <i class="ph ph-arrow-right ac-entry-arrow"></i>
+          </div>
+        </a>
+      ))}
     </div>
 
     <!-- DS teacher-entry-1031：只有綁定老師看得到；名稱不綁版本，換 Amelia 後改連結就好 -->
@@ -67,7 +83,7 @@ const entries: { icon: string; title: string; line: string; href: string; ext?: 
     <!-- 已連結的帳號（DS account-merge v1 ①，2026-10-17）：連在一起的帳號，占卜紀錄和預約合在一起看 -->
     <div class="ac-card ac-linked" id="amCard" hidden>
       <h2 class="am-h2">已連結的帳號</h2>
-      <p class="am-body">連在一起的帳號，占卜紀錄和預約會合在一起看。</p>
+      <p class="am-body">連起來的帳號，紀錄會放在一起。</p>
       <div class="am-rows" id="amRows"></div>
       <p class="am-solo" id="amSolo" hidden>還沒連其他帳號</p>
       <div class="am-add" id="amAdd" hidden></div>
@@ -76,21 +92,6 @@ const entries: { icon: string; title: string; line: string; href: string; ext?: 
     <!-- 加入官方 LINE 提示（只給確定不是好友的 LINE 登入者） -->
     <div class="ac-friend" id="acFriend" hidden></div>
 
-    <!-- 我的內容入口 -->
-    <div class="ac-entries">
-      {entries.map((e) => (
-        <a href={e.href} class={e.wide ? "ac-entry-link ac-wide" : "ac-entry-link"} target={e.ext ? '_blank' : undefined} rel={e.ext ? 'noopener' : undefined}>
-          <div class="ac-card ac-entry">
-            <span class="ac-entry-icon"><i class={`ph-thin ph-${e.icon}`}></i></span>
-            <div class="ac-entry-body">
-              <div class="ac-entry-title">{e.title}</div>
-              <div class="ac-entry-line">{e.line}</div>
-            </div>
-            <i class="ph ph-arrow-right ac-entry-arrow"></i>
-          </div>
-        </a>
-      ))}
-    </div>
   </main>
 
   <style>
@@ -228,7 +229,7 @@ const entries: { icon: string; title: string; line: string; href: string; ext?: 
     }
   </style>
   <script is:inline src="/assets/line-login.js"></script>
-  <script is:inline src="/assets/account-link.js"></script>
+  <script is:inline src="/assets/account-link.js?v=1125"></script>
   <script is:inline>
     /* 老師工作區入口：用登入身分問一次預約後台，認得才顯示（客人回 401，整張卡不出現） */
     (async function () {
@@ -310,8 +311,8 @@ const entries: { icon: string; title: string; line: string; href: string; ext?: 
           kill.forEach(function (k) { localStorage.removeItem(k); });
         } catch (e) {}
         try { var sk = []; for (var j = 0; j < sessionStorage.length; j++) { var s = sessionStorage.key(j); if (s && /^(shop-order-draft-|shop-order-owner-|winds-req-|winds_pending_|winds_bc_draft|winds_spirit_draft_)/.test(s)) sk.push(s); } sk.forEach(function (s) { sessionStorage.removeItem(s); }); } catch (er) {}   // 2026-11-04 雲端審查：商品頁、預約確認頁的草稿（姓名、手機、生日、門市）在這個分頁的 sessionStorage，登出也要清，不然下一位同一分頁打開會被填回
-        if (hadWp) { document.getElementById('acWpOut').click(); return; }
-        location.href = '/';
+        /* 2026-11-25 Jeffery：上面一顆〔登出〕就要全部登出 → 拿掉「登出商城、預約、課程」那行，一律繞 WP 登出頁（沒登入 WP 也會 303 回首頁） */
+        document.getElementById('acWpOut').click();
       });
     })();
   </script>

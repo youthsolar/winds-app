@@ -42,7 +42,7 @@
   function label(it) {
     if (it.kind === 'line') return { name: it.name || 'LINE 帳號', sub: 'LINE 帳號' };
     if (it.kind === 'google') return { name: it.name || 'Google 帳號', sub: 'Google 帳號' + (it.email_masked ? ' · ' + it.email_masked : '') };
-    if (it.kind === 'gmail') return { name: it.email_masked || 'Gmail 信箱', sub: 'Gmail 信箱 · 驗證碼確認過' };
+    if (it.kind === 'gmail') return { name: it.email_masked || 'Gmail 信箱', sub: '驗證碼已確認' };
     return { name: '舊帳號', sub: '由管理員合併' };
   }
   function row(it, right) {
