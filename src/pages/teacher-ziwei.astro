@@ -31,7 +31,8 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
         <p class="auth-desc">此為老師專用排盤工具，需要密碼才能使用。<br/>密碼由負責人提供，請勿外流。</p>
         <form id="pwd-form" style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
           <!-- 2026-09-30（廣告前全站掃描）：inline 15px 小於 16px，iPhone Safari 點進去會整頁自動放大、進表單後不縮回 → 改 16px（同頁 .ziwei-form input） -->
-          <input type="password" id="pwd-input" autocomplete="off" placeholder="老師密碼" style="padding:11px 14px;border:1px solid var(--border-soft);border-radius:var(--radius-md);font-family:var(--font-serif);font-size:16px;text-align:center" />
+          <input type="text" name="username" autocomplete="username" value="找風 老師排盤" hidden />   <!-- 2026-11-25 Jeffery：讓瀏覽器記密碼；帳號名分開存，才不會跟 CRM 的密碼互蓋 -->
+          <input type="password" id="pwd-input" name="password" autocomplete="current-password" placeholder="老師密碼" style="padding:11px 14px;border:1px solid var(--border-soft);border-radius:var(--radius-md);font-family:var(--font-serif);font-size:16px;text-align:center" />
           <button type="submit" class="submit-btn" style="margin:0">進入排盤工具</button>
           <p id="pwd-error" class="auth-note" style="color:var(--critical);min-height:1.2em" hidden>密碼錯誤，請再試一次</p>
         </form>

@@ -20,7 +20,8 @@ const pageTitle = '客戶名單｜找風問幸福（內部）';
         <h2>請輸入 CRM 密碼</h2>
         <p class="auth-desc">此頁含客戶個資，只有負責人可進，密碼與老師排盤工具不同。</p>
         <form id="pwd-form" style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
-          <input class="zf-input" type="password" id="pwd-input" autocomplete="off" placeholder="CRM 密碼" style="text-align:center" />
+          <input type="text" name="username" autocomplete="username" value="找風 CRM" hidden />   <!-- 2026-11-25 Jeffery：讓瀏覽器記密碼；帳號名分開存，才不會跟老師排盤工具的密碼互蓋 -->
+          <input class="zf-input" type="password" id="pwd-input" name="password" autocomplete="current-password" placeholder="CRM 密碼" style="text-align:center" />
           <button type="submit" class="zf-btn primary md full">進入名單</button>
           <p id="pwd-error" class="auth-note" style="color:var(--critical);min-height:1.2em" hidden>密碼錯誤，請再試一次</p>
         </form>
