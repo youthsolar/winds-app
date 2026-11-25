@@ -1,4 +1,4 @@
-/* 自動產生：scripts/icons/subset.py（只留全站用到的 69 個圖示；完整版在 scripts/icons/full/）。別手改。 */
+/* 自動產生：scripts/icons/subset.py（只留全站用到的 119 個圖示；完整版在 scripts/icons/full/）。別手改。 */
 /* Phosphor Icons 2.1.1（regular）自託管：原本從 unpkg 載，2026-10-11 搬回本站（Astra 建議 #5，少一個外站連線、跟著 /_astro 長快取）。只留 woff2。 */
 @font-face {
   font-family: "Phosphor";
@@ -36,6 +36,9 @@
 .ph.ph-arrow-clockwise:before {
   content: "\e036";
 }
+.ph.ph-arrow-counter-clockwise:before {
+  content: "\e038";
+}
 .ph.ph-arrow-down:before {
   content: "\e03e";
 }
@@ -51,6 +54,9 @@
 .ph.ph-arrows-clockwise:before {
   content: "\e094";
 }
+.ph.ph-article:before {
+  content: "\e0a8";
+}
 .ph.ph-at:before {
   content: "\e0ac";
 }
@@ -59,6 +65,9 @@
 }
 .ph.ph-bell-simple:before {
   content: "\e0d0";
+}
+.ph.ph-book:before {
+  content: "\e0e2";
 }
 .ph.ph-book-open-text:before {
   content: "\e8f2";
@@ -90,8 +99,17 @@
 .ph.ph-caret-right:before {
   content: "\e13a";
 }
+.ph.ph-caret-up:before {
+  content: "\e13c";
+}
 .ph.ph-chalkboard-teacher:before {
   content: "\e600";
+}
+.ph.ph-chat:before {
+  content: "\e15c";
+}
+.ph.ph-chat-circle:before {
+  content: "\e168";
 }
 .ph.ph-chat-circle-dots:before {
   content: "\e16c";
@@ -108,6 +126,9 @@
 .ph.ph-circle-half:before {
   content: "\e18c";
 }
+.ph.ph-circle-notch:before {
+  content: "\eb44";
+}
 .ph.ph-clock:before {
   content: "\e19a";
 }
@@ -117,8 +138,26 @@
 .ph.ph-cloud-warning:before {
   content: "\ea98";
 }
+.ph.ph-code:before {
+  content: "\e1bc";
+}
+.ph.ph-cookie:before {
+  content: "\e6ca";
+}
 .ph.ph-copy:before {
   content: "\e1ca";
+}
+.ph.ph-device-mobile:before {
+  content: "\e1e0";
+}
+.ph.ph-disc:before {
+  content: "\e564";
+}
+.ph.ph-dot:before {
+  content: "\ecde";
+}
+.ph.ph-download-simple:before {
+  content: "\e20c";
 }
 .ph.ph-drop:before {
   content: "\e210";
@@ -126,14 +165,32 @@
 .ph.ph-ear:before {
   content: "\e70c";
 }
+.ph.ph-empty:before {
+  content: "\edbc";
+}
 .ph.ph-envelope-simple:before {
   content: "\e218";
+}
+.ph.ph-eye:before {
+  content: "\e220";
+}
+.ph.ph-facebook-logo:before {
+  content: "\e226";
 }
 .ph.ph-feather:before {
   content: "\e9c0";
 }
+.ph.ph-fire:before {
+  content: "\e242";
+}
 .ph.ph-flower-lotus:before {
   content: "\e6cc";
+}
+.ph.ph-function:before {
+  content: "\ebe4";
+}
+.ph.ph-git-merge:before {
+  content: "\e280";
 }
 .ph.ph-google-logo:before {
   content: "\e292";
@@ -147,11 +204,32 @@
 .ph.ph-heart:before {
   content: "\e2a8";
 }
+.ph.ph-heart-straight:before {
+  content: "\e2aa";
+}
 .ph.ph-hourglass-medium:before {
   content: "\e2b8";
 }
+.ph.ph-house-simple:before {
+  content: "\e2c6";
+}
+.ph.ph-image:before {
+  content: "\e2ca";
+}
 .ph.ph-info:before {
   content: "\e2ce";
+}
+.ph.ph-instagram-logo:before {
+  content: "\e2d0";
+}
+.ph.ph-key:before {
+  content: "\e2d6";
+}
+.ph.ph-layout:before {
+  content: "\e6d6";
+}
+.ph.ph-leaf:before {
+  content: "\e2da";
 }
 .ph.ph-link-break:before {
   content: "\e2e4";
@@ -165,8 +243,17 @@
 .ph.ph-lock-key:before {
   content: "\e2fe";
 }
+.ph.ph-lock-simple:before {
+  content: "\e308";
+}
+.ph.ph-map-pin:before {
+  content: "\e316";
+}
 .ph.ph-minus:before {
   content: "\e32a";
+}
+.ph.ph-money:before {
+  content: "\e588";
 }
 .ph.ph-moon:before {
   content: "\e330";
@@ -174,11 +261,32 @@
 .ph.ph-moon-stars:before {
   content: "\e58e";
 }
+.ph.ph-note:before {
+  content: "\e348";
+}
 .ph.ph-paper-plane-right:before {
   content: "\e396";
 }
+.ph.ph-paper-plane-tilt:before {
+  content: "\e398";
+}
+.ph.ph-password:before {
+  content: "\e752";
+}
+.ph.ph-path:before {
+  content: "\e39c";
+}
+.ph.ph-pause:before {
+  content: "\e39e";
+}
+.ph.ph-pencil-simple:before {
+  content: "\e3b4";
+}
 .ph.ph-phone:before {
   content: "\e3b8";
+}
+.ph.ph-pill:before {
+  content: "\e700";
 }
 .ph.ph-play-circle:before {
   content: "\e3d2";
@@ -192,11 +300,26 @@
 .ph.ph-quotes:before {
   content: "\e660";
 }
+.ph.ph-radio:before {
+  content: "\e77e";
+}
 .ph.ph-receipt:before {
   content: "\e3ec";
 }
+.ph.ph-resize:before {
+  content: "\ed6e";
+}
 .ph.ph-scroll:before {
   content: "\eb7a";
+}
+.ph.ph-seal:before {
+  content: "\e604";
+}
+.ph.ph-share-network:before {
+  content: "\e408";
+}
+.ph.ph-shuffle:before {
+  content: "\e422";
 }
 .ph.ph-sign-in:before {
   content: "\e428";
@@ -206,6 +329,9 @@
 }
 .ph.ph-sparkle:before {
   content: "\e6a2";
+}
+.ph.ph-spiral:before {
+  content: "\e9fa";
 }
 .ph.ph-square:before {
   content: "\e45e";
@@ -219,14 +345,32 @@
 .ph.ph-sun-horizon:before {
   content: "\e5b6";
 }
+.ph.ph-tag:before {
+  content: "\e478";
+}
+.ph.ph-target:before {
+  content: "\e47c";
+}
+.ph.ph-threads-logo:before {
+  content: "\ed9e";
+}
 .ph.ph-truck:before {
   content: "\e4b4";
+}
+.ph.ph-user:before {
+  content: "\e4c2";
 }
 .ph.ph-user-circle:before {
   content: "\e4c4";
 }
+.ph.ph-user-switch:before {
+  content: "\e756";
+}
 .ph.ph-users-three:before {
   content: "\e68e";
+}
+.ph.ph-warning:before {
+  content: "\e4e0";
 }
 .ph.ph-warning-circle:before {
   content: "\e4e2";
@@ -237,6 +381,12 @@
 .ph.ph-x:before {
   content: "\e4f6";
 }
+.ph.ph-x-circle:before {
+  content: "\e4f8";
+}
 .ph.ph-yin-yang:before {
   content: "\e92a";
+}
+.ph.ph-youtube-logo:before {
+  content: "\e4fc";
 }

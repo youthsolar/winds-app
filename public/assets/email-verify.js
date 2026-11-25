@@ -239,7 +239,7 @@
         if (inp.value !== d) inp.value = d;
         if (d.length === 6 && !go.disabled) verify();   // 貼上整串或填滿 6 碼就直接送
       });
-      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.isComposing) verify(); });   /* 2026-11-25：注音輸入法按 Enter 是選字，不是送出 */
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) verify(); });   /* 2026-11-25：注音輸入法按 Enter 是選字，不是送出；Safari 選字那下 isComposing 是 false、keyCode 229 */
       go.addEventListener('click', verify);
       re.addEventListener('click', function () { if (!re.disabled) send(); });
       x.addEventListener('click', function () { finish(null); });

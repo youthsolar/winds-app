@@ -1,4 +1,4 @@
-/* 自動產生：scripts/icons/subset.py（只留全站用到的 69 個圖示；完整版在 scripts/icons/full/）。別手改。 */
+/* 自動產生：scripts/icons/subset.py（只留全站用到的 119 個圖示；完整版在 scripts/icons/full/）。別手改。 */
 /* Phosphor Icons 2.1.1（thin）自託管：原本從 unpkg 載，2026-10-11 搬回本站（Astra 建議 #5，少一個外站連線、跟著 /_astro 長快取）。只留 woff2。 */
 @font-face {
   font-family: "Phosphor-Thin";
@@ -36,6 +36,9 @@
 .ph-thin.ph-arrow-clockwise:before {
   content: "\e036";
 }
+.ph-thin.ph-arrow-counter-clockwise:before {
+  content: "\e038";
+}
 .ph-thin.ph-arrow-down:before {
   content: "\e03e";
 }
@@ -51,6 +54,9 @@
 .ph-thin.ph-arrows-clockwise:before {
   content: "\e094";
 }
+.ph-thin.ph-article:before {
+  content: "\e0a8";
+}
 .ph-thin.ph-at:before {
   content: "\e0ac";
 }
@@ -59,6 +65,9 @@
 }
 .ph-thin.ph-bell-simple:before {
   content: "\e0d0";
+}
+.ph-thin.ph-book:before {
+  content: "\e0e2";
 }
 .ph-thin.ph-book-open-text:before {
   content: "\e8f2";
@@ -90,8 +99,17 @@
 .ph-thin.ph-caret-right:before {
   content: "\e13a";
 }
+.ph-thin.ph-caret-up:before {
+  content: "\e13c";
+}
 .ph-thin.ph-chalkboard-teacher:before {
   content: "\e600";
+}
+.ph-thin.ph-chat:before {
+  content: "\e15c";
+}
+.ph-thin.ph-chat-circle:before {
+  content: "\e168";
 }
 .ph-thin.ph-chat-circle-dots:before {
   content: "\e16c";
@@ -108,6 +126,9 @@
 .ph-thin.ph-circle-half:before {
   content: "\e18c";
 }
+.ph-thin.ph-circle-notch:before {
+  content: "\eb44";
+}
 .ph-thin.ph-clock:before {
   content: "\e19a";
 }
@@ -117,8 +138,26 @@
 .ph-thin.ph-cloud-warning:before {
   content: "\ea98";
 }
+.ph-thin.ph-code:before {
+  content: "\e1bc";
+}
+.ph-thin.ph-cookie:before {
+  content: "\e6ca";
+}
 .ph-thin.ph-copy:before {
   content: "\e1ca";
+}
+.ph-thin.ph-device-mobile:before {
+  content: "\e1e0";
+}
+.ph-thin.ph-disc:before {
+  content: "\e564";
+}
+.ph-thin.ph-dot:before {
+  content: "\ecde";
+}
+.ph-thin.ph-download-simple:before {
+  content: "\e20c";
 }
 .ph-thin.ph-drop:before {
   content: "\e210";
@@ -126,14 +165,32 @@
 .ph-thin.ph-ear:before {
   content: "\e70c";
 }
+.ph-thin.ph-empty:before {
+  content: "\edbc";
+}
 .ph-thin.ph-envelope-simple:before {
   content: "\e218";
+}
+.ph-thin.ph-eye:before {
+  content: "\e220";
+}
+.ph-thin.ph-facebook-logo:before {
+  content: "\e226";
 }
 .ph-thin.ph-feather:before {
   content: "\e9c0";
 }
+.ph-thin.ph-fire:before {
+  content: "\e242";
+}
 .ph-thin.ph-flower-lotus:before {
   content: "\e6cc";
+}
+.ph-thin.ph-function:before {
+  content: "\ebe4";
+}
+.ph-thin.ph-git-merge:before {
+  content: "\e280";
 }
 .ph-thin.ph-google-logo:before {
   content: "\e292";
@@ -147,11 +204,32 @@
 .ph-thin.ph-heart:before {
   content: "\e2a8";
 }
+.ph-thin.ph-heart-straight:before {
+  content: "\e2aa";
+}
 .ph-thin.ph-hourglass-medium:before {
   content: "\e2b8";
 }
+.ph-thin.ph-house-simple:before {
+  content: "\e2c6";
+}
+.ph-thin.ph-image:before {
+  content: "\e2ca";
+}
 .ph-thin.ph-info:before {
   content: "\e2ce";
+}
+.ph-thin.ph-instagram-logo:before {
+  content: "\e2d0";
+}
+.ph-thin.ph-key:before {
+  content: "\e2d6";
+}
+.ph-thin.ph-layout:before {
+  content: "\e6d6";
+}
+.ph-thin.ph-leaf:before {
+  content: "\e2da";
 }
 .ph-thin.ph-link-break:before {
   content: "\e2e4";
@@ -165,8 +243,17 @@
 .ph-thin.ph-lock-key:before {
   content: "\e2fe";
 }
+.ph-thin.ph-lock-simple:before {
+  content: "\e308";
+}
+.ph-thin.ph-map-pin:before {
+  content: "\e316";
+}
 .ph-thin.ph-minus:before {
   content: "\e32a";
+}
+.ph-thin.ph-money:before {
+  content: "\e588";
 }
 .ph-thin.ph-moon:before {
   content: "\e330";
@@ -174,11 +261,32 @@
 .ph-thin.ph-moon-stars:before {
   content: "\e58e";
 }
+.ph-thin.ph-note:before {
+  content: "\e348";
+}
 .ph-thin.ph-paper-plane-right:before {
   content: "\e396";
 }
+.ph-thin.ph-paper-plane-tilt:before {
+  content: "\e398";
+}
+.ph-thin.ph-password:before {
+  content: "\e752";
+}
+.ph-thin.ph-path:before {
+  content: "\e39c";
+}
+.ph-thin.ph-pause:before {
+  content: "\e39e";
+}
+.ph-thin.ph-pencil-simple:before {
+  content: "\e3b4";
+}
 .ph-thin.ph-phone:before {
   content: "\e3b8";
+}
+.ph-thin.ph-pill:before {
+  content: "\e700";
 }
 .ph-thin.ph-play-circle:before {
   content: "\e3d2";
@@ -192,11 +300,26 @@
 .ph-thin.ph-quotes:before {
   content: "\e660";
 }
+.ph-thin.ph-radio:before {
+  content: "\e77e";
+}
 .ph-thin.ph-receipt:before {
   content: "\e3ec";
 }
+.ph-thin.ph-resize:before {
+  content: "\ed6e";
+}
 .ph-thin.ph-scroll:before {
   content: "\eb7a";
+}
+.ph-thin.ph-seal:before {
+  content: "\e604";
+}
+.ph-thin.ph-share-network:before {
+  content: "\e408";
+}
+.ph-thin.ph-shuffle:before {
+  content: "\e422";
 }
 .ph-thin.ph-sign-in:before {
   content: "\e428";
@@ -206,6 +329,9 @@
 }
 .ph-thin.ph-sparkle:before {
   content: "\e6a2";
+}
+.ph-thin.ph-spiral:before {
+  content: "\e9fa";
 }
 .ph-thin.ph-square:before {
   content: "\e45e";
@@ -219,14 +345,32 @@
 .ph-thin.ph-sun-horizon:before {
   content: "\e5b6";
 }
+.ph-thin.ph-tag:before {
+  content: "\e478";
+}
+.ph-thin.ph-target:before {
+  content: "\e47c";
+}
+.ph-thin.ph-threads-logo:before {
+  content: "\ed9e";
+}
 .ph-thin.ph-truck:before {
   content: "\e4b4";
+}
+.ph-thin.ph-user:before {
+  content: "\e4c2";
 }
 .ph-thin.ph-user-circle:before {
   content: "\e4c4";
 }
+.ph-thin.ph-user-switch:before {
+  content: "\e756";
+}
 .ph-thin.ph-users-three:before {
   content: "\e68e";
+}
+.ph-thin.ph-warning:before {
+  content: "\e4e0";
 }
 .ph-thin.ph-warning-circle:before {
   content: "\e4e2";
@@ -237,6 +381,12 @@
 .ph-thin.ph-x:before {
   content: "\e4f6";
 }
+.ph-thin.ph-x-circle:before {
+  content: "\e4f8";
+}
 .ph-thin.ph-yin-yang:before {
   content: "\e92a";
+}
+.ph-thin.ph-youtube-logo:before {
+  content: "\e4fc";
 }

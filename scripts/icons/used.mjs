@@ -1,6 +1,6 @@
 // 找出全站用到的 Phosphor 圖示名稱（subset.py 與 check.mjs 共用這份規則）。
-// 認得兩種寫法：class 裡直接寫 ph-名稱；或資料裡寫 icon: '名稱' 再拼成 ph-${icon}。
-// 其他拼法（例如 'ph-' + 變數）抓不到，新增時請改成上面兩種之一。
+// 規則（寧多勿漏）：class 裡的 ph-名稱，加上全站任何加引號的字串只要剛好是 Phosphor 圖示名稱就保留
+// （涵蓋 ic("名稱")、三元式、陣列、JSON 的 "icon": "名稱"…）。多收幾個沒用到的字只多幾 KB。
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,13 +21,16 @@ function walk(dir, out) {
   return out;
 }
 
+const FULL_CSS = join(ROOT, 'scripts/icons/full/phosphor-regular.css');
+export const ALL = new Set([...readFileSync(FULL_CSS, 'utf8').matchAll(/\.ph\.ph-([a-z0-9-]+):before/g)].map((m) => m[1]));
+
 export function usedIcons() {
   const names = new Set();
   for (const d of DIRS) {
     for (const f of walk(join(ROOT, d), [])) {
       const s = readFileSync(f, 'utf8');
       for (const m of s.matchAll(/\bph-([a-z0-9]+(?:-[a-z0-9]+)*)/g)) if (!WEIGHTS.has(m[1])) names.add(m[1]);
-      for (const m of s.matchAll(/\bicon\s*:\s*['"]([a-z0-9]+(?:-[a-z0-9]+)*)['"]/g)) names.add(m[1]);
+      for (const m of s.matchAll(/['"`]([a-z0-9]+(?:-[a-z0-9]+)*)['"`]/g)) if (ALL.has(m[1])) names.add(m[1]);
     }
   }
   return names;
