@@ -2,6 +2,8 @@
 // 產兩支 CSS：all.css（全部 swap，跟原本 Google 一樣）、heading-block.css（宋體 500–700 用 block，給登入類頁面，
 // 對應 BaseLayout 的 headingFontBlock）。切片（unicode-range）跟 Google 字型一模一樣，每頁只下載用到的字。
 // public/fonts/ 不進版控，每次建置重產。
+// ⚠️ LINE（ai-divination/liff）、worker 頁面與已寄出的信都寫死 https://winds.tw/fonts/5.3.1/all.css：
+//    package.json 的 @fontsource 鎖死 5.3.1；真的要換版本時，舊的 /fonts/5.3.1/ 要繼續留著（或那幾處一起改），不然它們會退回系統字。
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
