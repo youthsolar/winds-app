@@ -197,7 +197,7 @@
 .zf-notice-x{all:unset;flex:none;cursor:pointer;width:24px;height:24px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-muted)}
 .zf-notice-x i{font-size:14px}
 .zf-notice-x:focus-visible{box-shadow:var(--focus-ring)}
-.zf-notice.success{background:color-mix(in srgb,var(--positive) 11%,var(--surface-card));border-color:color-mix(in srgb,var(--positive) 35%,transparent)}
+.zf-notice.success{background:var(--positive-quiet,#EEF1E7);border-color:color-mix(in srgb,var(--positive) 35%,transparent)}
 .zf-notice.success>i{color:var(--positive)}
 .zf-notice.warning{background:color-mix(in srgb,var(--caution) 13%,var(--surface-card));border-color:color-mix(in srgb,var(--caution) 40%,transparent)}
 .zf-notice.warning>i{color:var(--caution)}

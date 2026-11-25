@@ -53,7 +53,7 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
     --border-thick:  1.5px;
     /* antique gold (sparing) + functional */
     --gold-300:#D8C49A; --gold-400:#C2A878; --gold-500:#A88C5C;
-    --caution:#A88C5C; --positive:#7A8866; --critical:#B5675C;
+    --caution:#A88C5C; --positive:#7A8866; --critical:#B5675C; --positive-quiet:#EEF1E7; /* 1125 Jeffery：綠＝五行木（--el-wood-tx／--el-wood-bg） */
     --tint-gold-hi:#F4ECD9; --tint-critical-soft:#F3E2DE;
     /* 補齊 DS colors.css 回灌層（tints / clay / sage / scrim / frost / 五行；mockup 元件會用，缺了 gradient 會破）*/
     --clay-100:#F4E7D8; --clay-200:#EAD3BC; --sage-200:#D3D8C5; --ink-300:#B8AEA2; --ink-800:#3A322B;
@@ -183,7 +183,8 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
   --ink-500: #B3A593;
   --ink-400: #8E8273;
   --ink-300: #6E6359;
-  --positive: #B4C096;
+  --positive: #A8B58F;  /* 1125：五行木深色 --el-wood-tx */
+  --positive-quiet: #2C322B;  /* 五行木深色 --el-wood-bg */
   --caution:  #D6BE8E;
   --critical: #D89289;
   --clay-100: #3A2F26;  /* DS 無此 token；站內 lp/商品頁當 tint-clay-hi 用 → 暗色跟著翻 */

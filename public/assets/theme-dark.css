@@ -31,7 +31,8 @@
   --ink-500: #B3A593;
   --ink-400: #8E8273;
   --ink-300: #6E6359;
-  --positive: #B4C096;
+  --positive: #A8B58F;  /* 1125：五行木深色 --el-wood-tx */
+  --positive-quiet: #2C322B;  /* 五行木深色 --el-wood-bg */
   --caution:  #D6BE8E;
   --critical: #D89289;
   --tint-clay-hi:   #3A2F26;
