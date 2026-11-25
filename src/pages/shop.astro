@@ -46,7 +46,7 @@ import { cfImg, cfImgFallback } from '../lib/cf-image';   // 2026-11-25 商品�
         <div class="shop-grid">
           {products.map((p, i) => (
             <a class="shop-card" href={`/shop/${p.id}/`}>
-              <div class="shop-card-imgwrap"><div class="pimg"><img src={cfImg(p.image, 640)} onerror={cfImgFallback(p.image)} alt={cleanName(p.name)} loading={i < 2 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : undefined} decoding="async" /></div></div>
+              <div class="shop-card-imgwrap"><div class="pimg"><img src={cfImg(p.image, 640)} onerror={cfImgFallback(p.image)} alt={cleanName(p.name)} loading={i < 3 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : undefined} decoding="async" /></div></div>
               <div class="shop-card-body">
                 <h3 class="shop-card-name">{cleanName(p.name)}</h3>
                 <p class="shop-card-blurb">{blurb(p)}</p>
