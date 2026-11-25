@@ -1,7 +1,7 @@
 /share/:uid    /share/    302
 # 2026-11-25 Jeffery：舊老師預約後台（SB 停付過渡版）收掉，轉到老師工作區（同會員中心入口，走網站登入）
-/teacher-booking    https://wp.winds.tw/winds-sso/start?to=%2Fteacher%2F&v=1119b    302
-/teacher-booking/    https://wp.winds.tw/winds-sso/start?to=%2Fteacher%2F&v=1119b    302
+/teacher-booking    https://wp.winds.tw/winds-sso/start?to=%2Fteacher%2F&v=1125c    302
+/teacher-booking/    https://wp.winds.tw/winds-sso/start?to=%2Fteacher%2F&v=1125c    302
 /ziwei/share/:token    https://api.winds.tw/ziwei-share?token=:token    302
 /blog/reconciliation-ritual-spiritual-case    /blog/blog-344/    301
 /blog/reconciliation-ritual-spiritual-case/    /blog/blog-344/    301

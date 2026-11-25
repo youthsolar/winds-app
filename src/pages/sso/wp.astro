@@ -45,7 +45,7 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
   <script is:inline>
     (function () {
       var API = 'https://api.winds.tw', KEY = 'winds_sso_s', WP = 'https://wp.winds.tw';
-      var START = WP + '/winds-sso/start', CALLBACK = WP + '/winds-sso/callback?v=1119b#c=';   /* ?v=：11/19 換字型與高度，GoDaddy 把 callback 頁快取 31 天，換網址讓手機拿新版 */
+      var START = WP + '/winds-sso/start', CALLBACK = WP + '/winds-sso/callback?v=1125c#c=';   /* ?v=：11/25 小字加深（11/19 換字型與高度），GoDaddy 把 callback 頁快取 31 天，換網址讓手機拿新版 */
       var OA = 'https://lin.ee/tQHsgWB', TTL = 10 * 60 * 1000;
       var card = document.getElementById('swCard');
       var tx = null, actor = null, trace = '', timer = null, code401 = 0;
