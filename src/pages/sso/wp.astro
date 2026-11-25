@@ -22,11 +22,8 @@ Astro.response.headers.set('Referrer-Policy', 'no-referrer');
   <meta name="referrer" content="no-referrer" />
   <title>登入 · 找風問幸福</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   {/* 2026-11-19：登入中繼頁宋體載好才顯示（跟 wp.winds.tw 那幾頁同一組），換頁時「正在幫你登入」不會先用手機字再跳 */}
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&display=block" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="/fonts/5.3.1/serif-block.css" rel="stylesheet" />   <!-- 2026-11-25 自架字型：宋體 block、黑體 swap（同原本 Google 設定） -->
   <style>
     html,body{margin:0;background:var(--surface-page);}
     .sw-wrap{min-height:100vh;min-height:100svh;display:flex;align-items:center;justify-content:center;padding:64px 32px;box-sizing:border-box;background:var(--surface-page);color:var(--text-primary);font-family:var(--font-serif);}

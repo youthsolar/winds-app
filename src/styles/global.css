@@ -15,7 +15,7 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
     --rose-50:#F8EAE5; --rose-100:#F0DAD3; --rose-200:#E3BDB5; --rose-300:#D2A099; --rose-400:#C18C84; --rose-500:#AC7167; --rose-600:#8F574E;
     --clay-300:#DDB48E; --clay-400:#C99A78; --clay-500:#AC7E5C;
     --sage-300:#B7BFA3; --sage-400:#98A484; --sage-500:#7A8866;
-    --ink-900:#2E2823; --ink-700:#4A4038; --ink-500:#6E6359; --ink-400:#948A7E;
+    --ink-900:#2E2823; --ink-700:#4A4038; --ink-500:#6E6359; --ink-400:#746B60;
 
     --paper: #FFFDF8;   /* DS colors.css：lifted card white（2026-09-26 由 #FBF8F3＝頁底色 改正）*/
     --surface: #FFFDF8;
@@ -181,7 +181,7 @@ i[class^="ph"],i[class*=" ph-"]{display:inline-flex;align-items:center;justify-c
   --ink-800: #E2D6C7;
   --ink-700: #D8CCBD;
   --ink-500: #B3A593;
-  --ink-400: #8E8273;
+  --ink-400: #9E9487;
   --ink-300: #6E6359;
   --positive: #A8B58F;  /* 1125：五行木深色 --el-wood-tx */
   --positive-quiet: #2C322B;  /* 五行木深色 --el-wood-bg */
