@@ -27,6 +27,7 @@ const blurb = (p: any) => {
   const m = /<p>(.*?)<\/p>/.exec(p.page_html || '');   // page_html 第一段＝一句話副標
   return m ? m[1].replace(/<[^>]+>/g, '') : String(p.desc || '').replace(/<[^>]+>/g, '').slice(0, 54);
 };
+import { cfImg, cfImgFallback } from '../lib/cf-image';   // 2026-11-25 商品圖經 Cloudflare 縮圖
 ---
 <BaseLayout
   title="法器選物 · 找風問幸福｜開光符令・綁線手環・命書籤詩"
@@ -45,7 +46,7 @@ const blurb = (p: any) => {
         <div class="shop-grid">
           {products.map((p) => (
             <a class="shop-card" href={`/shop/${p.id}/`}>
-              <div class="shop-card-imgwrap"><div class="pimg"><img src={p.image} alt={cleanName(p.name)} loading="lazy" /></div></div>
+              <div class="shop-card-imgwrap"><div class="pimg"><img src={cfImg(p.image, 640)} onerror={cfImgFallback(p.image)} alt={cleanName(p.name)} loading="lazy" decoding="async" /></div></div>
               <div class="shop-card-body">
                 <h3 class="shop-card-name">{cleanName(p.name)}</h3>
                 <p class="shop-card-blurb">{blurb(p)}</p>

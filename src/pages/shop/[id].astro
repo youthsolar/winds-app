@@ -68,6 +68,7 @@ const HOURS = ['子時 23–01', '丑時 01–03', '寅時 03–05', '卯時 05�
 const YEARS = Array.from({ length: 2026 - 1940 + 1 }, (_, i) => 2026 - i);   // 同占卜頁 2026→1940
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+import { cfImg, cfImgFallback } from '../../lib/cf-image';   // 2026-11-25 商品圖經 Cloudflare 縮圖
 ---
 
 <BaseLayout title={title} description={description} ogImage={images[0]} ogType="product" jsonLd={jsonLd}>
@@ -77,9 +78,9 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       <div class="lp-hero-glow"></div>
       <div class="lp-wrap lp-hero-grid">
         <figure class="lp-hero-img">
-          <img id="heroImg" src={images[0]} alt={name} width="640" height="640" loading="eager" />
+          <img id="heroImg" src={cfImg(images[0], 1080)} onerror={cfImgFallback(images[0])} alt={name} width="640" height="640" loading="eager" />
           {images.length > 1 && (
-            <div class="lp-thumbs">{images.map((u, i) => <button type="button" data-thumb={u} class={i === 0 ? 'on' : ''}><img src={u} alt="" loading="lazy" /></button>)}</div>
+            <div class="lp-thumbs">{images.map((u, i) => <button type="button" data-thumb={cfImg(u, 1080)} class={i === 0 ? 'on' : ''}><img src={cfImg(u, 200)} onerror={cfImgFallback(u)} alt="" loading="lazy" /></button>)}</div>
           )}
         </figure>
         <div class="lp-hero-text">

@@ -3,17 +3,20 @@
 // 樣稿：https://claude.ai/artifact/CZieAbo9ggn7NRREHCGsSC
 // 圖比例照 DS 文章封面 3:2；沒圖用 DS 缺圖樣式（surface-sunken 底＋Phosphor thin flower-lotus，跟 DS CoverFallback 同一個圖示，不放字）
 import type { CollectionEntry } from 'astro:content';
+import { cfImg, cfImgFallback } from '../lib/cf-image';
 interface Props { post: CollectionEntry<'blog'>; variant: 'feat' | 'small'; eager?: boolean; }
 const { post, variant, eager = false } = Astro.props;
 const hero = post.data.heroImage;
 // 小卡用 600 寬縮小版（11/22 起 cdn.winds.tw/blog-v2/ 的封面都有對應 -sm.jpg）
 const img = hero && variant === 'small' && hero.includes('cdn.winds.tw/blog-v2/') ? hero.replace(/\.jpg$/, '-sm.jpg') : hero;
+// 2026-11-25：再經 Cloudflare 縮成實際顯示寬度（小卡 640、大卡 1080）＋新格式；縮失敗退回上面這張
+const imgSrc = cfImg(hero, variant === 'small' ? 640 : 1080);
 const fmtDate = (d: Date) => d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'short', day: 'numeric' });
 ---
 <a class={`bpc ${variant}`} href={`/blog/${post.id}/`}>
   <div class="bpc-media">
     {img
-      ? <img src={img} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" width="1536" height="1024" />
+      ? <img src={imgSrc} onerror={cfImgFallback(img)} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" width="1536" height="1024" />
       : <span class="bpc-fallback" aria-hidden="true"><i class="ph-thin ph-flower-lotus"></i></span>}
   </div>
   <div class="bpc-body">
