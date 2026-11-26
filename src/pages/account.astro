@@ -2,14 +2,16 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 // 入口卡 → winds-app 真路由。我的訂單：shop.winds.tw 9/3 起已 301，9/30 先連站內商店；WP 商城上線後換成訂單查詢頁。
-const entries: { icon: string; title: string; line: string; href: string; ext?: boolean; wide?: boolean }[] = [
+const entries: { icon: string; title: string; line: string; href: string; ext?: boolean; wide?: boolean; id?: string }[] = [
   { icon: 'cards',          title: '占卜紀錄', line: '回看你問過的事情。', href: '/history' },
   { icon: 'calendar-heart', title: '預約', line: '和老師約好的時間都在這。',   href: '/bookings' },
   // 2026-11-25 選單重整：拿掉「我的」、購買紀錄改「訂單」（頁面標題已是會員中心）
   // 2026-11-25 Jeffery 拍板「會員中心整合」：加我的課程；我的訂單改名我的購買紀錄，連商城訂單（課程也在商城結帳）
   { icon: 'receipt',        title: '訂單', line: '法器和課程的付款、出貨狀態。', href: 'https://wp.winds.tw/my-account/orders/' },
   { icon: 'book-open-text', title: '課程', line: '上課進度和測驗紀錄都在這。', href: 'https://wp.winds.tw/%e6%8e%a7%e5%88%b6%e5%8f%b0/' },
-  { icon: 'sparkle',        title: '紫微命盤', line: '排好的本命盤，隨時回來看。', href: '/ziwei', wide: true },
+  { icon: 'sparkle',        title: '紫微命盤', line: '排好的本命盤，隨時回來看。', href: '/ziwei' },
+  // 2026-11-26 Jeffery：加合作分潤入口（Annie 以為 LINE 登入會員中心就算申請）；已是夥伴時下方腳本改字
+  { icon: 'share-network',  title: '合作分潤', line: '分享專屬連結，一起分潤。', href: '/partner', id: 'acPartner' },
 ];
 ---
 <BaseLayout
@@ -52,7 +54,7 @@ const entries: { icon: string; title: string; line: string; href: string; ext?: 
     <!-- 我的內容入口（2026-11-25 Jeffery 拍板：常用入口移到個人卡正下方，老師工作區、已連結的帳號放後面） -->
     <div class="ac-entries">
       {entries.map((e) => (
-        <a href={e.href} class={e.wide ? "ac-entry-link ac-wide" : "ac-entry-link"} target={e.ext ? '_blank' : undefined} rel={e.ext ? 'noopener' : undefined}>
+        <a href={e.href} id={e.id} class={e.wide ? "ac-entry-link ac-wide" : "ac-entry-link"} target={e.ext ? '_blank' : undefined} rel={e.ext ? 'noopener' : undefined}>
           <div class="ac-card ac-entry">
             <span class="ac-entry-icon"><i class={`ph-thin ph-${e.icon}`}></i></span>
             <div class="ac-entry-body">
@@ -230,6 +232,29 @@ const entries: { icon: string; title: string; line: string; href: string; ext?: 
   </style>
   <script is:inline src="/assets/line-login.js"></script>
   <script is:inline src="/assets/account-link.js?v=1125b"></script>
+  <script is:inline>
+    /* 合作分潤入口：已申請或已是夥伴就改字（連結不變，一樣到 /partner） */
+    (async function () {
+      var hs = [];
+      try {
+        var g = localStorage.getItem('winds_google_token'), l = localStorage.getItem('winds_line_token');
+        if (g) hs.push({ 'X-Google-Id-Token': g });
+        if (l) hs.push({ 'X-Line-Id-Token': l });
+      } catch (e) {}
+      for (var i = 0; i < hs.length; i++) {
+        var r = await fetch('https://api.winds.tw/partner/me', { headers: hs[i] }).catch(function () { return null; });
+        if (!r || !r.ok) continue;
+        var d = await r.json().catch(function () { return null; });
+        var st = d && d.success && d.status;
+        var a = document.getElementById('acPartner');
+        if (!a) return;
+        var t = a.querySelector('.ac-entry-title'), ln = a.querySelector('.ac-entry-line');
+        if (st === 'approved') { t.textContent = '我的分潤'; ln.textContent = '專屬連結和分潤都在這。'; }
+        else if (st === 'pending') { ln.textContent = '申請已送出，等候通知。'; }
+        if (st && st !== 'none') return;
+      }
+    })();
+  </script>
   <script is:inline>
     /* 老師工作區入口：用登入身分問一次預約後台，認得才顯示（客人回 401，整張卡不出現） */
     (async function () {
